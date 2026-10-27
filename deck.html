@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Day 1 · Intro to Computer Perception (working deck)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>/* cache-bust while editing, so nobody presents a stale file */
+document.write(`<link rel="stylesheet" href="deck/deck.css?v=${Date.now()}">`);
+document.write(`<script src="deck/engine.js?v=${Date.now()}"><\/script><script src="deck/order.js?v=${Date.now()}"><\/script>`);</script>
+</head>
+<body>
+<div id="root"></div>
+<div id="secbar"></div>
+<div id="hud"></div>
+<div id="notes"><div id="notes-body"></div></div>
+<script>
+/* WORKING deck: loads everyone's live drafts from parts/. Preview parts with ?only=intro,thanks */
+loadParts('parts', PARTS, {minutes: SEC_MINUTES});
+</script>
+</body>
+</html>

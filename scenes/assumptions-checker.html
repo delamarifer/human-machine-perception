@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The checker-shadow illusion, revealed</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../deck/deck.css">
+<style>
+  /* Owner: assumptions part. Pattern A (canvas over the real image). Works alone too. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .cap{ position:absolute; left:0; bottom:-1vh; }
+  .q{ position:absolute; right:0; top:30%; width:28%; opacity:0; transition:opacity .8s ease; }
+  .q.on{ opacity:1; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">What assumptions about the world shape vision?</h1>
+  <div class="stagebox">
+    <canvas id="cv"></canvas>
+    <div class="question q" id="q">Which square is darker, A or B?</div>
+    <div class="label cap" id="cap"></div>
+  </div>
+  <div class="cite">Checker-shadow illusion: Edward H. Adelson, 1995</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE     (0):   the title alone
+   ACT 1  ILLUSION  (1):   the image
+   ACT 2  QUESTION  (2):   rings on A and B, "which is darker?"
+   ACT 3  ISOLATE   (3):   everything but A and B fades away: the same gray
+   ACT 4  PROOF     (4):   a strip of that same gray joins them
+   ACT 5  BACK      (5):   the image returns with the strip: the shadow was doing the work
+
+   A and B are found at load by flood fill from a seed inside each square (both are RGB 120,120,120
+   in the file), so the reveal uses the image's real pixels. Seeds are fractions of the image. */
+const SEED_A = [.4842, .3377], SEED_B = [.4675, .5632], TOL = 12;
+const CAPS = ['', '', '', 'Same gray', 'Same gray', 'The visual system discounts the shadow'];
+const NOTES = [
+  "(draft) Title only. Vision is not a measuring device. It makes assumptions about the world.",
+  "(draft) Here is a famous illusion by Ted Adelson: a checkerboard, with a cylinder casting a shadow on it.",
+  "(draft) Look at the squares marked A and B. Which one is darker? Most people say A, clearly.",
+  "(draft) Now let's take away everything around them. A and B are exactly the same gray, the same pixel value in the image.",
+  "(draft) Joined by a strip of that same gray, there is no difference at all.",
+  "(draft) Put the scene back, and B looks light again. Your visual system assumes B sits in a shadow, and corrects for it: it reports the color of the surface, not the light reaching your eye. That is usually the right answer about the world, even though it is the wrong answer about the pixels."
+];
+const N = NOTES.length - 1;
+const LEVEL = b => ({fig: b >= 1 ? 1 : 0, rings: b === 2 ? 1 : 0, rest: b === 3 || b === 4 ? 0 : 1, strip: b >= 4 ? 1 : 0});
+
+let beat = 0, from = LEVEL(0), cur = LEVEL(0), t0 = 0;
+const DUR = 1300;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+function go(b, jump){
+  beat = b; from = {...cur}; t0 = performance.now() - (jump ? DUR : 0);
+  document.getElementById('cap').textContent = CAPS[b];
+  document.getElementById('q').classList.toggle('on', b === 2);
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+
+/* ---- masks of A and B from the real pixels ---- */
+const img = new Image(); img.src = '../assets/assumptions/checker-shadow.png';
+let IW = 1, IH = 1, maskA = null, maskB = null, boxA, boxB, GRAY = 'rgb(120,120,120)';
+img.onload = () => {
+  IW = img.naturalWidth; IH = img.naturalHeight;
+  const c = document.createElement('canvas'); c.width = IW; c.height = IH;
+  const x = c.getContext('2d'); x.drawImage(img, 0, 0);
+  const D = x.getImageData(0, 0, IW, IH);
+  const one = seed => {
+    const sx = Math.round(seed[0] * IW), sy = Math.round(seed[1] * IH), i0 = (sy * IW + sx) * 4;
+    const r0 = D.data[i0], g0 = D.data[i0+1], b0 = D.data[i0+2];
+    GRAY = `rgb(${r0},${g0},${b0})`;
+    const out = new ImageData(IW, IH), seen = new Uint8Array(IW * IH), st = [[sx, sy]];
+    let x0 = IW, x1 = 0, y0 = IH, y1 = 0;
+    while(st.length){
+      const [px, py] = st.pop(); if(px < 0 || py < 0 || px >= IW || py >= IH) continue;
+      const k = py * IW + px; if(seen[k]) continue; seen[k] = 1;
+      const i = k * 4, d = Math.abs(D.data[i] - r0) + Math.abs(D.data[i+1] - g0) + Math.abs(D.data[i+2] - b0);
+      if(d > TOL) continue;
+      out.data.set(D.data.subarray(i, i + 4), i);
+      x0 = Math.min(x0, px); x1 = Math.max(x1, px); y0 = Math.min(y0, py); y1 = Math.max(y1, py);
+      st.push([px+1, py], [px-1, py], [px, py+1], [px, py-1]);
+    }
+    const m = document.createElement('canvas'); m.width = IW; m.height = IH; m.getContext('2d').putImageData(out, 0, 0);
+    return [m, [(x0 + x1) / 2 / IW, (y0 + y1) / 2 / IH, (x1 - x0) / IW, (y1 - y0) / IH]];
+  };
+  [maskA, boxA] = one(SEED_A); [maskB, boxB] = one(SEED_B);
+};
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0, s = 1, ox = 0, oy = 0;
+function size(){
+  const d = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+}
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();
+  const p = ease(Math.min(1, (now - t0) / DUR)), T = LEVEL(beat);
+  for(const k in T) cur[k] = from[k] + (T[k] - from[k]) * p;
+  ctx.clearRect(0, 0, W, H);
+  s = Math.min(W * .68 / IW, H / IH); ox = (W * .68 - IW * s) / 2; oy = (H - IH * s) / 2;   // left two-thirds; the question sits right
+  const P = ([u, v]) => [ox + u * IW * s, oy + v * IH * s];
+  if(img.complete && maskA){
+    ctx.globalAlpha = cur.fig * cur.rest; ctx.drawImage(img, ox, oy, IW * s, IH * s);
+    ctx.globalAlpha = cur.fig; ctx.drawImage(maskA, ox, oy, IW * s, IH * s); ctx.drawImage(maskB, ox, oy, IW * s, IH * s);
+    if(cur.strip > .01){                                 // a strip of the same gray from A to B
+      const [ax, ay] = P(boxA), [bx, by] = P(boxB), w = IW * s * .045;
+      ctx.globalAlpha = cur.strip; ctx.fillStyle = GRAY;
+      ctx.beginPath(); ctx.moveTo(ax - w, ay); ctx.lineTo(ax + w, ay); ctx.lineTo(bx + w, by); ctx.lineTo(bx - w, by); ctx.closePath(); ctx.fill();
+    }
+    if(cur.rings > .01){
+      const pulse = .6 + .4 * Math.sin(now / 300);
+      [boxA, boxB].forEach(bx => { const [x, y] = P(bx);
+        ctx.globalAlpha = cur.rings * pulse; ctx.strokeStyle = '#b45309'; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.ellipse(x, y, bx[2] * IW * s * .62, bx[3] * IH * s * .75, 0, 0, 7); ctx.stroke(); });
+    }
+    ctx.globalAlpha = 1;
+  }
+  requestAnimationFrame(frame);
+}
+
+window.checkerShadow = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(N, true); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) checkerShadow.advance(); if(e.key === 'ArrowLeft') checkerShadow.back(); });
+  addEventListener('click', () => checkerShadow.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

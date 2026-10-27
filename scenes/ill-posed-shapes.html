@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Perception is ill-posed: one image, many 3D shapes</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../deck/deck.css">
+<style>
+  /* Owner: ill-posed part. Works alone too: open scenes/ill-posed-shapes.html and click. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; transition:opacity .9s ease, filter .9s ease; }
+  canvas.dim{ opacity:.22; filter:blur(2px); }
+  .cap{ position:absolute; left:0; bottom:-1vh; transition:opacity .6s ease; }
+  .pop{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(.96); opacity:0;
+    transition:opacity .9s ease, transform .9s ease; white-space:nowrap; }
+  .pop.on{ opacity:1; transform:translate(-50%,-50%); }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Perception is ill-posed</h1>
+  <div class="stagebox">
+    <canvas id="cv"></canvas>
+    <div class="label cap" id="cap"></div>
+    <div class="popquote pop" id="pop">One image, infinitely many 3D shapes</div>
+  </div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE      (0):   the title alone
+   ACT 1  THE IMAGE  (1):   a line drawing on the image plane, seen face-on (what the eye gets)
+   ACT 2  THE GAP    (2):   turn the view: each point could lie anywhere along its line of sight
+   ACT 3  SHAPES     (3-6): a cube; another shape; another; then they keep changing (infinitely many)
+   ACT 4  COLLAPSE   (7):   three shapes at once, turn back to the eye's view: they become one drawing
+   ACT 5  POINT      (8):   the statement, figure dimmed so it reads alone
+
+   Schematic, after the classic line-drawing figure (shown on the next slide). Depth values are
+   made up on purpose: the point is that ANY depths give the same image. */
+
+/* ---- geometry: the drawing is a hexagon with a "Y" inside (a cube seen corner-on) ---- */
+const HEX = [...Array(6)].map((_, k) => { const a = (90 + 60 * k) * Math.PI / 180; return [Math.cos(a), Math.sin(a)]; });
+const XY = [...HEX, [0, 0]];                            // 7 image points; index 6 is the centre
+const EDGES = [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[6,1],[6,3],[6,5]];
+/* depths (z, toward the viewer) for three interpretations of the same drawing */
+const CUBE   = [-.354, .354, -.354, .354, -.354, .354, 1.06];   // a real cube, corner toward us
+const SHAPE2 = [ .9, -.6, 1.2, .2, -1.0, .7, -.4];
+const SHAPE3 = [-.8, 1.0, -.2, -1.1, .6, -.5, 1.3];
+const PLANE_Z = -1.9;                                    // the image plane, behind the object
+const SIDE = {yaw: 52, pitch: 18}, FRONT = {yaw: 0, pitch: 0};
+const INK = '#0f172a', EARLY = '#38506e', SIGHT = '#94a3b8';
+const DUR = 1500, DUR_SLOW = 2600;                       // slower than feels right (practice-talk rule)
+
+const CAPS = ['', 'The image: a line drawing', 'Each point: anywhere along its line of sight',
+  'One 3D shape: a cube', 'Another 3D shape', 'And another', 'Infinitely many',
+  'All of them give the same image', ''];
+const NOTES = [
+  "(draft) Title only. Here is the first reason seeing is hard.",
+  "(draft) This is all the eye gets: a flat image. Here, a simple line drawing.",
+  "(draft) If we turn our view to the side, we can see the problem. The image tells us where each point is left-right and up-down, but not how far away it is. Each corner could be anywhere along its line of sight.",
+  "(draft) Most of us see a cube, and a cube is a perfectly good answer.",
+  "(draft) But this shape fits the same lines of sight just as well.",
+  "(draft) And so does this one.",
+  "(draft) In fact there are infinitely many 3D shapes consistent with this one drawing.",
+  "(draft) Turn back to the eye's point of view, and all of these shapes collapse onto exactly the same image.",
+  "(draft) So the problem is ill-posed: one image, infinitely many possible worlds. And yet we all saw a cube. The visual system has to choose, and it chooses using assumptions about the world."
+];
+const N = NOTES.length - 1;
+
+/* what each beat looks like when it has finished arriving */
+function target(b){
+  return {
+    view: b >= 2 && b <= 6 ? SIDE : FRONT,
+    plane: b >= 1 ? 1 : 0,
+    sight: b >= 2 && b <= 6 ? 1 : 0,
+    shape: b >= 3 && b <= 7 ? 1 : 0,
+    z: b <= 3 ? CUBE : b === 4 ? SHAPE2 : b === 5 ? SHAPE3 : b === 6 ? 'loop' : SHAPE3,
+    ghosts: b === 7 ? 1 : 0,
+  };
+}
+/* beat 6: depths keep changing, slowly (a loop inside one beat, never an advance) */
+const loopZ = t => XY.map((_, i) => 1.15 * Math.sin(t / 1400 * (0.6 + 0.13 * i) + i * 1.7));
+
+/* ---- state + transitions ---- */
+let beat = 0, from = null, t0 = 0, dur = DUR;
+let cur = {yaw: 0, pitch: 0, plane: 0, sight: 0, shape: 0, z: CUBE.slice(), ghosts: 0};
+const ease = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+const lerp = (a, b, p) => a + (b - a) * p;
+function go(b, jump){
+  beat = b; from = JSON.parse(JSON.stringify(cur)); t0 = performance.now();
+  dur = b === 7 ? DUR_SLOW : DUR;
+  if(jump) t0 -= dur;                                    // land in the finished state, never mid-move
+  document.getElementById('cap').textContent = CAPS[b];
+  document.getElementById('pop').classList.toggle('on', b === 8);
+  cv.classList.toggle('dim', b === 8);
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+function step(now){
+  const T = target(beat), p = ease(Math.min(1, (now - t0) / dur));
+  cur.yaw = lerp(from.yaw, T.view.yaw, p); cur.pitch = lerp(from.pitch, T.view.pitch, p);
+  for(const k of ['plane', 'sight', 'shape', 'ghosts']) cur[k] = lerp(from[k], T[k], p);
+  const tz = T.z === 'loop' ? loopZ(now) : T.z;
+  cur.z = cur.z.map((_, i) => lerp(from.z[i], tz[i], p));
+}
+
+/* ---- drawing ---- */
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0, S = 1;
+function size(){
+  const d = devicePixelRatio || 1;
+  W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+  S = Math.min(W, H) / 5.2;
+}
+addEventListener('resize', size);
+function proj([x, y, z]){
+  const a = cur.yaw * Math.PI / 180, b = cur.pitch * Math.PI / 180;
+  const x1 = x * Math.cos(a) + z * Math.sin(a), z1 = -x * Math.sin(a) + z * Math.cos(a);
+  const y1 = y * Math.cos(b) - z1 * Math.sin(b);
+  return [W / 2 + x1 * S, H / 2 - y1 * S];
+}
+function poly(pts3, color, width, alpha, dash){
+  ctx.save(); ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = 'round';
+  ctx.setLineDash(dash || []);
+  EDGES.forEach(([i, j]) => { const a = proj(pts3[i]), b = proj(pts3[j]); ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.stroke(); });
+  ctx.restore();
+}
+function draw(){
+  ctx.clearRect(0, 0, W, H);
+  if(cur.plane > .01){                                   // image plane with the drawing on it
+    const c = [[-1.7,-1.5],[1.7,-1.5],[1.7,1.5],[-1.7,1.5]].map(([x, y]) => proj([x, y, PLANE_Z]));
+    ctx.save(); ctx.globalAlpha = cur.plane; ctx.fillStyle = '#f8fafc'; ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2;
+    ctx.beginPath(); c.forEach((p, k) => k ? ctx.lineTo(...p) : ctx.moveTo(...p)); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
+    poly(XY.map(([x, y]) => [x, y, PLANE_Z]), INK, 3.5, cur.plane);
+  }
+  if(cur.sight > .01){                                   // lines of sight through each image point
+    ctx.save(); ctx.globalAlpha = cur.sight * .9; ctx.strokeStyle = SIGHT; ctx.lineWidth = 1.6; ctx.setLineDash([6, 6]);
+    XY.forEach(([x, y]) => { const a = proj([x, y, PLANE_Z]), b = proj([x, y, 1.9]); ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.stroke(); });
+    ctx.restore();
+  }
+  if(cur.ghosts > .01) [CUBE, SHAPE2].forEach(z => poly(XY.map(([x, y], i) => [x, y, z[i]]), EARLY, 3, cur.ghosts * .45));
+  if(cur.shape > .01){
+    const P = XY.map(([x, y], i) => [x, y, cur.z[i]]);
+    poly(P, EARLY, 4.5, cur.shape);
+    ctx.save(); ctx.globalAlpha = cur.shape; ctx.fillStyle = EARLY;
+    P.forEach(p => { const [u, v] = proj(p); ctx.beginPath(); ctx.arc(u, v, 5, 0, 7); ctx.fill(); }); ctx.restore();
+  }
+}
+function frame(now){ if(cv.clientWidth !== W || cv.clientHeight !== H) size();   // the deck preloads scenes hidden (size 0)
+  step(now); draw(); requestAnimationFrame(frame); }
+
+window.illPosed = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(N, true); },          // stepping BACK into the slide lands fully built
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) illPosed.advance(); if(e.key === 'ArrowLeft') illPosed.back(); });
+  addEventListener('click', () => illPosed.advance());
+}
+size(); go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

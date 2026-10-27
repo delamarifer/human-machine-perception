@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>How the brain solves this: from the eye to two streams</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../deck/deck.css">
+<style>
+  /* Owner: visual-system part. Pattern A (canvas overlay on a real figure). Works alone too. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .cap{ position:absolute; left:0; bottom:-1vh; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">How the brain solves this</h1>
+  <div class="stagebox">
+    <canvas id="cv"></canvas>
+    <div class="label cap" id="cap"></div>
+  </div>
+  <div class="cite">Figure source: to add</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE    (0):   the title alone
+   ACT 1  FIGURE   (1):   the visual pathways figure
+   ACT 2  EARLY    (2):   retina -> LGN -> V1, a pulse travelling along it
+   ACT 3  VENTRAL  (3):   V1 -> V4 -> IT, "what"; the early path stays, dimmed
+   ACT 4  DORSAL   (4):   V1 -> V3A -> V6 / MST -> parietal (SPL, IPL), "where / how"
+   ACT 5  BOTH     (5):   both streams at equal weight
+
+   Node centres were DETECTED from the image (flood fill of each white node, centre of its
+   bounding box), not eyeballed. Fractions of the image width / height. */
+const IMG_W = 736, IMG_H = 529;
+const NODE = {
+  Retina: [.100, .640], LGN: [.495, .512], V1: [.861, .606], V4: [.678, .663], IT: [.382, .744],
+  V3A: [.825, .472], V6: [.790, .373], MST: [.688, .481], IPL: [.591, .341], SPL: [.693, .242],
+};
+const PATHS = {
+  early:   [['Retina', 'LGN', 'V1']],
+  what:    [['V1', 'V4', 'IT']],
+  where:   [['V1', 'V3A', 'V6', 'SPL'], ['V3A', 'MST', 'IPL']],
+};
+/* the talk's colors: slate-blue = eye to V1, plum = "what", pine = "where / how" (deck.css) */
+const COL = {early: [56, 80, 110], what: [122, 94, 160], where: [63, 115, 87]};
+const LABELS = {what: ['what', .72], where: ['where / how', .30]};   // label text, height (fraction of image)
+
+const CAPS = ['', '', 'Eye → LGN → V1', 'Ventral stream', 'Dorsal stream', 'Two streams'];
+const NOTES = [
+  "(draft) Title only. So how does the brain manage it?",
+  "(draft) Here is a map of the main visual pathways, drawn on the side of the brain.",
+  "(draft) Light lands on the retina. The signal travels through the LGN, in the thalamus, to primary visual cortex, V1, at the back of the head.",
+  "(draft) From V1, one stream runs down and forward, through V4 to inferotemporal cortex, IT. This ventral stream is often called the 'what' pathway: recognizing objects.",
+  "(draft) A second stream runs up into parietal cortex. This dorsal stream is often called the 'where' or 'how' pathway: locating things and guiding action.",
+  "(draft) Two streams working together. Next slide: more detail on what each stage computes."
+];
+const N = NOTES.length - 1;
+
+/* per beat: how strongly each layer shows. Established layers sit at a constant lower level, never off. */
+const LEVEL = b => ({
+  fig:   b >= 1 ? 1 : 0,
+  early: b === 2 ? 1 : b >= 3 ? .34 : 0,
+  what:  b === 3 || b === 5 ? 1 : b === 4 ? .34 : 0,
+  where: b >= 4 ? 1 : 0,
+});
+const ACTIVE = b => b === 2 ? ['early'] : b === 3 ? ['what'] : b === 4 ? ['where'] : b === 5 ? ['what', 'where'] : [];
+
+let beat = 0, from = LEVEL(0), cur = LEVEL(0), t0 = 0;
+const DUR = 1200;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+function go(b, jump){
+  beat = b; from = {...cur}; t0 = performance.now() - (jump ? DUR : 0);
+  document.getElementById('cap').textContent = CAPS[b];
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+
+const img = new Image(); img.src = '../assets/visual-system/pathways.png';
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0, s = 1, ox = 0, oy = 0;
+function size(){
+  const d = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+  s = Math.min(W / IMG_W, H / IMG_H); ox = (W - IMG_W * s) / 2 - W * .06; oy = (H - IMG_H * s) / 2;   // nudged left: room for labels
+}
+const P = ([u, v]) => [ox + u * IMG_W * s, oy + v * IMG_H * s];
+const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+
+function glow(x, y, r, c, a){
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, rgba(c, .55 * a)); g.addColorStop(.6, rgba(c, .25 * a)); g.addColorStop(1, rgba(c, 0));
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+}
+function along(pts, f){                                  // point at fraction f along a polyline
+  const seg = pts.slice(1).map((p, i) => Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]));
+  let d = f * seg.reduce((a, b) => a + b, 0);
+  for(let i = 0; i < seg.length; i++){ if(d <= seg[i]){ const t = d / seg[i];
+    return [pts[i][0] + (pts[i+1][0] - pts[i][0]) * t, pts[i][1] + (pts[i+1][1] - pts[i][1]) * t]; } d -= seg[i]; }
+  return pts[pts.length - 1];
+}
+function layer(name, a, active, now){
+  if(a < .01) return;
+  const c = COL[name], R = IMG_W * s * .075;
+  PATHS[name].forEach(path => {
+    const pts = path.map(n => P(NODE[n]));
+    ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = rgba(c, .9); ctx.lineWidth = Math.max(6, 12 * s); ctx.lineCap = ctx.lineJoin = 'round';
+    ctx.beginPath(); pts.forEach((p, k) => k ? ctx.lineTo(...p) : ctx.moveTo(...p)); ctx.stroke(); ctx.restore();
+    path.forEach(n => glow(...P(NODE[n]), R, c, a));
+    if(active){                                          // a pulse travelling the path, looping slowly within the beat
+      const f = (now / 2400) % 1, [x, y] = along(pts, f);
+      glow(x, y, R * .8, c, 1); glow(x, y, R * .25, [255, 255, 255], 1);
+    }
+  });
+  if(LABELS[name]){                                      // ink label with a color swatch, outside the figure
+    const [txt, v] = LABELS[name], x = ox + IMG_W * s + W * .025, y = oy + v * IMG_H * s;
+    ctx.save(); ctx.globalAlpha = Math.min(1, a * 1.4);
+    ctx.fillStyle = rgba(c, 1); ctx.beginPath(); ctx.arc(x + 9, y - 9, 9, 0, 7); ctx.fill();
+    ctx.fillStyle = '#0f172a'; ctx.font = `700 ${Math.max(20, W * .022)}px Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif`;
+    ctx.textBaseline = 'alphabetic'; ctx.fillText(txt, x + 28, y); ctx.restore();
+  }
+}
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();   // the deck preloads scenes hidden (size 0)
+  const p = ease(Math.min(1, (now - t0) / DUR)), T = LEVEL(beat);
+  for(const k in T) cur[k] = from[k] + (T[k] - from[k]) * p;
+  ctx.clearRect(0, 0, W, H);
+  if(img.complete && cur.fig > .01){ ctx.globalAlpha = cur.fig; ctx.drawImage(img, ox, oy, IMG_W * s, IMG_H * s); ctx.globalAlpha = 1; }
+  ['early', 'what', 'where'].forEach(k => layer(k, cur[k], ACTIVE(beat).includes(k), now));
+  requestAnimationFrame(frame);
+}
+
+window.visualStreams = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(N, true); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) visualStreams.advance(); if(e.key === 'ArrowLeft') visualStreams.back(); });
+  addEventListener('click', () => visualStreams.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

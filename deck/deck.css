@@ -1,0 +1,106 @@
+/* Deck style. One type scale for the whole talk: use these classes, not ad-hoc sizes.
+   Change the font and colors here once; every slide follows. */
+:root{
+  --ink:#0f172a; --mute:#64748b; --line:#e2e8f0; --bg:#ffffff;
+  --accent:#4f6d9a;                 /* data color only: never color words */
+  --font:'Calibri', 'Carlito', 'Helvetica Neue', Arial, sans-serif;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html, body{ height:100%; overflow:hidden; background:var(--bg); color:var(--ink); font-family:var(--font); }
+
+#root{ position:fixed; inset:0; }
+.slide{ position:absolute; inset:0; display:none; }
+.slide.active{ display:block; }
+.stage{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2.4vh; }
+.scenehost iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; display:none; background:#fff; }
+.scenehost iframe.shown{ display:block; }
+
+/* ---- type scale ---- */
+h1.t{ font-size:clamp(1.8rem, 3.5vw, 3rem); font-weight:700; line-height:1.08; }
+.statement{ font-size:clamp(1.8rem, 3vw, 2.8rem); line-height:1.25; }         /* the slide's one message */
+.question{ font-size:clamp(1.8rem, 3vw, 2.8rem); font-weight:700; font-style:italic; }
+.lead, ul.frag li{ font-size:clamp(1.5rem, 2.5vw, 2.3rem); line-height:1.35; }
+.label{ font-size:clamp(1.1rem, 1.6vw, 1.5rem); color:var(--ink); }
+.cite{ position:absolute; left:6vw; bottom:6vh; font-size:clamp(1rem, 1.3vw, 1.35rem); color:var(--ink); }
+.popquote{ font-size:clamp(2.2rem, 3.6vw, 3.3rem); font-weight:700; text-align:center; padding:.6em 1em;
+  background:rgba(255,255,255,.92); box-shadow:0 0 40px 30px rgba(255,255,255,.92); border-radius:1em; }
+.center{ margin:auto; text-align:center; }
+ul.frag{ list-style:none; display:flex; flex-direction:column; gap:1.6vh; }
+
+/* ---- builds: everything with .b appears on a click ---- */
+.b{ opacity:0; transform:translateY(8px); transition:opacity .6s ease, transform .6s ease; }
+.b.shown{ opacity:1; transform:none; }
+
+/* ---- figures ---- */
+.fig{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; align-items:center; gap:1vh; }
+.well{ flex:1 1 auto; min-height:0; width:100%; display:flex; align-items:center; justify-content:center; }
+.well > img{ max-width:100%; max-height:100%; object-fit:contain; }
+.fw{ position:relative; }
+.fw img{ width:100%; height:100%; display:block; }
+.fw .cov{ position:absolute; background:#fff; }
+.fw .cov.b{ opacity:1; transform:none; transition:opacity .7s ease; }
+.fw .cov.b.shown{ opacity:0; }
+.fw .ring{ position:absolute; border:3px solid #d97706; border-radius:8px; animation:ring 1.6s ease-in-out infinite; }
+.fw .dim{ position:absolute; background:rgba(255,255,255,.75); }
+@keyframes ring{ 50%{ box-shadow:0 0 0 6px rgba(217,119,6,.25); } }
+
+/* ---- white lead-in ---- */
+body.preblank #root .slide.active, body.preblank .scenehost{ visibility:hidden; }
+
+/* ---- chrome: progress bar (top), slide number, notes panel ---- */
+#secbar{ position:fixed; top:14px; left:6vw; right:6vw; display:flex; gap:6px; z-index:50; pointer-events:none; }
+#secbar span{ flex:1 1 0; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--mute);
+  padding-top:7px; position:relative; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#secbar span::before{ content:''; position:absolute; left:0; right:0; top:0; height:3px; background:var(--line); border-radius:2px; }
+#secbar span.done::before{ background:#94a3b8; }
+#secbar span.active{ color:var(--ink); font-weight:700; }
+#secbar span.active::after{ content:''; position:absolute; left:0; top:0; height:3px; border-radius:2px; background:var(--ink);
+  width:calc(var(--p, 0) * 100%); transition:width .3s ease; }
+#hud{ position:fixed; left:14px; bottom:10px; font-size:12px; color:var(--mute); z-index:50; font-variant-numeric:tabular-nums; }
+#notes{ position:fixed; left:0; right:0; bottom:0; max-height:34vh; overflow:auto; background:#0f172a; color:#cbd5e1;
+  padding:14px 6vw; font-size:17px; line-height:1.5; z-index:60; display:none; }
+#notes.shown{ display:block; }
+#notes p{ margin:.3em 0; opacity:.45; } #notes p.cur{ opacity:1; color:#fff; } #notes p.past{ opacity:.3; }
+
+/* ---- gap slide in the final deck (a part not pushed yet) ---- */
+.gap{ margin:auto; border:2px dashed var(--line); border-radius:16px; padding:6vh 6vw; color:var(--mute); text-align:center; }
+
+/* ================= Day 1 additions ================= */
+:root{
+  /* color means the same thing all class long (data/annotation only, never words) */
+  --early:#38506e;    /* slate-blue: eye to V1, and 3D interpretations */
+  --what:#7a5ea0;     /* plum: ventral stream ("what") */
+  --where:#3f7357;    /* pine: dorsal stream ("where / how") */
+}
+
+/* placeholder for content you still have to write: visible on purpose, so nothing ships half-done */
+.todo{ border:2px dashed #cbd5e1; border-radius:14px; padding:1.4vh 1.4vw; color:var(--mute);
+  font-size:clamp(1rem, 1.4vw, 1.3rem); line-height:1.35; background:#f8fafc; }
+.todo::before{ content:'TO DO  '; font-weight:700; letter-spacing:.06em; color:#b45309; }
+
+/* two columns: a photo and a list */
+.cols{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1.5fr; gap:4vw; align-items:center; }
+.photo{ aspect-ratio:1; width:min(26vw, 52vh); border-radius:50%; background:#e2e8f0; overflow:hidden; margin:auto;
+  display:flex; align-items:center; justify-content:center; color:var(--mute); font-size:clamp(1rem,1.3vw,1.2rem); }
+.photo img{ width:100%; height:100%; object-fit:cover; }
+
+/* labelled tiles (applications grid, then-vs-now) */
+.tiles{ flex:1 1 auto; min-height:0; display:grid; gap:2vh 2vw; }
+.tile{ min-height:0; display:flex; flex-direction:column; gap:.8vh; }
+.tile .im{ flex:1 1 auto; min-height:0; border-radius:10px; overflow:hidden; background:#f1f5f9; }
+.tile .im img{ width:100%; height:100%; object-fit:cover; display:block; }
+.tile .label{ text-align:center; font-weight:700; }
+
+/* a row of steps joined by arrows (a class day, a pipeline) */
+.flow{ display:flex; align-items:stretch; gap:1.2vw; margin:auto 0; }
+.flow .step{ flex:1 1 0; border:2px solid var(--ink); border-radius:14px; padding:2.4vh 1vw; text-align:center; }
+.flow .step b{ display:block; font-size:clamp(1.4rem, 2.2vw, 2rem); }
+.flow .step span{ display:block; margin-top:.8vh; }
+.flow .arrow{ align-self:center; font-size:clamp(1.6rem, 2.6vw, 2.4rem); color:var(--mute); }
+
+/* detector boxes drawn over a photo (kept in the original slide colors) */
+.fw .det{ position:absolute; border:4px solid var(--c); }
+.fw .det > i{ position:absolute; left:-4px; top:-4px; background:var(--c); color:#000; font-style:normal; font-weight:700;
+  font-size:clamp(1rem, 1.6vw, 1.5rem); padding:.05em .4em; }
+.fw .det.b{ transform:scale(.97); }
+.fw .det.b.shown{ transform:none; }

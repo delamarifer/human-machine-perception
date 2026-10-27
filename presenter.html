@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Presenter view</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  /* Opened with P from the deck. Left: the live slide, timer, where you are, and the upcoming
+     slides. Right: the script, with the passage for THIS click bright. E edits the script.
+     Arrow keys here drive the audience deck. */
+  :root{ --bg:#0b1220; --hi:#f8fafc; --mid:#94a3b8; --lo:#475569; --line:#1e293b; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html, body{ height:100%; overflow:hidden; background:var(--bg); color:var(--hi);
+    font:16px/1.5 Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif; }
+  #pv{ position:fixed; inset:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:24px; padding:20px; }
+  .left, .right{ display:flex; flex-direction:column; gap:10px; min-height:0; min-width:0; }
+  .lab{ font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--mid); }
+  .shot{ position:relative; aspect-ratio:16/9; width:100%; background:#fff; border-radius:6px; overflow:hidden; }
+  .shot iframe{ position:absolute; left:0; top:0; width:1600px; height:900px; border:0; transform-origin:0 0; pointer-events:none; }
+  #box{ flex:0 1 auto; max-height:46vh; aspect-ratio:16/9; width:auto; }
+  .clock{ display:flex; align-items:baseline; gap:16px; }
+  #timer{ font-size:52px; font-weight:700; line-height:1; font-variant-numeric:tabular-nums; cursor:pointer; user-select:none; }
+  #timer.paused{ color:var(--lo); }
+  .sm{ color:var(--mid); font-size:15px; font-variant-numeric:tabular-nums; }
+  #pos{ font-size:24px; font-weight:700; } #sec{ color:var(--mid); }
+  button{ font:inherit; font-size:13px; color:var(--hi); background:transparent; border:1px solid #334155; border-radius:6px; padding:2px 10px; cursor:pointer; }
+  button:hover{ border-color:var(--mid); }
+  /* upcoming strip: browse ahead without moving the audience's slide */
+  .uphead{ display:flex; align-items:center; gap:8px; }
+  .uphead .tip{ margin-left:auto; color:var(--lo); font-size:12px; }
+  #strip{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; }
+  #strip .th{ cursor:pointer; min-width:0; }
+  #strip .th .shot{ box-shadow:0 0 0 1px var(--line); }
+  #strip .th:hover .shot{ box-shadow:0 0 0 2px var(--mid); }
+  #strip .cap{ font-size:13px; color:var(--mid); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #strip .cap b{ color:var(--hi); margin-right:.35em; }
+  #strip.off{ display:none; }
+  /* script */
+  .ebar{ display:flex; align-items:center; gap:10px; }
+  #ecount{ color:var(--mid); font-size:13px; }
+  #title{ font-size:24px; font-weight:700; line-height:1.2; }
+  #script{ flex:1 1 auto; overflow:auto; font-size:22px; line-height:1.5; padding-right:8px; }
+  #script p{ margin:.5em 0; color:var(--lo); transition:color .2s; border-radius:6px; }
+  #script p.past{ color:#334155; }
+  #script p.cur{ color:var(--hi); }
+  #script p .k{ font-size:12px; color:var(--mid); margin-right:.6em; user-select:none; }
+  #script p.edited .t{ border-bottom:2px dotted #f59e0b; }
+  #script p .old{ display:block; font-size:13px; color:#f59e0b; }
+  body.editing #script p .t{ outline:1px dashed #334155; outline-offset:3px; cursor:text; }
+  body.editing #script p .t:focus{ outline:2px solid #f59e0b; color:var(--hi); }
+  .keys{ color:var(--mid); font-size:12px; }
+  .keys kbd{ background:var(--line); border-radius:3px; padding:0 5px; color:#cbd5e1; font-family:inherit; }
+  #toast{ position:fixed; right:20px; bottom:20px; background:#1e293b; padding:8px 14px; border-radius:8px; display:none; }
+  #wait{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:var(--bg); color:var(--mid); font-size:20px; text-align:center; padding:40px; z-index:9; }
+</style>
+<script src="deck/edits.js"></script>
+</head>
+<body>
+<div id="pv">
+  <div class="left">
+    <div class="lab">Now · what the audience sees</div>
+    <div id="box" class="shot"><iframe id="mirror" tabindex="-1"></iframe></div>
+    <div class="clock"><span id="timer" title="click: pause · double-click: reset">0:00</span>
+      <span class="sm" id="onslide"></span><span class="sm" id="wall"></span></div>
+    <div><span id="pos"></span> <span id="sec"></span></div>
+    <div class="uphead"><span class="lab">Upcoming</span>
+      <button id="upPrev" title="look back ( [ )">‹</button><button id="upNext" title="look ahead ( ] )">›</button>
+      <button id="upNow">Back to current</button>
+      <span class="tip">double-click a slide to jump there · U hides</span></div>
+    <div id="strip"></div>
+    <div class="keys"><kbd>→</kbd> next · <kbd>←</kbd> back · <kbd>E</kbd> edit script · <kbd>[</kbd> <kbd>]</kbd> browse · timer: click to pause</div>
+  </div>
+  <div class="right">
+    <div class="lab">Script · the bright passage is this click</div>
+    <div class="ebar"><button id="etoggle">Edit script (E)</button><span id="ecount"></span>
+      <button id="ecopy" style="margin-left:auto">Copy my edits</button></div>
+    <div id="title"></div>
+    <div id="script"></div>
+  </div>
+</div>
+<div id="toast"></div>
+<div id="wait">Open this from the deck: press P in deck.html or final.html.<br>(Both windows on the same computer, same browser.)</div>
+<script>
+const $ = s => document.querySelector(s);
+const ch = new BroadcastChannel('talk-deck');
+const esc = t => String(t).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const toast = t => { const e = $('#toast'); e.textContent = t; e.style.display = 'block'; clearTimeout(toast.h); toast.h = setTimeout(() => e.style.display = 'none', 2500); };
+
+/* which deck we present (working or final): from the window that opened us */
+const deckHref = (() => { try{ return opener.location.href; }catch(e){ return new URL('deck.html', location.href).href; } })();
+const DECK = new URL(deckHref).pathname.split('/').pop().replace('.html', '') || 'deck';
+const deckUrl = extra => { const u = new URL(deckHref); u.hash = ''; u.searchParams.set('mirror', '1');
+  Object.entries(extra || {}).forEach(([k, v]) => u.searchParams.set(k, v)); return u.href; };
+
+/* scale 1600×900 iframes into their boxes */
+const fitAll = () => document.querySelectorAll('.shot').forEach(b => { const f = b.querySelector('iframe'); if(f) f.style.transform = `scale(${b.clientWidth / 1600})`; });
+addEventListener('resize', fitAll);
+$('#mirror').src = deckUrl();
+
+/* timer */
+let t0 = null, paused = false, pausedAt = 0, slideT0 = Date.now(), lastSlide = -1;
+const fmt = ms => { const s = Math.floor(ms / 1000); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+setInterval(() => {
+  const now = Date.now();
+  $('#timer').textContent = t0 ? fmt((paused ? pausedAt : now) - t0) : '0:00';
+  $('#onslide').textContent = 'this slide ' + fmt(now - slideT0);
+  $('#wall').textContent = new Date().toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'});
+}, 250);
+$('#timer').onclick = () => { if(!t0){ t0 = Date.now(); return; } if(paused){ t0 += Date.now() - pausedAt; paused = false; } else { paused = true; pausedAt = Date.now(); } $('#timer').classList.toggle('paused', paused); };
+$('#timer').ondblclick = () => { t0 = null; paused = false; $('#timer').classList.remove('paused'); };
+
+/* upcoming strip: three thumbnails, each a frozen copy of the deck at one slide */
+let st = null, follow = true, vs = 0, stripOn = true;
+try{ stripOn = localStorage.getItem('talk-upcoming') !== '0'; }catch(e){}
+const thumbs = [0, 1, 2].map(() => { const d = document.createElement('div'); d.className = 'th';
+  d.innerHTML = '<div class="shot"><iframe tabindex="-1" loading="lazy"></iframe></div><div class="cap"></div>'; $('#strip').appendChild(d); return d; });
+function renderStrip(){
+  $('#strip').classList.toggle('off', !stripOn);
+  if(!st || !stripOn) return;
+  if(follow) vs = st.cur + 1;
+  vs = Math.max(0, Math.min(vs, st.n - 1));
+  $('#upNow').style.visibility = follow ? 'hidden' : 'visible';
+  thumbs.forEach((d, j) => {
+    const i = vs + j, f = d.querySelector('iframe');
+    d.style.visibility = i < st.n ? 'visible' : 'hidden'; if(i >= st.n) return;
+    const want = deckUrl({at: i + 1});
+    if(f.dataset.want !== want){ f.dataset.want = want; f.src = want; }
+    d.dataset.i = i;
+    d.querySelector('.cap').innerHTML = `<b>${esc(st.labels[i])}</b>` + (i === st.cur ? 'now' : '');
+    d.ondblclick = () => ch.postMessage({type: 'cmd', cmd: 'goto', i});
+  });
+  fitAll();
+}
+const browse = dd => { if(!st) return; follow = false; vs += dd; renderStrip(); };
+$('#upPrev').onclick = () => browse(-1); $('#upNext').onclick = () => browse(+1);
+$('#upNow').onclick = () => { follow = true; renderStrip(); };
+const toggleStrip = () => { stripOn = !stripOn; try{ localStorage.setItem('talk-upcoming', stripOn ? '1' : '0'); }catch(e){} renderStrip(); };
+
+/* script, with edits */
+let editing = false, lastKey = '';
+function renderScript(){
+  if(!st) return;
+  const k = Math.min(st.beat, st.notes.length - 1);
+  $('#title').textContent = st.title || '';
+  $('#script').innerHTML = st.notes.map((p, j) => {
+    const a = Edits.apply(DECK, st.label, j, p);
+    return `<p data-j="${j}" class="${j === k ? 'cur' : j < k ? 'past' : ''} ${a.edited ? 'edited' : ''}">` +
+      `<span class="k">${j === 0 ? 'title' : 'click ' + j}${a.outdated ? ' · edit outdated' : ''}</span>` +
+      `<span class="t" ${editing ? 'contenteditable="plaintext-only"' : ''}>${a.edited ? esc(a.text) : (p || '')}</span>` +
+      (a.edited && editing ? `<span class="old">was: ${esc(Edits.plain(p))}</span>` : '') + '</p>';
+  }).join('');
+  if(!st.notes.join('').trim() && !editing) $('#script').innerHTML += '<p class="cur"><i>(no notes on this slide)</i></p>';
+  $('#script').querySelectorAll('.t[contenteditable]').forEach(t => {
+    const save = () => { const j = +t.parentNode.dataset.j;
+      Edits.set(DECK, st.label, j, st.notes[j], t.innerText, st.title); edCount(); };
+    t.addEventListener('input', save);   // saved as you type
+    t.addEventListener('blur', save);
+    t.addEventListener('keydown', e => { e.stopPropagation(); if(e.key === 'Escape') t.blur(); });
+  });
+  const c = $('#script p.cur'); if(c && !editing) c.scrollIntoView({block: 'center', behavior: 'smooth'});
+}
+const edCount = () => { const n = Edits.count(DECK); $('#ecount').textContent = n ? `${n} edit${n > 1 ? 's' : ''} saved in this browser` : ''; };
+const setEditing = v => { if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  editing = v; lastKey = ''; document.body.classList.toggle('editing', v); $('#etoggle').textContent = v ? 'Done editing (E)' : 'Edit script (E)'; renderScript(); };
+$('#etoggle').onclick = () => setEditing(!editing);
+$('#ecopy').onclick = async () => { const t = Edits.report(DECK);
+  try{ await navigator.clipboard.writeText(t); toast('Copied. Paste it to Claude to update the slides.'); }
+  catch(e){ prompt('Copy this:', t); } };
+edCount();
+
+ch.onmessage = e => {
+  const m = e.data; if(!m || m.type !== 'state') return;
+  $('#wait').style.display = 'none';
+  if(!t0 && (m.cur > 0 || m.beat > 0)) t0 = Date.now();   // the clock starts on your first click
+  if(m.cur !== lastSlide){ lastSlide = m.cur; slideT0 = Date.now(); }
+  const slideChanged = !st || st.cur !== m.cur;
+  st = m;
+  $('#pos').textContent = m.label + (m.blank ? ' · white lead-in' : '');
+  $('#sec').textContent = m.sec || '';
+  const key = m.cur + ':' + m.beat + ':' + m.notes.join('|');
+  if(key !== lastKey && !(editing && !slideChanged)){ lastKey = key; renderScript(); }   // never re-render under your cursor
+  else if(editing && slideChanged){ lastKey = key; renderScript(); }
+  renderStrip();
+};
+addEventListener('keydown', e => {
+  if(e.target.isContentEditable) return;
+  if(['ArrowRight', ' ', 'Enter', 'PageDown'].includes(e.key)){ e.preventDefault(); ch.postMessage({type: 'cmd', cmd: 'fwd'}); }
+  else if(['ArrowLeft', 'PageUp'].includes(e.key)){ e.preventDefault(); ch.postMessage({type: 'cmd', cmd: 'bwd'}); }
+  else if(e.key === 'e' || e.key === 'E') setEditing(!editing);
+  else if(e.key === 'u' || e.key === 'U') toggleStrip();
+  else if(e.key === '[') browse(-1);
+  else if(e.key === ']') browse(+1);
+});
+fitAll();
+ch.postMessage({type: 'cmd', cmd: 'hello'});
+setTimeout(() => ch.postMessage({type: 'cmd', cmd: 'hello'}), 1500);   // after the mirror has loaded
+</script>
+</body>
+</html>

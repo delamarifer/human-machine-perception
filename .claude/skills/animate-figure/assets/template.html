@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FIGURE TITLE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0f172a; --body:#334155; --muted:#64748b; --border:#e2e8f0;
+    --blue:#38506e; --purple:#7a5ea0; --green:#3f7357; --amber:#b45309; --red:#dc2626;
+    --serif:'Fraunces', Georgia, serif;
+    --sans:'Helvetica Neue', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    background:#fff; color:var(--body); font-family:var(--sans);
+    display:flex; flex-direction:column; overflow:hidden;
+    cursor:pointer; user-select:none; -webkit-user-select:none;
+  }
+  #stage{ flex:1 1 auto; min-height:0; position:relative; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+
+  /* DOM caption/label layer over the canvas (Pattern B elements live here too) */
+  #overlay{ position:absolute; inset:0; pointer-events:none; }
+  #overlay [data-step]{ opacity:0; transform:translateY(10px);
+                        transition:opacity .5s ease, transform .5s ease; }
+  #overlay [data-step].shown{ opacity:1; transform:none; }
+
+  footer{ flex:0 0 auto; padding:0.4rem 2rem 1.1rem; display:flex; justify-content:flex-end; }
+  #dots{ display:flex; gap:0.45rem; }
+  .dot{ width:8px; height:8px; border-radius:50%;
+        background:#fff; border:1.5px solid #cbd5e1;
+        transition:background 200ms, border-color 200ms; }
+  .dot.on{ background:var(--ink); border-color:var(--ink); }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <canvas id="cv"></canvas>
+    <div id="overlay">
+      <!-- DOM elements revealed by beat, e.g.:
+      <p style="position:absolute;left:6%;top:8%" data-step="1">A short label</p> -->
+    </div>
+  </div>
+  <footer><div id="dots"></div></footer>
+
+<script>
+// ═══ WHAT THIS SLIDE SHOWS ═══════════════════════════════════════════════════
+// One paragraph: the mechanism, and what the audience should walk away with.
+//
+// ACT STRUCTURE (write this before any draw code):
+//   Phase 0 — ...
+//   Phase 1 — ...
+//
+// COLOR CODE: green = ... | gold = ... | purple = ...
+//
+// Deck hook: window.figureSlide = {advance, back, atStart, atEnd, reset, resetToEnd}
+(function(){
+  'use strict';
+
+  const SLIDE_NAME = 'figureSlide';        // window.<this> — rename per figure
+  const IMG_SRC = 'images/FIGURE.jpg';     // '' for a pure Pattern B (no base image)
+  const IMG_W = 2392, IMG_H = 1375;        // native px — sets the aspect ratio
+
+  const PHASE_LABEL = [
+    'first thing that happens',
+    'second thing',
+  ];
+  const N_PHASES = PHASE_LABEL.length;
+  const PHASE_MS = [2600, 1800];           // build duration per phase
+
+  // ── anchors, normalized [0,1] over the figure ──────────────────────────────
+  // Detect these from the image (see references/canvas-overlay.md), don't eyeball.
+  const NODE_X = [0.299, 0.376, 0.452, 0.529, 0.605, 0.682, 0.758];
+  const NODE_V = 0.377;
+  const NODES  = NODE_X.map(u => ({u, v:NODE_V}));
+  const BOXES  = [ /* [u0,v0,u1,v1] per cabinet */ ];
+
+  // ── palette (canvas glows, RGB triples) ───────────────────────────────────
+  const GREEN=[104,168,52], GOLD=[255,208,90], PURPLE=[150,150,220],
+        WHITE=[235,255,255], CORAL=[255,130,70],
+        CH_L=[40,105,245], CH_R=[235,44,44];
+
+  // ── state ─────────────────────────────────────────────────────────────────
+  let phase = 0, prevPhase = 0, transStart = -1e9;
+
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const dotsEl = document.getElementById('dots');
+  const overlay = document.getElementById('overlay');
+  const img = new Image();
+  if (IMG_SRC) img.src = IMG_SRC;
+
+  for (let i = 0; i < N_PHASES; i++){
+    const d = document.createElement('div'); d.className = 'dot'; dotsEl.appendChild(d);
+  }
+  function syncDots(){
+    [...dotsEl.children].forEach((d,i) => d.classList.toggle('on', i <= phase));
+  }
+  function syncOverlay(){
+    overlay.querySelectorAll('[data-step]').forEach(el =>
+      el.classList.toggle('shown', phase >= +el.getAttribute('data-step')));
+  }
+  function sync(){ syncDots(); syncOverlay(); }
+
+  function advance(){
+    if (phase >= N_PHASES-1) return;
+    prevPhase = phase; phase++; transStart = performance.now(); sync();
+  }
+  function goBack(){
+    if (phase <= 0) return;
+    prevPhase = phase; phase--; transStart = performance.now(); sync();
+  }
+  // jump: land in a settled end-of-phase state, no replay (transStart < 0 => jumped)
+  function jump(p){ prevPhase = p; phase = p; transStart = -1e9; sync(); }
+
+  document.body.addEventListener('click', advance);
+  window.addEventListener('keydown', e => {
+    if (e.key==='ArrowRight' || e.key===' ' || e.key==='Enter'){ e.preventDefault(); advance(); }
+    else if (e.key==='ArrowLeft'){ e.preventDefault(); goBack(); }
+  });
+
+  window[SLIDE_NAME] = {
+    advance, back: goBack,
+    atStart: () => phase === 0,
+    atEnd:   () => phase === N_PHASES-1,
+    reset:      () => jump(0),
+    resetToEnd: () => jump(N_PHASES-1),
+  };
+
+  // ── sizing: letterbox the figure inside the stage ──────────────────────────
+  let W=0, H=0, IX=0, IY=0, IW=0, IH=0;
+  function resize(){
+    const st = document.getElementById('stage');
+    const dpr = window.devicePixelRatio || 1;
+    W = st.clientWidth; H = st.clientHeight;
+    cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    const s = Math.min(W/IMG_W, H/IMG_H);
+    IW = IMG_W*s; IH = IMG_H*s;
+    IX = (W-IW)/2; IY = (H-IH)/2;
+  }
+  window.addEventListener('resize', resize);
+  // In a deck the scene is hidden until it's active, so the boot-time resize()
+  // measures 0 and would never recover from the window event alone. Re-measure
+  // whenever the stage actually gets a size.
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(document.getElementById('stage'));
+
+  const px = u => IX + u*IW;
+  const py = v => IY + v*IH;
+
+  // ── helpers ───────────────────────────────────────────────────────────────
+  const clamp01 = t => t<0 ? 0 : t>1 ? 1 : t;
+  const sstep   = t => { t = clamp01(t); return t*t*(3-2*t); };
+
+  // even, flat illumination of a whole layer (wide plateau, soft edge) — not a spotlight
+  function elight(pt, rxF, ryF, rgb, alpha, plateau){
+    if (alpha <= 0.012) return;
+    plateau = plateau == null ? 0.6 : plateau;
+    const x=px(pt.u), y=py(pt.v), rx=rxF*IW, ry=ryF*IW;
+    ctx.save(); ctx.translate(x,y); ctx.scale(1, ry/rx);
+    const c=rgb.join(','), a=clamp01(alpha);
+    const g=ctx.createRadialGradient(0,0,0,0,0,rx);
+    g.addColorStop(0, `rgba(${c},${a})`);
+    g.addColorStop(plateau, `rgba(${c},${a})`);
+    g.addColorStop(1, `rgba(${c},0)`);
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,rx,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  // tight spotlight on a single node
+  function glow(pt, rFrac, rgb, alpha, aspect){
+    if (alpha <= 0.012) return;
+    aspect = aspect || 1;
+    const x=px(pt.u), y=py(pt.v), r=rFrac*IW;
+    ctx.save(); ctx.translate(x,y); ctx.scale(1,aspect);
+    const g=ctx.createRadialGradient(0,0,0,0,0,r), c=rgb.join(',');
+    g.addColorStop(0,   `rgba(${c},${clamp01(alpha)})`);
+    g.addColorStop(0.35,`rgba(${c},${clamp01(alpha)*0.55})`);
+    g.addColorStop(1,   `rgba(${c},0)`);
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  // even tint of a box, clipped: top half one channel, bottom the other.
+  // soft radials (not hard rects) so the fill hugs a tilted shape without boxy edges.
+  function fillSplit(bb, alpha, topRGB, botRGB){
+    if (alpha <= 0.012) return;
+    const x0=px(bb[0]), y0=py(bb[1]), x1=px(bb[2]), y1=py(bb[3]);
+    const w=x1-x0, h=y1-y0, a=clamp01(alpha), cx=x0+w/2;
+    ctx.save(); ctx.beginPath();
+    const rr = Math.min(w,h)*0.2;
+    if (ctx.roundRect) ctx.roundRect(x0,y0,w,h,rr); else ctx.rect(x0,y0,w,h);
+    ctx.clip();
+    const rad = Math.max(w,h)*0.64;
+    [[topRGB||CH_L, y0+h*0.30], [botRGB||CH_R, y0+h*0.70]].forEach(pr=>{
+      const c=pr[0].join(',');
+      const g=ctx.createRadialGradient(cx,pr[1],0,cx,pr[1],rad);
+      g.addColorStop(0,    `rgba(${c},${a})`);
+      g.addColorStop(0.55, `rgba(${c},${a})`);
+      g.addColorStop(1,    `rgba(${c},0)`);
+      ctx.fillStyle=g; ctx.fillRect(x0,y0,w,h);
+    });
+    ctx.restore();
+  }
+
+  // a bright pulse sweeping a spine, to show signal flow
+  function travel(now, emph, v, u0, u1, rgb){
+    if (emph <= 0.05) return;
+    const frac = (now*0.00035) % 1;
+    const u = u0 + (u1-u0)*frac;
+    glow({u,v}, 0.020, WHITE, emph*0.55);
+    glow({u,v}, 0.034, rgb,   emph*0.5);
+  }
+
+  // ── main loop ─────────────────────────────────────────────────────────────
+  function frame(now){
+    ctx.clearRect(0,0,W,H);
+    if (img.complete && img.naturalWidth) ctx.drawImage(img, IX, IY, IW, IH);
+
+    const jumped = transStart < 0;
+    const tPhase = now - transStart;
+    const pulse  = 0.5 + 0.5*Math.sin(now*0.005);     // shared breathing
+    // one progress var per phase: past phases pinned at 1, a jump skips the build
+    const prog = i => phase > i ? 1
+                   : phase === i ? (jumped ? 1 : clamp01(tPhase / PHASE_MS[i]))
+                   : 0;
+    const p0 = prog(0), p1 = prog(1);
+
+    // normal blending where a color must read as itself (red over teal, etc.)
+    ctx.globalCompositeOperation = 'source-over';
+    // BOXES.forEach((bb,i)=>{
+    //   const rev = phase===0 ? sstep(clamp01((p0 - i/BOXES.length)/0.16)) : 1;
+    //   fillSplit(bb, 0.5*rev);
+    // });
+
+    ctx.globalCompositeOperation = 'lighter';
+    // established elements sit at a constant lower alpha; the active one pulses
+    const activeA = phase===1 ? 0.55*(0.6+0.4*pulse) : (phase>1 ? 0.34 : 0);
+    NODES.forEach(p => glow(p, 0.030, GREEN, activeA));
+
+    // sequential within a phase: element i lights after i/n of the build
+    // for (let i=0;i<6;i++){
+    //   const local = clamp01((p1 - i/6)*6);
+    //   glow(NODES[i], 0.032, GOLD, sstep(clamp01(local/0.4))*0.62);
+    // }
+
+    ctx.globalCompositeOperation = 'source-over';
+
+    // phase caption, lower-left, screen space
+    ctx.save();
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = '#475569';
+    ctx.font = `${Math.max(13, Math.round(IW*0.016))}px 'Helvetica Neue', sans-serif`;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+    ctx.fillText(PHASE_LABEL[phase], IX + IW*0.03, IY + IH*0.98);
+    ctx.restore();
+
+    requestAnimationFrame(frame);
+  }
+
+  img.onload = resize;
+  resize();
+  sync();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

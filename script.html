@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Day 1 script</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  /* The whole talk's script, in order, one row per click: for reading the night before and for
+     printing (Cmd-P). Includes your presenter edits from this browser (marked).
+     script.html = working deck · script.html?deck=final = final deck */
+  body{ font:16px/1.55 Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif; color:#0f172a; max-width:900px; margin:40px auto; padding:0 24px; }
+  h1{ font-size:28px; margin-bottom:4px; } .sub{ color:#64748b; margin-bottom:28px; }
+  h2{ font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:#64748b; margin:34px 0 8px; border-top:1px solid #e2e8f0; padding-top:14px; }
+  .slide{ margin:18px 0 10px; break-inside:avoid; }
+  .slide h3{ font-size:19px; margin-bottom:4px; } .slide h3 b{ color:#64748b; margin-right:.5em; font-variant-numeric:tabular-nums; }
+  .p{ display:grid; grid-template-columns:72px 1fr; gap:10px; margin:3px 0; }
+  .k{ color:#94a3b8; font-size:12px; padding-top:3px; }
+  .ed{ background:#fef3c7; } .ed::after{ content:' (your edit)'; color:#b45309; font-size:12px; }
+  .none{ color:#94a3b8; font-style:italic; }
+  #deck{ position:absolute; left:-9999px; width:1600px; height:900px; border:0; }
+  @media print{ body{ margin:0; } .sub{ display:none; } }
+</style>
+<script src="deck/edits.js"></script>
+</head>
+<body>
+<h1>Talk script</h1>
+<div class="sub" id="sub">Loading the deck…</div>
+<div id="out"></div>
+<iframe id="deck"></iframe>
+<script>
+const P = new URLSearchParams(location.search);
+const DECK = P.get('deck') === 'final' ? 'final' : 'deck';
+const esc = t => String(t).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const f = document.getElementById('deck');
+f.src = `${DECK}.html?mirror=1&gaps=0`;   // mirror mode: no keys, no lead-ins, no broadcasting
+f.onload = () => setTimeout(build, 2500);   // give scenes time to load their notes
+function build(){
+  const w = f.contentWindow, d = w.deck; if(!d){ document.getElementById('sub').textContent = 'Deck not ready, reload.'; return; }
+  let html = '', sec = null, words = 0;
+  d.S.forEach((s, i) => {
+    if(s.sec !== sec){ sec = s.sec; html += `<h2>${esc(sec || '')}</h2>`; }
+    const label = d.LABEL[i], ps = d.passages(i);
+    html += `<div class="slide"><h3><b>${esc(label)}</b>${esc(d.titleOf(i))}</h3>`;
+    if(!ps.join('').trim()) html += '<div class="none">(no notes)</div>';
+    else ps.forEach((p, k) => {
+      const a = Edits.apply(DECK, label, k, p), text = a.edited ? esc(a.text) : p;
+      words += Edits.plain(a.edited ? a.text : p).split(/\s+/).filter(Boolean).length;
+      html += `<div class="p"><span class="k">${k === 0 ? 'title' : 'click ' + k}</span><span class="${a.edited ? 'ed' : ''}">${text || '<span class="none">(nothing)</span>'}</span></div>`;
+    });
+    html += '</div>';
+  });
+  document.getElementById('out').innerHTML = html;
+  document.getElementById('sub').textContent = `${DECK === 'final' ? 'Final' : 'Working'} deck · ${d.S.length} slides · about ${words.toLocaleString()} words ≈ ${Math.round(words / 140)} min of speech at 140 wpm · Cmd-P to print`;
+}
+</script>
+</body>
+</html>

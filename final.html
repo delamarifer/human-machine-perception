@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Day 1 · Intro to Computer Perception (final deck)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+document.write(`<link rel="stylesheet" href="deck/deck.css?v=${Date.now()}">`);
+document.write(`<script src="deck/engine.js?v=${Date.now()}"><\/script><script src="deck/order.js?v=${Date.now()}"><\/script>`);
+document.write(`<script src="final/status.js?v=${Date.now()}"><\/script>`);</script>
+</head>
+<body>
+<div id="root"></div>
+<div id="secbar"></div>
+<div id="hud"></div>
+<div id="notes"><div id="notes-body"></div></div>
+<script>
+/* FINAL deck: only parts that were pushed (python3 deck/publish.py <part>), frozen at that version.
+   Parts not pushed yet show as dashed gap slides; ?gaps=0 hides them for rehearsal. */
+const pushed = (window.PUSHED || {});
+const gaps = new URLSearchParams(location.search).get('gaps') !== '0';
+(async () => {
+  for(const [part, slides, what] of ORDER){
+    if(pushed[part]) await new Promise(ok => {
+      const s = document.createElement('script');
+      s.src = `final/parts/${part}.js?v=${pushed[part]}`; s.onload = ok; s.onerror = ok;
+      document.body.appendChild(s);
+    });
+    else if(gaps) st(`<div class="gap"><b>Not pushed yet: ${part}</b><br>${what} (outline ${slides})</div>`, {blank: false});
+  }
+  startDeck({minutes: SEC_MINUTES});
+})();
+</script>
+</body>
+</html>
