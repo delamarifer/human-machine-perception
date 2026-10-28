@@ -139,3 +139,11 @@ the working deck. Never edit anything under `final/` by hand.
   slide moved to `TODO.md`.
 - The original deck is kept in `reference/original-day1-intro.pptx`. The kit's prompts and
   lessons are in `reference/`.
+
+## Days 2 and on
+
+Each later day is its own folder (`day02/`, `day03/`, ...) with the same layout as Day 1: `deck.html`,
+`presenter.html`, `order.js` (that day's running order), `parts/`, `scenes/`, `assets/` and `feedback/`.
+All days share the engine and styles in `deck/`. A scene inside `dayNN/scenes/` links the stylesheet as
+`../../deck/deck.css`. The plan for every day is in `plan/course-plan.md`. Notebooks for every day go in
+`notebooks/` (conventions in `notebooks/README.md`).
