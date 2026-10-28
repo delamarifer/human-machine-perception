@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The pinhole camera</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: image-formation part (Day 3). Works alone too: open day03/scenes/pinhole.html and click. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; transition:opacity .9s ease, filter .9s ease; }
+  canvas.dim{ opacity:.22; filter:blur(2px); }
+  .cap{ position:absolute; left:0; bottom:-1vh; }
+  .eq{ position:absolute; left:2%; top:0; opacity:0; transition:opacity .8s ease; }
+  .eq.on{ opacity:1; }
+  .pop{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(.96); opacity:0;
+    transition:opacity .9s ease, transform .9s ease; white-space:nowrap; }
+  .pop.on{ opacity:1; transform:translate(-50%,-50%); }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">The pinhole camera</h1>
+  <div class="stagebox">
+    <canvas id="cv"></canvas>
+    <div class="statement eq" id="eq">y = −f · Y / Z</div>
+    <div class="label cap" id="cap"></div>
+    <div class="popquote pop" id="pop">A camera projects the 3D world onto a 2D image</div>
+  </div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE     (0):   the title alone
+   ACT 1  SETUP     (1):   an object (an arrow) and a sensor, side view
+   ACT 2  NO CAMERA (2):   rays from the tip and the base reach the whole sensor: the record is a flat gray
+   ACT 3  PINHOLE   (3):   a wall with a tiny hole: one ray per point, the image is upside down
+   ACT 4  GEOMETRY  (4):   similar triangles: y = -f Y / Z
+   ACT 5  BIG HOLE  (5):   brighter, but every point becomes a spot: blur
+   ACT 6  LENS      (6):   a lens bends the rays back to one point: bright and sharp
+   ACT 7  POINT     (7):   the statement, figure dimmed
+
+   Schematic geometry, but the right-hand panel is computed: the object's front view is projected through
+   the hole (flipped, scaled by f/Z) and blurred by the hole's shadow on the sensor, a disk of diameter
+   a (Z + f) / Z. Brightness grows with the hole size (display scale, not photometric). */
+
+/* ---- world (side view), in world units ---- */
+const Z = 6, F = 3;                        // object to hole, hole to sensor
+const OBJ = {base: -1.2, tip: 1.8, half: .55};   // the arrow: vertical extent, and half-width in front view
+const SENSOR = 2.2;                        // the sensor spans y in [-2.2, 2.2] (a square in front view)
+const AP = {none: 7, small: .1, big: 1.0, lens: 1.0};
+const INK = '#0f172a', MUTE = '#94a3b8', WALL = '#475569';
+
+const CAPS = ['', 'An object and a sensor', 'No camera: every point lights the whole sensor',
+  'A pinhole: one ray per point, upside down', 'Similar triangles', 'A bigger hole: brighter, but blurred',
+  'A lens: bright and sharp', ''];
+const NOTES = [
+  "(draft) Title only. The simplest camera there is: the pinhole camera.",
+  "(draft) Here is a scene seen from the side. On the left, an object: an arrow pointing up. On the right, a sensor, a surface that records how much light lands on each point. On the far right, what the sensor records.",
+  "(draft) Without a camera, light from every point of the object reaches every point of the sensor. Rays from the tip and rays from the base land everywhere and mix. The sensor records a flat gray: there is light, but no image.",
+  "(draft) Now put a wall in between, with a tiny hole. From each point of the object, only one ray gets through. The tip lands low on the sensor, the base lands high. We get an image, and it is upside down.",
+  "(draft) The geometry is two similar triangles. An object of height Y, at distance Z from the hole, makes an image of height y on a sensor at distance f behind the hole. y equals minus f times Y over Z. The minus sign is the flip. And dividing by Z means farther things look smaller: depth is divided out. That is exactly the information we lost on Day 1.",
+  "(draft) Why not just make the hole tiny? Because a tiny hole lets in very little light, so the image is dim. Make the hole bigger and the image gets brighter, but now each point of the object lights a small disk on the sensor, and the disks overlap: the image is blurred. Notice what that blur is: every point replaced by a copy of the same disk. Hold on to that; in twenty minutes it will have a name.",
+  "(draft) The solution is a lens. It lets in light through a big opening, and bends all the rays from one point back to one point on the sensor. Bright and sharp, at least for objects at the distance the lens is focused on.",
+  "(draft) So a camera projects the 3D world onto a 2D image. Everything we compute in this course starts from that projection."
+];
+const N = NOTES.length - 1;
+
+/* what each beat looks like when it has arrived */
+const LEVEL = b => ({
+  obj: b >= 1 ? 1 : 0, fan: b === 2 ? 1 : 0, wall: b >= 3 && b <= 5 ? 1 : 0,
+  ap: b <= 4 ? AP.small : AP.big, rays: b >= 3 ? 1 : 0, geo: b === 4 ? 1 : 0, lens: b >= 6 ? 1 : 0,
+  panel: b >= 1 ? 1 : 0, img: ['dark', 'dark', 'none', 'small', 'small', 'big', 'lens', 'lens'][b]
+});
+
+/* ---- the sensor record, computed ---- */
+const P = 120, PX = 2 * SENSOR / P;        // panel resolution, world units per panel pixel
+function sharpRecord(){                    // the object's front view, projected through the hole
+  const m = new Float32Array(P * P), k = F / Z;
+  for(let r = 0; r < P; r++) for(let c = 0; c < P; c++){
+    const y = SENSOR - (r + .5) * PX, x = -SENSOR + (c + .5) * PX;
+    const Y = -y / k, X = -x / k;          // back through the hole: flipped and scaled
+    const shaft = Math.abs(X) < .14 && Y > OBJ.base && Y < OBJ.tip - .9;
+    const head = Y >= OBJ.tip - .9 && Y < OBJ.tip && Math.abs(X) < OBJ.half * (OBJ.tip - Y) / .9;
+    m[r * P + c] = shaft || head ? 1 : 0;
+  }
+  return m;
+}
+function diskBlur(m, rad){                 // convolution with a disk: the hole's shadow
+  if(rad < .5) return m.slice();
+  const out = new Float32Array(P * P), R = Math.ceil(rad), off = [];
+  for(let i = -R; i <= R; i++) for(let j = -R; j <= R; j++) if(i * i + j * j <= rad * rad) off.push([i, j]);
+  for(let r = 0; r < P; r++) for(let c = 0; c < P; c++){
+    let s = 0; for(const [i, j] of off){ const rr = r + i, cc = c + j; if(rr >= 0 && rr < P && cc >= 0 && cc < P) s += m[rr * P + cc]; }
+    out[r * P + c] = s / off.length;
+  }
+  return out;
+}
+const spot = a => a * (Z + F) / Z / 2 / PX;          // blur radius in panel pixels
+const gain = a => .35 + .65 * Math.min(1, a / AP.big); // display brightness: grows with the hole
+function toCanvas(m, g){
+  const c = document.createElement('canvas'); c.width = c.height = P;
+  const x = c.getContext('2d'), im = x.createImageData(P, P);
+  for(let i = 0; i < P * P; i++){ const v = Math.round(255 * Math.min(1, .06 + g * m[i])); im.data.set([v, v, v, 255], i * 4); }
+  x.putImageData(im, 0, 0); return c;
+}
+const SHARP = sharpRecord();
+const mean = SHARP.reduce((a, b) => a + b, 0) / SHARP.length;
+const REC = {
+  dark: toCanvas(new Float32Array(P * P), 0),
+  none: toCanvas(new Float32Array(P * P).fill(mean * 3), 1),   // all light everywhere: uniform
+  small: toCanvas(diskBlur(SHARP, spot(AP.small)), gain(AP.small)),
+  big: toCanvas(diskBlur(SHARP, spot(AP.big)), gain(AP.big)),
+  lens: toCanvas(SHARP, gain(AP.lens)),
+};
+
+/* ---- state + transitions ---- */
+let beat = 0, from = LEVEL(0), cur = LEVEL(0), t0 = 0, prevImg = 'dark';
+const DUR = 1400;
+const ease = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+function go(b, jump){
+  prevImg = cur.img; beat = b; from = {...cur}; t0 = performance.now() - (jump ? DUR : 0);
+  document.getElementById('cap').textContent = CAPS[b];
+  document.getElementById('eq').classList.toggle('on', b === 4);
+  document.getElementById('pop').classList.toggle('on', b === N);
+  cv.classList.toggle('dim', b === N);
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+let prog = 1;
+function step(now){
+  const T = LEVEL(beat); prog = ease(Math.min(1, (now - t0) / DUR));
+  for(const k in T) cur[k] = typeof T[k] === 'number' ? from[k] + (T[k] - from[k]) * prog : T[k];
+}
+
+/* ---- drawing ---- */
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0, S = 1, OX = 0, OY = 0, PANEL = {x: 0, y: 0, s: 0};
+function size(){
+  const d = devicePixelRatio || 1;
+  W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+  const sideW = W * .66;
+  S = Math.min(sideW / 11.5, H / 6.2); OX = sideW * .62; OY = H * .5;
+  const ps = Math.min(W * .26, H * .7); PANEL = {x: W - ps, y: (H - ps) / 2 - H * .03, s: ps};
+}
+addEventListener('resize', size);
+const X = x => OX + x * S, Y = y => OY - y * S;
+const line = (x1, y1, x2, y2) => { ctx.beginPath(); ctx.moveTo(X(x1), Y(y1)); ctx.lineTo(X(x2), Y(y2)); ctx.stroke(); };
+const font = (px, w) => `${w || 400} ${px}px Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif`;
+function label(t, x, y, al){ ctx.save(); ctx.globalAlpha = al; ctx.fillStyle = INK; ctx.font = font(Math.max(15, S * .42), 700);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, X(x), Y(y)); ctx.restore(); }
+
+function draw(){
+  ctx.clearRect(0, 0, W, H);
+  const a = cur.ap;
+  // object: an arrow, tip up
+  ctx.save(); ctx.globalAlpha = cur.obj; ctx.strokeStyle = INK; ctx.fillStyle = INK; ctx.lineWidth = 5; ctx.lineCap = 'round';
+  line(-Z, OBJ.base, -Z, OBJ.tip - .3);
+  ctx.beginPath(); ctx.moveTo(X(-Z), Y(OBJ.tip)); ctx.lineTo(X(-Z - .32), Y(OBJ.tip - .55)); ctx.lineTo(X(-Z + .32), Y(OBJ.tip - .55)); ctx.closePath(); ctx.fill();
+  // sensor
+  ctx.strokeStyle = MUTE; ctx.lineWidth = 9; ctx.lineCap = 'butt'; line(F, -SENSOR, F, SENSOR);
+  ctx.restore();
+  // no camera: fans of rays from the tip and the base to the whole sensor
+  if(cur.fan > .01){
+    ctx.save(); ctx.lineWidth = 1.4;
+    [[OBJ.tip, INK], [OBJ.base, MUTE]].forEach(([y0, c]) => { ctx.strokeStyle = c; ctx.globalAlpha = cur.fan * .8;
+      for(let k = 0; k <= 8; k++) line(-Z, y0, F, -SENSOR + k * SENSOR / 4); });
+    ctx.restore();
+  }
+  // wall with a hole of size a
+  if(cur.wall > .01){
+    ctx.save(); ctx.globalAlpha = cur.wall; ctx.strokeStyle = WALL; ctx.lineWidth = 7;
+    line(0, a / 2, 0, 2.9); line(0, -a / 2, 0, -2.9); ctx.restore();
+  }
+  // lens
+  if(cur.lens > .01){
+    ctx.save(); ctx.globalAlpha = cur.lens; ctx.strokeStyle = WALL; ctx.fillStyle = '#e2e8f0'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.ellipse(X(0), Y(0), .22 * S, AP.lens / 2 * S + 6, 0, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = WALL; ctx.lineWidth = 7; line(0, AP.lens / 2 + .12, 0, 2.9); line(0, -AP.lens / 2 - .12, 0, -2.9);
+    ctx.restore();
+  }
+  // rays through the hole (or the lens): from the tip and the base, through the top, middle and bottom of the opening
+  if(cur.rays > .01){
+    ctx.save(); ctx.lineWidth = 2;
+    [[OBJ.tip, INK], [OBJ.base, MUTE]].forEach(([y0, c]) => {
+      ctx.strokeStyle = c; ctx.globalAlpha = cur.rays;
+      const focus = -F * y0 / Z;
+      [-.5, 0, .5].forEach(t => {
+        const h = t * a;
+        const yp = h + (h - y0) * F / Z;          // straight through the hole
+        const yl = focus;                         // bent by the lens to the image point
+        const ys = yp + (yl - yp) * cur.lens;
+        const hh = t * (a + (AP.lens - a) * cur.lens);
+        line(-Z, y0, 0, hh); line(0, hh, F, ys);
+      });
+    });
+    ctx.restore();
+  }
+  // geometry: Z, f, Y, y
+  if(cur.geo > .01){
+    ctx.save(); ctx.globalAlpha = cur.geo; ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]);
+    line(-Z - .2, 0, F + .2, 0); ctx.setLineDash([]);
+    const yi = -F * OBJ.tip / Z;
+    ctx.lineWidth = 3; line(-Z - .7, 0, -Z - .7, OBJ.tip); line(F + .55, 0, F + .55, yi);
+    line(-Z, -2.55, 0, -2.55); line(0, -2.55, F, -2.55);
+    ctx.restore();
+    label('Y', -Z - 1.1, OBJ.tip / 2, cur.geo); label('y', F + .95, yi / 2, cur.geo);
+    label('Z', -Z / 2, -2.9, cur.geo); label('f', F / 2, -2.9, cur.geo);
+  }
+  // the sensor record (computed), front view
+  if(cur.panel > .01){
+    ctx.save(); ctx.globalAlpha = cur.panel; ctx.imageSmoothingEnabled = true;
+    const {x, y, s} = PANEL, A = REC[prevImg] || REC.dark, B = REC[cur.img];
+    ctx.drawImage(A, x, y, s, s); ctx.globalAlpha = cur.panel * prog; ctx.drawImage(B, x, y, s, s);
+    ctx.globalAlpha = cur.panel; ctx.strokeStyle = MUTE; ctx.lineWidth = 2; ctx.strokeRect(x, y, s, s);
+    ctx.fillStyle = INK; ctx.font = font(Math.max(15, s * .075)); ctx.textAlign = 'center';
+    ctx.fillText('What the sensor records', x + s / 2, y + s + Math.max(22, s * .11));
+    ctx.restore();
+  }
+}
+function frame(now){ if(cv.clientWidth !== W || cv.clientHeight !== H) size();   // the deck preloads scenes hidden (size 0)
+  step(now); draw(); requestAnimationFrame(frame); }
+
+window.pinhole = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ cur = LEVEL(0); go(0, true); },
+  resetToEnd(){ cur = LEVEL(N); go(N, true); },   // stepping BACK into the slide lands fully built
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) pinhole.advance(); if(e.key === 'ArrowLeft') pinhole.back(); });
+  addEventListener('click', () => pinhole.advance());
+}
+size(); go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

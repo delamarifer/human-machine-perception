@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>An image is an array of numbers</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: image-formation part (Day 3). Works alone too: open day03/scenes/pixels.html and click. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; transition:opacity .9s ease, filter .9s ease; }
+  canvas.dim{ opacity:.22; filter:blur(2px); }
+  .cap{ position:absolute; left:0; bottom:-1vh; }
+  .pop{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(.96); opacity:0;
+    transition:opacity .9s ease, transform .9s ease; white-space:nowrap; }
+  .pop.on{ opacity:1; transform:translate(-50%,-50%); }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">An image is an array of numbers</h1>
+  <div class="stagebox">
+    <canvas id="cv"></canvas>
+    <div class="label cap" id="cap"></div>
+    <div class="popquote pop" id="pop"></div>
+  </div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE   (0):  the title alone
+   ACT 1  IMAGE   (1):  a small picture, drawn in code
+   ACT 2  ZOOM    (2):  a box on the picture; the patch enlarged: a grid of colored squares
+   ACT 3  GRAY    (3):  brightness, one number per pixel (0-255), read from the picture's pixels
+   ACT 4  COLOR   (4):  three numbers per pixel: the R, G and B arrays for the same patch
+   ACT 5  POINT   (5):  the statement with the picture's real shape, figure dimmed
+
+   Every number shown is read from the drawn picture (getImageData), so the grid always matches it. */
+const IW = 96, IH = 64;                    // picture size in pixels
+const PATCH = {c: 41, r: 17, w: 5, h: 4};  // the zoomed patch: where the roof meets the sky
+const INK = '#0f172a', MUTE = '#94a3b8';
+const CH = [[214, 69, 69], [76, 154, 76], [74, 111, 208]];   // R, G, B tints (same as the Bayer slide)
+
+const CAPS = ['', 'A picture (made in code)', 'Zoom in: a grid of pixels', 'Brightness: one number per pixel, 0 to 255',
+  'Color: three numbers per pixel', ''];
+const NOTES = [
+  "(draft) Title only. So what does the sensor hand us?",
+  "(draft) Here is a small picture. I drew it in code, so we know exactly what is in it.",
+  "(draft) Let's zoom in on this little box, where the roof meets the sky. Up close, the picture is a grid of small squares, each one a single color. Each square is a pixel, short for picture element.",
+  "(draft) For a grayscale image, each pixel is one number: how bright it is, from 0 for black to 255 for white. The numbers on the screen are the actual values from this picture.",
+  "(draft) For a color image, each pixel has three numbers: how much red, how much green and how much blue. So the same patch is really three grids of numbers stacked on top of each other, one per color channel.",
+  "(draft) So an image is an array of numbers: height by width by three. This picture is 64 by 96 by 3. In NumPy, that is exactly the shape you will see when you load an image."
+];
+const N = NOTES.length - 1;
+document.getElementById('pop').textContent = `An image is an H × W × 3 array: ${IH} × ${IW} × 3`;
+
+/* ---- the picture ---- */
+const pic = document.createElement('canvas'); pic.width = IW; pic.height = IH;
+(() => { const g = pic.getContext('2d');
+  const sky = g.createLinearGradient(0, 0, 0, IH); sky.addColorStop(0, '#5b8fd6'); sky.addColorStop(1, '#cfe3f5');
+  g.fillStyle = sky; g.fillRect(0, 0, IW, IH);
+  g.fillStyle = '#f2c94c'; g.beginPath(); g.arc(18, 14, 7, 0, 7); g.fill();                 // sun
+  g.fillStyle = '#5f9e4f'; g.beginPath(); g.ellipse(48, 74, 70, 28, 0, 0, 7); g.fill();    // hill
+  g.fillStyle = '#efe6d2'; g.fillRect(36, 30, 26, 20);                                      // house
+  g.fillStyle = '#b03a2e'; g.beginPath(); g.moveTo(32, 31); g.lineTo(49, 15); g.lineTo(66, 31); g.closePath(); g.fill(); // roof
+  g.fillStyle = '#6b4a2b'; g.fillRect(45, 38, 6, 12);                                       // door
+  g.fillStyle = '#3d5a80'; g.fillRect(54, 35, 5, 5);                                        // window
+})();
+const PIX = pic.getContext('2d').getImageData(0, 0, IW, IH).data;
+const rgb = (c, r) => { const i = ((PATCH.r + r) * IW + PATCH.c + c) * 4; return [PIX[i], PIX[i + 1], PIX[i + 2]]; };
+const luma = ([r, g, b]) => Math.round(.299 * r + .587 * g + .114 * b);
+
+/* ---- state + transitions ---- */
+const LEVEL = b => ({img: b >= 1 ? 1 : 0, zoom: b >= 2 ? 1 : 0, color: b === 2 ? 1 : 0, gray: b === 3 ? 1 : 0, chans: b >= 4 ? 1 : 0});
+let beat = 0, from = LEVEL(0), cur = LEVEL(0), t0 = 0;
+const DUR = 1200;
+const ease = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+function go(b, jump){
+  beat = b; from = {...cur}; t0 = performance.now() - (jump ? DUR : 0);
+  document.getElementById('cap').textContent = CAPS[b];
+  document.getElementById('pop').classList.toggle('on', b === N);
+  cv.classList.toggle('dim', b === N);
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+function step(now){ const T = LEVEL(beat), p = ease(Math.min(1, (now - t0) / DUR));
+  for(const k in T) cur[k] = from[k] + (T[k] - from[k]) * p; }
+
+/* ---- drawing ---- */
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const d = devicePixelRatio || 1;
+  W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+addEventListener('resize', size);
+const font = (px, w) => `${w || 400} ${px}px Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif`;
+
+function grid(x0, y0, cell, val, fill, al, title){
+  ctx.save(); ctx.globalAlpha = al;
+  for(let r = 0; r < PATCH.h; r++) for(let c = 0; c < PATCH.w; c++){
+    const [f, txt, light] = [fill(c, r), val ? val(c, r) : null, null];
+    ctx.fillStyle = f; ctx.fillRect(x0 + c * cell, y0 + r * cell, cell, cell);
+    if(txt !== null){
+      const lum = val.lum(c, r);
+      ctx.fillStyle = lum > 140 ? INK : '#fff'; ctx.font = font(Math.max(12, cell * .34), 700);
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(txt, x0 + (c + .5) * cell, y0 + (r + .5) * cell);
+    }
+  }
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
+  for(let r = 0; r <= PATCH.h; r++){ ctx.beginPath(); ctx.moveTo(x0, y0 + r * cell); ctx.lineTo(x0 + PATCH.w * cell, y0 + r * cell); ctx.stroke(); }
+  for(let c = 0; c <= PATCH.w; c++){ ctx.beginPath(); ctx.moveTo(x0 + c * cell, y0); ctx.lineTo(x0 + c * cell, y0 + PATCH.h * cell); ctx.stroke(); }
+  if(title){ ctx.fillStyle = INK; ctx.font = font(Math.max(15, cell * .4), 700); ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText(title, x0 + PATCH.w * cell / 2, y0 - cell * .3); }
+  ctx.restore();
+}
+
+function draw(){
+  ctx.clearRect(0, 0, W, H);
+  // the picture, pixelated on purpose
+  const iw = Math.min(W * .4, H * .9 * IW / IH), ih = iw * IH / IW, ix = 0, iy = (H - ih) / 2, s = iw / IW;
+  ctx.save(); ctx.globalAlpha = cur.img; ctx.imageSmoothingEnabled = false; ctx.drawImage(pic, ix, iy, iw, ih); ctx.restore();
+  if(cur.zoom < .01) return;
+  // the box on the picture, and lines to the enlarged patch
+  const rx = W * .47, rw = W - rx, cellBig = Math.min(rw / PATCH.w, H * .8 / PATCH.h), gx = rx + (rw - cellBig * PATCH.w) / 2, gy = (H - cellBig * PATCH.h) / 2;
+  const bx = ix + PATCH.c * s, by = iy + PATCH.r * s, bw = PATCH.w * s, bh = PATCH.h * s;
+  ctx.save(); ctx.globalAlpha = cur.zoom; ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.strokeRect(bx, by, bw, bh);
+  ctx.globalAlpha = cur.zoom * (1 - cur.chans) * .5; ctx.lineWidth = 1.2;
+  [[bx + bw, by, gx, gy], [bx + bw, by + bh, gx, gy + cellBig * PATCH.h]].forEach(([a, b, c, d]) => { ctx.beginPath(); ctx.moveTo(a, b); ctx.lineTo(c, d); ctx.stroke(); });
+  ctx.restore();
+  // the patch, in color
+  grid(gx, gy, cellBig, null, (c, r) => `rgb(${rgb(c, r)})`, cur.zoom * cur.color);
+  // brightness numbers
+  const g = (c, r) => luma(rgb(c, r)), gv = (c, r) => String(g(c, r)); gv.lum = g;
+  grid(gx, gy, cellBig, gv, (c, r) => `rgb(${g(c, r)},${g(c, r)},${g(c, r)})`, cur.zoom * cur.gray);
+  // three channels
+  if(cur.chans > .01){
+    const gap = rw * .04, cell = Math.min((rw - 2 * gap) / (3 * PATCH.w), H * .7 / PATCH.h), tot = 3 * cell * PATCH.w + 2 * gap;
+    const y0 = (H - cell * PATCH.h) / 2 + cell * .3;
+    ['R', 'G', 'B'].forEach((name, k) => {
+      const x0 = rx + (rw - tot) / 2 + k * (cell * PATCH.w + gap), t = CH[k];
+      const v = (c, r) => String(rgb(c, r)[k]); v.lum = (c, r) => 255 - rgb(c, r)[k] * .55;
+      const fill = (c, r) => { const a = rgb(c, r)[k] / 255; return `rgb(${t.map(u => Math.round(255 - (255 - u) * a))})`; };
+      grid(x0, y0, cell, v, fill, cur.chans, name);
+    });
+  }
+}
+function frame(now){ if(cv.clientWidth !== W || cv.clientHeight !== H) size();   // the deck preloads scenes hidden (size 0)
+  step(now); draw(); requestAnimationFrame(frame); }
+
+window.pixels = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ cur = LEVEL(0); go(0, true); },
+  resetToEnd(){ cur = LEVEL(N); go(N, true); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) pixels.advance(); if(e.key === 'ArrowLeft') pixels.back(); });
+  addEventListener('click', () => pixels.advance());
+}
+size(); go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
