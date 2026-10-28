@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mach bands</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: receptive-fields part (Day 3). Works alone too: open day03/scenes/mach-bands.html and click. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .cap{ position:absolute; left:0; bottom:-1vh; }
+  .q{ position:absolute; left:0; right:0; top:52%; text-align:center; opacity:0; transition:opacity .8s ease; }
+  .q.on{ opacity:1; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Mach bands</h1>
+  <div class="stagebox">
+    <canvas id="cv"></canvas>
+    <div class="question q" id="q">Is each band the same gray from edge to edge?</div>
+    <div class="label cap" id="cap"></div>
+  </div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE     (0):  the title alone
+   ACT 1  BANDS     (1):  eight bands of gray, each one flat (generated)
+   ACT 2  QUESTION  (2):  is each band uniform? (most people see a light rim and a dark rim at every edge)
+   ACT 3  MEASURED  (3):  the pixel values along one row, read back from the drawn bands: a flat staircase
+   ACT 4  RF        (4):  a center-surround receptive field, as a filter (center minus part of the surround)
+   ACT 5  MODEL     (5):  that filter applied to the row: overshoots at every edge, where people see the bands
+
+   The model curve is computed (1D convolution of the measured row). Its parameters (sizes, surround weight)
+   were chosen for illustration; they are not fitted to data. */
+const NB = 8, LO = 45, HI = 215;
+const SC = 3, SS = 14, WS = .85;                       // center sigma, surround sigma (px of the band image), surround weight
+const INK = '#0f172a', MUTE = '#94a3b8', EARLY = '#38506e';
+const CAPS = ['', 'Eight bands, each one a single gray', '', 'Measured: every band is flat',
+  'A center-surround receptive field, used as a filter', 'The filtered row: a bump at every edge'];
+const NOTES = [
+  "(draft) Title only. Back to human vision, and to filters you already carry around with you.",
+  "(draft) Here are eight bands of gray, from dark to light. I drew each band with exactly one gray value.",
+  "(draft) Look at any one band. Is it the same gray from edge to edge? Most people see a thin lighter strip along the edge next to the darker neighbor, and a thin darker strip next to the lighter neighbor. These are Mach bands, named after Ernst Mach, who described them in the 1860s.",
+  "(draft) Here are the actual pixel values along one row of the picture. A perfect staircase: every band is flat. The rims you see are not in the image.",
+  "(draft) A classic explanation starts in the retina. Many retinal cells have center-surround receptive fields: light in the center excites the cell, light in the surrounding ring inhibits it. As a filter, that is a kernel with a positive center and a negative ring around it.",
+  "(draft) Now convolve the row with that kernel. In flat regions, nothing special happens. But right at each edge, the response overshoots on the bright side and undershoots on the dark side: exactly where people see the bands. A filter predicts a percept. This is a model, with sizes I chose for the picture, and it is not the whole story of Mach bands, but it is the idea behind everything in the next ten minutes."
+];
+const N = NOTES.length - 1;
+
+/* ---- the bands and the row, computed ---- */
+const BW = 800, BH = 10;
+const band = document.createElement('canvas'); band.width = BW; band.height = BH;
+(() => { const g = band.getContext('2d');
+  for(let k = 0; k < NB; k++){ const v = Math.round(LO + (HI - LO) * k / (NB - 1)); g.fillStyle = `rgb(${v},${v},${v})`;
+    g.fillRect(Math.round(k * BW / NB), 0, Math.ceil(BW / NB), BH); } })();
+const raw = band.getContext('2d').getImageData(0, BH / 2, BW, 1).data;
+const ROW = [...Array(BW)].map((_, i) => raw[i * 4]);                 // measured: read back from the pixels
+const gk = s => { const R = Math.ceil(3 * s), k = []; let t = 0;
+  for(let i = -R; i <= R; i++){ const v = Math.exp(-i * i / (2 * s * s)); k.push(v); t += v; } return k.map(v => v / t); };
+const conv1 = (x, k) => { const R = (k.length - 1) / 2;
+  return x.map((_, i) => { let s = 0; for(let j = -R; j <= R; j++) s += k[j + R] * x[Math.min(x.length - 1, Math.max(0, i + j))]; return s; }); };
+const KC = gk(SC), KS = gk(SS);
+const RESP = (() => { const c = conv1(ROW, KC), s = conv1(ROW, KS); return c.map((v, i) => (v - WS * s[i]) / (1 - WS)); })();
+// the 1D kernel itself (center minus weighted surround), for the inset
+const R1 = (KS.length - 1) / 2, KER = KS.map((v, i) => { const j = i - R1, rc = (KC.length - 1) / 2; return (Math.abs(j) <= rc ? KC[j + rc] : 0) - WS * v; });
+
+/* ---- state ---- */
+const LEVEL = b => ({bands: b >= 1 ? 1 : 0, meas: b >= 3 ? 1 : 0, rf: b >= 4 ? 1 : 0, model: b >= 5 ? 1 : 0, draw: b >= 5 ? 1 : 0});
+let beat = 0, cur = LEVEL(0), from = LEVEL(0), t0 = 0;
+const DUR = 1400, ease = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+function go(b, jump){
+  beat = b; from = {...cur}; t0 = performance.now() - (jump ? DUR * 2 : 0);
+  document.getElementById('cap').textContent = CAPS[b];
+  document.getElementById('q').classList.toggle('on', b === 2);
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+function step(now){ const T = LEVEL(beat), p = ease(Math.min(1, (now - t0) / DUR)), p2 = Math.min(1, (now - t0) / (DUR * 2));
+  for(const k in T) cur[k] = from[k] + (T[k] - from[k]) * (k === 'draw' ? (T[k] > from[k] ? p2 : 1) : p); }
+
+/* ---- drawing ---- */
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const d = devicePixelRatio || 1;
+  W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+addEventListener('resize', size);
+const font = (px, w) => `${w || 400} ${px}px Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif`;
+function curve(arr, x0, w, y0, h, lo, hi, color, lw, upto){
+  ctx.beginPath();
+  const n = Math.floor(arr.length * upto);
+  for(let i = 0; i < n; i++){ const x = x0 + i / (arr.length - 1) * w, y = y0 + h - (arr[i] - lo) / (hi - lo) * h; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+  ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.stroke();
+}
+function draw(){
+  ctx.clearRect(0, 0, W, H);
+  const x0 = W * .06, bw = W * .88, bh = H * .4;
+  ctx.save(); ctx.globalAlpha = cur.bands; ctx.imageSmoothingEnabled = false; ctx.drawImage(band, x0, 0, bw, bh); ctx.restore();
+  // the plot: measured and model, same x axis as the bands
+  const py = bh + H * .08, ph = H * .44, lo = 0, hi = 250;
+  const leg = (k, color, txt, al) => { ctx.save(); ctx.globalAlpha = al; ctx.fillStyle = color; ctx.fillRect(x0 + 10, py + ph * (.12 + .14 * k) - 2, 26, 4);
+    ctx.fillStyle = INK; ctx.font = font(Math.max(15, H * .036)); ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+    ctx.fillText(txt, x0 + 44, py + ph * (.12 + .14 * k)); ctx.restore(); };
+  if(cur.meas > .01){
+    ctx.save(); ctx.globalAlpha = cur.meas; ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1; ctx.strokeRect(x0, py, bw, ph);
+    curve(ROW, x0, bw, py, ph, lo, hi, INK, 3, 1); ctx.restore();
+    leg(0, INK, 'measured pixel values, one row', cur.meas);
+  }
+  if(cur.model > .01){
+    ctx.save(); ctx.globalAlpha = cur.model; curve(RESP, x0, bw, py, ph, lo, hi, EARLY, 3.5, cur.draw); ctx.restore();
+    leg(1, EARLY, 'filtered by the center-surround model', cur.model);
+  }
+  // the receptive field: a 2D center-surround filter, drawn as an image, and its 1D profile
+  if(cur.rf > .01){
+    const r = Math.min(bh * .42, W * .07), cx = x0 + bw * 3 / NB, cy = bh / 2, D = 64;
+    if(!draw.rfc){ const c = document.createElement('canvas'); c.width = c.height = D; const g = c.getContext('2d'), im = g.createImageData(D, D);
+      const sc = SC / SS * D / 6.5, ss = D / 6.5;  // same ratio of sizes as the 1D filter
+      for(let i = 0; i < D; i++) for(let j = 0; j < D; j++){
+        const d2 = (i - D / 2 + .5) ** 2 + (j - D / 2 + .5) ** 2;
+        const v = Math.exp(-d2 / (2 * sc * sc)) / (sc * sc) - WS * Math.exp(-d2 / (2 * ss * ss)) / (ss * ss);
+        const vmax = 1 / (sc * sc) - WS / (ss * ss), vmin = -WS / (ss * ss) * .5;   // display scale: + light, - dark
+        const gv = Math.round(v >= 0 ? 150 + 105 * Math.min(1, v / vmax) : 150 - 110 * Math.min(1, v / vmin));
+        im.data.set([gv, gv, gv, d2 < (D / 2) ** 2 ? 255 : 0], (i * D + j) * 4);
+      }
+      g.putImageData(im, 0, 0); draw.rfc = c; }
+    ctx.save(); ctx.globalAlpha = cur.rf;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.drawImage(draw.rfc, cx - r, cy - r, 2 * r, 2 * r);
+    ctx.strokeStyle = EARLY; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.stroke();
+    ctx.fillStyle = INK; ctx.font = font(Math.max(15, r * .38), 700); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('+', cx, cy); ctx.fillText('−', cx + r * .72, cy - r * .1);
+    ctx.restore();
+  }
+}
+function frame(now){ if(cv.clientWidth !== W || cv.clientHeight !== H) size();   // the deck preloads scenes hidden (size 0)
+  step(now); draw(); requestAnimationFrame(frame); }
+
+window.mach = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ cur = LEVEL(0); go(0, true); },
+  resetToEnd(){ cur = LEVEL(N); go(N, true); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) mach.advance(); if(e.key === 'ArrowLeft') mach.back(); });
+  addEventListener('click', () => mach.advance());
+}
+size(); go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
