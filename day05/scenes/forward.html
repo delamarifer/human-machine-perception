@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The forward pass</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: Day 5 forward part. Pattern B. A 25 -> 6 (ReLU) -> 3 network is trained at load on
+     tiny 5x5 bar images made here (seeded); every number on screen is computed by it. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">The forward pass</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE    (0):   the title alone
+   ACT 1  LAYERS   (1-3): a 5x5 image as 25 numbers; weighted sums in the hidden layer; ReLU
+   ACT 2  OUTPUT   (4-5): three logits; softmax turns them into probabilities
+   ACT 3  AGAIN    (6):   a different image, the whole pass at once
+
+   Classes: vertical, horizontal, diagonal bars on a 5x5 grid, pixel noise sd 0.3 (toy, made here).
+   No data colors: weights are gray lines, thicker = larger magnitude. */
+const FONT = "Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif";
+function rng(seed){ return () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const gauss = r => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r());
+
+const CLASSES = ['vertical', 'horizontal', 'diagonal'], NI = 25, NH = 6, NO = 3;
+function bar(c, pos, r){                                      // pos: column / row 1-3, or which diagonal
+  const im = new Float32Array(NI);
+  for(let y = 0; y < 5; y++) for(let x = 0; x < 5; x++){
+    const on = c === 0 ? x === pos : c === 1 ? y === pos : (pos % 2 ? x + y === 4 : x === y);
+    im[y * 5 + x] = (on ? 1 : 0) + .3 * gauss(r);
+  }
+  return im;
+}
+const dr = rng(21), DATA = [];
+for(let i = 0; i < 300; i++){ const c = i % 3; DATA.push([bar(c, 1 + Math.floor(dr() * 3), dr), c]); }
+
+/* ---- the network ---- */
+const ir = rng(4), P = {
+  W1: [...Array(NH)].map(() => [...Array(NI)].map(() => .3 * gauss(ir))), b1: Array(NH).fill(0),
+  W2: [...Array(NO)].map(() => [...Array(NH)].map(() => .5 * gauss(ir))), b2: Array(NO).fill(0)};
+function fwd(x){
+  const z = P.W1.map((w, j) => w.reduce((s, wi, i) => s + wi * x[i], P.b1[j]));
+  const h = z.map(v => Math.max(0, v));
+  const o = P.W2.map((w, k) => w.reduce((s, wk, j) => s + wk * h[j], P.b2[k]));
+  const m = Math.max(...o), e = o.map(v => Math.exp(v - m)), S = e.reduce((a, b) => a + b);
+  return {z, h, o, p: e.map(v => v / S)};
+}
+/* train: softmax cross-entropy, Adam, full batch */
+const params = () => [P.W1, P.W2].flatMap(M => M.map(row => row)).concat([P.b1, P.b2]);
+const M1 = params().map(a => a.map(() => 0)), V1 = params().map(a => a.map(() => 0));
+for(let t = 1; t <= 60; t++){
+  const G = params().map(a => a.map(() => 0)), gW1 = G.slice(0, NH), gW2 = G.slice(NH, NH + NO), gb1 = G[NH + NO], gb2 = G[NH + NO + 1];
+  DATA.forEach(([x, c]) => {
+    const f = fwd(x), d = f.p.map((p, k) => (p - (k === c)) / DATA.length);
+    d.forEach((dk, k) => { gb2[k] += dk; f.h.forEach((hj, j) => gW2[k][j] += dk * hj); });
+    for(let j = 0; j < NH; j++){ if(f.z[j] <= 0) continue; const dz = d.reduce((s, dk, k) => s + dk * P.W2[k][j], 0);
+      gb1[j] += dz; for(let i = 0; i < NI; i++) gW1[j][i] += dz * x[i]; }
+  });
+  params().forEach((a, q) => a.forEach((_, i) => { const g = G[q][i];
+    M1[q][i] = .9 * M1[q][i] + .1 * g; V1[q][i] = .999 * V1[q][i] + .001 * g * g;
+    a[i] -= .01 * (M1[q][i] / (1 - .9 ** t)) / (Math.sqrt(V1[q][i] / (1 - .999 ** t)) + 1e-8); }));
+}
+const TEST = [...Array(300)].map((_, i) => { const tr = rng(1000 + i), c = i % 3; return [bar(c, 1 + Math.floor(tr() * 3), tr), c]; });
+const acc = TEST.filter(([x, c]) => { const p = fwd(x).p; return p.indexOf(Math.max(...p)) === c; }).length / TEST.length;
+
+const EX = [bar(0, 2, rng(77)), bar(2, 0, rng(78))], F = EX.map(fwd);
+const pct = v => `${Math.round(v * 100)}%`, num = v => (v < 0 ? '−' : '') + Math.abs(v).toFixed(1);
+
+const CAPS = ['', 'an image is 25 numbers', 'weighted sums: z = W x + b', 'ReLU: negatives become 0', 'logits: one score per class', 'softmax: exp, then divide by the sum', 'a new image, same weights'];
+const NOTES = [
+  "(draft) Title only. Let's follow one image all the way through a small trained network.",
+  "(draft) Here is a tiny 5 by 5 image of a vertical bar, with some noise. To the network it is just 25 numbers, one per pixel.",
+  "(draft) Each of the 6 hidden units takes a weighted sum of all 25 pixels, plus a bias. The thickness of each line is the size of its weight. Some sums come out positive, some negative.",
+  "(draft) Then the ReLU: every negative number becomes zero, positives pass through. Those zeroed units are switched off for this image.",
+  "(draft) The output layer takes weighted sums of the hidden units, one per class: vertical, horizontal, diagonal. These raw scores are called logits. They can be any number, negative or positive.",
+  (`(draft) Softmax turns logits into probabilities: exponentiate each one, so they are all positive, then divide by the total, so they add up to one. The network says vertical, with ${pct(F[0].p[0])}. On fresh test images it gets ${pct(acc)} right.`),
+  (`(draft) A different image, a diagonal bar, through the same weights. Different hidden units switch on, and the probability moves to diagonal: ${pct(F[1].p[2])}. That is the whole forward pass: weighted sums, a nonlinearity, again, and a softmax.`)
+];
+const NB = NOTES.length - 1;
+let beat = 0, t0 = 0;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+function go(b, jump){ beat = b; t0 = performance.now() - (jump ? 1e9 : 0);
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join(''); }
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const d = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+const txt = (t, x, y, sz, bold, align = 'center', base = 'middle', col = '#0f172a') => { ctx.fillStyle = col; ctx.font = `${bold ? 700 : 400} ${sz}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(t, x, y); };
+
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();
+  const p = Math.min(1, (now - t0) / 900), A = b => beat > b ? 1 : beat === b ? ease(p) : 0;
+  ctx.clearRect(0, 0, W, H);
+  const ex = beat >= 6 ? 1 : 0, f = F[ex], fs = Math.max(16, W * .015), big = Math.max(18, W * .018);
+  const swap = beat === 6 ? ease(p) : 1;                         // the new image fades in
+  /* geometry */
+  const g = Math.min(H * .6, W * .2), gx = W * .01, gy = H * .52 - g / 2, c = g / 5;
+  const hx = W * .38, ox = W * .6, bx = W * .72, bw = W * .26;
+  const hy = j => H * .08 + (j + .5) * H * .78 / NH, oy = k => H * .25 + (k + .5) * H * .55 / NO, nr = Math.max(14, H * .045);
+  const pix = i => [gx + (i % 5 + .5) * c, gy + (Math.floor(i / 5) + .5) * c];
+  /* headers */
+  /* input -> hidden weights */
+  const wmax1 = Math.max(...P.W1.flat().map(Math.abs)), wmax2 = Math.max(...P.W2.flat().map(Math.abs));
+  if(A(2) > 0){ ctx.globalAlpha = .5 * A(2); ctx.strokeStyle = '#64748b';
+    for(let j = 0; j < NH; j++) for(let i = 0; i < NI; i++){ const w = Math.abs(P.W1[j][i]) / wmax1; if(w < .15) continue;
+      ctx.lineWidth = .3 + 3 * w * w; const [u, v] = pix(i); ctx.beginPath(); ctx.moveTo(u, v); ctx.lineTo(hx - nr, hy(j)); ctx.stroke(); }
+    ctx.globalAlpha = 1; }
+  /* input image */
+  if(A(1) > 0){ ctx.globalAlpha = A(1); txt('input: 25 pixels', gx + g / 2, gy - fs * 1.2, fs, true); ctx.globalAlpha = A(1) * swap;
+    EX[ex].forEach((v, i) => { const q = Math.round(255 * (1 - Math.max(0, Math.min(1, v)))); ctx.fillStyle = `rgb(${q},${q},${q})`;
+      ctx.fillRect(gx + (i % 5) * c, gy + Math.floor(i / 5) * c, c, c); });
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1; for(let i = 0; i <= 5; i++){ ctx.beginPath(); ctx.moveTo(gx + i * c, gy); ctx.lineTo(gx + i * c, gy + g); ctx.moveTo(gx, gy + i * c); ctx.lineTo(gx + g, gy + i * c); ctx.stroke(); }
+    ctx.globalAlpha = 1; }
+  /* hidden nodes */
+  if(A(2) > 0){ txt('hidden layer', hx, hy(0) - nr - fs * .9, fs, true);
+    for(let j = 0; j < NH; j++){
+      const relu = beat >= 3, v = relu ? f.h[j] : f.z[j], off = relu && f.z[j] <= 0, a = A(2) * (off ? (beat === 3 ? 1 - .6 * ease(p) : .4) : 1);
+      ctx.globalAlpha = a; ctx.beginPath(); ctx.arc(hx, hy(j), nr, 0, 7); ctx.fillStyle = off ? '#f1f5f9' : '#fff'; ctx.fill();
+      ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2; ctx.stroke();
+      txt(num(v), hx, hy(j), fs, true); ctx.globalAlpha = 1; } }
+  /* hidden -> output weights and logits */
+  if(A(4) > 0){ ctx.globalAlpha = .55 * A(4); ctx.strokeStyle = '#64748b';
+    for(let k = 0; k < NO; k++) for(let j = 0; j < NH; j++){ const w = Math.abs(P.W2[k][j]) / wmax2; ctx.lineWidth = .3 + 4 * w * w;
+      ctx.beginPath(); ctx.moveTo(hx + nr, hy(j)); ctx.lineTo(ox - nr, oy(k)); ctx.stroke(); }
+    ctx.globalAlpha = A(4); txt('logits', ox, oy(0) - nr - fs * .9, fs, true);
+    for(let k = 0; k < NO; k++){ ctx.beginPath(); ctx.arc(ox, oy(k), nr, 0, 7); ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2; ctx.stroke();
+      txt(num(f.o[k]), ox, oy(k), fs, true); }
+    ctx.globalAlpha = 1; }
+  /* softmax bars */
+  if(A(5) > 0){ ctx.globalAlpha = A(5); txt('softmax', bx, oy(0) - nr - fs * .9, fs, true, 'left');
+    for(let k = 0; k < NO; k++){ const y = oy(k), w = bw * .62 * f.p[k] * (beat === 5 ? ease(p) : 1);
+      ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ox + nr + 6, y); ctx.lineTo(bx - 6, y); ctx.stroke();
+      ctx.fillStyle = '#e2e8f0'; ctx.fillRect(bx, y - nr * .55, bw * .62, nr * 1.1);
+      ctx.fillStyle = '#334155'; ctx.fillRect(bx, y - nr * .55, w, nr * 1.1);
+      txt(CLASSES[k], bx, y + nr * .55 + fs * .2, fs, false, 'left', 'top');
+      txt(pct(f.p[k]), bx + bw * .64, y, big, true, 'left'); }
+    ctx.globalAlpha = 1; }
+  /* caption, bottom left */
+  ctx.globalAlpha = beat ? Math.min(1, p * 2) : 0; txt(CAPS[beat], gx, H - big * .6, big, true, 'left'); ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+
+window.forwardScene = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+  notes: NOTES,
+  debug: () => ({acc, ex0: F[0], ex1: F[1]})
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) forwardScene.advance(); if(e.key === 'ArrowLeft') forwardScene.back(); });
+  addEventListener('click', () => forwardScene.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

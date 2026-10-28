@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>From a linear layer to a network</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: Day 5 layers part. Pattern B. A linear classifier and a one-hidden-layer ReLU network
+     are both trained live, in this page, on the same toy data (computed at load, seeded). */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">From a linear layer to a network</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE    (0):   the title alone
+   ACT 1  LINEAR   (1-3): the toy data; a linear layer trains live (a straight boundary); its mistakes
+   ACT 2  NETWORK  (4-5): add a hidden layer of ReLUs and train live (the boundary bends);
+                          the hidden units' fold lines, the pieces the boundary is built from
+
+   Data: two interleaved half-moons, 100 points each, Gaussian noise 0.15, seed 7 (a toy, made here).
+   No data colors: class 1 = filled ink dots, class 0 = open dots; shading = the model's p(class 1). */
+const FONT = "Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif";
+function rng(seed){ return () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const gauss = r => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r());
+
+const r = rng(7), X = [], Y = [];
+for(let i = 0; i < 200; i++){
+  const c = i % 2, t = Math.PI * r();
+  const x = c ? 1 - Math.cos(t) : Math.cos(t), y = c ? .5 - Math.sin(t) : Math.sin(t);
+  X.push([x - .5 + .15 * gauss(r), (y - .25) * 1.0 + .15 * gauss(r)]); Y.push(c);
+}
+const XR = [-2, 2], YR = [-1.35, 1.35];
+
+/* ---- a tiny network: 2 -> H (ReLU) -> 1 (sigmoid); H = 0 is the linear layer alone ---- */
+const sig = z => 1 / (1 + Math.exp(-z));
+function forward(P, x){                                       // returns logit z
+  if(!P.H) return P.w[0] * x[0] + P.w[1] * x[1] + P.b;
+  let z = P.b;
+  for(let j = 0; j < P.H; j++){ const a = P.W1[j][0] * x[0] + P.W1[j][1] * x[1] + P.b1[j]; if(a > 0) z += P.w[j] * a; }
+  return z;
+}
+function lossAcc(P){ let L = 0, ok = 0; X.forEach((x, i) => { const p = sig(forward(P, x)); L -= Math.log(Y[i] ? p : 1 - p); ok += (p > .5) === !!Y[i]; }); return [L / X.length, ok / X.length]; }
+const flat = P => P.H ? [...P.W1.flat(), ...P.b1, ...P.w, P.b] : [...P.w, P.b];
+function unflat(P, v){ const Q = {H: P.H}; let k = 0;
+  if(P.H){ Q.W1 = P.W1.map(() => [v[k++], v[k++]]); Q.b1 = P.b1.map(() => v[k++]); }
+  Q.w = P.w.map(() => v[k++]); Q.b = v[k++]; return Q; }
+function grad(P){                                             // cross-entropy gradient, full batch
+  const g = flat(P).map(() => 0), n = X.length;
+  X.forEach((x, i) => {
+    const d = (sig(forward(P, x)) - Y[i]) / n;               // dL/dz
+    if(!P.H){ g[0] += d * x[0]; g[1] += d * x[1]; g[2] += d; return; }
+    const H = P.H;
+    for(let j = 0; j < H; j++){ const a = P.W1[j][0] * x[0] + P.W1[j][1] * x[1] + P.b1[j];
+      if(a > 0){ g[3 * H + j] += d * a; const da = d * P.w[j]; g[2 * j] += da * x[0]; g[2 * j + 1] += da * x[1]; g[2 * H + j] += da; } }
+    g[4 * H] += d;
+  });
+  return g;
+}
+function train(P, steps, lr){                                 // Adam; keeps a snapshot every step
+  let v = flat(P); const m = v.map(() => 0), s = v.map(() => 0), snaps = [P], curve = [lossAcc(P)[0]];
+  for(let t = 1; t <= steps; t++){
+    const g = grad(unflat(P, v));
+    v = v.map((p, i) => { m[i] = .9 * m[i] + .1 * g[i]; s[i] = .999 * s[i] + .001 * g[i] * g[i];
+      return p - lr * (m[i] / (1 - .9 ** t)) / (Math.sqrt(s[i] / (1 - .999 ** t)) + 1e-8); });
+    const Q = unflat(P, v); snaps.push(Q); curve.push(lossAcc(Q)[0]);
+  }
+  return {snaps, curve};
+}
+const STEPS = 600, H = 10, ir = rng(3);
+const LIN = train({H: 0, w: [.6, -.9], b: .4}, STEPS, .03);
+const NET = train({H, W1: [...Array(H)].map(() => [gauss(ir), gauss(ir)]), b1: [...Array(H)].map(() => .5 * gauss(ir)),
+  w: [...Array(H)].map(() => .5 * gauss(ir)), b: 0}, STEPS, .03);
+const [, linAcc] = lossAcc(LIN.snaps[STEPS]), [, netAcc] = lossAcc(NET.snaps[STEPS]);
+const LMAX = Math.max(LIN.curve[0], NET.curve[0], .75);
+
+const CAPS = ['', 'two classes (toy data)', 'a linear layer: w·x + b', `${Math.round(linAcc * 100)}% correct: a line cannot bend`,
+  'add a hidden layer + ReLU', `${Math.round(netAcc * 100)}% correct: one fold per hidden unit`];
+const NOTES = [
+  "(draft) Title only. What does a layer actually compute, and why do we need more than one?",
+  "(draft) Two classes of points, made up for this demo: filled and open. The question for any classifier: which side of the plane is which class?",
+  "(draft) A linear layer computes a weighted sum, w dot x plus b, and calls it class 1 when that is positive. The boundary, where the sum is zero, is always a straight line. We train it here, live, by gradient descent. On the right, the loss goes down and then flattens.",
+  (`(draft) That is the best straight line, and it still gets these circled points wrong: ${Math.round(linAcc * 100)} percent correct. No setting of w and b can bend a line. Stacking more linear layers would not help either: a linear function of a linear function is still linear.`),
+  (`(draft) So we add a hidden layer of ${H} units, each followed by a ReLU: keep the value if it is positive, otherwise output zero. Same data, same training. The boundary bends, and the loss keeps going down, past where the line got stuck.`),
+  (`(draft) Here is why. Each hidden unit has its own line, drawn faintly here. The ReLU folds the plane along that line, and the output adds up the folded pieces. Ten folds are enough to wrap around the moons: ${Math.round(netAcc * 100)} percent correct. That nonlinearity is what lets depth buy you anything.`)
+];
+const NB = NOTES.length - 1, TRAINS = {2: LIN, 4: NET};
+const DUR = b => TRAINS[b] ? 5000 : 900;
+let beat = 0, t0 = 0;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+function go(b, jump){ beat = b; t0 = performance.now() - (jump ? 1e9 : 0);
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join(''); }
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, Hh = 0;
+function size(){ const d = devicePixelRatio || 1; W = cv.clientWidth; Hh = cv.clientHeight; cv.width = W * d; cv.height = Hh * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+const GX = 120, GY = 81, off = document.createElement('canvas'); off.width = GX; off.height = GY;
+const octx = off.getContext('2d'), od = octx.createImageData(GX, GY);
+
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== Hh) size();
+  const p = Math.min(1, (now - t0) / DUR(beat)), A = b => beat > b ? 1 : beat === b ? ease(p) : 0;
+  const stepOf = b => beat > b ? STEPS : beat === b ? Math.round(STEPS * (1 - Math.pow(1 - p, 2))) : 0;
+  ctx.clearRect(0, 0, W, Hh);
+  /* plot box (left) and loss panel (right) */
+  const ph = Hh * .92, pw = Math.min(W * .58, ph * (XR[1] - XR[0]) / (YR[1] - YR[0])), px = 0, py = 0;
+  const M = ([x, y]) => [px + (x - XR[0]) / (XR[1] - XR[0]) * pw, py + (YR[1] - y) / (YR[1] - YR[0]) * ph];
+  const model = beat >= 4 ? NET.snaps[stepOf(4)] : beat >= 2 ? LIN.snaps[stepOf(2)] : null;
+  const shadeA = beat >= 4 ? 1 : A(2);
+  if(model && shadeA > 0){
+    for(let j = 0; j < GY; j++) for(let i = 0; i < GX; i++){
+      const x = XR[0] + (i + .5) / GX * (XR[1] - XR[0]), y = YR[1] - (j + .5) / GY * (YR[1] - YR[0]);
+      const q = sig(forward(model, [x, y])), g = 255 - 52 * q, k = 4 * (j * GX + i);
+      od.data[k] = od.data[k + 1] = od.data[k + 2] = g; od.data[k + 3] = 255;
+    }
+    octx.putImageData(od, 0, 0); ctx.imageSmoothingEnabled = true; ctx.globalAlpha = shadeA; ctx.drawImage(off, px, py, pw, ph);
+    /* the boundary p = 0.5: marching over the grid, drawn as short segments */
+    ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 3; ctx.beginPath();
+    const zf = (i, j) => forward(model, [XR[0] + i / GX * (XR[1] - XR[0]), YR[1] - j / GY * (YR[1] - YR[0])]);
+    const Z = []; for(let j = 0; j <= GY; j++){ Z.push([]); for(let i = 0; i <= GX; i++) Z[j].push(zf(i, j)); }
+    const P2 = (i, j) => [px + i / GX * pw, py + j / GY * ph];
+    for(let j = 0; j < GY; j++) for(let i = 0; i < GX; i++){
+      const c = [[i, j], [i + 1, j], [i + 1, j + 1], [i, j + 1]], v = c.map(([a, b]) => Z[b][a]), pts = [];
+      for(let e = 0; e < 4; e++){ const a = v[e], b = v[(e + 1) % 4]; if((a > 0) !== (b > 0)){ const t = a / (a - b), [x1, y1] = c[e], [x2, y2] = c[(e + 1) % 4];
+        pts.push(P2(x1 + (x2 - x1) * t, y1 + (y2 - y1) * t)); } }
+      if(pts.length >= 2){ ctx.moveTo(...pts[0]); ctx.lineTo(...pts[1]); }
+    }
+    ctx.stroke(); ctx.globalAlpha = 1;
+  }
+  /* hidden units' fold lines (beat 5) */
+  if(A(5) > 0){ const P = NET.snaps[STEPS]; ctx.save(); ctx.beginPath(); ctx.rect(px, py, pw, ph); ctx.clip();
+    ctx.globalAlpha = .55 * A(5); ctx.strokeStyle = '#64748b'; ctx.lineWidth = 1.5; ctx.setLineDash([6, 5]);
+    P.W1.forEach(([a, b], j) => { const c = P.b1[j]; ctx.beginPath();          // a x + b y + c = 0
+      if(Math.abs(b) > Math.abs(a)){ ctx.moveTo(...M([XR[0], -(a * XR[0] + c) / b])); ctx.lineTo(...M([XR[1], -(a * XR[1] + c) / b])); }
+      else { ctx.moveTo(...M([-(b * YR[0] + c) / a, YR[0]])); ctx.lineTo(...M([-(b * YR[1] + c) / a, YR[1]])); }
+      ctx.stroke(); });
+    ctx.restore(); }
+  /* points */
+  if(A(1) > 0){ ctx.globalAlpha = A(1); const rad = Math.max(4, pw * .009);
+    X.forEach((x, i) => { const [u, v] = M(x); ctx.beginPath(); ctx.arc(u, v, rad, 0, 7);
+      if(Y[i]){ ctx.fillStyle = '#0f172a'; ctx.fill(); } else { ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1.6; ctx.stroke(); } });
+    /* mistakes of the linear layer (beat 3 only) */
+    if(beat === 3){ ctx.globalAlpha = A(3); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2;
+      X.forEach((x, i) => { if((sig(forward(LIN.snaps[STEPS], x)) > .5) !== !!Y[i]){ const [u, v] = M(x); ctx.beginPath(); ctx.arc(u, v, rad * 2.6, 0, 7); ctx.stroke(); } }); }
+    ctx.globalAlpha = 1; ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1; ctx.strokeRect(px, py, pw, ph); }
+  /* loss panel */
+  const lx = pw + W * .07, lw = W - lx - W * .01, lh = ph * .5, ly = ph * .12, fs = Math.max(16, W * .015);
+  if(A(2) > 0){
+    ctx.globalAlpha = A(2) > 0 && beat === 2 ? Math.min(1, p * 3) : 1;
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx, ly + lh); ctx.lineTo(lx + lw, ly + lh); ctx.stroke();
+    ctx.fillStyle = '#0f172a'; ctx.font = `700 ${fs}px ${FONT}`; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText('loss', lx, ly - 6);
+    ctx.font = `400 ${fs}px ${FONT}`; ctx.textAlign = 'right'; ctx.textBaseline = 'top'; ctx.fillText('training steps', lx + lw, ly + lh + 6);
+    const C = (k, L) => [lx + k / STEPS * lw, ly + lh - L / LMAX * lh];
+    const curve = (cvs, n, dash, lab) => { ctx.setLineDash(dash); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2.5; ctx.beginPath();
+      for(let k = 0; k <= n; k++) k ? ctx.lineTo(...C(k, cvs[k])) : ctx.moveTo(...C(k, cvs[k])); ctx.stroke(); ctx.setLineDash([]);
+      if(n === STEPS){ const [u, v] = C(STEPS, cvs[STEPS]); ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText(lab, u, v - 6); } };
+    curve(LIN.curve, stepOf(2), [8, 6], 'linear');
+    if(beat >= 4) curve(NET.curve, stepOf(4), [], 'hidden layer');
+    ctx.globalAlpha = 1;
+  }
+  /* caption under the loss panel */
+  ctx.fillStyle = '#0f172a'; ctx.font = `700 ${Math.max(20, W * .019)}px ${FONT}`; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.globalAlpha = beat ? Math.min(1, p * 2) : 0;
+  const words = CAPS[beat].split(': '); words.forEach((t, k) => ctx.fillText(t + (k < words.length - 1 ? ':' : ''), lx, ly + lh + fs * 3 + k * fs * 1.6));
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+
+window.boundaryScene = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+  notes: NOTES,
+  debug: () => ({linAcc, netAcc, linLoss: LIN.curve[STEPS], netLoss: NET.curve[STEPS]})
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) boundaryScene.advance(); if(e.key === 'ArrowLeft') boundaryScene.back(); });
+  addEventListener('click', () => boundaryScene.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

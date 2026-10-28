@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cross-entropy loss</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: Day 5 loss part. Pattern B. The curve and every value on it are computed: loss = -ln p. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Cross-entropy loss</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE    (0):   the title alone
+   ACT 1  CURVE    (1):   loss = -log p(correct class), p from 0 to 1
+   ACT 2  CASES    (2-4): confident and right; a guess among 3 classes; confident and wrong
+   ACT 3  AVERAGE  (5):   the training loss is the average over examples
+
+   The three p values are illustrative inputs (0.9, 1/3, 0.02), said as such in the notes; the losses
+   are computed from them. Natural log, as in PyTorch's cross-entropy. No data colors. */
+const FONT = "Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif";
+const CASES = [{p: .9, lab: 'confident, right'}, {p: 1 / 3, lab: 'a guess (1 of 3)'}, {p: .02, lab: 'confident, wrong'}];
+CASES.forEach(c => c.L = -Math.log(c.p));
+const MEAN = CASES.reduce((s, c) => s + c.L, 0) / CASES.length;
+const f2 = v => v.toFixed(2);
+
+const CAPS = ['', 'loss = −log p(correct class)', `p = ${f2(CASES[0].p)}  →  loss ${f2(CASES[0].L)}`, `p = ${f2(CASES[1].p)}  →  loss ${f2(CASES[1].L)}`,
+  `p = ${f2(CASES[2].p)}  →  loss ${f2(CASES[2].L)}`, `training loss = average = ${f2(MEAN)}`];
+const NOTES = [
+  "(draft) Title only. The network gives us probabilities. To learn, it needs one number that says how wrong it was.",
+  "(draft) For classification that number is usually the cross-entropy: minus the log of the probability the network gave to the correct class. On the x axis, that probability; on the y axis, the loss.",
+  (`(draft) Say the network gives the correct class ${f2(CASES[0].p)}. Confident and right: the loss is small, ${f2(CASES[0].L)}.`),
+  (`(draft) If it spreads its bets evenly over 3 classes, one third each, the loss is log 3, about ${f2(CASES[1].L)}. That is the loss of pure guessing, a useful number to know: an untrained network starts near it.`),
+  (`(draft) If it gives the correct class only ${f2(CASES[2].p)}, confident and wrong, the loss shoots up to ${f2(CASES[2].L)}. The curve punishes confident mistakes much more than it rewards confident successes.`),
+  (`(draft) During training we average this loss over many examples. Here, over our three, ${f2(MEAN)}. That average is the single number gradient descent will push down.`)
+];
+const NB = NOTES.length - 1;
+let beat = 0, t0 = 0;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+function go(b, jump){ beat = b; t0 = performance.now() - (jump ? 1e9 : 0);
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join(''); }
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const d = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+const txt = (t, x, y, sz, bold, align = 'center', base = 'middle') => { ctx.fillStyle = '#0f172a'; ctx.font = `${bold ? 700 : 400} ${sz}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(t, x, y); };
+
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();
+  const p = Math.min(1, (now - t0) / 1100), A = b => beat > b ? 1 : beat === b ? ease(p) : 0;
+  ctx.clearRect(0, 0, W, H);
+  const fs = Math.max(16, W * .015), big = Math.max(20, W * .02);
+  const x0 = W * .08, x1 = W * .62, y0 = H * .9, y1 = H * .04, YMAX = 4.5;
+  const P = (pp, L) => [x0 + pp * (x1 - x0), y0 - Math.min(L, YMAX) / YMAX * (y0 - y1)];
+  if(A(1) > 0){
+    ctx.globalAlpha = A(1); ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x0, y1); ctx.lineTo(x0, y0); ctx.lineTo(x1, y0); ctx.stroke();
+    for(let k = 0; k <= 4; k++){ const [, y] = P(0, k); txt(String(k), x0 - 10, y, fs, false, 'right'); }
+    for(let k = 0; k <= 4; k++){ const [x] = P(k / 4, 0); txt(String(k / 4), x, y0 + 8, fs, false, 'center', 'top'); }
+    txt('p(correct class)', (x0 + x1) / 2, y0 + fs * 2.2, fs, true, 'center', 'top');
+    txt('loss', x0, y1 - 4, fs, true, 'left', 'bottom');
+    /* the curve draws itself in, left to right */
+    const n = 300, upto = beat === 1 ? p : 1; ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 3; ctx.beginPath(); let started = false;
+    for(let i = 0; i <= n * upto; i++){ const pp = .005 + .995 * i / n, L = -Math.log(pp); if(L > YMAX) continue;
+      const [x, y] = P(pp, L); started ? ctx.lineTo(x, y) : (ctx.moveTo(x, y), started = true); }
+    ctx.stroke(); ctx.globalAlpha = 1;
+  }
+  CASES.forEach((c, k) => { const a = A(2 + k); if(a <= 0) return; const [x, y] = P(c.p, c.L);
+    ctx.globalAlpha = a * (beat === 2 + k || beat === 5 ? 1 : .45);
+    ctx.setLineDash([5, 5]); ctx.strokeStyle = '#64748b'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y); ctx.lineTo(x0, y); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(x, y, Math.max(7, W * .007), 0, 7); ctx.fillStyle = '#0f172a'; ctx.fill();
+    txt(c.lab, x + 14, y - 14, fs, true, 'left', 'bottom'); txt(f2(c.L), x + 14, y + 4, fs, false, 'left', 'top');
+    ctx.globalAlpha = 1; });
+  if(A(5) > 0){ const [, y] = P(0, MEAN); ctx.globalAlpha = A(5); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2; ctx.setLineDash([10, 6]);
+    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke(); ctx.setLineDash([]);
+    txt('average', x1 + 10, y, fs, true, 'left'); ctx.globalAlpha = 1; }
+  ctx.globalAlpha = beat ? Math.min(1, p * 2) : 0; txt(CAPS[beat], W * .66, H * .3, big, true, 'left'); ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+
+window.lossScene = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) lossScene.advance(); if(e.key === 'ArrowLeft') lossScene.back(); });
+  addEventListener('click', () => lossScene.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Backpropagation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: Day 5 backprop part. Pattern B. Every value and gradient is computed here from
+     x, y, w1, w2 and the learning rate; beat 7 checks one gradient by finite differences. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Backpropagation</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE     (0):   the title alone
+   ACT 1  FORWARD   (1-2): the graph of a tiny network; values flow left to right to the loss
+   ACT 2  BACKWARD  (3-6): gradients flow right to left, one operation per click (chain rule)
+   ACT 3  USE IT    (7-8): check one gradient by nudging the weight; take a step, the loss drops
+
+   Color: ochre = gradients (the day's one data color for "slope / gradient"); values are ink. */
+const FONT = "Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif";
+const GRAD = '#b45309';
+const x = 1.5, y = 2, w1 = .8, w2 = .5, LR = .1, EPS = 1e-3;
+const run = (a, b) => { const z = a * x, h = Math.max(0, z), yh = b * h, L = (yh - y) ** 2; return {z, h, yh, L}; };
+const F = run(w1, w2);
+const g = {}; g.L = 1; g.yh = 2 * (F.yh - y); g.w2 = g.yh * F.h; g.h = g.yh * w2; g.z = F.z > 0 ? g.h : 0; g.w1 = g.z * x;
+const fd = (run(w1 + EPS, w2).L - run(w1 - EPS, w2).L) / (2 * EPS);
+const nw1 = w1 - LR * g.w1, nw2 = w2 - LR * g.w2, F2 = run(nw1, nw2);
+const n = v => (v < 0 ? '−' : '') + String(+Math.abs(v).toFixed(2));
+
+/* nodes: value boxes and operation circles, in fractions of the stage */
+const ROW = .42, LOW = .8;
+const NODES = {
+  x:   {k: 'v', at: [.04, ROW], name: 'x'},   w1: {k: 'v', at: [.16, LOW], name: 'w₁'},
+  m1:  {k: 'o', at: [.16, ROW], name: '×'},   z:  {k: 'v', at: [.27, ROW], name: 'z'},
+  r:   {k: 'o', at: [.38, ROW], name: 'ReLU'}, h: {k: 'v', at: [.49, ROW], name: 'h'},
+  w2:  {k: 'v', at: [.60, LOW], name: 'w₂'},  m2: {k: 'o', at: [.60, ROW], name: '×'},
+  yh:  {k: 'v', at: [.71, ROW], name: 'ŷ'},   yt: {k: 'v', at: [.83, LOW], name: 'y'},
+  sq:  {k: 'o', at: [.83, ROW], name: '(ŷ−y)²'}, L: {k: 'v', at: [.95, ROW], name: 'L'},
+};
+const EDGES = [['x', 'm1'], ['w1', 'm1'], ['m1', 'z'], ['z', 'r'], ['r', 'h'], ['h', 'm2'], ['w2', 'm2'], ['m2', 'yh'], ['yh', 'sq'], ['yt', 'sq'], ['sq', 'L']];
+/* forward value of each value node, and when (beat) its gradient appears */
+const VAL = {x, w1, z: F.z, h: F.h, w2, yh: F.yh, yt: y, L: F.L};
+const GB = {L: 3, yh: 3, h: 4, w2: 4, z: 5, w1: 6};
+const BACK = [['sq', 'yh', 3], ['L', 'sq', 3], ['m2', 'h', 4], ['m2', 'w2', 4], ['yh', 'm2', 4], ['r', 'z', 5], ['h', 'r', 5], ['m1', 'w1', 6], ['z', 'm1', 6]];
+
+const CAPS = ['', 'a tiny network, as a graph', 'forward: compute the loss', `start at the end: ∂L/∂ŷ = 2(ŷ − y) = ${n(g.yh)}`,
+  `through ×: ∂L/∂w₂ = ∂L/∂ŷ · h,   ∂L/∂h = ∂L/∂ŷ · w₂`, 'through ReLU: z > 0, so the gradient passes', `to w₁: ∂L/∂w₁ = ∂L/∂z · x = ${n(g.w1)}`,
+  `check: nudge w₁ by ±${EPS}, the loss changes at rate ${fd.toFixed(3).replace('-', '−')}`, `step: w ← w − ${LR} · ∂L/∂w,  loss ${n(F.L)} → ${n(F2.L)}`];
+const NOTES = [
+  "(draft) Title only. Gradient descent needs the slope of the loss with respect to every weight. Backpropagation is how we get all of them in one sweep.",
+  "(draft) Here is the smallest network I could draw: an input x, times a weight w1, a ReLU, times a second weight w2, and a squared error against the target y.",
+  (`(draft) The forward pass, with numbers: x is ${n(x)}, w1 is ${n(w1)}, so z is ${n(F.z)}. The ReLU keeps it, so h is ${n(F.h)}. Times w2 gives a prediction of ${n(F.yh)}, but the target is ${n(y)}, so the loss is ${n(F.L)}.`),
+  (`(draft) Now go backwards. Start at the loss. How does the loss change if the prediction changes? The derivative of the squared error: 2 times the error, ${n(g.yh)}. Negative means: make the prediction bigger and the loss goes down.`),
+  (`(draft) Back through the multiplication. Each input gets the gradient from above times the other input. For w2: ${n(g.yh)} times h, ${n(g.w2)}. For h: ${n(g.yh)} times w2, ${n(g.h)}.`),
+  (`(draft) Back through the ReLU. Because z was positive, the ReLU had slope 1, so the gradient passes through unchanged, ${n(g.z)}. Had z been negative, the gradient would stop here, and w1 would not learn from this example.`),
+  (`(draft) And through the first multiplication: the gradient times x gives the gradient for w1, ${n(g.w1)}. Every step was local: one operation, its own slope, times what came from above. That is the chain rule, applied right to left.`),
+  (`(draft) We can check it without calculus: nudge w1 up and down by a thousandth and see how much the loss moves. The rate is ${fd.toFixed(3).replace('-', 'minus ')}, the same number. PyTorch does exactly this bookkeeping for you when you call loss.backward().`),
+  (`(draft) Now use the gradients: move each weight a small step against its gradient, with learning rate ${LR}. w1 goes from ${n(w1)} to ${n(nw1)}, w2 from ${n(w2)} to ${n(nw2)}. Run the forward pass again, and the loss has dropped from ${n(F.L)} to ${n(F2.L)}. Repeat that thousands of times and you have trained a network.`)
+];
+const NB = NOTES.length - 1;
+let beat = 0, t0 = 0;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+function go(b, jump){ beat = b; t0 = performance.now() - (jump ? 1e9 : 0);
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join(''); }
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const d = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+const txt = (t, x, y, sz, bold, align = 'center', base = 'middle', col = '#0f172a') => { ctx.fillStyle = col; ctx.font = `${bold ? 700 : 400} ${sz}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(t, x, y); };
+const XY = k => [NODES[k].at[0] * W, NODES[k].at[1] * H];
+function head(x1, y1, x2, y2, col){ const a = Math.atan2(y2 - y1, x2 - x1), s = 10; ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - s * Math.cos(a - .45), y2 - s * Math.sin(a - .45)); ctx.lineTo(x2 - s * Math.cos(a + .45), y2 - s * Math.sin(a + .45)); ctx.fill(); }
+const RAD = () => Math.min(W * .032, H * .09);
+function trim(a, b){ const [x1, y1] = XY(a), [x2, y2] = XY(b), d = Math.hypot(x2 - x1, y2 - y1), r = RAD() * 1.05;
+  return [x1 + (x2 - x1) * r / d, y1 + (y2 - y1) * r / d, x2 - (x2 - x1) * r / d, y2 - (y2 - y1) * r / d]; }
+
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();
+  const p = Math.min(1, (now - t0) / 1000), A = b => beat > b ? 1 : beat === b ? ease(p) : 0;
+  ctx.clearRect(0, 0, W, H);
+  const fs = Math.max(16, W * .015), big = Math.max(20, W * .019), r = RAD();
+  const after = beat >= 8 ? ease(beat === 8 ? p : 1) : 0;
+  if(A(1) > 0){
+    ctx.globalAlpha = A(1);
+    EDGES.forEach(([a, b]) => { const [x1, y1, x2, y2] = trim(a, b); ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); head(x1, y1, x2, y2, '#94a3b8'); });
+    for(const k in NODES){ const N = NODES[k], [cx, cy] = XY(k);
+      ctx.beginPath(); if(N.k === 'o') ctx.arc(cx, cy, r * .8, 0, 7); else ctx.roundRect(cx - r, cy - r * .7, 2 * r, 1.4 * r, 10);
+      ctx.fillStyle = N.k === 'o' ? '#f1f5f9' : '#fff'; ctx.fill(); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2; ctx.stroke();
+      if(N.k === 'o') txt(N.name, cx, cy, N.name.length > 2 ? fs * .9 : big * 1.2, true);
+      else { const v = beat >= 8 && (k === 'w1' || k === 'w2' || k in {z: 1, h: 1, yh: 1, L: 1}) ? {w1: nw1, w2: nw2, z: F2.z, h: F2.h, yh: F2.yh, L: F2.L}[k] : VAL[k];
+        txt(N.name, cx, A(2) > 0 ? cy - r * .28 : cy, big, true);
+        if(A(2) > 0){ ctx.globalAlpha = A(1) * (k === 'x' || k === 'yt' || k === 'w1' || k === 'w2' ? 1 : A(2)); txt(n(v), cx, cy + r * .3, fs, false); ctx.globalAlpha = A(1); } } }
+    ctx.globalAlpha = 1;
+  }
+  /* forward pulse on beat 2 */
+  if(beat === 2 && p < 1){ const path = ['x', 'm1', 'z', 'r', 'h', 'm2', 'yh', 'sq', 'L'].map(XY), f = p * (path.length - 1), i = Math.min(path.length - 2, Math.floor(f)), t = f - i;
+    const px = path[i][0] + (path[i + 1][0] - path[i][0]) * t, py = path[i][1] + (path[i + 1][1] - path[i][1]) * t;
+    ctx.fillStyle = 'rgba(15,23,42,.25)'; ctx.beginPath(); ctx.arc(px, py, r * .35, 0, 7); ctx.fill(); }
+  /* backward arrows (ochre), drawn just above or beside each forward edge */
+  BACK.forEach(([a, b, k]) => { const al = A(k); if(al <= 0 || beat >= 8) return;
+    const [x1, y1, x2, y2] = trim(a, b), dx = x2 - x1, dy = y2 - y1, d = Math.hypot(dx, dy), ox = -dy / d * 12, oy = dx / d * 12;
+    const fr = beat === k ? ease(p) : 1;
+    ctx.globalAlpha = al; ctx.strokeStyle = GRAD; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x1 + ox, y1 + oy); ctx.lineTo(x1 + ox + dx * fr, y1 + oy + dy * fr); ctx.stroke();
+    head(x1 + ox, y1 + oy, x1 + ox + dx * fr, y1 + oy + dy * fr, GRAD); ctx.globalAlpha = 1; });
+  /* gradient labels (ochre) */
+  for(const k in GB){ const al = A(GB[k]); if(al <= 0) continue; const [cx, cy] = XY(k), low = NODES[k].at[1] === LOW;
+    ctx.globalAlpha = beat >= 8 ? .35 : al;
+    txt(`∂L/∂${NODES[k].name} = ${n(g[k])}`, cx, low ? cy + r * .7 + fs * .9 : cy - r * .7 - fs * .9, fs, true, 'center', 'middle', GRAD); ctx.globalAlpha = 1; }
+  /* finite-difference check (beat 7) */
+  if(A(7) > 0 && beat === 7){ const [cx, cy] = XY('w1'); ctx.globalAlpha = A(7); ctx.strokeStyle = GRAD; ctx.lineWidth = 2; ctx.setLineDash([5, 4]);
+    ctx.beginPath(); ctx.roundRect(cx - r * 1.4, cy - r * 1.05, r * 2.8, r * 2.6, 12); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1; }
+  if(after > 0){ ['w1', 'w2'].forEach(k => { const [cx, cy] = XY(k); ctx.globalAlpha = after; txt(`was ${n(VAL[k])}`, cx + r * 1.15, cy, fs, false, 'left'); });
+    const [cx, cy] = XY('L'); txt(`was ${n(F.L)}`, cx, cy + r * .7 + fs * .9, fs, false); ctx.globalAlpha = 1; }
+  ctx.globalAlpha = beat ? Math.min(1, p * 2) : 0; txt(CAPS[beat], 0, H * .08, big, true, 'left'); ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+
+window.backpropScene = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+  notes: NOTES,
+  debug: () => ({F, g, fd, nw1, nw2, F2})
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) backpropScene.advance(); if(e.key === 'ArrowLeft') backpropScene.back(); });
+  addEventListener('click', () => backpropScene.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

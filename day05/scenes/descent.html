@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gradient descent</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: Day 5 descent part. Pattern B. The surface is the real mean squared error of a
+     two-weight linear model on toy data made here (seeded); every path is computed step by step. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Gradient descent</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE       (0):   the title alone
+   ACT 1  SURFACE     (1-2): the loss over two weights; the gradient at the start points uphill
+   ACT 2  STEP SIZE   (3-4): small steps crawl along the valley; too-large steps blow up
+   ACT 3  OPTIMIZERS  (5-6): momentum; Adam
+
+   Data: 200 points, two inputs with correlation 0.9 (this makes the long narrow valley), target
+   y = 1.0 x1 + 0.5 x2 + noise sd 0.3, seed 9. Loss = mean squared error. Color: ochre = gradient;
+   paths are ink with different dashes. */
+const FONT = "Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif";
+const GRAD = '#b45309';
+function rng(seed){ return () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const gauss = r => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r());
+
+const r = rng(9), D = [];
+for(let i = 0; i < 200; i++){ const u = gauss(r), v = gauss(r), x1 = u, x2 = .9 * u + Math.sqrt(1 - .81) * v; D.push([x1, x2, 1.0 * x1 + .5 * x2 + .3 * gauss(r)]); }
+/* MSE is quadratic: precompute its sufficient statistics */
+let S11 = 0, S12 = 0, S22 = 0, S1y = 0, S2y = 0, Syy = 0;
+D.forEach(([a, b, y]) => { S11 += a * a; S12 += a * b; S22 += b * b; S1y += a * y; S2y += b * y; Syy += y * y; });
+[S11, S12, S22, S1y, S2y, Syy] = [S11, S12, S22, S1y, S2y, Syy].map(v => v / D.length);
+const loss = (a, b) => a * a * S11 + 2 * a * b * S12 + b * b * S22 - 2 * a * S1y - 2 * b * S2y + Syy;
+const grad = (a, b) => [2 * (a * S11 + b * S12 - S1y), 2 * (a * S12 + b * S22 - S2y)];
+const det = S11 * S22 - S12 * S12, OPT = [(S22 * S1y - S12 * S2y) / det, (S11 * S2y - S12 * S1y) / det];
+
+const START = [-2.2, 2.6], AR = [-3, 3.2], BR = [-1.8, 3.2], STEPS = 60;
+function path(kind, lr){
+  let [a, b] = START, va = 0, vb = 0, ma = 0, mb = 0, sa = 0, sb = 0; const P = [[a, b]];
+  for(let t = 1; t <= STEPS; t++){
+    const [ga, gb] = grad(a, b);
+    if(kind === 'gd'){ a -= lr * ga; b -= lr * gb; }
+    if(kind === 'mom'){ va = .9 * va - lr * ga; vb = .9 * vb - lr * gb; a += va; b += vb; }
+    if(kind === 'adam'){ ma = .9 * ma + .1 * ga; mb = .9 * mb + .1 * gb; sa = .999 * sa + .001 * ga * ga; sb = .999 * sb + .001 * gb * gb;
+      a -= lr * (ma / (1 - .9 ** t)) / (Math.sqrt(sa / (1 - .999 ** t)) + 1e-8); b -= lr * (mb / (1 - .9 ** t)) / (Math.sqrt(sb / (1 - .999 ** t)) + 1e-8); }
+    P.push([a, b]); if(Math.abs(a) > 1e3 || Math.abs(b) > 1e3) break;
+  }
+  return P;
+}
+const RUNS = [
+  {beat: 3, P: path('gd', .1),   dash: [],          name: 'small steps',  lr: .1},
+  {beat: 4, P: path('gd', .58),  dash: [2, 5],      name: 'too large',    lr: .58},
+  {beat: 5, P: path('mom', .1),  dash: [12, 6],     name: 'momentum',     lr: .1},
+  {beat: 6, P: path('adam', .15), dash: [12, 5, 2, 5], name: 'Adam',      lr: .15},
+];
+const LOPT = loss(...OPT), fin = R => loss(...R.P[R.P.length - 1]);
+
+const CAPS = ['', 'loss over two weights', 'the gradient points uphill', `learning rate ${RUNS[0].lr}: steady, slow in the valley`, `learning rate ${RUNS[1].lr}: overshoots and blows up`, 'momentum: keep some of the last step', 'Adam: a step size per weight'];
+const NOTES = [
+  "(draft) Title only. We have a loss, and we can get its gradient. How do we use it?",
+  "(draft) Imagine a model with only two weights, so we can draw every possible setting. Each point is one setting; the shading is the loss on a toy dataset, lighter is lower. The cross marks the best setting. It sits in a long, narrow valley.",
+  "(draft) We start here. The gradient, in ochre, points in the direction where the loss rises fastest. So we step the opposite way, downhill.",
+  (`(draft) Step, recompute the gradient, step again: 60 steps with learning rate ${RUNS[0].lr}. It drops quickly into the valley, then crawls along its floor, because the slope there is gentle.`),
+  (`(draft) Why not take bigger steps? With learning rate ${RUNS[1].lr}, each step overshoots the valley, lands higher on the other wall, and the next step overshoots even more. The loss blows up. Choosing the learning rate is the first knob you will turn in the lab.`),
+  "(draft) Momentum: each step keeps 90 percent of the previous one, like a ball rolling downhill. The zigzags across the valley cancel, the motion along it adds up, and it gets to the bottom much sooner.",
+  "(draft) Adam, the usual default today, also keeps a running scale of each weight's gradients and divides by it, so every weight gets its own step size. (Real networks have millions of weights and a much bumpier surface than this bowl, and they estimate the gradient on a small batch of examples at each step. The idea is the same.)"
+];
+const NB = NOTES.length - 1;
+const DUR = b => b >= 3 ? 4000 : 900;
+let beat = 0, t0 = 0;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+function go(b, jump){ beat = b; t0 = performance.now() - (jump ? 1e9 : 0);
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join(''); }
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const d = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); surf = null; }
+const txt = (t, x, y, sz, bold, align = 'center', base = 'middle', col = '#0f172a') => { ctx.fillStyle = col; ctx.font = `${bold ? 700 : 400} ${sz}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(t, x, y); };
+/* the surface as an image: banded gray by log loss (lighter = lower) */
+let surf = null; const G = 160;
+function surface(){ const c = document.createElement('canvas'); c.width = c.height = G; const x = c.getContext('2d'), im = x.createImageData(G, G);
+  for(let j = 0; j < G; j++) for(let i = 0; i < G; i++){
+    const a = AR[0] + (i + .5) / G * (AR[1] - AR[0]), b = BR[1] - (j + .5) / G * (BR[1] - BR[0]);
+    const band = Math.floor(Math.log(loss(a, b) - LOPT + 1e-3) * 1.6), gr = Math.max(150, Math.min(250, 210 - band * 9)), k = 4 * (j * G + i);
+    im.data[k] = im.data[k + 1] = gr; im.data[k + 2] = Math.min(255, gr + 6); im.data[k + 3] = 255; }
+  x.putImageData(im, 0, 0); return c; }
+
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();
+  const p = Math.min(1, (now - t0) / DUR(beat)), A = b => beat > b ? 1 : beat === b ? ease(p) : 0;
+  ctx.clearRect(0, 0, W, H);
+  const fs = Math.max(16, W * .015), big = Math.max(20, W * .019);
+  const sh = H * .9, sw = Math.min(W * .5, sh * (AR[1] - AR[0]) / (BR[1] - BR[0])), sx = W * .03, sy = 0;
+  const M = ([a, b]) => [sx + (a - AR[0]) / (AR[1] - AR[0]) * sw, sy + (BR[1] - b) / (BR[1] - BR[0]) * sh];
+  if(A(1) > 0){
+    if(!surf) surf = surface();
+    ctx.globalAlpha = A(1); ctx.imageSmoothingEnabled = true; ctx.drawImage(surf, sx, sy, sw, sh);
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1; ctx.strokeRect(sx, sy, sw, sh);
+    txt('weight 1', sx + sw / 2, sy + sh + 8, fs, true, 'center', 'top');
+    ctx.save(); ctx.translate(sx - 10, sy + sh / 2); ctx.rotate(-Math.PI / 2); txt('weight 2', 0, 0, fs, true, 'center', 'bottom'); ctx.restore();
+    const [ox, oy] = M(OPT), s = 9; ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(ox - s, oy - s); ctx.lineTo(ox + s, oy + s); ctx.moveTo(ox + s, oy - s); ctx.lineTo(ox - s, oy + s); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  if(A(2) > 0){ const [x0, y0] = M(START), [ga, gb] = grad(...START), gl = Math.hypot(ga, gb), L = sw * .16;
+    const ux = ga / gl * (sw / (AR[1] - AR[0])), uy = -gb / gl * (sh / (BR[1] - BR[0])), ul = Math.hypot(ux, uy), dx = ux / ul * L, dy = uy / ul * L;
+    ctx.globalAlpha = A(2);
+    const arrow = (x1, y1, x2, y2, col, w) => { ctx.strokeStyle = ctx.fillStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      const an = Math.atan2(y2 - y1, x2 - x1); ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(x2 - 14 * Math.cos(an - .4), y2 - 14 * Math.sin(an - .4)); ctx.lineTo(x2 - 14 * Math.cos(an + .4), y2 - 14 * Math.sin(an + .4)); ctx.fill(); };
+    if(beat === 2){ arrow(x0, y0, x0 + dx, y0 + dy, GRAD, 4); txt('gradient', x0 + dx + 8, y0 + dy, fs, true, 'left', 'middle', GRAD);
+      arrow(x0, y0, x0 - dx * .7, y0 - dy * .7, '#0f172a', 3); txt('step', x0 - dx * .7 + 8, y0 - dy * .7 + 4, fs, true, 'left', 'top'); }
+    ctx.beginPath(); ctx.arc(x0, y0, 7, 0, 7); ctx.fillStyle = '#0f172a'; ctx.fill(); ctx.globalAlpha = 1; }
+  /* paths, clipped to the surface */
+  ctx.save(); ctx.beginPath(); ctx.rect(sx, sy, sw, sh); ctx.clip();
+  RUNS.forEach(R => { if(beat < R.beat || (R.lr > .5 && beat > R.beat)) return;          // the blow-up leaves the surface after its beat
+    const n = beat > R.beat ? R.P.length - 1 : Math.round((R.P.length - 1) * p);
+    ctx.globalAlpha = beat === R.beat ? 1 : .5; ctx.setLineDash(R.dash); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2.5; ctx.beginPath();
+    for(let k = 0; k <= n; k++){ const q = M(R.P[k]); k ? ctx.lineTo(...q) : ctx.moveTo(...q); } ctx.stroke(); ctx.setLineDash([]);
+    for(let k = 0; k <= n; k++){ const [u, v] = M(R.P[k]); ctx.beginPath(); ctx.arc(u, v, 2.6, 0, 7); ctx.fillStyle = '#0f172a'; ctx.fill(); }
+    ctx.globalAlpha = 1; });
+  ctx.restore();
+  /* loss vs steps (log scale), right */
+  const lx = sx + sw + W * .08, lw = W - lx - W * .02, ly = H * .07, lh = H * .42;
+  if(A(3) > 0){
+    const LO = Math.log10(.01), HI = Math.log10(Math.max(loss(...START) - LOPT, 1) * 30);
+    const C = (k, L) => [lx + k / STEPS * lw, ly + lh - (Math.max(LO, Math.min(HI, Math.log10(Math.max(L - LOPT, 1e-9)))) - LO) / (HI - LO) * lh];
+    ctx.globalAlpha = beat === 3 ? A(3) : 1; ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx, ly + lh); ctx.lineTo(lx + lw, ly + lh); ctx.stroke();
+    txt('loss above the best (log scale)', lx, ly - 4, fs, true, 'left', 'bottom'); txt('steps', lx + lw, ly + lh + 6, fs, false, 'right', 'top');
+    ctx.save(); ctx.beginPath(); ctx.rect(lx, ly - 2, lw + 4, lh + 4); ctx.clip();
+    RUNS.forEach(R => { if(beat < R.beat) return; const n = beat > R.beat ? R.P.length - 1 : Math.round((R.P.length - 1) * p);
+      ctx.globalAlpha = beat === R.beat ? 1 : .5; ctx.setLineDash(R.dash); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2.5; ctx.beginPath();
+      for(let k = 0; k <= n; k++){ const q = C(k, loss(...R.P[k])); k ? ctx.lineTo(...q) : ctx.moveTo(...q); } ctx.stroke(); ctx.setLineDash([]); });
+    ctx.restore();
+    /* legend */
+    RUNS.forEach((R, i) => { if(beat < R.beat) return; const yy = ly + lh + fs * 2.4 + i * fs * 1.5; ctx.globalAlpha = beat === R.beat ? 1 : .6;
+      ctx.setLineDash(R.dash); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(lx, yy); ctx.lineTo(lx + 40, yy); ctx.stroke(); ctx.setLineDash([]);
+      txt(R.name, lx + 52, yy, fs, beat === R.beat, 'left'); });
+    ctx.globalAlpha = 1;
+  }
+  ctx.globalAlpha = beat ? Math.min(1, ((now - t0) / 900) * 2) : 0; txt(CAPS[beat], lx, H * .97, big, true, 'left', 'bottom'); ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+
+window.descentScene = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+  notes: NOTES,
+  debug: () => ({OPT, LOPT, start: loss(...START), final: RUNS.map(R => [R.name, R.P.length - 1, fin(R) - LOPT])})
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) descentScene.advance(); if(e.key === 'ArrowLeft') descentScene.back(); });
+  addEventListener('click', () => descentScene.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
