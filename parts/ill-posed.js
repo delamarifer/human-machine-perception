@@ -9,7 +9,7 @@ sc('illPosed', 'scenes/ill-posed-shapes.html');
 /* The original figure, as the source of the idea. Shown whole (the scene already did the build). */
 st(`
   <h1 class="t">Perception is ill-posed</h1>
-  ${rfig('assets/ill-posed/line-drawing-ambiguity-nocaption.png', 919/545, [
+  ${rfig('assets/ill-posed/line-drawing-ambiguity-figure.png', 919/543, [
     {r: [0, 0, 1, 1], k: 'cov', step: 1}
   ])}
   ${cite('Figure: Sinha &amp; Adelson, 1993 (to confirm)')}
