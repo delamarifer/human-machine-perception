@@ -7,7 +7,7 @@ Owner: Fernanda. Open items as checkboxes, newest at the bottom. Tick them when 
 - [ ] Check the wording of the what / where-how notes against the reading you assign.
 
 ## Round 1 · 2026-10-28 · questions from the visual-system session
-- [ ] Metamer slide (new, slide 1 of this part): placed just before the brain. Keep it there, or move it?
+- [x] Metamer slide (new, slide 1 of this part): placed just before the brain. Keep it there, or move it? Fernanda 2026-10-28: keep it there.
 - [ ] Metamer title is "Color metamers" (the defense deck said "Illustrating metamers (a case from color perception)"). Which one?
 - [ ] Metamer notes are your defense-deck notes, verbatim, plus one new (draft) title passage. Do they need a classroom rewrite?
 - [ ] The metamer scene brings in red / green / blue for the L, M, S cones (and a green that sits near the pine of the dorsal stream). Keep those cone colors?
