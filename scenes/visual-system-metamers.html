@@ -1,0 +1,510 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Color metamers: two lights, one color</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../deck/deck.css">
+<!--
+  Owner: visual-system part (Day 1). Ported from Fernanda's thesis-defense deck,
+  ~/Developer/thesis-defense/scenes/ch1-color-metamers.html: same colorimetry, same drawing.
+  Day 1 changes: deck font and title, a title-only first beat, the deck controller API, keys
+  and clicks only when opened alone. The colorimetry (unchanged):
+    · CIE 1931 2-deg CMFs, Wyman/Sloan/Shirley (2013) analytic fit
+    · cones L, M, S = Hunt-Pointer-Estevez transform of XYZ
+    · left light = CIE Illuminant A (tungsten lamp, Planck at 2856 K)
+    · right light = Wright-Guild primaries 700.0 / 546.1 / 435.8 nm, CIE units
+  The knob targets are the exact 3×3 solution (R 1.000, G 0.397, B 0.232), so the
+  match on screen is a genuine metamer and the cone levels are computed, not drawn.
+
+  Layout (Fer's mockup, 2026-10-07): a monitor on the left shows the field split
+  left | right; the lamp sits on its bezel under the left half, the three knobs under
+  the right half. Light from each half runs into an eye on the right and focuses on two
+  neighbouring spots of retina; a zoom box opens onto a retinal cross-section (light
+  from the left: nerve fibres, ganglion, bipolar, rods and L/M/S cones, pigment
+  epithelium, choroid). The optics invert, so the left half lands on the lower spot
+  and lights the lower half of the cross-section. All drawn in SVG, no bitmaps.
+
+  Beats: 0 title only · 1 screen dark, eye and retina · 2 lamp on, left-half cones L→M→S ·
+         3 three knobs at zero · 4 turn red · 5 turn green · 6 turn blue → match.
+  Alone: → / space / click advance · ← back. Knobs can be dragged (beat ≥ 3), in the deck too.
+-->
+<style>
+:root{
+  --ink:#0f172a; --body:#334155; --muted:#64748b; --rule:#e2e8f0;
+  --sans:var(--font);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:#fff;color:var(--ink);font-family:var(--sans);overflow:hidden;cursor:pointer}
+#stage{position:relative;width:100vw;height:100vh}
+svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+text{font-family:var(--sans)}
+.lbl{font-size:14px;fill:var(--muted)}
+.val{font-size:15px;font-weight:700;fill:var(--ink);font-variant-numeric:tabular-nums}
+.nm{font-size:10.5px;fill:var(--muted)}
+.ro{font-size:13px;font-variant-numeric:tabular-nums;font-weight:600}
+.fade{transition:opacity .6s ease}
+.knob{cursor:ns-resize}
+#dots{position:fixed;right:2vw;bottom:12px;display:flex;gap:6px}
+.dot{width:7px;height:7px;border-radius:50%;background:#e2e8f0;transition:background .3s}
+.dot.on{background:#64748b}
+.mtitle{position:absolute;left:6vw;top:9vh;z-index:2;pointer-events:none}
+#content{transition:opacity .9s ease}
+</style>
+
+<div id="stage">
+<h1 class="t deck-title mtitle">Color metamers</h1>
+<svg id="fig" viewBox="0 0 1200 675" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="bezel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7f8f9"/><stop offset=".55" stop-color="#c3c8cd"/>
+      <stop offset="1" stop-color="#7d838a"/>
+    </linearGradient>
+    <linearGradient id="knurl" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d9dde1"/><stop offset="1" stop-color="#8e949b"/>
+    </linearGradient>
+    <radialGradient id="faceSheen" cx=".35" cy=".3" r=".8">
+      <stop offset="0" stop-color="#fff" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="case" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eceef0"/><stop offset="1" stop-color="#cdd1d6"/>
+    </linearGradient>
+    <linearGradient id="caseSide" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#a9afb6"/><stop offset="1" stop-color="#c6cbd0"/>
+    </linearGradient>
+    <radialGradient id="vitreous" cx=".55" cy=".45" r=".6">
+      <stop offset="0" stop-color="#f9c27e"/><stop offset="1" stop-color="#e57b33"/>
+    </radialGradient>
+    <clipPath id="eyeIn"><circle cx="800" cy="320" r="86"/></clipPath>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#0f172a" flood-opacity=".28"/>
+    </filter>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
+
+  <g id="content" opacity="0">
+  <g id="monitor"></g>
+  <g id="bundles"></g>
+  <g id="eye"></g>
+  <g id="xsec"></g>
+  <g id="photons"></g>
+  <g id="lamp" class="fade" opacity="0"></g>
+  <g id="knobs" class="fade" opacity="0"></g>
+  <g id="readouts"></g>
+  </g>
+</svg>
+<div id="dots"></div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const SLIDE_NAME = 'visualMetamers';
+
+// ── colorimetry (copied from color-metamers.html) ───────────────────────────
+const LAM0 = 380, LAM1 = 780, NL = LAM1 - LAM0 + 1;
+const lam = Array.from({length:NL}, (_,i) => LAM0 + i);
+const pg = (x,mu,s1,s2) => { const s = x < mu ? s1 : s2; return Math.exp(-0.5*((x-mu)/s)**2); };
+const xb = l => 1.056*pg(l,599.8,37.9,31.0) + 0.362*pg(l,442.0,16.0,26.7) - 0.065*pg(l,501.1,20.4,26.2);
+const yb = l => 0.821*pg(l,568.8,46.9,40.5) + 0.286*pg(l,530.9,16.3,31.1);
+const zb = l => 1.217*pg(l,437.0,11.8,36.0) + 0.681*pg(l,459.0,26.0,13.8);
+const CX = lam.map(xb), CY = lam.map(yb), CZ = lam.map(zb);
+const XYZof = s => { let X=0,Y=0,Z=0;
+  for(let i=0;i<NL;i++){ X += CX[i]*s[i]; Y += CY[i]*s[i]; Z += CZ[i]*s[i]; } return [X,Y,Z]; };
+const LMSof = ([X,Y,Z]) => [0.38971*X + 0.68898*Y - 0.07868*Z,
+                           -0.22981*X + 1.18340*Y + 0.04641*Z, Z];
+const c2 = 1.435e7, kA = Math.exp(c2/(2848*560)) - 1;
+let TEST = lam.map(l => 100*Math.pow(560/l,5) * (kA/(Math.exp(c2/(2848*l)) - 1)));
+const PRIM = [700.0, 546.1, 435.8];
+const mono = (l0,w) => { const b = lam.map(l => Math.exp(-0.5*((l-l0)/w)**2));
+  const s = b.reduce((a,x)=>a+x,0); return b.map(x=>x/s); };
+let P = PRIM.map(p => mono(p, 4.0));
+function solve3(A, b){
+  const det = M => M[0][0]*(M[1][1]*M[2][2]-M[1][2]*M[2][1])
+                 - M[0][1]*(M[1][0]*M[2][2]-M[1][2]*M[2][0])
+                 + M[0][2]*(M[1][0]*M[2][1]-M[1][1]*M[2][0]);
+  const D = det(A), col = k => A.map((r,i) => r.map((v,j) => j === k ? b[i] : v));
+  return [0,1,2].map(k => det(col(k))/D);
+}
+const colsOf = () => { const PX = P.map(XYZof); return [0,1,2].map(i => [PX[0][i], PX[1][i], PX[2][i]]); };
+{ const wE = solve3(colsOf(), XYZof(lam.map(() => 1)));
+  const m = Math.max(...wE); P = P.map((p,k) => p.map(v => v*wE[k]/m)); }
+const TARGET = (() => { const w = solve3(colsOf(), XYZof(TEST));
+  const k = 1/Math.max(...w); TEST = TEST.map(v => v*k); return w.map(v => v*k); })();
+const PXYZ = P.map(XYZof);
+const mixXYZ = d => [0,1,2].map(i => d[0]*PXYZ[0][i] + d[1]*PXYZ[1][i] + d[2]*PXYZ[2][i]);
+const TEST_XYZ = XYZof(TEST), TEST_LMS = LMSof(TEST_XYZ);
+const REF = Math.max(...TEST_LMS);            // cone levels are shown relative to the lamp's L
+const MX = [[3.2406,-1.5372,-0.4986],[-0.9689,1.8758,0.0415],[0.0557,-0.2040,1.0570]];
+const linRGB = ([X,Y,Z]) => MX.map(r => r[0]*X + r[1]*Y + r[2]*Z);
+const EXPO = 1/Math.max(...linRGB(TEST_XYZ));
+const enc = v => { v = Math.max(0, Math.min(1, v));
+  return Math.round(255*(v <= 0.0031308 ? 12.92*v : 1.055*Math.pow(v,1/2.4) - 0.055)); };
+const css = XYZ => { const c = linRGB(XYZ).map(v => v*EXPO);
+  return `rgb(${enc(c[0])},${enc(c[1])},${enc(c[2])})`; };
+const wlCss = l => {                          // display only (Bruton)
+  let r=0, g=0, b=0;
+  if(l<440){ r=-(l-440)/60; b=1; } else if(l<490){ g=(l-440)/50; b=1; }
+  else if(l<510){ g=1; b=-(l-510)/20; } else if(l<580){ r=(l-510)/70; g=1; }
+  else if(l<645){ r=1; g=-(l-645)/65; } else { r=1; }
+  const f = l<420 ? 0.3+0.7*(l-380)/40 : l>700 ? 0.3+0.7*(780-l)/80 : 1;
+  const q = v => Math.round(255*Math.pow(Math.max(0,Math.min(1,v))*f, 0.8));
+  return `rgb(${q(r)},${q(g)},${q(b)})`;
+};
+
+// ── helpers & geometry ──────────────────────────────────────────────────────
+const $ = s => document.querySelector(s), NS = 'http://www.w3.org/2000/svg';
+const mk = (t, a, parent) => { const e = document.createElementNS(NS, t);
+  for(const k in a) e.setAttribute(k, a[k]); if(parent) parent.appendChild(e); return e; };
+const CONE_COL = ['#d23c3c', '#2e9b4f', '#2f6fd1'];         // L, M, S
+const PRIM_COL = ['#d23c3c', '#2e9b4f', '#2f6fd1'];         // the three knobs' lights
+const SCR = {x:140, y:158, w:365, h:246};                    // the monitor's screen
+const MID = SCR.x + SCR.w/2;
+const KNOB_Y = 470, KNOB_X = [345, 414, 483], KR = 21, DIAL_MAX = 1.3;
+const LAMP_X = 231, LAMP_Y = 468;
+const EYE = {x:800, y:320};
+const LAND = {L:[883, 338], R:[883, 302]};                   // optics invert: left half lands low
+const XS = {x:950, y0:140, y1:590, L:450};                   // cross-section panel (screen coords)
+const ang = v => -140 + v/DIAL_MAX*280;                      // dial value → degrees
+
+// ── the monitor ─────────────────────────────────────────────────────────────
+{ const g = $('#monitor');
+  mk('path', {d:'M95,120 L58,150 L58,530 L95,556 Z', fill:'url(#caseSide)', stroke:'#a3a9b0'}, g);
+  for(let y = 380; y < 520; y += 9)                          // side vents
+    mk('line', {x1:66, y1:y, x2:88, y2:y+3, stroke:'#979ea6', 'stroke-width':1.2}, g);
+  mk('rect', {x:95, y:118, width:455, height:440, rx:14, fill:'url(#case)', stroke:'#b5bbc1', 'stroke-width':1.5}, g);
+  mk('rect', {x:SCR.x-12, y:SCR.y-12, width:SCR.w+24, height:SCR.h+24, rx:12, fill:'#3a4047'}, g);
+  mk('rect', {id:'fieldL', x:SCR.x, y:SCR.y, width:SCR.w/2+1, height:SCR.h, fill:'#111'}, g);
+  mk('rect', {id:'fieldR', x:MID, y:SCR.y, width:SCR.w/2, height:SCR.h, fill:'#111'}, g);
+  mk('line', {x1:MID, y1:SCR.y, x2:MID, y2:SCR.y+SCR.h, stroke:'#334155', 'stroke-width':1.2}, g);
+  mk('rect', {x:SCR.x, y:SCR.y, width:SCR.w, height:SCR.h, fill:'none', stroke:'#22272d', 'stroke-width':1}, g);
+  mk('rect', {x:516, y:532, width:20, height:9, rx:2, fill:'#2c3238'}, g);   // power button
+  mk('rect', {x:275, y:558, width:100, height:26, fill:'#c2c7cc'}, g);       // neck
+  mk('path', {d:'M205,584 L445,584 L470,606 L180,606 Z', fill:'#d6dadf', stroke:'#b5bbc1'}, g);
+}
+
+// ── the lamp, on the bezel under the left half ──────────────────────────────
+const lampG = $('#lamp');
+const lampHalo = mk('circle', {cx:LAMP_X, cy:LAMP_Y-6, r:26, fill:css(TEST_XYZ), opacity:.45, filter:'url(#glow)'}, lampG);
+mk('path', {d:`M${LAMP_X-16},${LAMP_Y-6} a16,16 0 1,1 32,0 c0,7 -6,11 -7,17 h-18 c-1,-6 -7,-10 -7,-17 z`,
+            fill:'#fff7e6', stroke:'#c9a66b', 'stroke-width':1.3}, lampG);
+mk('path', {d:`M${LAMP_X-5},${LAMP_Y+1} l3,-9 l2,6 l2,-6 l3,9`, fill:'none', stroke:'#d9691a',
+            'stroke-width':1.3, 'stroke-linejoin':'round'}, lampG);
+mk('rect', {x:LAMP_X-9, y:LAMP_Y+12, width:18, height:9, rx:2, fill:'url(#bezel)', stroke:'#8e949b'}, lampG);
+mk('text', {x:LAMP_X, y:LAMP_Y+43, 'text-anchor':'middle', class:'lbl'}, lampG).textContent = 'tungsten lamp';
+
+// ── the knobs, on the bezel under the right half ────────────────────────────
+const knobs = PRIM.map((p, k) => {
+  const cx = KNOB_X[k], cy = KNOB_Y, g = mk('g', {class:'knob', 'data-k':k}, $('#knobs'));
+  mk('circle', {cx, cy, r:KR+12, fill:'none', stroke:'#c9cfd6', 'stroke-width':1}, g);
+  for(let i = 0; i <= 10; i++){
+    const a = (-140 + i*28)*Math.PI/180, r0 = KR+8, r1 = KR+(i % 5 ? 12 : 15);
+    mk('line', {x1:cx+Math.sin(a)*r0, y1:cy-Math.cos(a)*r0, x2:cx+Math.sin(a)*r1, y2:cy-Math.cos(a)*r1,
+                stroke:'#a9b1ba', 'stroke-width':i % 5 ? 1 : 1.5}, g);
+  }
+  mk('circle', {cx, cy, r:KR+3, fill:'url(#bezel)', filter:'url(#shadow)'}, g);
+  const turn = mk('g', {}, g);
+  let teeth = '';
+  for(let i = 0; i < 90; i++){
+    const a = i/90*2*Math.PI, r = i % 2 ? KR+2.4 : KR+0.4;
+    teeth += (i ? 'L' : 'M') + (cx+Math.sin(a)*r).toFixed(2) + ',' + (cy-Math.cos(a)*r).toFixed(2);
+  }
+  mk('path', {d:teeth+'Z', fill:'url(#knurl)', stroke:'#7d838a', 'stroke-width':.3}, turn);
+  const RF = KR-2.5;                                         // brushed face, fixed to the light
+  for(let i = 0; i < 72; i++){
+    const a0 = i/72*2*Math.PI, a1 = (i+1.05)/72*2*Math.PI;
+    const v = Math.round(206 + 40*Math.cos(2*(a0 - 0.6)));
+    mk('path', {d:`M${cx},${cy} L${cx+Math.sin(a0)*RF},${cy-Math.cos(a0)*RF} A${RF},${RF} 0 0,1 ${cx+Math.sin(a1)*RF},${cy-Math.cos(a1)*RF} Z`,
+                fill:`rgb(${v},${v+2},${v+5})`}, g);
+  }
+  mk('circle', {cx, cy, r:RF, fill:'url(#faceSheen)', stroke:'#9aa1a8', 'stroke-width':.7}, g);
+  const ptrG = mk('g', {}, g);
+  mk('path', {d:`M${cx},${cy-RF+3} l5.5,9 h-11 z`, fill:PRIM_COL[k], stroke:'#fff', 'stroke-width':.8}, ptrG);
+  const val = mk('text', {x:cx, y:cy+KR+30, 'text-anchor':'middle', class:'val'}, g);
+  mk('text', {x:cx, y:cy+KR+43, 'text-anchor':'middle', class:'nm'}, g).textContent = p.toFixed(1).replace('.0','') + ' nm';
+  return {turn, ptrG, val, cx, cy};
+});
+
+// ── light from each half of the screen into the eye ─────────────────────────
+// Each half fills the pupil and focuses to its own point on the retina; the bundles
+// cross at the lens, so the upper bundle (left half) lands on the lower spot.
+const bundle = {
+  L: mk('path', {d:`M552,232 L552,272 L735,338 L${LAND.L[0]},${LAND.L[1]} L735,302 Z`, opacity:0}, $('#bundles')),
+  R: mk('path', {d:`M552,282 L552,322 L735,338 L${LAND.R[0]},${LAND.R[1]} L735,302 Z`, opacity:0}, $('#bundles')),
+};
+
+// ── the eye ─────────────────────────────────────────────────────────────────
+{ const g = $('#eye'), E = EYE;
+  mk('path', {d:'M866,374 C888,396 904,410 930,420', fill:'none', stroke:'#d9a95a', 'stroke-width':26, 'stroke-linecap':'round'}, g);
+  mk('path', {d:'M866,374 C888,396 904,410 930,420', fill:'none', stroke:'#f3cf86', 'stroke-width':21, 'stroke-linecap':'round'}, g);
+  mk('circle', {cx:E.x, cy:E.y, r:95, fill:'#fbfaf8', stroke:'#cfd6de', 'stroke-width':1.5}, g);
+  mk('circle', {cx:E.x, cy:E.y, r:90, fill:'#c8442f'}, g);
+  mk('circle', {cx:E.x, cy:E.y, r:86, fill:'url(#vitreous)'}, g);
+  const inG = mk('g', {'clip-path':'url(#eyeIn)'}, g);
+  mk('rect', {x:690, y:220, width:45, height:200, fill:'#dceef8'}, inG);       // anterior chamber
+  [['M869,370 Q840,330 852,262'], ['M869,370 Q826,340 806,300'], ['M869,370 Q838,392 838,404'],
+   ['M869,370 Q860,330 890,290'], ['M869,370 Q820,360 790,372']].forEach(([d]) =>
+    mk('path', {d, fill:'none', stroke:'#b23a2a', 'stroke-width':1.4, 'stroke-opacity':.75}, inG));
+  mk('circle', {cx:869, cy:370, r:6, fill:'#f6d79a', stroke:'#d9a95a'}, inG);  // optic disc
+  mk('rect', {x:726, y:236, width:7, height:64, fill:'#3f6f8f'}, g);            // iris
+  mk('rect', {x:726, y:340, width:7, height:64, fill:'#3f6f8f'}, g);
+  mk('ellipse', {cx:744, cy:320, rx:13, ry:40, fill:'#eef6fc', stroke:'#9cc3dd', 'stroke-width':1.2, opacity:.95}, g);
+  mk('path', {d:'M727,234 Q672,320 727,406', fill:'#cfe8f6', 'fill-opacity':.6, stroke:'#8fc0de', 'stroke-width':2}, g);
+  // zoom box onto the two landing spots, and the lines out to the cross-section
+  mk('line', {x1:892, y1:290, x2:XS.x, y2:XS.y0, stroke:'#94a3b8', 'stroke-width':1}, g);
+  mk('line', {x1:892, y1:350, x2:XS.x, y2:XS.y1, stroke:'#94a3b8', 'stroke-width':1}, g);
+  mk('rect', {x:873, y:290, width:19, height:60, fill:'none', stroke:'#fff', 'stroke-width':1.8}, g);
+  mk('rect', {x:873, y:290, width:19, height:60, fill:'none', stroke:'#64748b', 'stroke-width':.6}, g);
+}
+
+// ── the retina, in cross-section ────────────────────────────────────────────
+// Built in local coordinates (receptors along x, depth along y, light from y = 0) and
+// rotated so the light arrives from the left. Layers: nerve fibres · ganglion ·
+// bipolar · photoreceptors (rods grey, every third a cone) · pigment epithelium ·
+// choroid · sclera. Cone outer segments point away from the light. Only cones change.
+const XSG = mk('g', {transform:`translate(${XS.x},${XS.y1}) rotate(-90)`}, $('#xsec'));
+const L = XS.L, PINK = '#f4a3cf', PINK_D = '#d65c9e';
+mk('rect', {x:0, y:178, width:L, height:16, fill:'#c0392b'}, XSG);                // choroid
+mk('rect', {x:0, y:194, width:L, height:12, fill:'#f4f1ec', stroke:'#d6d0c6'}, XSG); // sclera
+mk('rect', {x:0, y:0, width:L, height:178, fill:'#fdf0cf', stroke:'#f0dfbd'}, XSG);
+const wires = mk('g', {stroke:PINK_D, 'stroke-width':.9, 'stroke-opacity':.45, fill:'none'}, XSG);
+[5, 10].forEach(y => mk('line', {x1:0, y1:y, x2:L, y2:y}, wires));                 // nerve fibres
+for(let x = 2; x < L - 14; x += 18){                                                 // pigment epithelium
+  mk('rect', {x, y:163, width:16, height:14, rx:5, fill:'#e6a678', stroke:'#c9794a', 'stroke-width':.8}, XSG);
+  mk('circle', {cx:x+8, cy:170, r:2, fill:'#8a4b2a'}, XSG);
+}
+const MOSAIC = 'LMLSMLMMLSLM';
+const cones = [];
+let nc = 0;
+for(let i = 0, x = 8; x <= L - 8; i++, x += 13){
+  if(i % 3 !== 1){                                                                   // rod
+    mk('line', {x1:x, y1:82, x2:x, y2:134, stroke:'#bcc3cb', 'stroke-width':2.4}, XSG);
+    mk('ellipse', {cx:x, cy:96, rx:3.4, ry:4.4, fill:'#8f98a3'}, XSG);
+    mk('rect', {x:x-2.5, y:134, width:5, height:27, rx:2.4, fill:'#cdd3d9', stroke:'#aab2bb', 'stroke-width':.6}, XSG);
+    continue;
+  }
+  const cls = 'LMS'.indexOf(MOSAIC[nc++ % MOSAIC.length]), col = CONE_COL[cls];
+  const halo = mk('ellipse', {cx:x, cy:132, rx:12, ry:22, fill:col, opacity:0, filter:'url(#glow)'}, XSG);
+  mk('line', {x1:x, y1:82, x2:x, y2:102, stroke:col, 'stroke-width':2, 'stroke-opacity':.5}, XSG);
+  const parts = [
+    mk('ellipse', {cx:x, cy:109, rx:5.3, ry:7}, XSG),                                // cell body
+    mk('path', {d:`M${x-3},117 L${x-6.2},135 L${x+6.2},135 L${x+3},117 Z`}, XSG),       // inner segment
+    mk('path', {d:`M${x-6.2},137 L${x-1.4},161 L${x+1.4},161 L${x+6.2},137 Z`}, XSG),   // outer segment
+  ];
+  parts.forEach(e => { e.setAttribute('fill', col); e.setAttribute('stroke', col);
+    e.setAttribute('stroke-width', 1); e.setAttribute('stroke-opacity', .6); });
+  cones.push({side: x < L/2 ? 'L' : 'R', cls, parts, halo});                         // lower half = left half
+}
+for(let x = 14; x <= L; x += 26){                                                    // bipolar cells
+  [x-6, x+7].forEach(t => mk('line', {x1:x, y1:73, x2:t, y2:82}, wires));
+  mk('line', {x1:x, y1:59, x2:x + (x % 52 < 26 ? 7 : -7), y2:36}, wires);
+  mk('ellipse', {cx:x, cy:66, rx:4.6, ry:7.6, fill:PINK, stroke:PINK_D, 'stroke-width':.8}, XSG);
+}
+for(let x = 27; x <= L; x += 52){                                                    // ganglion cells
+  mk('path', {d:`M${x},21 Q${x},12 ${x-13},10`}, wires);
+  mk('ellipse', {cx:x, cy:28, rx:10, ry:7.2, fill:PINK, stroke:PINK_D, 'stroke-width':.9}, XSG);
+  mk('circle', {cx:x, cy:28, r:2.8, fill:PINK_D, 'fill-opacity':.7}, XSG);
+}
+mk('line', {x1:L/2, y1:0, x2:L/2, y2:178, stroke:'#b9a988', 'stroke-width':.8, 'stroke-dasharray':'3 4'}, XSG);
+mk('text', {x:XS.x, y:XS.y0-10, class:'lbl'}, $('#xsec')).textContent = 'retina';
+
+// a tiny screen with one half lit says which half of the screen a patch is seeing
+function screenIcon(x, y, side, parent){
+  const g = mk('g', {}, parent);
+  mk('rect', {x, y, width:26, height:18, rx:2.5, fill:'#e5e7eb', stroke:'#94a3b8', 'stroke-width':1}, g);
+  const half = mk('rect', {x:side === 'L' ? x+1.5 : x+13, y:y+1.5, width:11.5, height:15, fill:'#111'}, g);
+  mk('line', {x1:x+13, y1:y+1, x2:x+13, y2:y+17, stroke:'#94a3b8', 'stroke-width':.8}, g);
+  return half;
+}
+const icons = {
+  R: [screenIcon(1164, (XS.y0 + XS.y1)/2 - 122, 'R', $('#xsec'))],
+  L: [screenIcon(1164, (XS.y0 + XS.y1)/2 + 104, 'L', $('#xsec'))],
+};
+// what each half's cones report: L, M, S relative to the lamp's L
+const readout = {};
+[['L', 612], ['R', 634]].forEach(([side, y]) => {
+  icons[side].push(screenIcon(XS.x, y - 14, side, $('#readouts')));
+  readout[side] = ['L','M','S'].map((n, i) =>
+    mk('text', {x:XS.x + 40 + i*62, y, class:'ro', fill:CONE_COL[i], opacity:0}, $('#readouts')));
+});
+
+// ── photons: along each bundle into the eye, then across the retina ─────────
+const polyLen = pts => { const seg = []; let tot = 0;
+  for(let i = 1; i < pts.length; i++){ const d = Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]);
+    seg.push(d); tot += d; } return {seg, tot}; };
+const along = (pts, m, f) => { let d = f*m.tot;
+  for(let i = 0; i < m.seg.length; i++){ if(d <= m.seg[i]){ const t = d/m.seg[i];
+      return [pts[i][0] + t*(pts[i+1][0]-pts[i][0]), pts[i][1] + t*(pts[i+1][1]-pts[i][1])]; }
+    d -= m.seg[i]; }
+  return pts[pts.length-1]; };
+const PATHS = {
+  L: [[552,252],[735,320],LAND.L],
+  R: [[552,302],[735,320],LAND.R],
+};
+const PH = [];
+['L','R'].forEach(side => {
+  const m = polyLen(PATHS[side]);
+  for(let i = 0; i < 10; i++)
+    PH.push({side, pts:PATHS[side], m, f0:i/10, speed:0.00045, len:9,
+             el:mk('circle', {r:2.6, opacity:0}, $('#photons'))});
+  // inside the retina: straight in from the vitreous side to the photoreceptors
+  for(let i = 0; i < 12; i++){
+    const y = side === 'R' ? XS.y0 + 12 + ((i*37) % 200) : XS.y1 - 12 - ((i*37) % 200);
+    const pts = [[XS.x - 4, y], [XS.x + 128, y]];
+    PH.push({side, pts, m:polyLen(pts), f0:(i*0.618) % 1, speed:0.0006,
+             el:mk('circle', {r:2.4, opacity:0}, $('#photons'))});
+  }
+});
+// ── state ───────────────────────────────────────────────────────────────────
+let beat = 0, dials = [0,0,0], lampOn = 0, coneGainL = [0,0,0], anim = null, dragging = null;
+const halfCol = {L:'#111', R:'#111'}, halfOn = {L:0, R:0};  // read by the photon loop
+
+function paint(){
+  const mix = mixXYZ(dials), LMSr = LMSof(mix);
+  const lmsL = TEST_LMS.map((v,i) => v*coneGainL[i]/REF), lmsR = LMSr.map(v => v/REF);
+  const knobsOn = beat >= 3;
+  $('#content').setAttribute('opacity', beat >= 1 ? 1 : 0);
+
+  halfCol.L = lampOn > 0 ? css(TEST_XYZ.map(v => v*lampOn)) : '#111';
+  halfCol.R = knobsOn && Math.max(...dials) > 0 ? css(mix) : '#111';
+  halfOn.L = lampOn;
+  halfOn.R = knobsOn ? Math.min(1, Math.max(0, mix[1]/TEST_XYZ[1])*1.4) : 0;   // follows luminance
+  $('#fieldL').setAttribute('fill', halfCol.L);
+  $('#fieldR').setAttribute('fill', halfCol.R);
+  ['L','R'].forEach(s => {
+    bundle[s].setAttribute('fill', halfCol[s]);
+    bundle[s].setAttribute('opacity', (.28*halfOn[s]).toFixed(3));
+    icons[s].forEach(h => h.setAttribute('fill', halfCol[s]));
+  });
+
+  $('#lamp').setAttribute('opacity', beat >= 2 ? 1 : 0);
+  lampHalo.setAttribute('opacity', (.45*lampOn).toFixed(2));
+  $('#knobs').setAttribute('opacity', knobsOn ? 1 : 0);
+  knobs.forEach((kn, k) => {
+    const rot = `rotate(${ang(dials[k]).toFixed(2)} ${kn.cx} ${kn.cy})`;
+    kn.turn.setAttribute('transform', rot); kn.ptrG.setAttribute('transform', rot);
+    kn.val.textContent = dials[k].toFixed(3);
+  });
+
+  cones.forEach(c => {
+    const a = Math.max(0, Math.min(1.15, (c.side === 'L' ? lmsL : knobsOn ? lmsR : [0,0,0])[c.cls]));
+    c.parts.forEach(e => e.setAttribute('fill-opacity', (.12 + .83*Math.min(1, a)).toFixed(3)));
+    c.halo.setAttribute('opacity', (.75*Math.min(1, a)).toFixed(3));
+  });
+  const fmt = v => (Math.abs(v) < 5e-4 ? 0 : v).toFixed(2);
+  readout.L.forEach((t,i) => { t.textContent = 'LMS'[i] + ' ' + fmt(lmsL[i]); t.setAttribute('opacity', lampOn > 0 ? 1 : 0); });
+  readout.R.forEach((t,i) => { t.textContent = 'LMS'[i] + ' ' + fmt(lmsR[i]); t.setAttribute('opacity', knobsOn ? 1 : 0); });
+}
+
+// photons run all the time; colour and brightness follow the half they come from
+function flow(t){
+  PH.forEach(p => {
+    const f = (p.f0 + t*p.speed) % 1, [x, y] = along(p.pts, p.m, f);
+    const edge = Math.min(1, f/0.08, (1 - f)/0.08);
+    p.el.setAttribute('cx', x.toFixed(1)); p.el.setAttribute('cy', y.toFixed(1));
+    p.el.setAttribute('fill', halfCol[p.side]);
+    p.el.setAttribute('opacity', (.95*halfOn[p.side]*edge).toFixed(3));
+  });
+  requestAnimationFrame(flow);
+}
+requestAnimationFrame(flow);
+
+// ── beats ───────────────────────────────────────────────────────────────────
+const NOTES = [
+  '(draft) Title only. Before the brain does anything, the eye has already thrown information away. Here is the clearest case: color.',
+  '<b>A screen split in two, both halves dark.</b> Light from each half will reach the eye and land on its own patch of retina; the cross-section shows what it does to the cones there.',
+  '<b>A real light.</b> A tungsten lamp, energy at every wavelength. It reaches the retina, and only three cone types sample it: L, then M, then S. The lamp drives L most and S least. Those three numbers are all that is left of the spectrum.',
+  '<b>The experiment.</b> The right half gets a different light: three single wavelengths — 700, 546 and 436 nm, the primaries of the original color-matching experiments — each with its own knob, all at zero.',
+  '<b>Turn the red knob.</b> 700 nm drives mostly the L cones, some M, almost no S. The right half turns red.',
+  '<b>Add green.</b> 546 nm drives M and L. L and M on the right now match the left; the color is close, but S is still off.',
+  '<b>Add blue.</b> 436 nm supplies the S cones. At R 1.000, G 0.397, B 0.232 the three cone numbers agree, and the boundary disappears: two physically different lights, one color. That is a metamer.',
+];
+const N = NOTES.length;
+const settle = b => {                                       // the state a beat lands on
+  lampOn = b >= 2 ? 1 : 0; coneGainL = b >= 2 ? [1,1,1] : [0,0,0];
+  dials = [0,1,2].map(k => b >= 4 + k ? TARGET[k] : 0);
+};
+const ease = p => p < .5 ? 4*p*p*p : 1 - Math.pow(-2*p + 2, 3)/2;
+
+function animate(dur, step){
+  const t0 = performance.now();
+  const tick = t => { const p = Math.min(1, (t - t0)/dur); step(p); paint();
+    anim = p < 1 ? requestAnimationFrame(tick) : null; };
+  anim = requestAnimationFrame(tick);
+}
+
+function enter(prev, jumped){
+  if(anim){ cancelAnimationFrame(anim); anim = null; }
+  settle(beat);
+  if(!jumped && beat === prev + 1){
+    if(beat === 2){                                          // light on, then L, M, S in turn
+      lampOn = 0; coneGainL = [0,0,0];
+      animate(2600, p => {
+        lampOn = ease(Math.min(1, p/0.3));
+        coneGainL = [0,1,2].map(i => ease(Math.max(0, Math.min(1, (p - 0.3 - i*0.22)/0.2))));
+      });
+    } else if(beat >= 4){                                    // one knob turns
+      const k = beat - 4; dials[k] = 0;
+      animate(2200, p => { dials[k] = TARGET[k]*ease(p); });
+    }
+  }
+  render();
+}
+
+function render(){
+  [...document.querySelectorAll('#dots .dot')].forEach((d,i) => d.classList.toggle('on', i < beat));
+  paint();
+}
+
+// ── controller ──────────────────────────────────────────────────────────────
+for(let i = 1; i < N; i++){ const d = document.createElement('div'); d.className = 'dot'; $('#dots').appendChild(d); }
+function go(b, jumped){ const prev = beat; beat = Math.max(0, Math.min(N-1, b)); enter(prev, !!jumped); }
+const advance = () => { if(beat < N-1) go(beat+1); };
+const back    = () => { if(beat > 0) go(beat-1, true); };
+
+if(window.parent === window){                               // alone; in the deck, the deck drives it
+  document.body.addEventListener('click', e => {
+    if(e.target.closest('.knob') || dragging !== null) return;
+    advance();
+  });
+  window.addEventListener('keydown', e => {
+    if(e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); advance(); }
+    else if(e.key === 'ArrowLeft'){ e.preventDefault(); back(); }
+  });
+}
+
+// knob dragging (beat ≥ 2) — swallows the click so the slide doesn't advance
+const svg = $('#fig');
+svg.addEventListener('pointerdown', e => {
+  const g = e.target.closest('.knob'); if(!g || beat < 3) return;
+  e.preventDefault(); e.stopPropagation();
+  if(anim){ cancelAnimationFrame(anim); anim = null; }
+  const k = +g.dataset.k; dragging = {k, y:e.clientY, v:dials[k]};
+  svg.setPointerCapture(e.pointerId);
+});
+svg.addEventListener('pointermove', e => {
+  if(dragging === null) return;
+  const px = svg.getBoundingClientRect().height/675;
+  dials[dragging.k] = Math.max(0, Math.min(DIAL_MAX, dragging.v + (dragging.y - e.clientY)/(200*px)*DIAL_MAX));
+  paint();
+});
+const endDrag = e => { if(dragging === null) return;
+  try{ svg.releasePointerCapture(e.pointerId); }catch(_){}
+  setTimeout(() => { dragging = null; }, 0); };
+svg.addEventListener('pointerup', endDrag);
+svg.addEventListener('pointercancel', endDrag);
+
+window[SLIDE_NAME] = {
+  advance, back,
+  atStart:   () => beat === 0,
+  atEnd:     () => beat === N-1,
+  reset:     () => go(0, true),
+  resetToEnd:() => go(N-1, true),
+  getBeat:   () => beat,
+  notes:     NOTES,
+};
+go(0, true);
+})();
+</script>

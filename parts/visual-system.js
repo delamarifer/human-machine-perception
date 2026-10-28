@@ -3,6 +3,9 @@
 {
 section('Seeing');
 
+/* Color metamers: light reaches the eye and only three cone types sample it (ported from the defense deck). */
+sc('visualMetamers', 'scenes/visual-system-metamers.html');
+
 sc('visualStreams', 'scenes/visual-system-streams.html');
 
 st(`
