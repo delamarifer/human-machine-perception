@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Blur, sharpen, edges</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: filters part (Day 3). Works alone too: open day03/scenes/filters.html and click. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; transition:opacity .9s ease, filter .9s ease; }
+  canvas.dim{ opacity:.22; filter:blur(2px); }
+  .cap{ position:absolute; left:0; bottom:-1vh; }
+  .pop{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(.96); opacity:0;
+    transition:opacity .9s ease, transform .9s ease; white-space:nowrap; }
+  .pop.on{ opacity:1; transform:translate(-50%,-50%); }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Blur, sharpen, edges</h1>
+  <div class="stagebox">
+    <canvas id="cv"></canvas>
+    <div class="label cap" id="cap"></div>
+    <div class="popquote pop" id="pop">One operation, different kernels</div>
+  </div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE     (0):  the title alone
+   ACT 1  IMAGE     (1):  one grayscale image (drawn in code), left, stays all slide
+   ACT 2  BLUR      (2):  5 x 5 box kernel -> blurred image, right; the kernel in the middle
+   ACT 3  SHARPEN   (3):  sharpening kernel
+   ACT 4  EDGES X   (4):  Sobel x: vertical edges (0 = mid gray)
+   ACT 5  EDGES Y   (5):  Sobel y: horizontal edges
+   ACT 6  STRENGTH  (6):  edge strength sqrt(gx^2 + gy^2): not a convolution itself, built from the two
+   ACT 7  POINT     (7):  the statement, figure dimmed
+
+   Every result is computed here with the same conv2d (zero padding replaced by edge replication). */
+const IW = 240, IH = 180;
+const INK = '#0f172a', LINE = '#cbd5e1';
+const K = {
+  blur: {k: [...Array(5)].map(() => [1, 1, 1, 1, 1]), scale: 1 / 25, label: '1/25 ×'},
+  sharp: {k: [[0, -1, 0], [-1, 5, -1], [0, -1, 0]], scale: 1},
+  sx: {k: [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], scale: 1},
+  sy: {k: [[-1, -2, -1], [0, 0, 0], [1, 2, 1]], scale: 1},
+};
+const CAPS = ['', 'One image', 'Blur: average the neighbors', 'Sharpen: the pixel, minus its neighbors',
+  'Vertical edges: right minus left', 'Horizontal edges: bottom minus top', 'Edge strength: both together', ''];
+const NOTES = [
+  "(draft) Title only. Now the payoff: the same operation, applied to a real-sized image, with different kernels.",
+  "(draft) Here is one grayscale image, again drawn in code so we know what is in it. It stays on the left the whole time.",
+  "(draft) First kernel: a five by five grid of ones, divided by 25. Each output pixel is the average of its neighborhood. Sharp edges spread out and fine detail, like the stripes and the text, disappears: blur. This is also what the big pinhole did.",
+  "(draft) Second kernel: five in the middle, minus one for each of the four neighbors. The weights add up to one, so flat regions stay the same, but wherever a pixel differs from its neighbors, the difference gets boosted. Edges and text look crisper. Notice it also boosts the noise.",
+  "(draft) Third: the Sobel kernel, a cousin of the one we computed by hand. Right column minus left column, with the middle row counted twice. Mid gray means zero; bright and dark are the two directions of change. It finds vertical edges.",
+  "(draft) Turn the same kernel on its side: bottom minus top. Now it finds horizontal edges, and the vertical ones disappear.",
+  "(draft) Combine the two, square root of the sum of their squares, and you get edge strength in every direction. This last step is not a convolution itself, but it is built from two. It is the start of almost every edge detector.",
+  "(draft) Blur, sharpen, edges: one operation, convolution, with different kernels. In the lab you will write that one operation yourself."
+];
+const N = NOTES.length - 1;
+
+/* ---- the image ---- */
+const src = document.createElement('canvas'); src.width = IW; src.height = IH;
+(() => { const g = src.getContext('2d');
+  const sky = g.createLinearGradient(0, 0, 0, IH); sky.addColorStop(0, '#8fb3e0'); sky.addColorStop(1, '#e8f0f8');
+  g.fillStyle = sky; g.fillRect(0, 0, IW, IH);
+  g.fillStyle = '#f2c94c'; g.beginPath(); g.arc(40, 34, 16, 0, 7); g.fill();
+  g.fillStyle = '#5f9e4f'; g.beginPath(); g.ellipse(120, 205, 170, 70, 0, 0, 7); g.fill();
+  g.fillStyle = '#efe6d2'; g.fillRect(92, 74, 64, 52);
+  g.fillStyle = '#b03a2e'; g.beginPath(); g.moveTo(82, 76); g.lineTo(124, 36); g.lineTo(166, 76); g.closePath(); g.fill();
+  g.fillStyle = '#6b4a2b'; g.fillRect(114, 94, 16, 32);
+  for(let i = 0; i < 4; i++){ g.fillStyle = i % 2 ? '#efe6d2' : '#3d5a80'; g.fillRect(136, 86 + i * 4, 14, 4); }   // fine stripes
+  g.fillStyle = '#0f172a'; g.font = '700 18px Calibri, Carlito, Arial, sans-serif'; g.fillText('AIMS', 180, 150);
+  for(let i = 0; i < 4; i++) for(let j = 0; j < 4; j++) if((i + j) % 2){ g.fillStyle = '#334155'; g.fillRect(186 + 8 * j, 60 + 8 * i, 8, 8); }
+  g.strokeStyle = '#334155'; g.lineWidth = 2; g.strokeRect(186, 60, 32, 32);
+})();
+const GRAY = (() => { const d = src.getContext('2d').getImageData(0, 0, IW, IH).data, a = new Float32Array(IW * IH);
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;           // fixed seed: same noise every time
+  for(let i = 0; i < a.length; i++) a[i] = (.299 * d[i * 4] + .587 * d[i * 4 + 1] + .114 * d[i * 4 + 2]) / 255 + (rnd() - .5) * .04;
+  return a; })();
+function conv2d(img, {k, scale}){
+  const R = (k.length - 1) / 2, o = new Float32Array(IW * IH);
+  for(let r = 0; r < IH; r++) for(let c = 0; c < IW; c++){
+    let s = 0;
+    for(let i = -R; i <= R; i++) for(let j = -R; j <= R; j++){
+      const rr = Math.min(IH - 1, Math.max(0, r + i)), cc = Math.min(IW - 1, Math.max(0, c + j));
+      s += k[i + R][j + R] * img[rr * IW + cc];
+    }
+    o[r * IW + c] = s * scale;
+  }
+  return o;
+}
+const toCanvas = (a, lo, hi) => { const c = document.createElement('canvas'); c.width = IW; c.height = IH; const g = c.getContext('2d'), im = g.createImageData(IW, IH);
+  for(let i = 0; i < a.length; i++){ const v = Math.round(255 * Math.max(0, Math.min(1, (a[i] - lo) / (hi - lo)))); im.data.set([v, v, v, 255], i * 4); }
+  g.putImageData(im, 0, 0); return c; };
+const GX = conv2d(GRAY, K.sx), GY = conv2d(GRAY, K.sy), MAG = GX.map((v, i) => Math.hypot(v, GY[i]));
+const EM = Math.max(...GX.map(Math.abs), ...GY.map(Math.abs));
+const OUT = {
+  orig: toCanvas(GRAY, 0, 1),
+  blur: toCanvas(conv2d(GRAY, K.blur), 0, 1),
+  sharp: toCanvas(conv2d(GRAY, K.sharp), 0, 1),
+  sx: toCanvas(GX, -EM, EM), sy: toCanvas(GY, -EM, EM),
+  mag: toCanvas(MAG, 0, Math.max(...MAG)),
+};
+const SHOW = [null, null, 'blur', 'sharp', 'sx', 'sy', 'mag', 'mag'];
+const KSHOW = [null, null, 'blur', 'sharp', 'sx', 'sy', 'both', 'both'];
+
+/* ---- state ---- */
+let beat = 0, prev = null, t0 = 0, prog = 1;
+const DUR = 1200, ease = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+function go(b, jump){
+  prev = beat === b ? prev : beat; beat = b; t0 = performance.now() - (jump ? DUR : 0);
+  document.getElementById('cap').textContent = CAPS[b];
+  document.getElementById('pop').classList.toggle('on', b === N);
+  cv.classList.toggle('dim', b === N);
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+
+/* ---- drawing ---- */
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const d = devicePixelRatio || 1;
+  W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+addEventListener('resize', size);
+const font = (px, w) => `${w || 400} ${px}px Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif`;
+function kernel(name, cx, cy, maxw, al){
+  if(!name || al < .01) return;
+  const list = name === 'both' ? ['sx', 'sy'] : [name];
+  ctx.save(); ctx.globalAlpha = al;
+  const cell = Math.min(maxw / (list.length === 2 ? 8.4 : 6.2), H * .1);
+  list.forEach((nm, q) => {
+    const {k, label} = K[nm], n = k.length, w = n * cell, x0 = cx - (list.length === 2 ? (q ? -cell * .5 : w + cell * .5) : w / 2) , y0 = cy - w / 2;
+    if(label){ ctx.fillStyle = INK; ctx.font = font(cell * .55, 700); ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillText(label, x0 - 6, cy); }
+    for(let i = 0; i < n; i++) for(let j = 0; j < n; j++){
+      ctx.fillStyle = '#f1f5f9'; ctx.fillRect(x0 + j * cell, y0 + i * cell, cell, cell);
+      ctx.strokeStyle = LINE; ctx.strokeRect(x0 + j * cell + .5, y0 + i * cell + .5, cell - 1, cell - 1);
+      ctx.fillStyle = INK; ctx.font = font(cell * .5, 700); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(String(k[i][j]).replace('-', '−'), x0 + (j + .5) * cell, y0 + (i + .5) * cell + 1);
+    }
+  });
+  if(name === 'both'){ ctx.fillStyle = INK; ctx.font = font(cell * .5, 700); ctx.textAlign = 'center';
+    ctx.fillText('√(gx² + gy²)', cx, cy + cell * 2.5); }
+  ctx.restore();
+}
+function draw(now){
+  ctx.clearRect(0, 0, W, H);
+  prog = ease(Math.min(1, (now - t0) / DUR));
+  const iw = Math.min(W * .34, H * .92 * IW / IH), ih = iw * IH / IW, y = (H - ih) / 2 - H * .03, xR = W - iw;
+  ctx.imageSmoothingEnabled = true;
+  if(beat >= 1){ ctx.save(); ctx.globalAlpha = prev === 0 && beat === 1 ? prog : 1; ctx.drawImage(OUT.orig, 0, y, iw, ih); ctx.restore(); }
+  const a = SHOW[prev], b = SHOW[beat];
+  if(a && a !== b){ ctx.save(); ctx.globalAlpha = 1 - prog; ctx.drawImage(OUT[a], xR, y, iw, ih); ctx.restore(); }
+  if(b){ ctx.save(); ctx.globalAlpha = a === b ? 1 : prog; ctx.drawImage(OUT[b], xR, y, iw, ih); ctx.restore(); }
+  const ka = KSHOW[prev], kb = KSHOW[beat], kx = W / 2, kw = W - 2 * iw - W * .09;
+  if(ka !== kb) kernel(ka, kx, H / 2 - H * .03, kw, 1 - prog);
+  kernel(kb, kx, H / 2 - H * .03, kw, ka === kb ? 1 : prog);
+  if(b){ ctx.save(); ctx.globalAlpha = .5; ctx.fillStyle = INK; ctx.font = font(Math.max(22, H * .07)); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('∗', iw + W * .025, H / 2 - H * .03); ctx.fillText('=', xR - W * .025, H / 2 - H * .03); ctx.restore(); }
+}
+function frame(now){ if(cv.clientWidth !== W || cv.clientHeight !== H) size();   // the deck preloads scenes hidden (size 0)
+  draw(now); requestAnimationFrame(frame); }
+
+window.filters = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ prev = 0; beat = 0; go(0, true); },
+  resetToEnd(){ prev = N; beat = N; go(N, true); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) filters.advance(); if(e.key === 'ArrowLeft') filters.back(); });
+  addEventListener('click', () => filters.advance());
+}
+size(); go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
