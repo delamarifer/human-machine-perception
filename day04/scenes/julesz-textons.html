@@ -8,6 +8,7 @@
 <style>
   /* Owner: metamers part (Day 4). Pattern B: texture displays drawn in JS, revealed by beat. Works alone too. */
   html, body{ background:#fff; }
+  body.jump *{ transition:none !important; }
   .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
   .julesz-row{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:4vw; }
   .julesz-cell{ min-height:0; display:flex; flex-direction:column; align-items:center; gap:1vh;
@@ -98,8 +99,8 @@ window.juleszTextons = {
   back(){ if(beat > 0) go(beat - 1); },
   atStart: () => beat === 0,
   atEnd: () => beat === N,
-  reset(){ go(0); },
-  resetToEnd(){ go(N); },
+  reset(){ jump(); go(0); },
+  resetToEnd(){ jump(); go(N); },
   getBeat: () => beat,
   notes: NOTES
 };
@@ -107,7 +108,9 @@ if(window.parent === window){
   addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) juleszTextons.advance(); if(e.key === 'ArrowLeft') juleszTextons.back(); });
   addEventListener('click', () => juleszTextons.advance());
 }
+function jump(){ document.body.classList.add('jump'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('jump'))); }
 go(0);
+if(location.hash === '#end') juleszTextons.resetToEnd();   // open the scene alone at its last beat (screenshots)
 </script>
 </body>
 </html>

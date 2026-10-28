@@ -43,9 +43,9 @@ st(`
 /* Schematic (not data): pooling windows whose size grows with distance from the fixation point. */
 const ring = (() => {
   const cx = 800, cy = 330, out = [];
-  for(let e = 70; e < 900; e *= 1.45){
-    const r = e * .26, n = Math.floor(2 * Math.PI * e / (r * 1.7));
-    for(let k = 0; k < n; k++){ const a = (k + (out.length % 2) * .5) / n * 2 * Math.PI, x = cx + e * Math.cos(a), y = cy + e * Math.sin(a);
+  for(let e = 60, ri = 0; e < 900; e *= 1.5, ri++){
+    const r = e * .2, n = Math.floor(2 * Math.PI * e / (r * 1.9));
+    for(let k = 0; k < n; k++){ const a = (k + (ri % 2) * .5) / n * 2 * Math.PI, x = cx + e * Math.cos(a), y = cy + e * Math.sin(a);
       if(x > -r && x < 1600 + r && y > -r && y < 660 + r) out.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"/>`); }
   }
   return `<svg viewBox="0 0 1600 660" style="width:100%;height:100%" preserveAspectRatio="xMidYMid meet">

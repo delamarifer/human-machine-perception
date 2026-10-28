@@ -9,6 +9,7 @@
   /* Owner: pixels-to-objects part (Day 4). Pattern B: every panel is computed in JS from one generated
      image, and revealed by beat. Works alone too. */
   html, body{ background:#fff; }
+  body.jump *{ transition:none !important; }
   :root{ --cell:min(15.4vw, 34vh); }
   .wrap{ position:absolute; inset:0; padding:9vh 5vw 12vh; display:flex; flex-direction:column; gap:2vh; }
   .p2o-grid{ margin:auto 0; display:grid; grid-template-columns:repeat(5, var(--cell)); justify-content:space-between;
@@ -198,8 +199,8 @@ window.pixelsToObjects = {
   back(){ if(beat > 0) go(beat - 1); },
   atStart: () => beat === 0,
   atEnd: () => beat === N,
-  reset(){ go(0); },
-  resetToEnd(){ go(N); },
+  reset(){ jump(); go(0); },
+  resetToEnd(){ jump(); go(N); },
   getBeat: () => beat,
   notes: NOTES
 };
@@ -207,7 +208,9 @@ if(window.parent === window){
   addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) pixelsToObjects.advance(); if(e.key === 'ArrowLeft') pixelsToObjects.back(); });
   addEventListener('click', () => pixelsToObjects.advance());
 }
+function jump(){ document.body.classList.add('jump'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('jump'))); }
 go(0);
+if(location.hash === '#end') pixelsToObjects.resetToEnd();   // open the scene alone at its last beat (screenshots)
 </script>
 </body>
 </html>

@@ -8,6 +8,7 @@
 <style>
   /* Owner: invariance part (Day 4). Pattern B: images and distances computed in JS, revealed by beat. Works alone too. */
   html, body{ background:#fff; }
+  body.jump *{ transition:none !important; }
   :root{ --tile:min(11vw, 20vh); }
   .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
   .inv-table{ margin:auto 0; display:grid; grid-template-columns:auto 1fr 1fr; align-items:center; gap:2.4vh 3vw; }
@@ -138,8 +139,8 @@ window.invariance = {
   back(){ if(beat > 0) go(beat - 1); },
   atStart: () => beat === 0,
   atEnd: () => beat === N,
-  reset(){ go(0); },
-  resetToEnd(){ go(N); },
+  reset(){ jump(); go(0); },
+  resetToEnd(){ jump(); go(N); },
   getBeat: () => beat,
   notes: NOTES
 };
@@ -147,7 +148,9 @@ if(window.parent === window){
   addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) invariance.advance(); if(e.key === 'ArrowLeft') invariance.back(); });
   addEventListener('click', () => invariance.advance());
 }
+function jump(){ document.body.classList.add('jump'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('jump'))); }
 go(0);
+if(location.hash === '#end') invariance.resetToEnd();   // open the scene alone at its last beat (screenshots)
 </script>
 </body>
 </html>
