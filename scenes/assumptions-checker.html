@@ -34,24 +34,20 @@
 /* ACT 0  TITLE     (0):   the title alone
    ACT 1  ILLUSION  (1):   the image
    ACT 2  QUESTION  (2):   rings on A and B, "which is darker?"
-   ACT 3  ISOLATE   (3):   everything but A and B fades away: the same gray
-   ACT 4  PROOF     (4):   a strip of that same gray joins them
-   ACT 5  BACK      (5):   the image returns with the strip: the shadow was doing the work
+   ACT 3  LINES     (3):   two bars of A's exact gray drawn on top, from A down to B: no edge where they meet
 
    A and B are found at load by flood fill from a seed inside each square (both are RGB 120,120,120
-   in the file), so the reveal uses the image's real pixels. Seeds are fractions of the image. */
+   in the file), so the bars use the image's real pixel value. Seeds are fractions of the image. */
 const SEED_A = [.4842, .3377], SEED_B = [.4675, .5632], TOL = 12;
-const CAPS = ['', '', '', 'Same gray', 'Same gray', 'The visual system discounts the shadow'];
+const CAPS = ['', '', '', 'Same gray: the visual system discounts the shadow'];
 const NOTES = [
   "(draft) Title only. Vision is not a measuring device. It makes assumptions about the world.",
   "(draft) Here is a famous illusion by Ted Adelson: a checkerboard, with a cylinder casting a shadow on it.",
   "(draft) Look at the squares marked A and B. Which one is darker? Most people say A, clearly.",
-  "(draft) Now let's take away everything around them. A and B are exactly the same gray, the same pixel value in the image.",
-  "(draft) Joined by a strip of that same gray, there is no difference at all.",
-  "(draft) Put the scene back, and B looks light again. Your visual system assumes B sits in a shadow, and corrects for it: it reports the color of the surface, not the light reaching your eye. That is usually the right answer about the world, even though it is the wrong answer about the pixels."
+  "(draft) Now I draw two bars on top, in exactly the gray of square A, running down to B. Where they meet B there is no edge at all: A and B are the same gray. Your visual system assumes B sits in a shadow, and corrects for it: it reports the color of the surface, not the light reaching your eye. That is usually the right answer about the world, even though it is the wrong answer about the pixels."
 ];
 const N = NOTES.length - 1;
-const LEVEL = b => ({fig: b >= 1 ? 1 : 0, rings: b === 2 ? 1 : 0, rest: b === 3 || b === 4 ? 0 : 1, strip: b >= 4 ? 1 : 0});
+const LEVEL = b => ({fig: b >= 1 ? 1 : 0, rings: b === 2 ? 1 : 0, strip: b >= 3 ? 1 : 0});
 
 let beat = 0, from = LEVEL(0), cur = LEVEL(0), t0 = 0;
 const DUR = 1300;
@@ -106,12 +102,13 @@ function frame(now){
   s = Math.min(W * .68 / IW, H / IH); ox = (W * .68 - IW * s) / 2; oy = (H - IH * s) / 2;   // left two-thirds; the question sits right
   const P = ([u, v]) => [ox + u * IW * s, oy + v * IH * s];
   if(img.complete && maskA){
-    ctx.globalAlpha = cur.fig * cur.rest; ctx.drawImage(img, ox, oy, IW * s, IH * s);
-    ctx.globalAlpha = cur.fig; ctx.drawImage(maskA, ox, oy, IW * s, IH * s); ctx.drawImage(maskB, ox, oy, IW * s, IH * s);
-    if(cur.strip > .01){                                 // a strip of the same gray from A to B
-      const [ax, ay] = P(boxA), [bx, by] = P(boxB), w = IW * s * .045;
+    ctx.globalAlpha = cur.fig; ctx.drawImage(img, ox, oy, IW * s, IH * s);
+    if(cur.strip > .01){                                 // two bars of A's gray, from inside A down into B
+      const [ax, ay] = P(boxA), [bx, by] = P(boxB), w = IW * s * .018, dx = IW * s * .035;
       ctx.globalAlpha = cur.strip; ctx.fillStyle = GRAY;
-      ctx.beginPath(); ctx.moveTo(ax - w, ay); ctx.lineTo(ax + w, ay); ctx.lineTo(bx + w, by); ctx.lineTo(bx - w, by); ctx.closePath(); ctx.fill();
+      [-dx, dx].forEach(o => { ctx.beginPath();
+        ctx.moveTo(ax + o - w, ay); ctx.lineTo(ax + o + w, ay); ctx.lineTo(bx + o + w, by); ctx.lineTo(bx + o - w, by);
+        ctx.closePath(); ctx.fill(); });
     }
     if(cur.rings > .01){
       const pulse = .6 + .4 * Math.sin(now / 300);

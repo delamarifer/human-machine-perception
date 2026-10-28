@@ -131,8 +131,8 @@ the working deck. Never edit anything under `final/` by hand.
   from the image.
 - Applications: one tile per click. Cup of cat: caption first, then image (as your notes asked).
   "Not long ago": the detector's boxes one per click, then the sink next to the cup of cat.
-- Checker shadow: an animation that fades out everything except A and B, using the image's real
-  pixels, then joins them with a strip of the same gray.
+- Checker shadow: the image, then rings and the question, then two bars of A's exact gray drawn on
+  top, running down into B (no animation beyond that, per Fernanda).
 - Course, goals and homework: text turned into click-by-click cues, plus a "what a day looks
   like" flow. Content still to write is in `.todo` boxes.
 - Outline slide 17 ("foreshadow project-based course") moved into the notes. The "Action plan"
