@@ -15,4 +15,6 @@ Owner: Fernanda. Open items as checkboxes, newest at the bottom. Tick them when 
 ## Round 2 · 2026-10-28 · textbook layout (Fernanda, via the visual-system session)
 Her words: "Its not clear that the text book animation and our animation are the same... I think we could start with the text book image and then animate with an eye at the bottom and the animate the different shapes in the same vertical mode as the text"
 - Done: 5A opens on the textbook figure, then rebuilds it in the same oblique view (grid plane, eye below, vertical lines of sight, shapes stacked like panel c, all slide down onto the drawing). The separate 5B slide is gone; the cite sits in the scene.
-- [ ] She sent `Untitled presentation.pptx` ("Why is vision hard?", "The input" pixel matrix, checker shadow) with "I meant like this.... and we need to incroporatre" (cut off). Where do these go?
+- [x] She sent `Untitled presentation.pptx`; answer: "Before 5A, in ill-posed". Added "Why is vision hard?" and "The input" (machine gets the numbers, then what we see, then her line). The checker shadow stays in Shreya's assumptions part.
+- [ ] Source of the pixel-matrix figure and its image patch: the cite says "Figure: source to add".
+- [ ] Notes for the two new slides: the title passages are marked (to write), the rest (draft).
