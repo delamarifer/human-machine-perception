@@ -163,7 +163,8 @@ if(window.parent === window){
   addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) onePhotoStack.advance(); if(e.key === 'ArrowLeft') onePhotoStack.back(); });
   addEventListener('click', () => onePhotoStack.advance());
 }
-go(0, true);
+/* ?beat=7 opens on that beat (for screenshots of the scene on its own) */
+go(Math.max(0, Math.min(N, parseInt(new URLSearchParams(location.search).get('beat'), 10) || 0)), true);
 </script>
 </body>
 </html>

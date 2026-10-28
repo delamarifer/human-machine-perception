@@ -36,3 +36,8 @@ Every notes passage Claude wrote is marked `(draft)`; `(to write)` is yours to f
 - Top-5 bars, the shapes (853 × 1280 × 3, 224 × 224 × 3) and the depth map are real outputs
   (`assets/*/result.json`, `assets/one-photo/depth.png`).
 - The app window in the scene (beat 7) is a schematic of `assets/app.py`, not a screenshot.
+
+### For the Day 2 Colab lab (not built yet; spec in the coordinator's notes, `day02-deck.md`)
+- [ ] Students' own phone photos: upload in Colab, fine? Gradio `share=True` makes a temporary public URL so a
+      classmate can open the app; OK for student photos, or keep it local (`share=False`) and swap laptops?
+- [ ] GPU at AIMS, and a shared drive of pre-downloaded weights (ResNet-18 ~45 MB, Depth Anything V2 Small).
