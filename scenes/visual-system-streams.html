@@ -125,13 +125,14 @@ function layer(name, a, active, now){
   }
 }
 function frame(now){
+  requestAnimationFrame(frame);                                 // schedule first: one bad frame must not stop the loop
   if(cv.clientWidth !== W || cv.clientHeight !== H) size();   // the deck preloads scenes hidden (size 0)
   const p = ease(Math.min(1, (now - t0) / DUR)), T = LEVEL(beat);
   for(const k in T) cur[k] = from[k] + (T[k] - from[k]) * p;
+  if(!W || !H) return;                                          // hidden: nothing to draw (and every path has length 0)
   ctx.clearRect(0, 0, W, H);
   if(img.complete && cur.fig > .01){ ctx.globalAlpha = cur.fig; ctx.drawImage(img, ox, oy, IMG_W * s, IMG_H * s); ctx.globalAlpha = 1; }
   ['early', 'what', 'where'].forEach(k => layer(k, cur[k], ACTIVE(beat).includes(k), now));
-  requestAnimationFrame(frame);
 }
 
 window.visualStreams = {
