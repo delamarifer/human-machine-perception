@@ -35,23 +35,30 @@
    ACT 4  DORSAL   (4):   V1 -> V3A -> V6 / MST -> parietal (SPL, IPL), "where / how"
    ACT 5  BOTH     (5):   both streams at equal weight
 
-   Node centres were DETECTED from the image (flood fill of each white node, centre of its
-   bounding box), not eyeballed. Fractions of the image width / height. */
+   Node centres and half-sizes were DETECTED from the image (flood fill of each white node,
+   centre and half-extent of its bounding box), not eyeballed: [u, v, ru, rv], fractions of the
+   image width / height. Re-run the detector if the figure is ever re-exported.
+   Lines run from node edge to node edge so the node names stay readable; a node lights up as a
+   colored ring around its ellipse, not a fill over its text. */
 const IMG_W = 736, IMG_H = 529;
 const NODE = {
-  Retina: [.100, .640], LGN: [.495, .512], V1: [.861, .606], V4: [.678, .663], IT: [.382, .744],
-  V3A: [.825, .472], V6: [.790, .373], MST: [.688, .481], IPL: [.591, .341], SPL: [.693, .242],
+  Retina: [.100, .640, .058, .082], LGN: [.495, .512, .058, .040], V1:  [.861, .606, .029, .039],
+  V4:     [.678, .663, .049, .039], IT:  [.383, .744, .079, .050], V3A: [.825, .472, .043, .046],
+  V6:     [.790, .373, .039, .043], MST: [.688, .481, .069, .065], IPL: [.591, .341, .061, .088],
+  SPL:    [.693, .242, .061, .087],
 };
-const PATHS = {
+const PATHS = {                                         // each step follows an arrow drawn in the figure
   early:   [['Retina', 'LGN', 'V1']],
   what:    [['V1', 'V4', 'IT']],
   where:   [['V1', 'V3A', 'V6', 'SPL'], ['V3A', 'MST', 'IPL']],
 };
-/* the talk's colors: slate-blue = eye to V1, plum = "what", pine = "where / how" (deck.css) */
-const COL = {early: [56, 80, 110], what: [122, 94, 160], where: [63, 115, 87]};
+/* the talk's colors, read from deck.css: slate-blue = eye to V1, plum = "what", pine = "where / how" */
+const hex = v => { const h = getComputedStyle(document.documentElement).getPropertyValue(v).trim().slice(1);
+  return [0, 2, 4].map(k => parseInt(h.slice(k, k + 2), 16)); };
+const COL = {early: hex('--early'), what: hex('--what'), where: hex('--where')};
 const LABELS = {what: ['what', .72], where: ['where / how', .30]};   // label text, height (fraction of image)
 
-const CAPS = ['', '', 'Eye → LGN → V1', 'Ventral stream', 'Dorsal stream', 'Two streams'];
+const CAPS = ['', '', 'Retina → LGN → V1', 'Ventral stream', 'Dorsal stream', 'Two streams'];
 const NOTES = [
   "(draft) Title only. So how does the brain manage it?",
   "(draft) Here is a map of the main visual pathways, drawn on the side of the brain.",
@@ -69,11 +76,13 @@ const LEVEL = b => ({
   what:  b === 3 || b === 5 ? 1 : b === 4 ? .34 : 0,
   where: b >= 4 ? 1 : 0,
 });
-const ACTIVE = b => b === 2 ? ['early'] : b === 3 ? ['what'] : b === 4 ? ['where'] : b === 5 ? ['what', 'where'] : [];
+/* the pulse runs only on the beat that introduces a path; the closing beat is still, both streams at equal weight */
+const ACTIVE = b => b === 2 ? ['early'] : b === 3 ? ['what'] : b === 4 ? ['where'] : [];
 
 let beat = 0, from = LEVEL(0), cur = LEVEL(0), t0 = 0;
-const DUR = 1200;
+const DUR = 1200, PULSE = 4200;                          // ms: layer fade, one calm pulse traversal
 const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+const sstep = t => (t = Math.max(0, Math.min(1, t)), t * t * (3 - 2 * t));
 function go(b, jump){
   beat = b; from = {...cur}; t0 = performance.now() - (jump ? DUR : 0);
   document.getElementById('cap').textContent = CAPS[b];
@@ -86,10 +95,18 @@ let W = 0, H = 0, s = 1, ox = 0, oy = 0;
 function size(){
   const d = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight;
   cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0);
-  s = Math.min(W / IMG_W, H / IMG_H); ox = (W - IMG_W * s) / 2 - W * .06; oy = (H - IMG_H * s) / 2;   // nudged left: room for labels
+  const capH = H * .09;                                  // keep the caption clear of the figure
+  s = Math.min(W * .84 / IMG_W, (H - capH) / IMG_H);     // .84: room on the right for the stream labels
+  ox = (W - IMG_W * s) / 2 - W * .06; oy = (H - capH - IMG_H * s) / 2;
 }
-const P = ([u, v]) => [ox + u * IMG_W * s, oy + v * IMG_H * s];
+const P = n => [ox + NODE[n][0] * IMG_W * s, oy + NODE[n][1] * IMG_H * s];
+const RX = n => NODE[n][2] * IMG_W * s, RY = n => NODE[n][3] * IMG_H * s;
 const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+const inside = (n, x, y) => { const [cx, cy] = P(n); return Math.hypot((x - cx) / RX(n), (y - cy) / RY(n)); };   // 1 = on the edge
+function edge(n, dx, dy, gap){                           // point on node n's ellipse in unit direction (dx, dy), plus a gap
+  const [cx, cy] = P(n), r = 1 / Math.hypot(dx / RX(n), dy / RY(n)) + gap;
+  return [cx + dx * r, cy + dy * r];
+}
 
 function glow(x, y, r, c, a){
   const g = ctx.createRadialGradient(x, y, 0, x, y, r);
@@ -99,29 +116,49 @@ function glow(x, y, r, c, a){
 function along(pts, f){                                  // point at fraction f along a polyline
   const seg = pts.slice(1).map((p, i) => Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]));
   let d = f * seg.reduce((a, b) => a + b, 0);
-  for(let i = 0; i < seg.length; i++){ if(d <= seg[i]){ const t = d / seg[i];
+  for(let i = 0; i < seg.length; i++){ if(d <= seg[i]){ const t = seg[i] ? d / seg[i] : 0;
     return [pts[i][0] + (pts[i+1][0] - pts[i][0]) * t, pts[i][1] + (pts[i+1][1] - pts[i][1]) * t]; } d -= seg[i]; }
   return pts[pts.length - 1];
 }
+function link(a, b, c, alpha){                           // edge-to-edge line with a small arrowhead, a -> b
+  const [ax, ay] = P(a), [bx, by] = P(b), L = Math.hypot(bx - ax, by - ay); if(!L) return;
+  const dx = (bx - ax) / L, dy = (by - ay) / L, g = 3 * s, w = Math.max(4, 7 * s), hd = w * 2.2;
+  const [x0, y0] = edge(a, dx, dy, g), [x1, y1] = edge(b, -dx, -dy, g);
+  ctx.save(); ctx.globalAlpha = alpha; ctx.strokeStyle = ctx.fillStyle = rgba(c, .9);
+  ctx.lineWidth = w; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1 - dx * hd * .8, y1 - dy * hd * .8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x1, y1);
+  ctx.lineTo(x1 - dx * hd - dy * hd * .6, y1 - dy * hd + dx * hd * .6);
+  ctx.lineTo(x1 - dx * hd + dy * hd * .6, y1 - dy * hd - dx * hd * .6); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+function ring(n, c, alpha){                              // the node lit: a colored ring just outside its outline, faint tint inside
+  const [x, y] = P(n), w = Math.max(3, 5 * s);
+  ctx.save(); ctx.globalAlpha = alpha;
+  ctx.fillStyle = rgba(c, .10); ctx.beginPath(); ctx.ellipse(x, y, RX(n), RY(n), 0, 0, 7); ctx.fill();
+  ctx.strokeStyle = rgba(c, .9); ctx.lineWidth = w;
+  ctx.beginPath(); ctx.ellipse(x, y, RX(n) + w * .8, RY(n) + w * .8, 0, 0, 7); ctx.stroke();
+  ctx.restore();
+}
 function layer(name, a, active, now){
   if(a < .01) return;
-  const c = COL[name], R = IMG_W * s * .075;
+  const c = COL[name];
   PATHS[name].forEach(path => {
-    const pts = path.map(n => P(NODE[n]));
-    ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = rgba(c, .9); ctx.lineWidth = Math.max(6, 12 * s); ctx.lineCap = ctx.lineJoin = 'round';
-    ctx.beginPath(); pts.forEach((p, k) => k ? ctx.lineTo(...p) : ctx.moveTo(...p)); ctx.stroke(); ctx.restore();
-    path.forEach(n => glow(...P(NODE[n]), R, c, a));
-    if(active){                                          // a pulse travelling the path, looping slowly within the beat
-      const f = (now / 2400) % 1, [x, y] = along(pts, f);
-      glow(x, y, R * .8, c, 1); glow(x, y, R * .25, [255, 255, 255], 1);
+    path.slice(1).forEach((n, k) => link(path[k], n, c, a));
+    path.forEach(n => ring(n, c, a));
+    if(active){                                          // one soft pulse per traversal, fading in and out, hidden inside nodes
+      const f = (now / PULSE) % 1, [x, y] = along(path.map(P), f);
+      const vis = Math.sin(Math.PI * f) * Math.min(...path.map(n => sstep((inside(n, x, y) - 1) / .5)));
+      if(vis > .01) glow(x, y, IMG_W * s * .045, c, vis);
     }
   });
   if(LABELS[name]){                                      // ink label with a color swatch, outside the figure
     const [txt, v] = LABELS[name], x = ox + IMG_W * s + W * .025, y = oy + v * IMG_H * s;
+    const fs = Math.max(22, W * .026), r = fs * .32;
     ctx.save(); ctx.globalAlpha = Math.min(1, a * 1.4);
-    ctx.fillStyle = rgba(c, 1); ctx.beginPath(); ctx.arc(x + 9, y - 9, 9, 0, 7); ctx.fill();
-    ctx.fillStyle = '#0f172a'; ctx.font = `700 ${Math.max(20, W * .022)}px Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif`;
-    ctx.textBaseline = 'alphabetic'; ctx.fillText(txt, x + 28, y); ctx.restore();
+    ctx.fillStyle = rgba(c, 1); ctx.beginPath(); ctx.arc(x + r, y - fs * .34, r, 0, 7); ctx.fill();
+    ctx.fillStyle = '#0f172a'; ctx.font = `700 ${fs}px Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif`;
+    ctx.textBaseline = 'alphabetic'; ctx.fillText(txt, x + r * 2 + fs * .35, y); ctx.restore();
   }
 }
 function frame(now){
