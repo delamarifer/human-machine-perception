@@ -52,8 +52,10 @@ const SHAPE2 = [ .9, -.6, 1.2, .2, -1.0, .7, -.4];
 const SHAPE3 = [-.8, 1.0, -.2, -1.1, .6, -.5, 1.3];
 const PLANE_Z = -1.9;                                    // the image plane, behind the object
 const SIDE = {yaw: 52, pitch: 18}, FRONT = {yaw: 0, pitch: 0};
+const SIDE_CENTRE = [-.26, .36];                         // centre of the side-view extent (computed), recentred as the view turns
 const INK = '#0f172a', EARLY = '#38506e', SIGHT = '#94a3b8';
-const DUR = 1500, DUR_SLOW = 2600;                       // slower than feels right (practice-talk rule)
+const DUR = 1800, DUR_TURN = 2400, DUR_SLOW = 4200;     // slower than feels right (practice-talk rule)
+const GHOST_PART = .3;                                   // beat 7: the other shapes come back first, then the view turns
 
 const CAPS = ['', 'The image: a line drawing', 'Each point: anywhere along its line of sight',
   'One 3D shape: a cube', 'Another 3D shape', 'And another', 'Infinitely many',
@@ -66,8 +68,8 @@ const NOTES = [
   "(draft) But this shape fits the same lines of sight just as well.",
   "(draft) And so does this one.",
   "(draft) In fact there are infinitely many 3D shapes consistent with this one drawing.",
-  "(draft) Turn back to the eye's point of view, and all of these shapes collapse onto exactly the same image.",
-  "(draft) So the problem is ill-posed: one image, infinitely many possible worlds. And yet we all saw a cube. The visual system has to choose, and it chooses using assumptions about the world."
+  "(draft) Here are three of them together. Turn back to the eye's point of view, and all of them collapse onto exactly the same image.",
+  "(draft) So the problem is ill-posed: one image, infinitely many 3D shapes. And yet we all saw a cube. The visual system has to choose, and it chooses using assumptions about the world."
 ];
 const N = NOTES.length - 1;
 
@@ -92,7 +94,7 @@ const ease = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
 const lerp = (a, b, p) => a + (b - a) * p;
 function go(b, jump){
   beat = b; from = JSON.parse(JSON.stringify(cur)); t0 = performance.now();
-  dur = b === 7 ? DUR_SLOW : DUR;
+  dur = b === 7 ? DUR_SLOW : b === 2 ? DUR_TURN : DUR;
   if(jump) t0 -= dur;                                    // land in the finished state, never mid-move
   document.getElementById('cap').textContent = CAPS[b];
   document.getElementById('pop').classList.toggle('on', b === 8);
@@ -100,11 +102,14 @@ function go(b, jump){
   document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
 }
 function step(now){
-  const T = target(beat), p = ease(Math.min(1, (now - t0) / dur));
+  const T = target(beat), r = Math.min(1, (now - t0) / dur);
+  const staged = beat === 7;                             // ghosts arrive in the side view, then everything turns
+  const pg = ease(staged ? Math.min(1, r / GHOST_PART) : r), p = ease(staged ? Math.max(0, (r - GHOST_PART) / (1 - GHOST_PART)) : r);
   cur.yaw = lerp(from.yaw, T.view.yaw, p); cur.pitch = lerp(from.pitch, T.view.pitch, p);
-  for(const k of ['plane', 'sight', 'shape', 'ghosts']) cur[k] = lerp(from[k], T[k], p);
+  for(const k of ['plane', 'sight', 'shape']) cur[k] = lerp(from[k], T[k], p);
+  cur.ghosts = lerp(from.ghosts, T.ghosts, pg);
   const tz = T.z === 'loop' ? loopZ(now) : T.z;
-  cur.z = cur.z.map((_, i) => lerp(from.z[i], tz[i], p));
+  cur.z = cur.z.map((_, i) => lerp(from.z[i], tz[i], staged ? pg : p));   // shapes settle before the turn
 }
 
 /* ---- drawing ---- */
@@ -113,14 +118,14 @@ let W = 0, H = 0, S = 1;
 function size(){
   const d = devicePixelRatio || 1;
   W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0);
-  S = Math.min(W, H) / 5.2;
+  S = Math.min(W / 5.2, H / 4);                          // side view spans 3.7 units tall, front view 3
 }
 addEventListener('resize', size);
 function proj([x, y, z]){
   const a = cur.yaw * Math.PI / 180, b = cur.pitch * Math.PI / 180;
   const x1 = x * Math.cos(a) + z * Math.sin(a), z1 = -x * Math.sin(a) + z * Math.cos(a);
-  const y1 = y * Math.cos(b) - z1 * Math.sin(b);
-  return [W / 2 + x1 * S, H / 2 - y1 * S];
+  const y1 = y * Math.cos(b) - z1 * Math.sin(b), k = cur.yaw / SIDE.yaw;
+  return [W / 2 + (x1 - k * SIDE_CENTRE[0]) * S, H / 2 - (y1 - k * SIDE_CENTRE[1]) * S];
 }
 function poly(pts3, color, width, alpha, dash){
   ctx.save(); ctx.globalAlpha = alpha; ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = 'round';
