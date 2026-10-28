@@ -30,10 +30,11 @@
 <script>
 /* ACT 0  TITLE    (0):   the title alone
    ACT 1  FIGURE   (1):   the visual pathways figure
-   ACT 2  EARLY    (2):   retina -> LGN -> V1, a pulse travelling along it
-   ACT 3  VENTRAL  (3):   V1 -> V4 -> IT, "what"; the early path stays, dimmed
-   ACT 4  DORSAL   (4):   V1 -> V3A -> V6 / MST -> parietal (SPL, IPL), "where / how"
-   ACT 5  BOTH     (5):   both streams at equal weight
+   ACT 2  LIGHT    (2):   light comes in from the left, through the pupil, onto the retina
+   ACT 3  EARLY    (3):   retina -> LGN -> V1, a pulse travelling along it
+   ACT 4  VENTRAL  (4):   V1 -> V4 -> IT, "what"; the early path stays, dimmed
+   ACT 5  DORSAL   (5):   V1 -> V3A -> V6 / MST -> parietal (SPL, IPL), "where / how"
+   ACT 6  BOTH     (6):   both streams at equal weight
 
    Node centres and half-sizes were DETECTED from the image (flood fill of each white node,
    centre and half-extent of its bounding box), not eyeballed: [u, v, ru, rv], fractions of the
@@ -47,6 +48,7 @@ const NODE = {
   V6:     [.790, .373, .039, .043], MST: [.688, .481, .069, .065], IPL: [.591, .341, .061, .088],
   SPL:    [.693, .242, .061, .087],
 };
+const PUPIL = [.043, .642, .005, .022];                  // the black mark on the Retina circle (detected the same way)
 const PATHS = {                                         // each step follows an arrow drawn in the figure
   early:   [['Retina', 'LGN', 'V1']],
   what:    [['V1', 'V4', 'IT']],
@@ -58,11 +60,12 @@ const hex = v => { const h = getComputedStyle(document.documentElement).getPrope
 const COL = {early: hex('--early'), what: hex('--what'), where: hex('--where')};
 const LABELS = {what: ['what', .72], where: ['where / how', .30]};   // label text, height (fraction of image)
 
-const CAPS = ['', '', 'Retina → LGN → V1', 'Ventral stream', 'Dorsal stream', 'Two streams'];
+const CAPS = ['', '', 'Light reaches the retina', 'Retina → LGN → V1', 'Ventral stream', 'Dorsal stream', 'Two streams'];
 const NOTES = [
   "(draft) Title only. So how does the brain manage it?",
   "(draft) Here is a map of the main visual pathways, drawn on the side of the brain.",
-  "(draft) Light lands on the retina. The signal travels through the LGN, in the thalamus, to primary visual cortex, V1, at the back of the head.",
+  "(draft) Light enters the eye through the pupil and lands on the retina, at the back of the eye.",
+  "(draft) From the retina, the signal travels through the LGN, in the thalamus, to primary visual cortex, V1, at the back of the head.",
   "(draft) From V1, one stream runs down and forward, through V4 to inferotemporal cortex, IT. This ventral stream is often called the 'what' pathway: recognizing objects.",
   "(draft) A second stream runs up into parietal cortex. This dorsal stream is often called the 'where' or 'how' pathway: locating things and guiding action.",
   "(draft) Two streams working together. Next slide: more detail on what each stage computes."
@@ -72,12 +75,13 @@ const N = NOTES.length - 1;
 /* per beat: how strongly each layer shows. Established layers sit at a constant lower level, never off. */
 const LEVEL = b => ({
   fig:   b >= 1 ? 1 : 0,
-  early: b === 2 ? 1 : b >= 3 ? .34 : 0,
-  what:  b === 3 || b === 5 ? 1 : b === 4 ? .34 : 0,
-  where: b >= 4 ? 1 : 0,
+  light: b === 2 ? 1 : b >= 3 ? .34 : 0,
+  early: b === 3 ? 1 : b >= 4 ? .34 : 0,
+  what:  b === 4 || b === 6 ? 1 : b === 5 ? .34 : 0,
+  where: b >= 5 ? 1 : 0,
 });
 /* the pulse runs only on the beat that introduces a path; the closing beat is still, both streams at equal weight */
-const ACTIVE = b => b === 2 ? ['early'] : b === 3 ? ['what'] : b === 4 ? ['where'] : [];
+const ACTIVE = b => b === 2 ? ['light'] : b === 3 ? ['early'] : b === 4 ? ['what'] : b === 5 ? ['where'] : [];
 
 let beat = 0, from = LEVEL(0), cur = LEVEL(0), t0 = 0;
 const DUR = 1200, PULSE = 4200;                          // ms: layer fade, one calm pulse traversal
@@ -95,9 +99,9 @@ let W = 0, H = 0, s = 1, ox = 0, oy = 0;
 function size(){
   const d = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight;
   cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0);
-  const capH = H * .09;                                  // keep the caption clear of the figure
-  s = Math.min(W * .84 / IMG_W, (H - capH) / IMG_H);     // .84: room on the right for the stream labels
-  ox = (W - IMG_W * s) / 2 - W * .06; oy = (H - capH - IMG_H * s) / 2;
+  const capH = H * .09, L = W * .07, R = W * .17;         // caption below; light comes in on the left; stream labels on the right
+  s = Math.min((W - L - R) / IMG_W, (H - capH) / IMG_H);
+  ox = L + (W - L - R - IMG_W * s) / 2; oy = (H - capH - IMG_H * s) / 2;
 }
 const P = n => [ox + NODE[n][0] * IMG_W * s, oy + NODE[n][1] * IMG_H * s];
 const RX = n => NODE[n][2] * IMG_W * s, RY = n => NODE[n][3] * IMG_H * s;
@@ -140,6 +144,33 @@ function ring(n, c, alpha){                              // the node lit: a colo
   ctx.beginPath(); ctx.ellipse(x, y, RX(n) + w * .8, RY(n) + w * .8, 0, 0, 7); ctx.stroke();
   ctx.restore();
 }
+const SIGHT = [148, 163, 184];                          // light is drawn neutral gray: it is not one of the data colors
+function light(a, active, now){                          // rays from the left converge at the pupil and land, inverted, on the back of the eye
+  if(a < .01) return;
+  const [px, py] = [ox + PUPIL[0] * IMG_W * s, oy + PUPIL[1] * IMG_H * s];
+  const [rx, ry] = P('Retina'), back = rx + RX('Retina') * .9, x0 = Math.max(8, ox - W * .14), sp = RY('Retina') * .55;
+  const rays = [-2, -1, 0, 1, 2].map(k => [[x0, py + k * sp], [px, py], [back, py - k * sp * .45]]);
+  ctx.save(); ctx.globalAlpha = a;
+  const beam = ctx.createLinearGradient(x0, 0, px, 0);   // a soft beam behind the rays, brightest at the pupil
+  beam.addColorStop(0, rgba(SIGHT, 0)); beam.addColorStop(1, rgba(SIGHT, .28));
+  ctx.fillStyle = beam; ctx.beginPath(); ctx.moveTo(x0, py - 2 * sp); ctx.lineTo(px, py); ctx.lineTo(x0, py + 2 * sp); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = rgba(SIGHT, .95); ctx.lineWidth = Math.max(2, 3 * s); ctx.lineCap = 'round';
+  rays.forEach(r => { ctx.beginPath(); ctx.moveTo(...r[0]); ctx.lineTo(...r[1]); ctx.stroke(); });
+  ctx.globalAlpha = a * .45;                             // fainter inside the eye, so its name stays readable
+  rays.forEach(r => { ctx.beginPath(); ctx.moveTo(...r[1]); ctx.lineTo(...r[2]); ctx.stroke(); });
+  ctx.restore();
+  if(active) rays.forEach((r, k) => {                    // photons, staggered, fading in and out
+    const f = (now / PULSE + k * .21) % 1, [x, y] = along(r, f);
+    ctx.save(); ctx.globalAlpha = Math.sin(Math.PI * f) * .85; ctx.fillStyle = '#475569';
+    ctx.beginPath(); ctx.arc(x, y, Math.max(4, 6 * s), 0, 7); ctx.fill(); ctx.restore();
+  });
+  ring('Retina', COL.early, a);                          // the retina it lands on
+  if(active){                                            // the landing strip on the back wall, breathing gently
+    const br = .55 + .45 * Math.sin(now / 700);
+    ctx.save(); ctx.globalAlpha = a * br; ctx.strokeStyle = rgba(COL.early, .9); ctx.lineWidth = Math.max(4, 7 * s); ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.ellipse(rx, ry, RX('Retina') * .9, RY('Retina') * .9, 0, -.55, .55); ctx.stroke(); ctx.restore();
+  }
+}
 function layer(name, a, active, now){
   if(a < .01) return;
   const c = COL[name];
@@ -169,6 +200,7 @@ function frame(now){
   if(!W || !H) return;                                          // hidden: nothing to draw (and every path has length 0)
   ctx.clearRect(0, 0, W, H);
   if(img.complete && cur.fig > .01){ ctx.globalAlpha = cur.fig; ctx.drawImage(img, ox, oy, IMG_W * s, IMG_H * s); ctx.globalAlpha = 1; }
+  light(cur.light, ACTIVE(beat).includes('light'), now);
   ['early', 'what', 'where'].forEach(k => layer(k, cur[k], ACTIVE(beat).includes(k), now));
 }
 
