@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>From fixed to learned filters</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: Day 5 filters part. Pattern B (drawn here). Everything is computed live in JS:
+     the toy image, the Sobel output, and a 5x5 filter learned by gradient descent. Works alone too. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">From fixed to learned filters</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE     (0):   the title alone
+   ACT 1  FIXED     (1-3): a noisy toy image; a hand-designed filter (Sobel); its output
+   ACT 2  LEARNED   (4-6): a random 5x5 filter and the answer we want; gradient descent learns
+                           the filter; both errors, measured against the same answer
+
+   The image is a toy made here (shapes + noise), so the answer is known exactly:
+   target = horizontal change in the CLEAN image, (c[x+1] - c[x-1]) / 2.
+   The learned filter only ever sees the NOISY image. Color: none (grayscale data only). */
+const FONT = "Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif";
+const N = 48, K = 5, R = 2, STEPS = 400;
+
+function rng(seed){ return () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const gauss = r => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r());
+
+/* ---- the toy image ---- */
+const rand = rng(5);
+const clean = new Float32Array(N * N), img = new Float32Array(N * N);
+for(let y = 0; y < N; y++) for(let x = 0; x < N; x++){
+  let v = .5;
+  if(x >= 6 && x < 20 && y >= 7 && y < 26) v = .9;                                  // bright rectangle
+  if((x - 33) ** 2 + (y - 15) ** 2 < 70) v = .12;                                   // dark disk
+  if(y >= 30 && y < 43 && Math.abs(x - 14) < (y - 29) * .7) v = .75;                // triangle
+  if(x >= 28 && x < 42 && y >= 31 && y < 41) v = .28;                               // dark square
+  clean[y * N + x] = v;
+}
+for(let i = 0; i < N * N; i++) img[i] = clean[i] + .14 * gauss(rand);
+const target = new Float32Array(N * N);
+for(let y = 0; y < N; y++) for(let x = 1; x < N - 1; x++) target[y * N + x] = (clean[y * N + x + 1] - clean[y * N + x - 1]) / 2;
+
+/* ---- filtering (correlation, as in deep learning) over the interior ---- */
+function filt(k, size){
+  const r = (size - 1) / 2, out = new Float32Array(N * N);
+  for(let y = R; y < N - R; y++) for(let x = R; x < N - R; x++){
+    let s = 0; for(let v = 0; v < size; v++) for(let u = 0; u < size; u++) s += k[v * size + u] * img[(y + v - r) * N + x + u - r];
+    out[y * N + x] = s;
+  }
+  return out;
+}
+const npx = (N - 2 * R) ** 2;
+function err(out){ let e = 0; for(let y = R; y < N - R; y++) for(let x = R; x < N - R; x++) e += (out[y * N + x] - target[y * N + x]) ** 2; return e / npx; }
+
+const SOBEL = [-1, 0, 1, -2, 0, 2, -1, 0, 1].map(v => v / 8);
+const sobelOut = filt(SOBEL, 3), sobelErr = err(sobelOut);
+
+/* ---- learn a 5x5 filter: gradient descent with momentum on the mean squared error ---- */
+const kr = rng(11), k = Float32Array.from({length: K * K}, () => .15 * gauss(kr)), vel = new Float32Array(K * K);
+const SNAP = [Float32Array.from(k)], ERR = [];
+for(let t = 0; t < STEPS; t++){
+  const out = filt(k, K), g = new Float32Array(K * K);
+  ERR.push(err(out));
+  for(let y = R; y < N - R; y++) for(let x = R; x < N - R; x++){
+    const e = 2 * (out[y * N + x] - target[y * N + x]) / npx;
+    for(let v = 0; v < K; v++) for(let u = 0; u < K; u++) g[v * K + u] += e * img[(y + v - R) * N + x + u - R];
+  }
+  for(let i = 0; i < K * K; i++){ vel[i] = .9 * vel[i] - .05 * g[i]; k[i] += vel[i]; }
+  SNAP.push(Float32Array.from(k));
+}
+ERR.push(err(filt(k, K)));
+const OUTS = SNAP.map(s => null);                                  // outputs computed on demand, then cached
+const outAt = i => OUTS[i] || (OUTS[i] = filt(SNAP[i], K));
+
+const CAPS = ['', 'a noisy toy image', 'a hand-designed filter', 'its output: vertical edges', 'learn the numbers instead', 'gradient descent on the error', 'learned from data'];
+const NOTES = [
+  "(draft) Title only. On Day 3 we designed filters by hand. Today we let the data choose them.",
+  "(draft) Here is a small toy image I made in code: four shapes plus noise. Because we made it, we know exactly where its edges are.",
+  "(draft) This is a hand-designed filter, the Sobel filter. It is just nine numbers: it subtracts the left column from the right column, and averages along the edge.",
+  "(draft) Slide it over the image and you get its output: bright where the image gets brighter to the right, dark where it gets darker. Vertical edges.",
+  "(draft) Now a different idea. Start with a 5 by 5 filter of random numbers. Its output is just noise. On the right is the answer we want: the vertical edges of the clean image, without the noise.",
+  "(draft) We measure the error between the output and the answer, and nudge all 25 numbers downhill on that error, a few hundred times. That nudging is gradient descent; we will see how it works later today. Watch the filter organize itself.",
+  "(draft) The learned filter looks a lot like Sobel: negative on the left, positive on the right, spread along the edge. And it does a bit better on this task, because it was fit to it. Nobody designed it. This is the move neural networks make, at every layer."
+];
+const NB = NOTES.length - 1;
+
+/* ---- timing: fades take 900 ms; the training beat runs once, in about 5 s, then stops ---- */
+const TRAIN = 5, DUR = b => b === TRAIN ? 5000 : 900;
+let beat = 0, t0 = 0;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+function go(b, jump){
+  beat = b; t0 = performance.now() - (jump ? 1e9 : 0);
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join('');
+}
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const d = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+
+const off = document.createElement('canvas'); off.width = off.height = N; const octx = off.getContext('2d'), od = octx.createImageData(N, N);
+const TS = Math.max(...target.map(Math.abs));
+function drawMap(arr, x, y, s, signed){                          // a 48x48 map, pixels visible
+  for(let i = 0; i < N * N; i++){
+    const yy = Math.floor(i / N), xx = i % N, edge = signed && (yy < R || yy >= N - R || xx < R || xx >= N - R);
+    let g = signed ? .5 + .5 * arr[i] / TS : arr[i]; g = Math.max(0, Math.min(1, g)) * 255;
+    od.data[4 * i] = od.data[4 * i + 1] = od.data[4 * i + 2] = edge ? 255 : g; od.data[4 * i + 3] = 255;
+  }
+  octx.putImageData(od, 0, 0); ctx.imageSmoothingEnabled = false; ctx.drawImage(off, x, y, s, s);
+  ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1; ctx.strokeRect(x, y, s, s);
+}
+function drawKernel(kk, size, x, y, s, numbers){
+  const m = Math.max(...kk.map(Math.abs)) || 1, c = s / size;
+  for(let v = 0; v < size; v++) for(let u = 0; u < size; u++){
+    const g = Math.round(255 * (.5 + .5 * kk[v * size + u] / m));
+    ctx.fillStyle = `rgb(${g},${g},${g})`; ctx.fillRect(x + u * c, y + v * c, c, c);
+    if(numbers){ ctx.fillStyle = g < 128 ? '#fff' : '#0f172a'; ctx.font = `700 ${c * .38}px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(String(Math.round(kk[v * size + u] * 8)).replace('-', '−'), x + (u + .5) * c, y + (v + .5) * c); }
+  }
+  ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, s, s);
+}
+function label(t, x, y, a, bold){ ctx.globalAlpha = a; ctx.fillStyle = '#0f172a'; ctx.font = `${bold ? 700 : 400} ${Math.max(16, W * .0155)}px ${FONT}`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(t, x, y); ctx.globalAlpha = 1; }
+function arrow(x1, x2, y, a){ ctx.globalAlpha = a; ctx.strokeStyle = ctx.fillStyle = '#64748b'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2 - 8, y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x2, y); ctx.lineTo(x2 - 10, y - 6); ctx.lineTo(x2 - 10, y + 6); ctx.fill(); ctx.globalAlpha = 1; }
+
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();
+  const p = Math.min(1, (now - t0) / DUR(beat)), A = b => beat > b ? 1 : beat === b ? ease(p) : 0;
+  ctx.clearRect(0, 0, W, H);
+  const S = Math.min(H * .36, W * .17), ks = S * .72, rowA = H * .25, rowB = H * .74;
+  const xIn = W * .02, xK = W * .29, xO = W * .50, xT = W * .76;
+  /* input, centred between the rows */
+  if(A(1) > 0){ ctx.globalAlpha = A(1); drawMap(img, xIn, H / 2 - S / 2, S, false); ctx.globalAlpha = 1;
+    label('input', xIn + S / 2, H / 2 - S / 2 - 8, A(1), true); }
+  /* row A: Sobel */
+  if(A(2) > 0){ ctx.globalAlpha = A(2); arrow(xIn + S + 12, xK - 12, rowA, A(2)); ctx.globalAlpha = A(2); drawKernel(SOBEL, 3, xK, rowA - ks / 2, ks, true); ctx.globalAlpha = 1;
+    label('hand-designed (Sobel)', xK + ks / 2, rowA - ks / 2 - 8, A(2), true); }
+  if(A(3) > 0){ arrow(xK + ks + 12, xO - 12, rowA, A(3)); ctx.globalAlpha = A(3); drawMap(sobelOut, xO, rowA - S / 2, S, true); ctx.globalAlpha = 1;
+    label('output', xO + S / 2, rowA - S / 2 - 8, A(3), true); }
+  /* row B: learned */
+  if(A(4) > 0){
+    const step = beat > TRAIN ? STEPS : beat === TRAIN ? Math.round(STEPS * (1 - Math.pow(1 - p, 2))) : 0;
+    arrow(xIn + S + 12, xK - 12, rowB, A(4)); ctx.globalAlpha = A(4); drawKernel(SNAP[step], K, xK, rowB - ks / 2, ks, false);
+    arrow(xK + ks + 12, xO - 12, rowB, A(4)); ctx.globalAlpha = A(4); drawMap(outAt(step), xO, rowB - S / 2, S, true);
+    ctx.globalAlpha = A(4); drawMap(target, xT, rowB - S / 2, S, true); ctx.globalAlpha = 1;
+    label(step ? `learned, step ${step}` : 'random 5×5', xK + ks / 2, rowB - ks / 2 - 8, A(4), true);
+    label('output', xO + S / 2, rowB - S / 2 - 8, A(4), true);
+    label('the answer we want', xT + S / 2, rowB - S / 2 - 8, A(4), true);
+    if(beat >= TRAIN) label(`error ${ERR[step].toFixed(4)}`, xO + S / 2, rowB + S / 2 + Math.max(22, W * .02), 1, false);
+  }
+  if(A(6) > 0) label(`error ${sobelErr.toFixed(4)}`, xO + S / 2, rowA + S / 2 + Math.max(22, W * .02), A(6), false);
+  /* caption, lower right */
+  ctx.fillStyle = '#0f172a'; ctx.font = `700 ${Math.max(20, W * .02)}px ${FONT}`; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  ctx.globalAlpha = beat ? Math.min(1, p * 2) : 0; ctx.fillText(CAPS[beat], xT, rowA); ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+
+window.filtersLearned = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+  notes: NOTES,
+  debug: () => ({sobelErr, learnedErr: ERR[STEPS], firstErr: ERR[0], kernel: Array.from(SNAP[STEPS]).map(v => +v.toFixed(3))})
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) filtersLearned.advance(); if(e.key === 'ArrowLeft') filtersLearned.back(); });
+  addEventListener('click', () => filtersLearned.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
