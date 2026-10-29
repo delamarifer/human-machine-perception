@@ -1,17 +1,17 @@
-"""Builds notebooks/day02-lab-one-image.ipynb: the Day 2 in-class lab.
+"""Builds notebooks/day02-lab.ipynb: the Day 2 in-class lab.
 
 Same photo, crop, ResNet-18, and Depth Anything model as day02/assets/pipeline.py and the lecture
 scene. See nbtools.py for how to build and check it.
 """
 from nbtools import md, code, turn, badge, main
 
-FILE = 'day02-lab-one-image.ipynb'
+FILE = 'day02-lab.ipynb'
 BADGE = badge(FILE)
 
 md(f"""
 {BADGE}
 
-# Day 2 lab · What can one photo tell a model?
+# Day 2 lab
 
 **Human-Machine Perception** · Day 2 · Fernanda & Shreya
 

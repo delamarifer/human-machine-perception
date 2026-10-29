@@ -37,7 +37,7 @@ Every notes passage Claude wrote is marked `(draft)`; `(to write)` is yours to f
   (`assets/*/result.json`, `assets/one-photo/depth.png`).
 - The app window in the scene (beat 7) is a schematic of `assets/app.py`, not a screenshot.
 
-### For the Day 2 Colab lab (`notebooks/day02-lab-one-image.ipynb`)
+### For the Day 2 lab (`notebooks/day02-lab.ipynb`)
 - [ ] Students' own phone photos: upload in Colab, fine? Gradio `share=True` makes a temporary public URL so a
       classmate can open the app; OK for student photos, or keep it local (`share=False`) and swap laptops?
 - [ ] GPU at AIMS, and a shared drive of pre-downloaded weights (ResNet-18 ~45 MB, Depth Anything V2 Small).
