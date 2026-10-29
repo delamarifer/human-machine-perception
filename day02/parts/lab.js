@@ -32,11 +32,12 @@ st(`
     <li class="b">Build it on your own phone photo</li>
     <li class="b">Then point it at a classmate’s</li>
   </ul>
-  <div class="todo b">Link to the Day 2 Colab notebook (to build; see day02/feedback/_day.md) and how students get their photo into Colab.</div>
+  <p class="b"><a href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day02-lab-one-image.ipynb">Open the lab notebook in Colab</a></p>
+  <p class="b">Upload a photo from your phone in the last section. For a classmate’s photo, use their laptop, or upload the picture they send you.</p>
 `, { blank: false, notes: [
   "(draft) Two steps.",
   "(draft) First, build the app on a photo from your own phone.",
   "(draft) Then trade: point your app at a classmate's photo, and see where it agrees with what you see, and where it doesn't.",
-  "(to write) Where the notebook is and how to get your photo in."
+  "The notebook is notebooks/day02-lab-one-image.ipynb. The upload box stays in the notebook. It does not publish a public link."
 ]});
 }
