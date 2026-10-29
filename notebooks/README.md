@@ -7,6 +7,7 @@ page (`index.html`) with the "Open in Colab" badge; nothing to install.
 |---|---|---|
 | [day01-lab-simple-vision-system.ipynb](day01-lab-simple-vision-system.ipynb) | 1 | Lab: a simple vision system that recovers 3D from one image of a blocks world (after Ch. 2 of Torralba, Isola & Freeman, *Foundations of Computer Vision*) |
 | [day01-practice-numpy-images.ipynb](day01-practice-numpy-images.ipynb) | 1 | Optional practice: images as NumPy arrays; measuring the checker-shadow illusion |
+| [day02-lab-one-image-app.ipynb](day02-lab-one-image-app.ipynb) | 2 | Lab: the pretrained-model workflow. One photo through OpenCV, a torchvision classifier and a Hugging Face depth model, wrapped in a Gradio app opened on a phone |
 
 ## Conventions (every notebook)
 
