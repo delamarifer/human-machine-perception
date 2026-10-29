@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Hermann grid</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: receptive-fields part (Day 3). Works alone too: open day03/scenes/hermann-grid.html and click. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .cap{ position:absolute; left:0; bottom:-1vh; }
+  .cite{ opacity:0; transition:opacity .8s ease; }
+  .cite.on{ opacity:1; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">The Hermann grid</h1>
+  <div class="stagebox">
+    <canvas id="cv"></canvas>
+    <div class="label cap" id="cap"></div>
+  </div>
+</div>
+<div class="cite" id="cite">Wavy grid: after Geier, Bernáth, Hudák &amp; Séra (2008), Perception (source: to check)</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE     (0):  the title alone
+   ACT 1  GRID      (1):  black squares, white streets (generated): gray spots at the crossings?
+   ACT 2  RFS       (2):  the same center-surround receptive field on a street and on a crossing
+   ACT 3  NUMBERS   (3):  their responses, computed from the filtered grid
+   ACT 4  FILTERED  (4):  the whole grid filtered: dark spots at every crossing
+   ACT 5  WAVY      (5):  wavy streets: people report the spots mostly vanish, the filter still predicts them
+
+   Filtering = center Gaussian minus surround Gaussian (difference of Gaussians), computed here.
+   Sizes are chosen for illustration, not fitted. */
+const SQ = 56, ST = 14, PER = SQ + ST, NSQ = 6, G = NSQ * PER + ST;   // squares, streets, image size (px)
+const SC = 3.5, SS = 10;                                             // center and surround sigma (px)
+const WAVE = {A: 4.5, L: 70};                                          // wavy streets: amplitude, wavelength
+const CROSS = [ST / 2 + 4 * PER, ST / 2 + 2 * PER], STREET = [ST / 2 + 1 * PER, ST + 3 * PER + SQ / 2];  // [x, y]
+const INK = '#0f172a', EARLY = '#38506e';
+
+const NOTES = [
+  "(draft) Title only. One more illusion, and the same filter.",
+  "(draft) This is the Hermann grid: black squares separated by white streets. Look at the crossings where the streets meet. Most people see faint gray spots there, except at the crossing they look straight at.",
+  "(draft) Here is the classic explanation. Put the same center-surround receptive field in two places: on a street, and on a crossing. Both centers sit on white. But on the street, the surround sees white on two sides and black on two sides. On a crossing, the surround sees white on four sides.",
+  "(draft) More light in the surround means more inhibition, so the cell on the crossing responds less: here are the two responses, computed from the filtered picture. A weaker response reads as darker: a gray spot. The spot disappears where you look straight at it, because receptive fields in the center of your gaze are much smaller.",
+  "(draft) Here is the whole grid run through that filter. Dark spots at every crossing, just where people see them.",
+  "(draft) But here is a twist. Make the streets wavy. Most people report that the spots mostly disappear. Yet run the same filter, and it still predicts spots at the crossings. So the simple center-surround story cannot be the whole explanation. That is a good habit for the whole course: a model that predicts one illusion is a hypothesis, and the next stimulus can break it."
+];
+const CAPS = ['', 'Gray spots at the crossings?', 'Same receptive field, two places', '', 'The whole grid, filtered', 'Wavy streets: the spots mostly vanish, the filter still predicts them'];
+const N = NOTES.length - 1;
+
+/* ---- images, computed ---- */
+function gridImg(wavy){
+  const a = new Float32Array(G * G);
+  for(let y = 0; y < G; y++) for(let x = 0; x < G; x++){
+    let u = x, v = y;
+    if(wavy){ u = x + WAVE.A * Math.sin(2 * Math.PI * y / WAVE.L); v = y + WAVE.A * Math.sin(2 * Math.PI * x / WAVE.L); }
+    const iu = ((u - ST) % PER + PER) % PER, iv = ((v - ST) % PER + PER) % PER;
+    const inSq = u >= ST && v >= ST && u < G - ST && v < G - ST && iu < SQ && iv < SQ;
+    a[y * G + x] = inSq ? 0 : 1;
+  }
+  return a;
+}
+const gk = s => { const R = Math.ceil(3 * s), k = []; let t = 0;
+  for(let i = -R; i <= R; i++){ const v = Math.exp(-i * i / (2 * s * s)); k.push(v); t += v; } return k.map(v => v / t); };
+function blur(a, s){                                 // separable Gaussian, edges padded with white (the page)
+  const k = gk(s), R = (k.length - 1) / 2, t = new Float32Array(G * G), o = new Float32Array(G * G);
+  const px = (x, y) => x < 0 || y < 0 || x >= G || y >= G ? 1 : a[y * G + x];
+  for(let y = 0; y < G; y++) for(let x = 0; x < G; x++){ let s2 = 0; for(let j = -R; j <= R; j++) s2 += k[j + R] * px(x + j, y); t[y * G + x] = s2; }
+  const tx = (x, y) => y < 0 || y >= G ? 1 : t[y * G + x];
+  for(let y = 0; y < G; y++) for(let x = 0; x < G; x++){ let s2 = 0; for(let j = -R; j <= R; j++) s2 += k[j + R] * tx(x, y + j); o[y * G + x] = s2; }
+  return o;
+}
+const dog = a => { const c = blur(a, SC), s = blur(a, SS); return c.map((v, i) => v - s[i]); };
+function toCanvas(a, lo, hi){
+  const c = document.createElement('canvas'); c.width = c.height = G; const g = c.getContext('2d'), im = g.createImageData(G, G);
+  for(let i = 0; i < a.length; i++){ const v = Math.round(255 * Math.max(0, Math.min(1, (a[i] - lo) / (hi - lo)))); im.data.set([v, v, v, 255], i * 4); }
+  g.putImageData(im, 0, 0); return c;
+}
+const GS = gridImg(false), GW = gridImg(true), DS = dog(GS), DW = dog(GW);
+const at = (a, [x, y]) => a[Math.round(y) * G + Math.round(x)];
+const R_STREET = at(DS, STREET), R_CROSS = at(DS, CROSS);
+// display range for the filtered images: the street response is white, the squares' interiors black
+const HI = R_STREET * 1.05, LO = 0;
+const IMG = {gs: toCanvas(GS, 0, 1), gw: toCanvas(GW, 0, 1), ds: toCanvas(DS, LO, HI), dw: toCanvas(DW, LO, HI)};
+
+/* ---- state ---- */
+const LEVEL = b => ({grid: b >= 1 ? 1 : 0, rf: b === 2 || b === 3 ? 1 : 0, num: b === 3 ? 1 : 0, filt: b >= 4 ? 1 : 0, wavy: b >= 5 ? 1 : 0});
+let beat = 0, cur = LEVEL(0), from = LEVEL(0), t0 = 0;
+const DUR = 1400, ease = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+function go(b, jump){
+  beat = b; from = {...cur}; t0 = performance.now() - (jump ? DUR : 0);
+  document.getElementById('cap').textContent = b === 3
+    ? `Response on the street: 1.00 · on the crossing: ${(R_CROSS / R_STREET).toFixed(2)}` : CAPS[b];
+  document.getElementById('cite').classList.toggle('on', b === 5);
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+function step(now){ const T = LEVEL(beat), p = ease(Math.min(1, (now - t0) / DUR)); for(const k in T) cur[k] = from[k] + (T[k] - from[k]) * p; }
+
+/* ---- drawing ---- */
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const d = devicePixelRatio || 1;
+  W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+addEventListener('resize', size);
+const font = (px, w) => `${w || 400} ${px}px Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif`;
+function pair(a, b, mix, x, y, s, al){
+  ctx.save(); ctx.globalAlpha = al * (1 - mix); ctx.drawImage(a, x, y, s, s); ctx.globalAlpha = al * mix; ctx.drawImage(b, x, y, s, s); ctx.restore();
+}
+function rf([gx, gy], x0, y0, k, al){
+  const cx = x0 + gx * k, cy = y0 + gy * k;
+  ctx.save(); ctx.globalAlpha = al; ctx.strokeStyle = EARLY;
+  ctx.fillStyle = 'rgba(56,80,110,.18)'; ctx.beginPath(); ctx.arc(cx, cy, 2 * SS * k, 0, 7); ctx.fill();
+  ctx.lineWidth = 3; ctx.stroke();
+  ctx.fillStyle = 'rgba(56,80,110,.5)'; ctx.beginPath(); ctx.arc(cx, cy, 2 * SC * k, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+function draw(){
+  ctx.clearRect(0, 0, W, H);
+  const s = Math.min(H * .96, W * .43), y0 = (H - s) / 2 - H * .02, xL = W * .25 - s / 2 + W * .02, xR = W * .75 - s / 2 - W * .02, k = s / G;
+  // with only the grid on screen, center it
+  const xg = xL + (W / 2 - s / 2 - xL) * (1 - cur.filt);
+  pair(IMG.gs, IMG.gw, cur.wavy, xg, y0, s, cur.grid);
+  if(cur.rf > .01){ rf(STREET, xg, y0, k, cur.rf); rf(CROSS, xg, y0, k, cur.rf); }
+  if(cur.num > .01){
+    ctx.save(); ctx.globalAlpha = cur.num; ctx.font = font(Math.max(16, H * .04), 700); ctx.textBaseline = 'middle';
+    [[STREET, '1.00'], [CROSS, (R_CROSS / R_STREET).toFixed(2)]].forEach(([[gx, gy], t]) => {
+      const x = xg + gx * k + 2 * SS * k + 8, y = gy * k + y0, w = ctx.measureText(t).width + 14;
+      ctx.fillStyle = 'rgba(255,255,255,.95)'; ctx.fillRect(x, y - H * .03, w, H * .06);
+      ctx.fillStyle = INK; ctx.fillText(t, x + 7, y); });
+    ctx.restore();
+  }
+  if(cur.filt > .01){
+    pair(IMG.ds, IMG.dw, cur.wavy, xR, y0, s, cur.filt);
+    ctx.save(); ctx.globalAlpha = cur.filt; ctx.fillStyle = INK; ctx.font = font(Math.max(15, H * .036), 700); ctx.textAlign = 'center';
+    ctx.fillText('after the center-surround filter', xR + s / 2, y0 + s + H * .045); ctx.restore();
+  }
+}
+function frame(now){ if(cv.clientWidth !== W || cv.clientHeight !== H) size();   // the deck preloads scenes hidden (size 0)
+  step(now); draw(); requestAnimationFrame(frame); }
+
+window.hermann = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ cur = LEVEL(0); go(0, true); },
+  resetToEnd(){ cur = LEVEL(N); go(N, true); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) hermann.advance(); if(e.key === 'ArrowLeft') hermann.back(); });
+  addEventListener('click', () => hermann.advance());
+}
+size(); go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
