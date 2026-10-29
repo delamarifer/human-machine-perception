@@ -11,6 +11,12 @@
   .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
   .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
   canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  #eyesvg{ position:absolute; inset:0 0 9% 0; width:100%; height:91%; opacity:0; transition:opacity .9s ease, transform 1.1s ease;
+           transform-origin:12% 60%; pointer-events:none; }
+  #eyesvg.on{ opacity:1; }
+  #eyesvg.gone{ transform:scale(.35); }
+  #e-xsec, #e-zoom{ transition:opacity .8s ease; }
+  #eyesvg text{ font-family:var(--font); font-size:14px; fill:#64748b; }
   .cap{ position:absolute; left:0; bottom:-1vh; }
   .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
   .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
@@ -22,19 +28,186 @@
   <h1 class="t deck-title">How the brain solves this</h1>
   <div class="stagebox">
     <canvas id="cv"></canvas>
+    <svg id="eyesvg" viewBox="400 110 800 500" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="vitreous" cx=".55" cy=".45" r=".6">
+          <stop offset="0" stop-color="#f9c27e"/><stop offset="1" stop-color="#e57b33"/>
+        </radialGradient>
+        <clipPath id="eyeIn"><circle cx="800" cy="320" r="86"/></clipPath>
+        <filter id="glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5"/></filter>
+      </defs>
+      <g id="e-bundle"></g><g id="e-eye"></g><g id="e-zoom"></g><g id="e-xsec"></g><g id="e-photons"></g>
+    </svg>
     <div class="label cap" id="cap"></div>
   </div>
   <div class="cite">Figure source: to add</div>
 </div>
 <div class="dots" id="dots"></div>
 <script>
+/* THE EYE (beats 1-2), from Fernanda's defense-deck metamer scene
+   (~/Developer/thesis-defense/scenes/ch1-color-metamers.html): the same eye, retina cross-section,
+   cone mosaic and colors, with one light instead of the split screen. The light is the lamp from that
+   scene (CIE Illuminant A, 2856 K); its color and the L, M, S cone levels are computed from the same
+   colorimetry (CIE 1931 CMFs, Wyman/Sloan/Shirley 2013 fit; Hunt-Pointer-Estevez), not drawn. */
+const eye = (() => {
+  const LAM0 = 380, NL = 401, lam = Array.from({length:NL}, (_, i) => LAM0 + i);
+  const pg = (x, mu, s1, s2) => { const s = x < mu ? s1 : s2; return Math.exp(-0.5 * ((x - mu) / s) ** 2); };
+  const xb = l => 1.056*pg(l,599.8,37.9,31.0) + 0.362*pg(l,442.0,16.0,26.7) - 0.065*pg(l,501.1,20.4,26.2);
+  const yb = l => 0.821*pg(l,568.8,46.9,40.5) + 0.286*pg(l,530.9,16.3,31.1);
+  const zb = l => 1.217*pg(l,437.0,11.8,36.0) + 0.681*pg(l,459.0,26.0,13.8);
+  const c2 = 1.435e7, kA = Math.exp(c2 / (2848 * 560)) - 1;
+  const TEST = lam.map(l => 100 * Math.pow(560 / l, 5) * (kA / (Math.exp(c2 / (2848 * l)) - 1)));
+  const XYZ = [xb, yb, zb].map(f => lam.reduce((a, l, i) => a + f(l) * TEST[i], 0));
+  const LMS = [0.38971*XYZ[0] + 0.68898*XYZ[1] - 0.07868*XYZ[2], -0.22981*XYZ[0] + 1.18340*XYZ[1] + 0.04641*XYZ[2], XYZ[2]];
+  const LEVEL = LMS.map(v => v / Math.max(...LMS));          // the lamp drives L most, S least
+  const MX = [[3.2406,-1.5372,-0.4986],[-0.9689,1.8758,0.0415],[0.0557,-0.2040,1.0570]];
+  const lin = MX.map(r => r[0]*XYZ[0] + r[1]*XYZ[1] + r[2]*XYZ[2]), ex = 1 / Math.max(...lin);
+  const enc = v => { v = Math.max(0, Math.min(1, v * ex)); return Math.round(255 * (v <= .0031308 ? 12.92*v : 1.055*Math.pow(v, 1/2.4) - .055)); };
+  const RGB = lin.map(enc), LIGHT = `rgb(${RGB})`;
+
+  const $ = q => document.querySelector(q), NS = 'http://www.w3.org/2000/svg';
+  const mk = (t, a, parent) => { const e = document.createElementNS(NS, t);
+    for(const k in a) e.setAttribute(k, a[k]); if(parent) parent.appendChild(e); return e; };
+  const CONE_COL = ['#d23c3c', '#2e9b4f', '#2f6fd1'];        // L, M, S, as in the defense deck
+  const LAND = [883, 320], XS = {x:950, y0:140, y1:590, L:450};
+
+  // the light: one bundle from the left, through the pupil, focused by the lens onto the retina
+  mk('path', {d:`M430,262 L430,378 L735,338 L${LAND[0]},${LAND[1]} L735,302 Z`, fill:LIGHT, opacity:.45}, $('#e-bundle'));
+
+  { const g = $('#e-eye'), E = {x:800, y:320};               // the eye (drawing unchanged)
+    mk('path', {d:'M866,374 C888,396 904,410 930,420', fill:'none', stroke:'#d9a95a', 'stroke-width':26, 'stroke-linecap':'round'}, g);
+    mk('path', {d:'M866,374 C888,396 904,410 930,420', fill:'none', stroke:'#f3cf86', 'stroke-width':21, 'stroke-linecap':'round'}, g);
+    mk('circle', {cx:E.x, cy:E.y, r:95, fill:'#fbfaf8', stroke:'#cfd6de', 'stroke-width':1.5}, g);
+    mk('circle', {cx:E.x, cy:E.y, r:90, fill:'#c8442f'}, g);
+    mk('circle', {cx:E.x, cy:E.y, r:86, fill:'url(#vitreous)'}, g);
+    const inG = mk('g', {'clip-path':'url(#eyeIn)'}, g);
+    mk('rect', {x:690, y:220, width:45, height:200, fill:'#dceef8'}, inG);
+    ['M869,370 Q840,330 852,262', 'M869,370 Q826,340 806,300', 'M869,370 Q838,392 838,404',
+     'M869,370 Q860,330 890,290', 'M869,370 Q820,360 790,372'].forEach(d =>
+      mk('path', {d, fill:'none', stroke:'#b23a2a', 'stroke-width':1.4, 'stroke-opacity':.75}, inG));
+    mk('circle', {cx:869, cy:370, r:6, fill:'#f6d79a', stroke:'#d9a95a'}, inG);
+    mk('rect', {x:726, y:236, width:7, height:64, fill:'#3f6f8f'}, g);
+    mk('rect', {x:726, y:340, width:7, height:64, fill:'#3f6f8f'}, g);
+    mk('ellipse', {cx:744, cy:320, rx:13, ry:40, fill:'#eef6fc', stroke:'#9cc3dd', 'stroke-width':1.2, opacity:.95}, g);
+    mk('path', {d:'M727,234 Q672,320 727,406', fill:'#cfe8f6', 'fill-opacity':.6, stroke:'#8fc0de', 'stroke-width':2}, g);
+    mk('circle', {cx:LAND[0], cy:LAND[1], r:7, fill:LIGHT, filter:'url(#glow)'}, g);   // where it lands
+  }
+  { const g = $('#e-zoom');                                  // zoom box onto the landing spot
+    mk('line', {x1:892, y1:290, x2:XS.x, y2:XS.y0, stroke:'#94a3b8', 'stroke-width':1}, g);
+    mk('line', {x1:892, y1:350, x2:XS.x, y2:XS.y1, stroke:'#94a3b8', 'stroke-width':1}, g);
+    mk('rect', {x:873, y:290, width:19, height:60, fill:'none', stroke:'#fff', 'stroke-width':1.8}, g);
+    mk('rect', {x:873, y:290, width:19, height:60, fill:'none', stroke:'#64748b', 'stroke-width':.6}, g);
+  }
+
+  // the retina in cross-section (drawing unchanged): light from the left; only the cones change
+  const XSG = mk('g', {transform:`translate(${XS.x},${XS.y1}) rotate(-90)`}, $('#e-xsec'));
+  const L = XS.L, PINK = '#f4a3cf', PINK_D = '#d65c9e';
+  mk('rect', {x:0, y:178, width:L, height:16, fill:'#c0392b'}, XSG);
+  mk('rect', {x:0, y:194, width:L, height:12, fill:'#f4f1ec', stroke:'#d6d0c6'}, XSG);
+  mk('rect', {x:0, y:0, width:L, height:178, fill:'#fdf0cf', stroke:'#f0dfbd'}, XSG);
+  const wires = mk('g', {stroke:PINK_D, 'stroke-width':.9, 'stroke-opacity':.45, fill:'none'}, XSG);
+  [5, 10].forEach(y => mk('line', {x1:0, y1:y, x2:L, y2:y}, wires));
+  for(let x = 2; x < L - 14; x += 18){
+    mk('rect', {x, y:163, width:16, height:14, rx:5, fill:'#e6a678', stroke:'#c9794a', 'stroke-width':.8}, XSG);
+    mk('circle', {cx:x+8, cy:170, r:2, fill:'#8a4b2a'}, XSG);
+  }
+  const MOSAIC = 'LMLSMLMMLSLM', cones = [];
+  for(let i = 0, nc = 0, x = 8; x <= L - 8; i++, x += 13){
+    if(i % 3 !== 1){
+      mk('line', {x1:x, y1:82, x2:x, y2:134, stroke:'#bcc3cb', 'stroke-width':2.4}, XSG);
+      mk('ellipse', {cx:x, cy:96, rx:3.4, ry:4.4, fill:'#8f98a3'}, XSG);
+      mk('rect', {x:x-2.5, y:134, width:5, height:27, rx:2.4, fill:'#cdd3d9', stroke:'#aab2bb', 'stroke-width':.6}, XSG);
+      continue;
+    }
+    const cls = 'LMS'.indexOf(MOSAIC[nc++ % MOSAIC.length]), col = CONE_COL[cls];
+    const halo = mk('ellipse', {cx:x, cy:132, rx:12, ry:22, fill:col, opacity:0, filter:'url(#glow)'}, XSG);
+    mk('line', {x1:x, y1:82, x2:x, y2:102, stroke:col, 'stroke-width':2, 'stroke-opacity':.5}, XSG);
+    const parts = [mk('ellipse', {cx:x, cy:109, rx:5.3, ry:7}, XSG),
+      mk('path', {d:`M${x-3},117 L${x-6.2},135 L${x+6.2},135 L${x+3},117 Z`}, XSG),
+      mk('path', {d:`M${x-6.2},137 L${x-1.4},161 L${x+1.4},161 L${x+6.2},137 Z`}, XSG)];
+    parts.forEach(e => { e.setAttribute('fill', col); e.setAttribute('stroke', col);
+      e.setAttribute('stroke-width', 1); e.setAttribute('stroke-opacity', .6); });
+    cones.push({cls, parts, halo});
+  }
+  for(let x = 14; x <= L; x += 26){
+    [x-6, x+7].forEach(t => mk('line', {x1:x, y1:73, x2:t, y2:82}, wires));
+    mk('line', {x1:x, y1:59, x2:x + (x % 52 < 26 ? 7 : -7), y2:36}, wires);
+    mk('ellipse', {cx:x, cy:66, rx:4.6, ry:7.6, fill:PINK, stroke:PINK_D, 'stroke-width':.8}, XSG);
+  }
+  for(let x = 27; x <= L; x += 52){
+    mk('path', {d:`M${x},21 Q${x},12 ${x-13},10`}, wires);
+    mk('ellipse', {cx:x, cy:28, rx:10, ry:7.2, fill:PINK, stroke:PINK_D, 'stroke-width':.9}, XSG);
+    mk('circle', {cx:x, cy:28, r:2.8, fill:PINK_D, 'fill-opacity':.7}, XSG);
+  }
+  mk('text', {x:XS.x, y:XS.y0 - 10}, $('#e-xsec')).textContent = 'retina';
+  const keyG = mk('g', {}, $('#e-xsec'));                    // which color is which cone
+  ['L', 'M', 'S'].forEach((n, i) => {
+    mk('circle', {cx:XS.x + 8 + i*52, cy:XS.y1 + 18, r:5, fill:CONE_COL[i]}, keyG);
+    mk('text', {x:XS.x + 18 + i*52, y:XS.y1 + 23}, keyG).textContent = n + ' cone';
+  });
+
+  // photons: along the bundle into the eye; on the retina beat, also through the layers to the cones
+  const seg = pts => pts.slice(1).map((p, i) => Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]));
+  const at = (pts, f) => { const s = seg(pts); let d = f * s.reduce((a, b) => a + b, 0);
+    for(let i = 0; i < s.length; i++){ if(d <= s[i]){ const t = s[i] ? d / s[i] : 0;
+      return [pts[i][0] + t*(pts[i+1][0] - pts[i][0]), pts[i][1] + t*(pts[i+1][1] - pts[i][1])]; } d -= s[i]; }
+    return pts[pts.length - 1]; };
+  const PH = [];
+  [-48, -24, 0, 24, 48].forEach((dy, k) => [0, .5].forEach(o =>
+    PH.push({pts:[[430, 320 + dy], [735, 320 + dy * .38], LAND], f0:(k * .21 + o) % 1, speed:.00032, inner:false,
+             el:mk('circle', {r:3, fill:LIGHT, stroke:'#c98a3c', 'stroke-width':.6, opacity:0}, $('#e-photons'))})));
+  for(let i = 0; i < 14; i++){
+    const y = XS.y0 + 14 + ((i * 37) % (XS.y1 - XS.y0 - 28));
+    PH.push({pts:[[XS.x - 4, y], [XS.x + 128, y]], f0:(i * .618) % 1, speed:.0006, inner:true,
+             el:mk('circle', {r:2.6, fill:LIGHT, stroke:'#c98a3c', 'stroke-width':.6, opacity:0}, $('#e-photons'))});
+  }
+
+  let beat = 0, gain = [0, 0, 0], anim = null;
+  const ease = p => p < .5 ? 4*p*p*p : 1 - Math.pow(-2*p + 2, 3) / 2;
+  function paint(){
+    cones.forEach(c => { const a = LEVEL[c.cls] * gain[c.cls];
+      c.parts.forEach(e => e.setAttribute('fill-opacity', (.12 + .83 * a).toFixed(3)));
+      c.halo.setAttribute('opacity', (.75 * a).toFixed(3)); });
+  }
+  function flow(t){
+    requestAnimationFrame(flow);
+    if(beat < 1 || beat > 2) return;
+    PH.forEach(p => { const f = (p.f0 + t * p.speed) % 1, [x, y] = at(p.pts, f), edge = Math.min(1, f / .08, (1 - f) / .08);
+      p.el.setAttribute('cx', x.toFixed(1)); p.el.setAttribute('cy', y.toFixed(1));
+      p.el.setAttribute('opacity', (p.inner && beat < 2 ? 0 : .95 * edge).toFixed(3)); });
+  }
+  requestAnimationFrame(flow);
+  return {
+    light: RGB,
+    set(b, jumped){
+      const prev = beat; beat = b;
+      const svg = $('#eyesvg');
+      svg.classList.toggle('on', b >= 1 && b <= 2);
+      svg.classList.toggle('gone', b >= 3);                  // shrinks toward the eye on the map as the figure comes in
+      $('#e-xsec').style.opacity = $('#e-zoom').style.opacity = b === 2 ? 1 : 0;
+      if(anim){ cancelAnimationFrame(anim); anim = null; }
+      gain = b >= 2 ? [1, 1, 1] : [0, 0, 0];
+      if(b === 2 && prev === 1 && !jumped){                  // the cones respond in turn: L, then M, then S
+        gain = [0, 0, 0]; const t0 = performance.now();
+        const tick = t => { const p = Math.min(1, (t - t0) / 2600);
+          gain = [0, 1, 2].map(i => ease(Math.max(0, Math.min(1, (p - .25 - i * .22) / .2)))); paint();
+          anim = p < 1 ? requestAnimationFrame(tick) : null; };
+        anim = requestAnimationFrame(tick);
+      }
+      paint();
+    }
+  };
+})();
+</script>
+<script>
 /* ACT 0  TITLE    (0):   the title alone
-   ACT 1  FIGURE   (1):   the visual pathways figure
-   ACT 2  LIGHT    (2):   light comes in from the left, through the pupil, onto the retina
-   ACT 3  EARLY    (3):   retina -> LGN -> V1, a pulse travelling along it
-   ACT 4  VENTRAL  (4):   V1 -> V4 -> IT, "what"; the early path stays, dimmed
-   ACT 5  DORSAL   (5):   V1 -> V3A -> V6 / MST -> parietal (SPL, IPL), "where / how"
-   ACT 6  BOTH     (6):   both streams at equal weight
+   ACT 1  EYE      (1):   light enters the eye through the pupil and is focused onto the retina
+   ACT 2  RETINA   (2):   zoom into the retina: the L, M, S cones respond in turn
+   ACT 3  FIGURE   (3):   the eye shrinks away and the pathways figure comes in; the light lands on its retina
+   ACT 4  EARLY    (4):   retina -> LGN -> V1, a pulse travelling along it
+   ACT 5  VENTRAL  (5):   V1 -> V4 -> IT, "what"; the early path stays, dimmed
+   ACT 6  DORSAL   (6):   V1 -> V3A -> V6 / MST -> parietal (SPL, IPL), "where / how"
+   ACT 7  BOTH     (7):   both streams at equal weight
 
    Node centres and half-sizes were DETECTED from the image (flood fill of each white node,
    centre and half-extent of its bounding box), not eyeballed: [u, v, ru, rv], fractions of the
@@ -60,11 +233,12 @@ const hex = v => { const h = getComputedStyle(document.documentElement).getPrope
 const COL = {early: hex('--early'), what: hex('--what'), where: hex('--where')};
 const LABELS = {what: ['what', .72], where: ['where / how', .30]};   // label text, height (fraction of image)
 
-const CAPS = ['', '', 'Light reaches the retina', 'Retina → LGN → V1', 'Ventral stream', 'Dorsal stream', 'Two streams'];
+const CAPS = ['', 'Light enters the eye', 'The cones respond: L, M, S', 'Light reaches the retina', 'Retina → LGN → V1', 'Ventral stream', 'Dorsal stream', 'Two streams'];
 const NOTES = [
-  "(draft) Title only. So how does the brain manage it?",
-  "(draft) Here is a map of the main visual pathways, drawn on the side of the brain.",
-  "(draft) Light enters the eye through the pupil and lands on the retina, at the back of the eye.",
+  "(draft) Title only. So how does the brain manage it? It starts with light reaching the eye.",
+  "(draft) Light enters the eye through the pupil, and the lens focuses it onto the retina, at the back of the eye.",
+  "(draft) Zoom into the retina. The light passes through the layers of cells to the photoreceptors at the back. The cones come in three types, L, M and S, and each responds to this light by its own amount. Those responses are all the brain will get.",
+  "(draft) Here is that eye on a map of the main visual pathways, drawn on the side of the brain. The light lands on the retina.",
   "(draft) From the retina, the signal travels through the LGN, in the thalamus, to primary visual cortex, V1, at the back of the head.",
   "(draft) From V1, one stream runs down and forward, through V4 to inferotemporal cortex, IT. This ventral stream is often called the 'what' pathway: recognizing objects.",
   "(draft) A second stream runs up into parietal cortex. This dorsal stream is often called the 'where' or 'how' pathway: locating things and guiding action.",
@@ -74,14 +248,14 @@ const N = NOTES.length - 1;
 
 /* per beat: how strongly each layer shows. Established layers sit at a constant lower level, never off. */
 const LEVEL = b => ({
-  fig:   b >= 1 ? 1 : 0,
-  light: b === 2 ? 1 : b >= 3 ? .34 : 0,
-  early: b === 3 ? 1 : b >= 4 ? .34 : 0,
-  what:  b === 4 || b === 6 ? 1 : b === 5 ? .34 : 0,
-  where: b >= 5 ? 1 : 0,
+  fig:   b >= 3 ? 1 : 0,
+  light: b === 3 ? 1 : b >= 4 ? .34 : 0,
+  early: b === 4 ? 1 : b >= 5 ? .34 : 0,
+  what:  b === 5 || b === 7 ? 1 : b === 6 ? .34 : 0,
+  where: b >= 6 ? 1 : 0,
 });
 /* the pulse runs only on the beat that introduces a path; the closing beat is still, both streams at equal weight */
-const ACTIVE = b => b === 2 ? ['light'] : b === 3 ? ['early'] : b === 4 ? ['what'] : b === 5 ? ['where'] : [];
+const ACTIVE = b => b === 3 ? ['light'] : b === 4 ? ['early'] : b === 5 ? ['what'] : b === 6 ? ['where'] : [];
 
 let beat = 0, from = LEVEL(0), cur = LEVEL(0), t0 = 0;
 const DUR = 1200, PULSE = 4200;                          // ms: layer fade, one calm pulse traversal
@@ -89,6 +263,7 @@ const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
 const sstep = t => (t = Math.max(0, Math.min(1, t)), t * t * (3 - 2 * t));
 function go(b, jump){
   beat = b; from = {...cur}; t0 = performance.now() - (jump ? DUR : 0);
+  eye.set(b, jump);
   document.getElementById('cap').textContent = CAPS[b];
   document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
 }
@@ -144,7 +319,7 @@ function ring(n, c, alpha){                              // the node lit: a colo
   ctx.beginPath(); ctx.ellipse(x, y, RX(n) + w * .8, RY(n) + w * .8, 0, 0, 7); ctx.stroke();
   ctx.restore();
 }
-const SIGHT = [148, 163, 184];                          // light is drawn neutral gray: it is not one of the data colors
+const SIGHT = eye.light.map(v => Math.round(v * .8));   // the same lamp light as in the eye, a shade darker so the rays read on white
 function light(a, active, now){                          // rays from the left converge at the pupil and land, inverted, on the back of the eye
   if(a < .01) return;
   const [px, py] = [ox + PUPIL[0] * IMG_W * s, oy + PUPIL[1] * IMG_H * s];
