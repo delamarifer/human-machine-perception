@@ -37,12 +37,13 @@ Two people work on it at once: Fernanda and Shreya, each in their own Claude ses
 - Never `git revert HEAD` or force-push: the other person may have just pushed. Revert by hash after `git log`.
 
 ## Claude team (worktrees)
-- One **coordinator** session works in the main checkout (`~/Developer/human-machine-perception`, branch
-  `main`). It routes Fernanda's feedback, reviews each branch, merges it into `main` and pushes.
+- Each instructor (Fernanda, Shreya) runs one **coordinator** session in their own main checkout of the
+  repo (branch `main`). It routes Fernanda's feedback, reviews each branch, merges it into `main` and pushes.
 - One **part session** per part, each in its own git worktree on its own branch. A part session edits
   only its part's files, commits small commits to its own branch, and never merges or pushes to `main`.
 - `main` is published: every push goes live at https://delamarifer.github.io/human-machine-perception/
-  (a public site). Only the coordinator pushes, and only after checking the deck in the browser.
+  (a public site). Only a coordinator pushes, only after `git pull` and checking the deck in the browser, and only
+  branches for parts and days its own instructor owns.
 - Each part session previews on its own port so they don't collide: `python3 -m http.server <port>`
   from its worktree (opening 8141, about-fernanda 8142, ill-posed 8143, visual-system 8144, today 8145).
 - When a part session finishes a round, it ends with: what changed (by slide number), what it verified,

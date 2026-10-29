@@ -147,3 +147,21 @@ Each later day is its own folder (`day02/`, `day03/`, ...) with the same layout 
 All days share the engine and styles in `deck/`. A scene inside `dayNN/scenes/` links the stylesheet as
 `../../deck/deck.css`. The plan for every day is in `plan/course-plan.md`. Notebooks for every day go in
 `notebooks/` (conventions in `notebooks/README.md`).
+
+## For Shreya: getting started
+
+1. Accept the GitHub invitation to `delamarifer/human-machine-perception` (you get an email).
+2. Clone it and open it in Claude Code (desktop app, Code tab):
+
+   ```bash
+   git clone https://github.com/delamarifer/human-machine-perception.git ~/Developer/human-machine-perception
+   ```
+
+   When the app asks, trust the folder.
+3. Your first message to Claude: "I'm Shreya. Read CLAUDE.md, README.md and plan/course-plan.md. You're
+   my coordinator. Start sessions in worktrees for the parts I own."
+4. Your Day 1 parts are `about-shreya`, `can-computers`, `assumptions` and `course` (see "Who owns what").
+   For Days 0 and 2-5, agree with Fernanda who owns which day, then update the owner line in each
+   `dayNN/parts/*.js`.
+5. Every push to `main` goes live at https://delamarifer.github.io/human-machine-perception/, so pull first,
+   check in the browser, then push.
