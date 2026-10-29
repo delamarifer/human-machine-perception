@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>From pixels to objects</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: pixels-to-objects part (Day 4). Pattern B: every panel is computed in JS from one generated
+     image, and revealed by beat. Works alone too. */
+  html, body{ background:#fff; }
+  body.jump *{ transition:none !important; }
+  :root{ --cell:min(15.4vw, 34vh); }
+  .wrap{ position:absolute; inset:0; padding:9vh 5vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .p2o-grid{ margin:auto 0; display:grid; grid-template-columns:repeat(5, var(--cell)); justify-content:space-between;
+    row-gap:2.2vh; column-gap:1vw; }
+  .p2o-cell{ display:flex; flex-direction:column; align-items:center; gap:.8vh; }
+  .p2o-cell canvas{ width:var(--cell); height:var(--cell); border-radius:6px; }
+  .p2o-cell .label{ font-weight:700; }
+  .p2o-arrow{ grid-column:2 / span 4; display:flex; align-items:center; gap:1vw; }
+  .p2o-arrow .line{ flex:1 1 auto; height:3px; background:var(--ink); position:relative; }
+  .p2o-arrow .line::after{ content:''; position:absolute; right:-2px; top:-7px; border:8.5px solid transparent; border-left:14px solid var(--ink); border-right:0; }
+  .p2o-brain{ display:flex; align-items:center; justify-content:center; gap:.5vw; }
+  .p2o-brain i{ width:.9em; height:.9em; border-radius:50%; display:inline-block; }
+  .s{ opacity:0; transform:translateY(8px); transition:opacity .9s ease, transform .9s ease; }
+  .s.on{ opacity:1; transform:none; }
+  .cite{ opacity:0; transition:opacity .9s ease; } .cite.on{ opacity:1; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">From pixels to objects</h1>
+  <div class="p2o-grid">
+    <div class="p2o-cell s" data-b="1"><div class="label">Image</div><canvas id="im" width="256" height="256"></canvas></div>
+    <div class="p2o-cell s" data-b="2"><div class="label">Pixels</div><canvas id="px" width="512" height="512"></canvas></div>
+    <div class="p2o-cell s" data-b="3"><div class="label">Features</div><canvas id="ft" width="256" height="256"></canvas></div>
+    <div class="p2o-cell s" data-b="4"><div class="label">Textures</div><canvas id="tx" width="512" height="512"></canvas></div>
+    <div class="p2o-cell s" data-b="5"><div class="label">Objects</div><canvas id="ob" width="512" height="512"></canvas></div>
+
+    <div></div>
+    <div class="p2o-arrow s label" data-b="6"><span>Exact pixel values</span><div class="line"></div><span>What is there</span></div>
+
+    <div></div>
+    <div class="p2o-brain s label" data-b="7"><i style="background:var(--early)"></i>retina</div>
+    <div class="p2o-brain s label" data-b="7"><i style="background:var(--early)"></i>V1</div>
+    <div class="p2o-brain s label" data-b="7"><i style="background:var(--what)"></i>V2</div>
+    <div class="p2o-brain s label" data-b="7"><i style="background:var(--what)"></i>IT</div>
+  </div>
+  <div class="cite" id="cite">V2 and texture: Freeman, Ziemba, Heeger, Simoncelli &amp; Movshon, 2013</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE     (0):   the title alone
+   ACT 1  LADDER    (1-5): the image; its pixels (real values of a marked 6x6 patch); features (gradient
+                           magnitude, Sobel); textures (orientation energy pooled in 32x32 windows);
+                           objects (the regions the generator drew, with their names)
+   ACT 2  MEANING   (6-7): the axis from exact pixel values to what is there; a rough parallel along the
+                           ventral stream (slate-blue = eye to V1, plum = ventral "what", as on Day 1)
+
+   The image is generated here from a fixed seed (sky, brick wall, grass, a ball), so its ground-truth
+   regions are known exactly. All panels are computed from its pixels. */
+const NOTES = [
+  "(draft) Title only. Today's question is what information an image carries, and what a system should keep. One way in: a ladder of representations, from pixels to objects.",
+  "(draft) Here is an image I generated: a sky, a brick wall, some grass and a ball.",
+  "(draft) To a computer, the image is a grid of numbers. This is the small square marked on the image, with the brightness of each pixel. The numbers keep everything, but nothing in them says wall or ball.",
+  "(draft) One step up: features. Here, the strength of the local edges, computed with a small derivative filter, like the filters from yesterday. Dark means a strong edge.",
+  "(draft) Next: textures. I divide the image into windows and, in each window, I only keep how much edge energy there is in each orientation. The exact positions inside the window are gone; what kind of stuff is there is kept. The bricks have horizontal and vertical edges, the grass mostly vertical ones, the sky almost none.",
+  "(draft) And at the top: objects. Sky, wall, grass, ball. This is the level where we name things.",
+  "(draft) Each step to the right keeps less about the exact pixel values and more about what is there.",
+  "(draft) There is a rough parallel along the ventral stream we saw on Day 1: the retina samples the pixels, V1 cells respond to oriented edges, V2 responds to texture statistics, a result from Freeman and colleagues in 2013, and IT responds to objects. This is a simplification, not a one-to-one map."
+];
+const N = NOTES.length - 1;
+let beat = 0;
+function go(b){
+  beat = b;
+  document.querySelectorAll('.s').forEach(el => el.classList.toggle('on', b >= +el.dataset.b));
+  document.getElementById('cite').classList.toggle('on', b >= 7);
+  drawImage(b >= 2);
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+
+/* ---------- the generated image and its regions ---------- */
+const S = 256, IMG = new Float64Array(S * S), LAB = new Uint8Array(S * S);   // 0 sky, 1 wall, 2 grass, 3 ball
+const NAMES = ['sky', 'wall', 'grass', 'ball'];
+const BALL = {x: 178, y: 178, r: 34}, WALL = [86, 168], PATCH = {x: 61, y: 125, n: 6};
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+(function generate(){
+  const R = rng(7);
+  for(let y = 0; y < S; y++) for(let x = 0; x < S; x++){
+    const k = y * S + x;
+    if(y < WALL[0]){ IMG[k] = 236 - y * .25; LAB[k] = 0; }
+    else if(y < WALL[1]){
+      const row = Math.floor((y - WALL[0]) / 14), off = row % 2 ? 16 : 0, bx = (x + off) % 32, by = (y - WALL[0]) % 14;
+      IMG[k] = (bx < 2 || by < 2) ? 200 : 118; LAB[k] = 1;
+    } else { IMG[k] = 92; LAB[k] = 2; }
+  }
+  const brick = new Map();                                       // each brick a slightly different gray
+  for(let y = WALL[0]; y < WALL[1]; y++) for(let x = 0; x < S; x++){
+    const k = y * S + x; if(IMG[k] !== 118) continue;
+    const row = Math.floor((y - WALL[0]) / 14), id = row * 100 + Math.floor((x + (row % 2 ? 16 : 0)) / 32);
+    if(!brick.has(id)) brick.set(id, (R() - .5) * 36);
+    IMG[k] += brick.get(id) + (R() - .5) * 10;
+  }
+  for(let n = 0; n < 1400; n++){                                 // grass: near-vertical blades
+    const x0 = R() * S, y0 = WALL[1] + 6 + R() * (S - WALL[1]), len = 10 + R() * 18, lean = (R() - .5) * .5, g = R() < .5 ? 55 : 150;
+    for(let t = 0; t < len; t++){ const x = Math.round(x0 + lean * t), y = Math.round(y0 - t);
+      if(x >= 0 && x < S && y >= WALL[1] && y < S) IMG[y * S + x] = g; }
+  }
+  for(let y = 0; y < S; y++) for(let x = 0; x < S; x++){          // the ball, lit from the top-left
+    const q = Math.hypot(x - BALL.x, y - BALL.y) / BALL.r; if(q > 1) continue;
+    const l = Math.hypot(x - BALL.x + BALL.r * .4, y - BALL.y + BALL.r * .4) / BALL.r;
+    IMG[y * S + x] = 245 - 150 * Math.min(1, l * .8); LAB[y * S + x] = 3;
+  }
+})();
+const at = (x, y) => IMG[Math.max(0, Math.min(S - 1, y)) * S + Math.max(0, Math.min(S - 1, x))];
+
+/* ---------- features: Sobel gradients ---------- */
+const GX = new Float64Array(S * S), GY = new Float64Array(S * S), MAG = new Float64Array(S * S);
+for(let y = 0; y < S; y++) for(let x = 0; x < S; x++){
+  const gx = (at(x+1,y-1) + 2*at(x+1,y) + at(x+1,y+1)) - (at(x-1,y-1) + 2*at(x-1,y) + at(x-1,y+1));
+  const gy = (at(x-1,y+1) + 2*at(x,y+1) + at(x+1,y+1)) - (at(x-1,y-1) + 2*at(x,y-1) + at(x+1,y-1));
+  const k = y * S + x; GX[k] = gx; GY[k] = gy; MAG[k] = Math.hypot(gx, gy);
+}
+
+function gray(id, f){ const c = document.getElementById(id), x = c.getContext('2d'), d = x.createImageData(S, S);
+  for(let k = 0; k < S * S; k++){ const v = Math.max(0, Math.min(255, f(k))); d.data.set([v, v, v, 255], k * 4); }
+  x.putImageData(d, 0, 0); return x; }
+const imageCanvas = (() => { const c = document.createElement('canvas'); c.width = c.height = S;
+  const x = c.getContext('2d'), d = x.createImageData(S, S);
+  for(let k = 0; k < S * S; k++) d.data.set([IMG[k], IMG[k], IMG[k], 255], k * 4); x.putImageData(d, 0, 0); return c; })();
+
+function drawImage(box){
+  const x = document.getElementById('im').getContext('2d');
+  x.drawImage(imageCanvas, 0, 0);
+  if(box){ x.strokeStyle = '#b45309'; x.lineWidth = 2.5; x.strokeRect(PATCH.x - 1.5, PATCH.y - 1.5, PATCH.n + 3, PATCH.n + 3); }
+}
+
+(function pixels(){                                              // the real values of the marked patch
+  const c = document.getElementById('px'), x = c.getContext('2d'), n = PATCH.n, w = c.width / n;
+  x.font = `700 ${w * .36}px Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif`;
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  for(let j = 0; j < n; j++) for(let i = 0; i < n; i++){
+    const v = Math.round(IMG[(PATCH.y + j) * S + PATCH.x + i]);
+    x.fillStyle = `rgb(${v},${v},${v})`; x.fillRect(i * w, j * w, w, w);
+    x.fillStyle = v > 140 ? '#0f172a' : '#fff'; x.fillText(v, i * w + w / 2, j * w + w / 2);
+  }
+  x.strokeStyle = '#b45309'; x.lineWidth = 6; x.strokeRect(3, 3, c.width - 6, c.height - 6);
+})();
+
+(function features(){ let mx = 0; for(const v of MAG) mx = Math.max(mx, v);
+  gray('ft', k => 255 - 255 * Math.min(1, MAG[k] / (mx * .6))); })();
+
+(function textures(){                                            // edge energy per orientation, pooled in windows
+  const c = document.getElementById('tx'), x = c.getContext('2d'), W = 32, n = S / W, sc = c.width / S;
+  const E = [];
+  for(let wy = 0; wy < n; wy++) for(let wx = 0; wx < n; wx++){
+    const e = [0, 0, 0, 0]; let m = 0;
+    for(let y = wy * W; y < wy * W + W; y++) for(let xx = wx * W; xx < wx * W + W; xx++){
+      const k = y * S + xx; m += IMG[k];
+      const th = (Math.atan2(GY[k], GX[k]) + Math.PI / 2 + 2 * Math.PI) % Math.PI;   // edge orientation, 0..pi
+      e[Math.round(th / (Math.PI / 4)) % 4] += MAG[k] * MAG[k];
+    }
+    E.push({wx, wy, e, m: m / (W * W)});
+  }
+  const mx = Math.max(...E.flatMap(w => w.e));
+  for(const w of E){
+    const x0 = w.wx * W * sc, y0 = w.wy * W * sc, cw = W * sc, cx = x0 + cw / 2, cy = y0 + cw / 2;
+    x.fillStyle = `rgb(${w.m},${w.m},${w.m})`; x.fillRect(x0, y0, cw, cw);
+    x.strokeStyle = w.m > 140 ? '#0f172a' : '#fff'; x.lineWidth = 3.5; x.lineCap = 'round';
+    w.e.forEach((v, o) => { const L = cw * .46 * Math.sqrt(v / mx), a = o * Math.PI / 4;
+      if(L < 1) return;
+      x.beginPath(); x.moveTo(cx - L * Math.cos(a), cy + L * Math.sin(a)); x.lineTo(cx + L * Math.cos(a), cy - L * Math.sin(a)); x.stroke(); });
+  }
+  x.strokeStyle = 'rgba(255,255,255,.5)'; x.lineWidth = 1;
+  for(let k = 1; k < n; k++){ x.beginPath(); x.moveTo(k * W * sc, 0); x.lineTo(k * W * sc, c.height); x.moveTo(0, k * W * sc); x.lineTo(c.width, k * W * sc); x.stroke(); }
+})();
+
+(function objects(){                                             // the generator's regions, outlined and named
+  const c = document.getElementById('ob'), x = c.getContext('2d'), sc = c.width / S;
+  x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+  x.globalAlpha = .3; x.drawImage(imageCanvas, 0, 0, c.width, c.height); x.globalAlpha = 1;
+  x.fillStyle = '#0f172a';
+  for(let y = 0; y < S; y++) for(let xx = 0; xx < S; xx++){
+    const k = y * S + xx; if((xx + 1 < S && LAB[k + 1] !== LAB[k]) || (y + 1 < S && LAB[k + S] !== LAB[k])) x.fillRect(xx * sc - 1, y * sc - 1, sc + 2, sc + 2);
+  }
+  x.font = `700 ${c.width * .075}px Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
+  const put = (t, u, v) => { const w = x.measureText(t).width + 18, h = c.width * .1;
+    x.fillStyle = 'rgba(255,255,255,.92)'; x.beginPath(); x.roundRect(u * sc - w / 2, v * sc - h / 2, w, h, 10); x.fill();
+    x.fillStyle = '#0f172a'; x.fillText(t, u * sc, v * sc); };
+  put('sky', 64, WALL[0] / 2); put('wall', 64, (WALL[0] + WALL[1]) / 2); put('grass', 64, (WALL[1] + S) / 2); put('ball', BALL.x, BALL.y);
+})();
+
+window.pixelsToObjects = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ jump(); go(0); },
+  resetToEnd(){ jump(); go(N); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) pixelsToObjects.advance(); if(e.key === 'ArrowLeft') pixelsToObjects.back(); });
+  addEventListener('click', () => pixelsToObjects.advance());
+}
+function jump(){ document.body.classList.add('jump'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('jump'))); }
+go(0);
+if(location.hash === '#end') pixelsToObjects.resetToEnd();   // open the scene alone at its last beat (screenshots)
+</script>
+</body>
+</html>

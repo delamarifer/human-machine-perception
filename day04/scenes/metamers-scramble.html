@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Different pixels, same appearance?</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: metamers part (Day 4). Pattern B: panels computed in JS and revealed by beat. Works alone too. */
+  html, body{ background:#fff; }
+  body.jump *{ transition:none !important; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .metamers-grid{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(3, auto); grid-template-rows:1fr 1fr;
+    justify-content:center; gap:1.6vh 3vw; }
+  .metamers-cell{ min-height:0; display:flex; flex-direction:column; align-items:center; gap:.6vh;
+    opacity:0; transform:translateY(8px); transition:opacity .9s ease, transform .9s ease; }
+  .metamers-cell.on{ opacity:1; transform:none; }
+  .metamers-cell.dim{ opacity:.3; }
+  .metamers-cell canvas{ flex:1 1 auto; min-height:0; aspect-ratio:1; height:100%; border-radius:6px; }
+  .metamers-cell .todo{ flex:1 1 auto; aspect-ratio:1; height:100%; min-height:0; overflow:hidden; }
+  .metamers-cap{ min-height:1.4em; text-align:center; transition:opacity .6s ease; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Different pixels, same appearance?</h1>
+  <div class="metamers-grid">
+    <div class="metamers-cell" id="c1"><canvas id="a1" width="256" height="256"></canvas><div class="label">Texture 1</div></div>
+    <div class="metamers-cell" id="c2"><canvas id="a2" width="256" height="256"></canvas><div class="label">Same power spectrum, new phases</div></div>
+    <div class="metamers-cell" id="c3"><canvas id="ad" width="256" height="256"></canvas><div class="label" id="rlab">Pixel difference</div></div>
+    <div class="metamers-cell" id="c4"><canvas id="b1" width="256" height="256"></canvas><div class="label">Texture 2</div></div>
+    <div class="metamers-cell" id="c5"><canvas id="b2" width="256" height="256"></canvas><div class="label">Same power spectrum, new phases</div></div>
+    <div class="metamers-cell" id="c6"><div class="todo">Texture 2 resynthesized from Portilla-Simoncelli statistics (make with plenoptic). Source: to add</div><div class="label">More statistics matched</div></div>
+  </div>
+  <div class="lead metamers-cap" id="cap"></div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE      (0):    the title alone
+   ACT 1  CLOUDS     (1-4):  a cloud-like texture; the same texture with its Fourier phases randomized
+                             (amplitude spectrum kept); their pixel difference and correlation; they look alike
+   ACT 2  PEBBLES    (5-8):  a texture of round pebbles; the same phase scramble; it looks different;
+                             the Portilla-Simoncelli synthesis (TO DO box)
+
+   Everything is computed here, from a fixed seed: no third-party images. Texture 1 is multi-octave value
+   noise, Texture 2 is random non-overlapping shaded disks. The scramble keeps |FFT| exactly and takes the
+   phases of the FFT of white noise (so the result is real). The correlation shown is computed live. */
+const CAPS = ['', '', '', '', 'Look alike: a metamer pair, for the human eye', '', '', 'Look different: the power spectrum is not enough', ''];
+const NOTES = [
+  "(draft) Title only. Can two images differ in their pixels and still look the same?",
+  "(draft) Here is a texture, a bit like clouds. I generated it in the browser, from random noise at several scales.",
+  "(draft) Now I keep its power spectrum, how much energy there is at each spatial frequency and orientation, and replace all the Fourier phases with random ones. This is a new image.",
+  "(draft) Pixel by pixel the two images are very different. Here is the difference image, dark where they differ most, and the correlation between their pixels is low: the number on the screen.",
+  "(draft) Yet they look like the same kind of stuff. For our eyes, they are a metamer pair: physically different, perceptually the same. For this texture, the power spectrum seems to capture what we see.",
+  "(draft) Let us try a second texture: round pebbles.",
+  "(draft) Same procedure: keep the power spectrum, randomize the phases.",
+  "(draft) This time it does not look the same at all. The pebbles are gone; we see blurry blobs. The power spectrum, a second-order statistic, is not enough to describe this texture. This is the kind of counterexample that went against Julesz's early conjecture that textures with the same second-order statistics look the same.",
+  "(draft) Portilla and Simoncelli matched many more statistics: correlations between filter responses across positions, orientations and scales. Their synthesis of a texture like this one keeps the pebbles. (Image to add: we can make it with the plenoptic library.)"
+];
+const N = NOTES.length - 1;
+let beat = 0;
+function go(b){
+  beat = b;
+  const on = k => b >= k;
+  ['c1','c2','c3'].forEach((id, k) => { const el = document.getElementById(id);
+    el.classList.toggle('on', on(k + 1)); el.classList.toggle('dim', b >= 5); });
+  ['c4','c5'].forEach((id, k) => document.getElementById(id).classList.toggle('on', on(k + 5)));
+  document.getElementById('c6').classList.toggle('on', on(8));
+  document.getElementById('cap').textContent = CAPS[b];
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+
+/* ---------- generation ---------- */
+const S = 256;
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+function clouds(seed){                       // value noise, octaves 4..64 cells, amplitude x0.7 per octave
+  const R = rng(seed), out = new Float64Array(S * S);
+  for(let cells = 4, amp = 1; cells <= 64; cells *= 2, amp *= .7){
+    const g = Array.from({length: (cells + 1) * (cells + 1)}, () => R());
+    const at = (i, j) => g[(j % cells) * (cells + 1) + (i % cells)];   // wraps, so the texture tiles
+    for(let y = 0; y < S; y++) for(let x = 0; x < S; x++){
+      const fx = x / S * cells, fy = y / S * cells, i = Math.floor(fx), j = Math.floor(fy);
+      const u = fx - i, v = fy - j, su = u * u * (3 - 2 * u), sv = v * v * (3 - 2 * v);
+      const a = at(i, j) * (1 - su) + at(i + 1, j) * su, c = at(i, j + 1) * (1 - su) + at(i + 1, j + 1) * su;
+      out[y * S + x] += amp * (a * (1 - sv) + c * sv);
+    }
+  }
+  return normalize(out, 20, 235);
+}
+function pebbles(seed){                      // non-overlapping shaded disks on a dark ground (wrapping)
+  const R = rng(seed), out = new Float64Array(S * S).fill(60), disks = [];
+  for(let tries = 0; tries < 6000 && disks.length < 140; tries++){
+    const r = 7 + R() * 13, x = R() * S, y = R() * S;
+    if(disks.every(d => { const dx = Math.min(Math.abs(d.x - x), S - Math.abs(d.x - x)), dy = Math.min(Math.abs(d.y - y), S - Math.abs(d.y - y));
+      return Math.hypot(dx, dy) > d.r + r + 2; })) disks.push({x, y, r, g: 150 + R() * 70});
+  }
+  for(const d of disks) for(let oy = -1; oy <= 1; oy++) for(let ox = -1; ox <= 1; ox++){
+    const cx = d.x + ox * S, cy = d.y + oy * S;
+    for(let y = Math.max(0, Math.floor(cy - d.r)); y < Math.min(S, cy + d.r + 1); y++)
+      for(let x = Math.max(0, Math.floor(cx - d.r)); x < Math.min(S, cx + d.r + 1); x++){
+        const q = Math.hypot(x - cx, y - cy) / d.r; if(q > 1) continue;
+        const lx = (x - cx + d.r * .35) / d.r, ly = (y - cy + d.r * .35) / d.r;     // light from the top-left
+        out[y * S + x] = d.g * (1 - .45 * Math.min(1, Math.hypot(lx, ly))) + 25 * (1 - q * q);
+      }
+  }
+  return out;
+}
+function normalize(a, lo, hi){ let mn = Infinity, mx = -Infinity; for(const v of a){ mn = Math.min(mn, v); mx = Math.max(mx, v); }
+  return a.map(v => lo + (v - mn) / (mx - mn) * (hi - lo)); }
+
+/* ---------- 2D FFT (radix 2, in place) ---------- */
+function fft1(re, im, inv){
+  const n = re.length;
+  for(let i = 1, j = 0; i < n; i++){ let bit = n >> 1; for(; j & bit; bit >>= 1) j ^= bit; j ^= bit;
+    if(i < j){ [re[i], re[j]] = [re[j], re[i]]; [im[i], im[j]] = [im[j], im[i]]; } }
+  for(let len = 2; len <= n; len <<= 1){
+    const ang = 2 * Math.PI / len * (inv ? 1 : -1), wr = Math.cos(ang), wi = Math.sin(ang);
+    for(let i = 0; i < n; i += len){ let cr = 1, ci = 0;
+      for(let k = 0; k < len / 2; k++){
+        const a = i + k, b = a + len / 2, tr = re[b] * cr - im[b] * ci, ti = re[b] * ci + im[b] * cr;
+        re[b] = re[a] - tr; im[b] = im[a] - ti; re[a] += tr; im[a] += ti;
+        const nr = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = nr; } } }
+  if(inv) for(let i = 0; i < n; i++){ re[i] /= n; im[i] /= n; }
+}
+function fft2(re, im, inv){
+  const r = new Float64Array(S), i = new Float64Array(S);
+  for(let y = 0; y < S; y++){ for(let x = 0; x < S; x++){ r[x] = re[y*S+x]; i[x] = im[y*S+x]; } fft1(r, i, inv);
+    for(let x = 0; x < S; x++){ re[y*S+x] = r[x]; im[y*S+x] = i[x]; } }
+  for(let x = 0; x < S; x++){ for(let y = 0; y < S; y++){ r[y] = re[y*S+x]; i[y] = im[y*S+x]; } fft1(r, i, inv);
+    for(let y = 0; y < S; y++){ re[y*S+x] = r[y]; im[y*S+x] = i[y]; } }
+}
+function scramble(img, seed){                // keep |F|, take the phases of white noise's FFT
+  const R = rng(seed), re = Float64Array.from(img), im = new Float64Array(S * S);
+  const nr = Float64Array.from({length: S * S}, () => R() - .5), ni = new Float64Array(S * S);
+  fft2(re, im, false); fft2(nr, ni, false);
+  for(let k = 0; k < S * S; k++){
+    const a = Math.hypot(re[k], im[k]), p = Math.atan2(ni[k], nr[k]);
+    re[k] = a * Math.cos(p); im[k] = a * Math.sin(p);
+  }
+  re[0] = img.reduce((s, v) => s + v, 0); im[0] = 0;   // keep the mean exactly
+  fft2(re, im, true);
+  return re;
+}
+function corr(a, b){ const n = a.length; let ma = 0, mb = 0; for(let k = 0; k < n; k++){ ma += a[k]; mb += b[k]; } ma /= n; mb /= n;
+  let sab = 0, saa = 0, sbb = 0; for(let k = 0; k < n; k++){ const x = a[k] - ma, y = b[k] - mb; sab += x * y; saa += x * x; sbb += y * y; }
+  return sab / Math.sqrt(saa * sbb); }
+function paint(id, a, map = v => v){
+  const c = document.getElementById(id), x = c.getContext('2d'), d = x.createImageData(S, S);
+  for(let k = 0; k < S * S; k++){ const v = Math.max(0, Math.min(255, map(a[k]))); d.data.set([v, v, v, 255], k * 4); }
+  x.putImageData(d, 0, 0);
+}
+
+const A1 = clouds(11), A2 = scramble(A1, 23), B1 = pebbles(5), B2 = scramble(B1, 29);
+const D = A1.map((v, k) => Math.abs(v - A2[k]));
+paint('a1', A1); paint('a2', A2); paint('b1', B1); paint('b2', B2);
+paint('ad', D, v => 255 - v * 2);            // dark = large difference
+const R_A = corr(A1, A2);
+document.getElementById('rlab').textContent = `Pixel difference · correlation r = ${R_A.toFixed(2)}`;
+window.METAMER_STATS = {rClouds: R_A, rPebbles: corr(B1, B2)};
+
+window.metamerScramble = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ jump(); go(0); },
+  resetToEnd(){ jump(); go(N); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) metamerScramble.advance(); if(e.key === 'ArrowLeft') metamerScramble.back(); });
+  addEventListener('click', () => metamerScramble.advance());
+}
+function jump(){ document.body.classList.add('jump'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('jump'))); }
+go(0);
+if(location.hash === '#end') metamerScramble.resetToEnd();   // open the scene alone at its last beat (screenshots)
+</script>
+</body>
+</html>

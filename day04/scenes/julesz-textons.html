@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Which differences do we see at a glance?</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: metamers part (Day 4). Pattern B: texture displays drawn in JS, revealed by beat. Works alone too. */
+  html, body{ background:#fff; }
+  body.jump *{ transition:none !important; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .julesz-row{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:4vw; }
+  .julesz-cell{ min-height:0; display:flex; flex-direction:column; align-items:center; gap:1vh;
+    opacity:0; transform:translateY(8px); transition:opacity .9s ease, transform .9s ease; }
+  .julesz-cell.on{ opacity:1; transform:none; }
+  .julesz-cell .box{ position:relative; flex:1 1 auto; min-height:0; aspect-ratio:4/3; max-width:100%; }
+  .julesz-cell canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .julesz-cap{ min-height:1.4em; text-align:center; opacity:0; transition:opacity .9s ease; }
+  .julesz-cap.on{ opacity:1; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Which differences do we see at a glance?</h1>
+  <div class="julesz-row">
+    <div class="julesz-cell" id="L"><div class="box"><canvas id="cl" width="1200" height="900"></canvas></div><div class="label">L and +</div></div>
+    <div class="julesz-cell" id="R"><div class="box"><canvas id="cr" width="1200" height="900"></canvas></div><div class="label">L and T</div></div>
+  </div>
+  <div class="lead julesz-cap" id="cap">Same two line segments: only some arrangements stand out</div>
+  <div class="cite">Textons: Julesz, 1981</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE    (0):   the title alone
+   ACT 1  DISPLAYS (1-2): Ls with a patch of crosses; Ls with a patch of Ts (both randomly rotated)
+   ACT 3  REVEAL   (3-4): outline both patches; the statement
+
+   Every element is two equal perpendicular segments; only where they meet differs (corner, crossing,
+   T-junction). Drawn here from a fixed seed. Patch positions differ between the two displays on purpose. */
+const NOTES = [
+  "(draft) Title only. Before metamers, a question Bela Julesz asked: which differences between textures do we see at a glance, without searching?",
+  "(draft) On the left, a field of Ls in random orientations. Somewhere there is a patch of crosses. Most people see the patch immediately.",
+  "(draft) On the right, the same Ls, and somewhere a patch of Ts. Try to find it without searching element by element.",
+  "(draft) Here are the two patches. The crosses pop out; the Ts are much harder to find, even though every element is made of the same two line segments.",
+  "(draft) So the visual system does not see every difference in the pixels at a glance. Julesz proposed that pre-attentive vision is sensitive to a few local features, which he called textons, such as line crossings and terminators, and to their densities. Two textures that differ only in other ways can look the same."
+];
+const N = NOTES.length - 1;
+let beat = 0;
+function go(b){
+  beat = b;
+  document.getElementById('L').classList.toggle('on', b >= 1);
+  document.getElementById('R').classList.toggle('on', b >= 2);
+  document.getElementById('cap').classList.toggle('on', b >= 4);
+  draw('cl', LEFT, b >= 3); draw('cr', RIGHT, b >= 3);
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const COLS = 16, ROWS = 12;
+function display(seed, odd, patch){                // patch = [col, row, w, h]
+  const R = rng(seed), els = [];
+  for(let r = 0; r < ROWS; r++) for(let c = 0; c < COLS; c++){
+    const inP = c >= patch[0] && c < patch[0] + patch[2] && r >= patch[1] && r < patch[1] + patch[3];
+    els.push({c, r, kind: inP ? odd : 'L', rot: Math.floor(R() * 4) * Math.PI / 2, jx: (R() - .5) * .3, jy: (R() - .5) * .3});
+  }
+  return {els, patch};
+}
+const LEFT = display(3, 'X', [3, 3, 4, 4]), RIGHT = display(9, 'T', [9, 5, 4, 4]);
+const SEG = {                                       // two unit segments per element, centred on the origin
+  L: [[[-.5, -.5], [-.5, .5]], [[-.5, .5], [.5, .5]]],
+  T: [[[-.5, -.5], [.5, -.5]], [[0, -.5], [0, .5]]],
+  X: [[[-.5, 0], [.5, 0]], [[0, -.5], [0, .5]]]
+};
+function draw(id, D, outline){
+  const c = document.getElementById(id), x = c.getContext('2d'), cw = c.width / COLS, ch = c.height / ROWS, L = Math.min(cw, ch) * .52;
+  x.clearRect(0, 0, c.width, c.height);
+  x.strokeStyle = '#0f172a'; x.lineWidth = 6; x.lineCap = 'square';
+  for(const e of D.els){
+    const cx = (e.c + .5 + e.jx) * cw, cy = (e.r + .5 + e.jy) * ch, co = Math.cos(e.rot), si = Math.sin(e.rot);
+    x.beginPath();
+    for(const [[a, b], [p, q]] of SEG[e.kind]){
+      x.moveTo(cx + L * (a * co - b * si), cy + L * (a * si + b * co));
+      x.lineTo(cx + L * (p * co - q * si), cy + L * (p * si + q * co));
+    }
+    x.stroke();
+  }
+  if(outline){ const [pc, pr, pw, ph] = D.patch;
+    x.strokeStyle = '#b45309'; x.lineWidth = 7; x.setLineDash([22, 14]);
+    x.strokeRect(pc * cw - 6, pr * ch - 6, pw * cw + 12, ph * ch + 12); x.setLineDash([]); }
+}
+
+window.juleszTextons = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ jump(); go(0); },
+  resetToEnd(){ jump(); go(N); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) juleszTextons.advance(); if(e.key === 'ArrowLeft') juleszTextons.back(); });
+  addEventListener('click', () => juleszTextons.advance());
+}
+function jump(){ document.body.classList.add('jump'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('jump'))); }
+go(0);
+if(location.hash === '#end') juleszTextons.resetToEnd();   // open the scene alone at its last beat (screenshots)
+</script>
+</body>
+</html>

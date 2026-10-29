@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>What should not matter?</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: invariance part (Day 4). Pattern B: images and distances computed in JS, revealed by beat. Works alone too. */
+  html, body{ background:#fff; }
+  body.jump *{ transition:none !important; }
+  :root{ --tile:min(11vw, 20vh); }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .inv-table{ margin:auto 0; display:grid; grid-template-columns:auto 1fr 1fr; align-items:center; gap:2.4vh 3vw; }
+  .inv-pair{ display:flex; gap:1vw; }
+  .inv-pair figure{ display:flex; flex-direction:column; align-items:center; gap:.5vh; }
+  .inv-pair canvas{ width:var(--tile); height:var(--tile); border:2px solid var(--line); border-radius:8px; }
+  .inv-head{ font-weight:700; }
+  .inv-bar{ display:flex; align-items:center; gap:1vw; }
+  .inv-bar .track{ flex:1 1 auto; height:3.2vh; background:#f1f5f9; border-radius:4px; position:relative; overflow:hidden; }
+  .inv-bar .fill{ position:absolute; left:0; top:0; bottom:0; background:#475569; border-radius:4px; width:0; transition:width 1.1s ease; }
+  .inv-bar .num{ width:4.5em; font-variant-numeric:tabular-nums; }
+  .inv-cap{ min-height:1.4em; text-align:center; }
+  .s{ opacity:0; transform:translateY(8px); transition:opacity .9s ease, transform .9s ease; }
+  .s.on{ opacity:1; transform:none; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">What should not matter?</h1>
+  <div class="inv-table">
+    <div></div>
+    <div class="inv-head label s" data-b="3">Pixels</div>
+    <div class="inv-head label s" data-b="4">Amplitude spectrum</div>
+
+    <div class="inv-pair">
+      <figure class="s" data-b="1"><canvas id="t0" width="128" height="128"></canvas><figcaption class="label">b</figcaption></figure>
+      <figure class="s" data-b="2"><canvas id="t1" width="128" height="128"></canvas><figcaption class="label">b, shifted</figcaption></figure>
+    </div>
+    <div class="inv-bar s" data-b="3"><div class="track"><div class="fill" data-b="3" id="f-px-shift"></div></div><span class="label num" id="n-px-shift"></span></div>
+    <div class="inv-bar s" data-b="4"><div class="track"><div class="fill" data-b="4" id="f-am-shift"></div></div><span class="label num" id="n-am-shift"></span></div>
+
+    <div class="inv-pair">
+      <figure class="s" data-b="6"><canvas id="t2" width="128" height="128"></canvas><figcaption class="label">b</figcaption></figure>
+      <figure class="s" data-b="6"><canvas id="t3" width="128" height="128"></canvas><figcaption class="label">b, turned 180°</figcaption></figure>
+    </div>
+    <div class="inv-bar s" data-b="7"><div class="track"><div class="fill" data-b="7" id="f-px-rot"></div></div><span class="label num" id="n-px-rot"></span></div>
+    <div class="inv-bar s" data-b="7"><div class="track"><div class="fill" data-b="7" id="f-am-rot"></div></div><span class="label num" id="n-am-rot"></span></div>
+  </div>
+  <div class="lead inv-cap" id="cap"></div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE     (0):   the title alone
+   ACT 1  SHIFT     (1-5): b; b shifted; their distance in pixels (large); in the amplitude spectrum (zero);
+                           shifted copies are metamers of this representation
+   ACT 2  ROTATION  (6-8): b and b turned 180 degrees (it reads as q); distances: pixels large, spectrum zero
+                           again; the invariance has to match the task
+
+   Distances are computed here: d(x, y) = ||f(x) - f(y)|| / ||f(x)||, with f = the pixels or the 2D FFT
+   amplitude. A shift that does not wrap, and a 180-degree turn, leave the amplitude spectrum exactly
+   unchanged, so those two values are 0 up to rounding. The letter is drawn with the browser's font. */
+const CAPS = ['', '', '', '', '', 'Invariant to position: shifted copies are its metamers', '', '',
+  'Invariant to what does not matter, selective to what does'];
+const NOTES = [
+  "(draft) Title only. A representation keeps some information and throws away the rest. Which information should it throw away?",
+  "(draft) Here is a letter b.",
+  "(draft) And here is the same letter, shifted to the right. To us, nothing important has changed: it is still a b.",
+  "(draft) But in pixels, the two images are far apart. This bar is the distance between them, relative to the size of the image itself. Pixels are not invariant to position.",
+  "(draft) Now a different representation: the amplitude of the Fourier transform, the power spectrum from the metamer demo. The distance is zero. Shifting an image changes only the phases, not the amplitudes, so this representation is invariant to position.",
+  "(draft) Said the other way around: for this representation, every shifted copy is a metamer. An invariance and a set of metamers are the same thing.",
+  "(draft) Now turn the b by 180 degrees. We read it as a different letter, a q.",
+  "(draft) In pixels, again far apart. In the amplitude spectrum, the distance is zero again: turning an image by 180 degrees also leaves the amplitudes unchanged. So for this representation, b and q are metamers, even though for reading they are different letters.",
+  "(draft) This is the trade-off for the rest of the course. A good representation is invariant to what does not matter for the task, like position, and selective to what does, like the difference between b and q. Too little invariance, and every shifted copy is a new thing. Too much, and different things look the same."
+];
+const N = NOTES.length - 1;
+let beat = 0;
+function go(b){
+  beat = b;
+  document.querySelectorAll('.s').forEach(el => el.classList.toggle('on', b >= +el.dataset.b));
+  document.querySelectorAll('.fill').forEach(el => el.style.width = b >= +el.dataset.b ? el.dataset.w : '0');
+  document.getElementById('cap').textContent = CAPS[b];
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+
+/* ---------- the letters ---------- */
+const S = 128, SHIFT = 40;
+function letter(dx){
+  const c = document.createElement('canvas'); c.width = c.height = S; const x = c.getContext('2d');
+  x.fillStyle = '#000'; x.fillRect(0, 0, S, S);
+  x.fillStyle = '#fff'; x.font = `700 96px Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif`;
+  x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('b', 40 + dx, 62);
+  const d = x.getImageData(0, 0, S, S).data, a = new Float64Array(S * S);
+  for(let k = 0; k < S * S; k++) a[k] = d[k * 4] / 255;            // 1 = ink
+  return a;
+}
+const B = letter(0), BS = letter(SHIFT), BR = B.map((_, k) => B[S * S - 1 - k]);   // 180 degrees: (x, y) -> (S-1-x, S-1-y)
+
+/* ---------- FFT amplitude (radix 2) ---------- */
+function fft1(re, im){
+  const n = re.length;
+  for(let i = 1, j = 0; i < n; i++){ let bit = n >> 1; for(; j & bit; bit >>= 1) j ^= bit; j ^= bit;
+    if(i < j){ [re[i], re[j]] = [re[j], re[i]]; [im[i], im[j]] = [im[j], im[i]]; } }
+  for(let len = 2; len <= n; len <<= 1){
+    const ang = -2 * Math.PI / len, wr = Math.cos(ang), wi = Math.sin(ang);
+    for(let i = 0; i < n; i += len){ let cr = 1, ci = 0;
+      for(let k = 0; k < len / 2; k++){
+        const a = i + k, b = a + len / 2, tr = re[b] * cr - im[b] * ci, ti = re[b] * ci + im[b] * cr;
+        re[b] = re[a] - tr; im[b] = im[a] - ti; re[a] += tr; im[a] += ti;
+        const nr = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = nr; } } }
+}
+function amplitude(img){
+  const re = Float64Array.from(img), im = new Float64Array(S * S), r = new Float64Array(S), i = new Float64Array(S);
+  for(let y = 0; y < S; y++){ for(let x = 0; x < S; x++){ r[x] = re[y*S+x]; i[x] = im[y*S+x]; } fft1(r, i);
+    for(let x = 0; x < S; x++){ re[y*S+x] = r[x]; im[y*S+x] = i[x]; } }
+  for(let x = 0; x < S; x++){ for(let y = 0; y < S; y++){ r[y] = re[y*S+x]; i[y] = im[y*S+x]; } fft1(r, i);
+    for(let y = 0; y < S; y++){ re[y*S+x] = r[y]; im[y*S+x] = i[y]; } }
+  return re.map((v, k) => Math.hypot(v, im[k]));
+}
+const dist = (a, b) => { let n = 0, d = 0; for(let k = 0; k < a.length; k++){ d += (a[k] - b[k]) ** 2; n += a[k] ** 2; } return Math.sqrt(d / n); };
+const AB = amplitude(B);
+const D = {pxShift: dist(B, BS), amShift: dist(AB, amplitude(BS)), pxRot: dist(B, BR), amRot: dist(AB, amplitude(BR))};
+window.INVARIANCE_DISTANCES = D;
+
+const MAXD = 1.6;                                                    // bar scale
+[['px-shift', D.pxShift], ['am-shift', D.amShift], ['px-rot', D.pxRot], ['am-rot', D.amRot]].forEach(([id, v]) => {
+  document.getElementById('f-' + id).dataset.w = Math.min(100, v / MAXD * 100).toFixed(1) + '%';
+  document.getElementById('n-' + id).textContent = v.toFixed(2);
+});
+function paint(id, a){ const x = document.getElementById(id).getContext('2d'), d = x.createImageData(S, S);
+  for(let k = 0; k < S * S; k++){ const v = 250 - a[k] * 235; d.data.set([v, v, v, 255], k * 4); } x.putImageData(d, 0, 0); }
+paint('t0', B); paint('t1', BS); paint('t2', B); paint('t3', BR);
+
+window.invariance = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ jump(); go(0); },
+  resetToEnd(){ jump(); go(N); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) invariance.advance(); if(e.key === 'ArrowLeft') invariance.back(); });
+  addEventListener('click', () => invariance.advance());
+}
+function jump(){ document.body.classList.add('jump'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('jump'))); }
+go(0);
+if(location.hash === '#end') invariance.resetToEnd();   // open the scene alone at its last beat (screenshots)
+</script>
+</body>
+</html>
