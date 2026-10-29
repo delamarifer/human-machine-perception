@@ -22,7 +22,7 @@ st(`
    Torralba, Isola & Freeman, Foundations of Computer Vision, Ch. 2. Figures from Fernanda's
    "Untitled presentation (1).pptx" (2026-10-28), boxes-world figures only: no personal photos.
    Five slides, in the order of the notebook: world and goal, projection, pixels to cues, equations, results. */
-const LAB_CITE = cite('Source: Torralba, Isola &amp; Freeman, <i>Foundations of Computer Vision</i>, Ch. 2 (to confirm)');
+const LAB_CITE = cite('Source: Torralba, Isola &amp; Freeman, <i>Foundations of Computer Vision</i>, Ch. 2');
 const labPanel = (src, label, step) => `<div class="today-panel b" data-step="${step}">
   <img src="assets/today/${src}" alt=""><div class="label">${label}</div></div>`;
 st(`
