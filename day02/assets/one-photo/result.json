@@ -1,0 +1,53 @@
+{
+ "source_file": "warm-cup-of-coffee-on-a-table-at-a-cafe.jpg",
+ "photo_shape": [
+  853,
+  1280,
+  3
+ ],
+ "crop_box_xywh": [
+  213,
+  0,
+  853,
+  853
+ ],
+ "crop_shape": [
+  224,
+  224,
+  3
+ ],
+ "top5": [
+  [
+   "espresso",
+   0.8588
+  ],
+  [
+   "cup",
+   0.0938
+  ],
+  [
+   "coffee mug",
+   0.029
+  ],
+  [
+   "eggnog",
+   0.0108
+  ],
+  [
+   "soup bowl",
+   0.003
+  ]
+ ],
+ "classifier": "torchvision resnet18, ResNet18_Weights.IMAGENET1K_V1",
+ "depth_model": "depth-anything/Depth-Anything-V2-Small-hf",
+ "depth_size": [
+  224,
+  224
+ ],
+ "versions": {
+  "torch": "2.15.0",
+  "torchvision": "0.29.2",
+  "transformers": "5.21.0",
+  "opencv": "5.0.0"
+ }
+}

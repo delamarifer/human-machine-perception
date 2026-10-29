@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>One photo through the whole stack</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: many-ways part (Day 2). Works alone too: open day02/scenes/one-photo-stack.html and click. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .focus{ position:relative; flex:1 1 auto; min-height:0; }
+  .box{ position:absolute; transition:left 1.3s ease, top 1.3s ease, width 1.3s ease, height 1.3s ease, opacity .9s ease; }
+  .box img{ width:100%; height:100%; display:block; border-radius:6px; }
+  .shape{ position:absolute; transform:translateX(-50%); white-space:nowrap; transition:opacity .6s ease, left 1.3s ease, top 1.3s ease; }
+  /* the crop square on the photo, and the parts of the photo the crop throws away */
+  .cropbox{ position:absolute; border:3px solid var(--ink); border-radius:4px; transition:opacity .9s ease; }
+  .dimL, .dimR{ position:absolute; top:0; height:100%; background:rgba(255,255,255,.72); transition:opacity .9s ease; }
+  /* top-5 bars: probability on a 0-100% scale; plum = the "what" color from Day 1 */
+  .bars{ display:grid; grid-template-columns:auto 1fr auto; align-content:center; gap:1.6vh .8vw; height:100%; }
+  .bars .nm{ text-align:right; }
+  .bars .tr{ align-self:center; height:2.4vh; background:#f1f5f9; border-radius:4px; overflow:hidden; }
+  .bars .br{ height:100%; width:0; background:var(--what); border-radius:4px; transition:width 1.2s ease; }
+  .bars .pc{ font-variant-numeric:tabular-nums; }
+  /* the app window (Gradio), drawn around the panels at the last beat */
+  .app{ position:absolute; border:2px solid var(--ink); border-radius:14px; opacity:0; transition:opacity .9s ease, left 1.3s ease, top 1.3s ease, width 1.3s ease, height 1.3s ease; }
+  .app .bar{ position:absolute; left:0; right:0; top:0; height:5.4vh; border-bottom:2px solid var(--line);
+    display:flex; align-items:center; padding:0 1.2vw; gap:.5vw; }
+  .app .bar i{ width:.9vh; height:.9vh; border-radius:50%; background:#cbd5e1; }
+  .app .bar b{ margin-left:.8vw; }
+  .tag{ position:absolute; transform:translateX(-50%); white-space:nowrap; opacity:0; transition:opacity .9s ease, left 1.3s ease, top 1.3s ease; }
+  /* the stack: one chip per tool */
+  .strip{ display:grid; grid-template-columns:repeat(4, 1fr); gap:1.2vw; }
+  .chip{ border:2px solid var(--line); border-radius:12px; padding:1.1vh 1vw; opacity:0; transition:opacity .7s ease, border-color .7s ease; }
+  .chip b{ display:block; font-size:clamp(1.2rem, 1.8vw, 1.7rem); }
+  .chip code{ font-family:Menlo, Consolas, monospace; font-size:clamp(.85rem, 1.05vw, 1.05rem); color:var(--mute); }
+  .chip.on{ opacity:.5; }
+  .chip.cur{ opacity:1; border-color:var(--ink); }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">One photo through the whole stack</h1>
+  <div class="focus" id="focus">
+    <div class="app" id="app"><div class="bar"><i></i><i></i><i></i><b class="label">One-image vision app</b></div></div>
+    <div class="box" id="photo"><img src="../assets/one-photo/photo.jpg" alt="">
+      <div class="dimL" id="dimL"></div><div class="dimR" id="dimR"></div><div class="cropbox" id="cropbox"></div></div>
+    <div class="box" id="crop"><img src="../assets/one-photo/crop.jpg" alt=""></div>
+    <div class="box" id="top5"><div class="bars" id="bars"></div></div>
+    <div class="box" id="depth"><img src="../assets/one-photo/depth.png" alt=""></div>
+    <div class="label shape" id="shape"></div>
+    <div class="label tag" id="tagCrop">Your photo</div>
+    <div class="label tag" id="tagTop5">Top-5 labels</div>
+    <div class="label tag" id="tagDepth">Depth: brighter = nearer</div>
+  </div>
+  <div class="strip">
+    <div class="chip" id="c1"><b>OpenCV</b><code>cv2.imread · crop · resize</code></div>
+    <div class="chip" id="c2"><b>torchvision</b><code>resnet18(weights=…)</code></div>
+    <div class="chip" id="c3"><b>Hugging Face</b><code>pipeline("depth-estimation")</code></div>
+    <div class="chip" id="c4"><b>Gradio</b><code>gr.Interface(…)</code></div>
+  </div>
+  <div class="cite" id="cite">Photo: Shixart1985, CC BY 2.0, via Wikimedia Commons</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE     (0):   the title alone
+   ACT 1  THE PHOTO (1):   one photo
+   ACT 2  OPENCV    (2-4): load it (an array, 853 x 1280 x 3); crop a center square; resize to 224 x 224 x 3
+   ACT 3  MODELS    (5-6): torchvision ResNet-18 top-5 (bars); Hugging Face depth map
+   ACT 4  GRADIO    (7):   an app window drawn around the photo and both outputs
+
+   Every output is real: day02/assets/one-photo/result.json, made by day02/assets/pipeline.py
+   (see day02/assets/SOURCES.md). The app window at beat 7 is a schematic of the Gradio app in
+   day02/assets/app.py, not a screenshot. */
+const R = {photo: [853, 1280, 3], crop: [213, 0, 853, 853], cropShape: [224, 224, 3],
+  top5: [['espresso', .8588], ['cup', .0938], ['coffee mug', .029], ['eggnog', .0108], ['soup bowl', .003]]};
+
+const NOTES = [
+  "(draft) Title only. Today we follow one photo through the whole stack, from a file on your phone to an app anyone can use.",
+  "(draft) Here is our photo: a cup of coffee on a cafe table. In the lab, this will be your own photo.",
+  "(draft) Step one, OpenCV. We load the file, and to the computer it is now an array of numbers: 853 rows, 1280 columns, and 3 color channels. (OpenCV loads colors in blue-green-red order, so we convert to red-green-blue.)",
+  "(draft) The model we will use expects a square image, so we crop a square from the center. Everything outside the square is thrown away.",
+  "(draft) And we resize it to 224 by 224 pixels. That small square is all the model will ever see of this photo.",
+  "(draft) Step two, torchvision. We run a classifier someone else already trained: ResNet-18, trained on ImageNet's 1000 categories. It returns a probability for every category; here are the top five. Espresso, 86 percent. Then cup, coffee mug, eggnog, soup bowl.",
+  "(draft) Step three, Hugging Face. Same photo, a different question: how far away is each pixel? The depth-estimation pipeline, here with a small Depth Anything model, answers from this one image. Brighter means nearer: the front of the table, then the cup and the hand, then the background.",
+  "(draft) Step four, Gradio. A few lines wrap all of this in a small web app: anyone can drop in a photo and get the labels and the depth map back. That is the app you will build in the lab."
+];
+const N = NOTES.length - 1;
+const $ = id => document.getElementById(id);
+$('bars').innerHTML = R.top5.map(([n, p]) =>
+  `<div class="label nm">${n}</div><div class="tr"><div class="br" data-p="${p}"></div></div><div class="label pc">${(p * 100).toFixed(1)}%</div>`).join('');
+
+/* ---- geometry (px, inside the focus box), recomputed on resize ---- */
+const AR = R.photo[1] / R.photo[0];
+function rects(b){
+  const W = $('focus').clientWidth, H = $('focus').clientHeight;
+  const full = (() => { let h = H * .9, w = h * AR; if(w > W){ w = W; h = w / AR; } return {l: (W - w) / 2, t: (H - h) / 2 - H * .03, w, h}; })();
+  /* three panels: crop | top-5 (wider) | depth, centered; a little smaller inside the app window */
+  const app = b >= 7, g = W * .035, head = app ? H * .12 : 0;
+  let q = Math.min((H - head) * (app ? .66 : .74), (W - 2 * g - (app ? W * .06 : 0)) / 3.6);
+  const tw = q * 1.6, total = q + g + tw + g + q, x0 = (W - total) / 2, y0 = head + (H - head - q) / 2 - H * .03;
+  const slot = [{l: x0, t: y0, w: q, h: q}, {l: x0 + q + g, t: y0, w: tw, h: q}, {l: x0 + q + g + tw + g, t: y0, w: q, h: q}];
+  const pad = W * .025;
+  return {W, H, full, slot, app: {l: x0 - pad, t: y0 - head - pad * .4, w: total + 2 * pad, h: q + head + pad * 2.6}};
+}
+const put = (el, r) => Object.assign(el.style, {left: r.l + 'px', top: r.t + 'px', width: r.w + 'px', height: r.h + 'px'});
+const fade = (el, v) => el.style.opacity = v;
+const under = (el, r, dy = 8) => { el.style.left = (r.l + r.w / 2) + 'px'; el.style.top = (r.t + r.h + dy) + 'px'; };
+
+let beat = 0;
+function layout(jump){
+  const b = beat, G = rects(b), [x, , s] = R.crop, k = G.full.w / R.photo[1];
+  document.querySelectorAll('.box, .app, .shape, .tag, .br, .cropbox, .dimL, .dimR, .chip').forEach(e => e.style.transition = jump ? 'none' : '');
+  /* the photo, and the crop square on it */
+  put($('photo'), G.full); fade($('photo'), b >= 1 && b <= 3 ? 1 : 0);
+  Object.assign($('cropbox').style, {left: x * k + 'px', top: 0, width: s * k + 'px', height: '100%'});
+  $('dimL').style.width = x * k + 'px'; Object.assign($('dimR').style, {left: (x + s) * k + 'px', width: (G.full.w - (x + s) * k) + 'px'});
+  [$('cropbox'), $('dimL'), $('dimR')].forEach(e => fade(e, b >= 3 ? 1 : 0));
+  /* the crop: starts exactly on the crop square, then moves to its panel */
+  const onPhoto = {l: G.full.l + x * k, t: G.full.t, w: s * k, h: G.full.h};
+  put($('crop'), b >= 4 ? G.slot[0] : onPhoto); fade($('crop'), b >= 4 ? 1 : 0);
+  /* the array shape, under whatever is showing */
+  $('shape').textContent = b >= 4 ? R.cropShape.join(' × ') : R.photo.join(' × ');
+  under($('shape'), b >= 4 ? G.slot[0] : G.full); fade($('shape'), b >= 2 && b <= 6 ? 1 : 0);
+  put($('top5'), G.slot[1]); fade($('top5'), b >= 5 ? 1 : 0);
+  document.querySelectorAll('.br').forEach(e => e.style.width = b >= 5 ? (e.dataset.p * 100) + '%' : 0);
+  put($('depth'), G.slot[2]); fade($('depth'), b >= 6 ? 1 : 0);
+  under($('tagDepth'), G.slot[2]); fade($('tagDepth'), b >= 6 ? 1 : 0);
+  /* the app window and its labels */
+  put($('app'), G.app); fade($('app'), b >= 7 ? 1 : 0);
+  under($('tagCrop'), G.slot[0]); fade($('tagCrop'), b >= 7 ? 1 : 0);
+  under($('tagTop5'), G.slot[1]); fade($('tagTop5'), b >= 7 ? 1 : 0);
+  /* the stack */
+  const chipBeat = [2, 5, 6, 7];
+  ['c1', 'c2', 'c3', 'c4'].forEach((id, i) => {
+    const cur = b >= chipBeat[i] && (i === 3 || b < chipBeat[i + 1]);
+    $(id).classList.toggle('cur', cur); $(id).classList.toggle('on', b >= chipBeat[i] && !cur);
+  });
+  fade($('cite'), b >= 1 ? 1 : 0);
+  $('dots').innerHTML = [...Array(N)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join('');
+  if(jump) requestAnimationFrame(() => requestAnimationFrame(() =>
+    document.querySelectorAll('.box, .app, .shape, .tag, .br, .cropbox, .dimL, .dimR, .chip').forEach(e => e.style.transition = '')));
+}
+function go(b, jump){ beat = b; layout(jump); }
+/* the deck preloads scenes hidden (size 0): lay out again once the frame has a size */
+let lastW = 0;
+new ResizeObserver(() => { const W = $('focus').clientWidth; if(W && W !== lastW){ lastW = W; layout(true); } }).observe($('focus'));
+
+window.onePhotoStack = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(N, true); },          // stepping BACK into the slide lands fully built
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) onePhotoStack.advance(); if(e.key === 'ArrowLeft') onePhotoStack.back(); });
+  addEventListener('click', () => onePhotoStack.advance());
+}
+/* ?beat=7 opens on that beat (for screenshots of the scene on its own) */
+go(Math.max(0, Math.min(N, parseInt(new URLSearchParams(location.search).get('beat'), 10) || 0)), true);
+</script>
+</body>
+</html>
