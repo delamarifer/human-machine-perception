@@ -359,8 +359,6 @@ md("""
 - Grayscale is an average over channels; brightness and contrast are addition and multiplication.
 - Use floats for math, and clip back to 0 to 255.
 - The pixel values of A and B are identical. The difference you see is made by your visual system.
-
-Next: the Day 1 lab, `day01-lab-simple-vision-system.ipynb`, uses these tools to build a whole (tiny) vision system.
 """)
 
 
