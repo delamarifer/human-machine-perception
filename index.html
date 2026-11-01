@@ -9,7 +9,7 @@
   @media (prefers-color-scheme: dark){ :root{ --ink:#e2e8f0; --mute:#94a3b8; --line:#334155; --bg:#0f172a; --card:#1e293b; } }
   body{ margin:0; background:var(--bg); color:var(--ink);
     font:17px/1.5 Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif; }
-  main{ max-width:640px; margin:0 auto; padding:10vh 16px; }
+  main{ max-width:40rem; margin:0 auto; padding:10vh 16px; }
   h1{ font-size:2rem; margin:0 0 .2em; }
   p{ color:var(--mute); margin:0 0 2em; }
   h2{ font-size:1rem; text-transform:uppercase; letter-spacing:.06em; color:var(--mute); margin:2em 0 .6em; }
@@ -18,46 +18,34 @@
   a.day b{ display:block; font-size:1.15rem; }
   a.day span{ color:var(--mute); font-size:.95rem; }
   .nb .badge{ display:block; margin-top:8px; height:20px; }
-  .more a{ color:var(--mute); margin-right:1.2em; }
 </style>
 </head>
 <body>
 <main>
   <h1>Human-Machine Perception</h1>
-  <p>Fernanda · Shreya</p>
+  <p>Fernanda De La Torre · Shreya Pandit</p>
 
-  <h2>Lectures</h2>
-  <a class="day" href="day00/deck.html"><b>Day 0 · Welcome</b>
-    <span>Getting to know each other. (in progress)</span></a>
-  <a class="day" href="deck.html"><b>Day 1 · Intro to Computer Perception</b>
-    <span>What does it mean to see? Click or press → to advance, n for notes, p for presenter view.</span></a>
-  <a class="day" href="day02/deck.html"><b>Day 2 · Seeing with Machines</b>
-    <span>What can a machine see from one image? (in progress)</span></a>
-  <a class="day" href="day03/deck.html"><b>Day 3 · Image Formation + Processing</b>
-    <span>Where does an image come from? (in progress)</span></a>
-  <a class="day" href="day04/deck.html"><b>Day 4 · Image Representations</b>
-    <span>What information is represented in an image? (in progress)</span></a>
-  <a class="day" href="day05/deck.html"><b>Day 5 · Neural Networks</b>
-    <span>How does a system learn what matters? (in progress)</span></a>
+  <h2>Syllabus</h2>
+  <a class="day" href="syllabus.html"><b>Syllabus</b>
+    <span>Three weeks. Lectures, labs, homework, and a final project.</span></a>
 
-  <h2>Notebooks</h2>
+  <h2>Day 1</h2>
+  <a class="day" href="deck.html"><b>Introduction to Visual Systems</b>
+    <span>What does it mean to see? Click or press → to advance.</span></a>
+
+  <h2>Labs</h2>
   <div class="nb">
-    <a class="day" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-lab-simple-vision-system.ipynb"><b>Day 1 lab · A simple vision system</b>
-      <span>Recover 3D from a single image of a world of boxes: edges, figure and ground, assumptions as equations. Runs in Google Colab, nothing to install.</span>
+    <a class="day" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-practice-numpy-images.ipynb"><b>Images as arrays</b>
+      <span>Checker-shadow image. NumPy slices and arithmetic.</span>
       <img class="badge" src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"></a>
-    <a class="day" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-practice-numpy-images.ipynb"><b>Day 1 practice (optional) · Images as arrays</b>
-      <span>NumPy warm-up: load an image, crop it, change brightness and contrast, and measure the checker-shadow illusion.</span>
-      <img class="badge" src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"></a>
-    <a class="day" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day02-lab.ipynb"><b>Day 2 lab</b>
-      <span>Load the café photo, run ResNet-18 and a depth model, then try a photo from your phone. About 45 minutes, in Google Colab.</span>
+    <a class="day" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-lab-simple-vision-system.ipynb"><b>A simple vision system</b>
+      <span>Recover 3D from one image of a world of boxes.</span>
       <img class="badge" src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"></a>
   </div>
 
-  <h2>For the instructors</h2>
-  <div class="more">
-    <a href="script.html">Day 1 script</a>
-    <a href="final.html">Final deck</a>
-  </div>
+  <h2>Homework</h2>
+  <a class="day" href="homework.html"><b>Homework</b>
+    <span>Day 1 survey. Chapter 2 is optional.</span></a>
 </main>
 </body>
 </html>

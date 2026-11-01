@@ -11,92 +11,60 @@ Known gaps and glitches in the source doc are marked **[check]**.
 
 ---
 
+Revised sequence for the first three class days. Day 1 introduces the question. Day 2 answers it with a
+classical geometric system. Day 3 shows what a modern learned system does with one photograph. There is
+no Day 0.
+
 ## Day 1 · Introduction to Visual Systems
 **Question:** What does it mean to see?
-**Objective:** Understand perception vs measurement, describe a simple system, set up the coding environment.
+**Objective:** Open the question of vision. No lab this day.
 
-| Min | Segment |
-|---|---|
-| 10 | Vision + illusions introduction |
-| 5 | Intro us |
-| 5 | Intro course objectives, structure and resources |
-| 5 | History of CV |
-| 20 | Simple system overview |
-| 15 | Project intro |
-| 15 | CV applications group activity |
-| 40 | Env setup and Python tutorial |
+The room is two hours. The talking is about 90 minutes. None of the lecture beats is a 10-minute talk. The spare time is for the groups running long.
 
-- **Homework:** Read chapters 1-4, finish Python tutorial, take a picture of xxx **[check: of what?]**
-- **Reading:** Ch. 1-4
-- **Coding practice:** Python + NumPy: arrays, indexing, slicing, reshaping, image tensors, plotting
-- **Human connection:** Checker-shadow illusion, perception as inference
-- **Labs/Project:** N/A
+| Time | Component | Content |
+|---|---|---|
+| 0–3 min | Welcome | Introductions and one opening illusion. |
+| 3–6 min | About me | AIMS, research, Scale AI, DUST, holographic art. One sentence and a photo each, not a talk. |
+| 6–18 min | The challenge of vision | Why vision is difficult. Illusions, light versus scene properties, ambiguity, inferring depth and structure. |
+| 18–23 min | Human vision | A brief pass through the visual system. |
+| 23–30 min | History | The theories in chapter 1.3, one idea each, then computer vision as the late chapter. |
+| 30–34 min | From human to machine vision | Geometry, designed features, learned models. |
+| 34–42 min | Applications | The field working, then one sentence each: driving, health, shops, robots and farms, augmented reality, maps of the earth. That list is the handoff. |
+| 42–65 min | Group activity | Groups of four pick one application, one just named or another they care about. They name the problem it solves, how it is like human vision, what the system sees, and where it can be wrong. |
+| 65–69 min | Course overview | The first three days, then where the course goes. |
+| 69–90 min | Discussion | Groups share. Connect what they said to the course. |
 
-Brainstorm notes. *Fernanda:* Intro, what is possible, project pitches. Ch 2 simple system, Lecture 1 slides
-trimmed to measurement vs perception + the simple system (~25 min), then a tour of what is possible with 5
-project families, our own projects as examples, student pitches from breakout groups. Lab: Colab setup,
-rebuild the simple system (Python tutorial 1). Human link: checker shadow illusion as the opening slide, hollow
-face or the dress; perception is inference under priors. Project: pitch template with one build sentence and
-one question sentence, feedback overnight. *Shreya:* Intro + Vision Overview, Ch 1-4.
+Deck: `deck.html`.
 
-## Day 2 · Seeing with Machines
-**Question:** What can a machine see from one image?
-**Objective:** Learn the basic pretrained-model workflow.
+## Day 2 · Image Representation and a Simple Vision System
+**Question:** How can we extract information from an image?
+**Objective:** Represent an image as numbers, then recover 3D structure from one image of colored boxes by stating the assumptions as equations.
 
-| Min | Segment |
-|---|---|
-| 10 | Homework review |
-| 15 | One image has many ways to see |
-| 10 | Demo |
-| 45 | Lab |
-| 15 | Human vs. machine perception |
-| 10 | Introduce Week 1 PSET |
+| Time | Component | Content |
+|---|---|---|
+| 0–10 min | Recap | Revisit the challenge of vision. What information is available in an image, and what must we infer? |
+| 10–25 min | Images as data | Pixels, channels, color, resolution, image arrays, NumPy indexing and slicing. |
+| 25–45 min | Practice | Checker-shadow image. NumPy slices and arithmetic. How visual information is represented numerically. Notebook: `notebooks/day01-practice-numpy-images.ipynb`. |
+| 45–55 min | The vision problem | Summer Vision Project. Can we recover 3D structure from one image of colored boxes on a floor? |
+| 55–105 min | Lab | A simple vision system: projection, edges, figure-ground, contact and occlusion edges, assumptions, equations, and 3D reconstruction. Notebook: `notebooks/day01-lab-simple-vision-system.ipynb`. |
+| 105–115 min | Discussion | What assumptions enabled reconstruction? Where did they break? |
+| 115–120 min | Wrap-up | Preview pretrained vision models. |
 
-- **Homework:** Read chapters 5-7, find an interesting CV topic/application, complete PyTorch exercise, begin Week 1 PSET
-- **Reading:** N/A
-- **Coding practice:** PyTorch basics: tensors, tensor operations, shapes, broadcasting, CPU/GPU
-- **Human connection:** Measurement vs perception in practice
-- **Labs/Project:** One-image vision app
+## Day 3 · Seeing with Machines
+**Question:** What can a machine see in one photograph?
+**Objective:** Run a pretrained model on one photograph and compare its names, and an optional depth map, with what a person recognizes.
 
-Brainstorm notes. *Fernanda:* From their own picture to an app. One photo through the whole stack:
-- OpenCV to load and crop: https://docs.opencv.org/4.x/d6/d00/tutorial_py_root.html
-- torchvision pretrained classifier: https://pytorch.org/vision/stable/models.html
-- Hugging Face depth estimation pipeline: https://huggingface.co/tasks/depth-estimation,
-  https://huggingface.co/docs/transformers/main_classes/pipelines
-- Gradio wrapper: https://www.gradio.app/guides/quickstart
+| Time | Component | Content |
+|---|---|---|
+| 0–10 min | Recap | What does an image contain? What could the geometric vision system recover? |
+| 10–25 min | Modern computer vision | Pretrained models, learned visual representations, classification, and depth estimation. |
+| 25–75 min | Lab | ResNet-18 on the café photo, the Rubik's cube, and the elephant statue. Notebook: `notebooks/day02-lab.ipynb`. |
+| 75–90 min | Optional depth | A pretrained depth model. Compare semantic recognition with geometric understanding. |
+| 90–105 min | Discussion | What can pretrained models recognize? What do they miss? |
+| 105–115 min | Rubik's cube | Introduce color detection, square detection, and the challenge of interpreting a structured object. |
+| 115–120 min | Wrap-up | Preview image formation and OpenCV. |
 
-One path per tool, alternatives on a closing slide. Lab: build the app on your own phone photo, then point it
-at a classmate's. Lab goal: the pretrained model workflow. Load an image, preprocess it, run a model you did
-not train, read the output, wrap it in a demo. Classification and depth are the two examples; the skills
-transfer to any pretrained model. Human link: the classifier's top 5 on a photo it gets wrong vs what the room
-sees; measurement vs perception as a tool. Project: give them a few minutes to keep brainstorming; we present
-feedback from the pitches (which we work on overnight). Prep work for us: pre-download models to a shared
-drive, check computer/GPU at AIMS, keep models small so it runs on CPU just in case.
-*Shreya:* Image Formation, Python Exercises, Ch 5-7.
-
-## Day 3 · Image Formation + Processing
-**Question:** Where does an image come from?
-**Objective:** Understand pixels and simple image processing operations.
-
-| Min | Segment |
-|---|---|
-| 10 | Homework review |
-| 20 | Image formation |
-| 20 | Convolution mathematically |
-| 10 | Human vision: receptive fields / Gabor filters |
-| 45 | Implement 2D convolution from scratch in NumPy |
-| 15 | Edge detection + sharpening + blur |
-
-- **Homework:** Read material, convolution/math practice, continue work on PSET
-- **Reading:** Ch. 5-7
-- **Coding practice:** Convolution from scratch, kernels, padding, stride, Fourier transform
-- **Human connection:** Mach bands, Hermann grid, Hubel & Wiesel next to a Gabor bank (Michael Bach illusions, Adelson gallery)
-- **Labs/Project:** Convolution from scratch, edge detection
-
-Brainstorm notes. *Fernanda:* Image formation (brief) + image processing, filtering, Fourier. Lecture 2
-trimmed to pinhole + color (Ch 5), then Lecture 3 + Lecture 4, Ch 15-18. Lab: convolution from scratch, edges,
-hybrid image from your own photos (Python tutorial). Project: filter bank over your dataset.
-*Shreya:* Image Processing, Python Tutorial, Ch 15-16.
+Deck already drafted for this day: `day02/deck.html`. The image-formation deck in `day03/` is not class day 3. Day 3 only previews that material.
 
 ## Day 4 · Image Representations
 **Question:** What information is represented in an image?

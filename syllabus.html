@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Syllabus · Human-Machine Perception</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{ --ink:#0f172a; --mute:#64748b; --line:#e2e8f0; --bg:#fff; }
+  @media (prefers-color-scheme: dark){ :root{ --ink:#e2e8f0; --mute:#94a3b8; --line:#334155; --bg:#0f172a; } }
+  body{ margin:0; background:var(--bg); color:var(--ink);
+    font:17px/1.5 Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif; }
+  main{ max-width:40rem; margin:0 auto; padding:8vh 16px 12vh; }
+  a{ color:inherit; }
+  h1{ font-size:2rem; margin:0 0 .2em; }
+  h2{ font-size:1.25rem; margin:1.6em 0 .4em; }
+  p, li{ margin:0 0 .6em; }
+  ul{ padding-left:1.2em; }
+  .back{ color:var(--mute); font-size:.95rem; }
+  table{ width:100%; border-collapse:collapse; margin:1em 0 1.4em; }
+  th, td{ text-align:left; vertical-align:top; border-top:1px solid var(--line); padding:.55em .4em .55em 0; }
+  th{ font-size:.85rem; letter-spacing:.04em; text-transform:uppercase; color:var(--mute); }
+</style>
+</head>
+<body>
+<main>
+  <p class="back"><a href="index.html">Home</a></p>
+  <h1>Visual Perception</h1>
+  <p>Instructors: Fernanda De La Torre and Shreya Pandit</p>
+
+  <h2>Course overview</h2>
+  <p>This is a three-week, hands-on studio course in computer vision. Students explore how machines process and understand visual information, progressing from raw pixels and classical image processing to learned representations and modern vision models.</p>
+  <p>The course emphasizes practical applications and experimentation. Students will build working vision systems, explore how models represent and interpret images, and critically evaluate their capabilities and limitations.</p>
+
+  <h2>Format</h2>
+  <ul>
+    <li>Duration: 3 weeks (15 sessions)</li>
+    <li>Schedule: 2 hours per day</li>
+    <li>Format: lectures, discussions, and in-class coding labs</li>
+    <li>Platform: Google Colab</li>
+    <li>Assessment: in-class labs, homework assignments, and a final project</li>
+  </ul>
+
+  <h2>Week 1. Understanding images</h2>
+  <p>Goal: understand how images encode visual information and how we can extract meaningful structure from pixels.</p>
+  <p>Topics:</p>
+  <ul>
+    <li>Images as data: pixels, color, channels, and perception</li>
+    <li>Image processing: filtering, edges, and transformations</li>
+    <li>Image geometry and feature detection</li>
+    <li>Feature matching and image alignment</li>
+    <li>Classical computer vision applications</li>
+  </ul>
+  <p>Learning outcomes:</p>
+  <ul>
+    <li>Load, manipulate, and transform images using Python</li>
+    <li>Apply image processing techniques to extract visual structure</li>
+    <li>Detect and match features across images</li>
+    <li>Build simple computer vision applications</li>
+  </ul>
+
+  <h2>Week 2. Learning visual representations</h2>
+  <p>Goal: understand how machine learning models learn meaningful representations of images.</p>
+  <ul>
+    <li>Convolutional neural networks</li>
+    <li>Feature extraction and transfer learning</li>
+    <li>Visual embeddings and similarity</li>
+    <li>Image classification and retrieval</li>
+    <li>Vision-language models, such as CLIP</li>
+  </ul>
+  <p>Learning outcomes:</p>
+  <ul>
+    <li>Use pretrained models for image classification</li>
+    <li>Understand how neural networks represent visual information</li>
+    <li>Compare images using learned embeddings</li>
+    <li>Build visual search and zero-shot classification systems</li>
+  </ul>
+
+  <h2>Week 3. Building vision systems</h2>
+  <p>Goal: combine modern vision models into applications that perceive, interpret, and generate visual information.</p>
+  <ul>
+    <li>Foundation vision models</li>
+    <li>Object detection and segmentation</li>
+    <li>Multimodal vision-language systems</li>
+    <li>Image generation and diffusion models</li>
+    <li>Evaluating vision systems: capabilities, limitations, and failure modes</li>
+  </ul>
+  <p>Learning outcomes:</p>
+  <ul>
+    <li>Apply modern vision models to real-world problems</li>
+    <li>Combine models into end-to-end vision pipelines</li>
+    <li>Build applications involving image understanding, retrieval, or generation</li>
+    <li>Evaluate model performance and identify limitations</li>
+  </ul>
+
+  <h2>Final project</h2>
+  <p>Students design and build an original computer vision application using concepts and techniques from the course.</p>
+  <p>Possible directions include:</p>
+  <ul>
+    <li>Visual search or an image memory system</li>
+    <li>Image generation or a creative exploration tool</li>
+    <li>A multimodal assistant for image understanding</li>
+    <li>Object detection or segmentation</li>
+    <li>A domain-specific computer vision application</li>
+    <li>An exploration of human perception, ambiguity, or hallucination in vision models</li>
+  </ul>
+  <p>Students present their projects and discuss their design decisions, results, and limitations.</p>
+
+  <h2>Grading</h2>
+  <table>
+    <thead>
+      <tr><th>Component</th><th>Weight</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>In-class labs</td><td>40%</td><td>Guided coding activities, implementation, and experimentation</td></tr>
+      <tr><td>Homework and assignments</td><td>30%</td><td>Coding exercises and conceptual questions reinforcing course material</td></tr>
+      <tr><td>Final project</td><td>30%</td><td>Design, implementation, evaluation, and presentation of an original vision application</td></tr>
+      <tr><td>Total</td><td>100%</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Learning approach</h2>
+  <p>The course combines lectures and discussions with hands-on experimentation. Each session introduces new concepts and gives students opportunities to apply them through guided coding labs. Homework assignments reinforce learning and extend lab activities.</p>
+  <p>Students are encouraged to experiment, ask questions, explore their own interests, and critically evaluate how computer vision systems work and where they fail.</p>
+</main>
+</body>
+</html>

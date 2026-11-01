@@ -32,7 +32,7 @@ st(`
     <div class="arrow b" data-step="2">→</div>
     <div class="step b" data-step="2"><b>Lecture</b><span class="label">the concepts</span></div>
     <div class="arrow b" data-step="3">→</div>
-    <div class="step b" data-step="3"><b>Lab</b><span class="label">build it in code</span></div>
+    <div class="step b" data-step="3"><b>Lab</b><span class="label">starting tomorrow</span></div>
     <div class="arrow b" data-step="4">→</div>
     <div class="step b" data-step="4"><b>Exit question</b><span class="label">what stuck?</span></div>
   </div>
@@ -40,20 +40,24 @@ st(`
   "(draft) Every class follows the same rhythm.",
   "(draft) We start with an intro question.",
   "(draft) Then a short lecture on the concepts.",
-  "(draft) Then a lab, where you build what we just talked about.",
+  "(draft) Then a lab. Not today. Tomorrow you build the simple vision system.",
   "(draft) And we close with an exit question."
 ]});
 
 st(`
   <h1 class="t">Course structure</h1>
   <ul class="frag">
-    <li class="b"><b>Topics by week</b><div class="todo">week-by-week list</div></li>
+    <li class="b"><b>Day 1</b> What does it mean to see?</li>
+    <li class="b"><b>Day 2</b> Numbers, then a simple vision system</li>
+    <li class="b"><b>Day 3</b> What a pretrained model sees</li>
     <li class="b"><b>Resources</b><div class="todo">readings, tutorial practice</div></li>
     <li class="b"><b>Website and help</b><div class="todo">URL, office hours, where to ask</div></li>
   </ul>
 `, { notes: [
-  "(to write) Course structure.",
-  "(to write) Topics per week.",
+  "(draft) The first three days, then the rest of the course.",
+  "(draft) Day 1 is the question. What does it mean to see?",
+  "(draft) Day 2 is a classical answer. The picture is numbers, then a system that recovers boxes from assumptions.",
+  "(draft) Day 3 is a learned model on a real photograph.",
   "(to write) Resources: readings, tutorial practice, etc.",
   "(to write) Website, and where to go for help."
 ]});

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360">
+  <rect width="640" height="360" fill="#f8fafc"/>
+  <polygon points="250,40 390,40 520,320 120,320" fill="#3f7357"/>
+  <polygon points="300,70 340,70 360,150 280,150" fill="#f8fafc"/>
+  <text x="320" y="250" text-anchor="middle" font-family="Calibri, Helvetica, sans-serif" font-size="22" fill="#fff">a path</text>
+</svg>

@@ -5,12 +5,12 @@ section('Title');
 
 st(`
   <div class="center" style="margin:auto">
-    <div class="statement" style="font-weight:700;font-size:clamp(2.4rem,4.4vw,4rem)">Intro to Computer Perception</div>
+    <div class="statement" style="font-weight:700;font-size:clamp(2.4rem,4.4vw,4rem)">Introduction to Visual Systems</div>
     <div class="lead" style="margin-top:3vh">Day 1</div>
     <div class="label" style="margin-top:1.5vh">Fernanda · Shreya</div>
   </div>
 `, { blank: false, notes:
-  "(draft) Welcome, everyone. This is Day 1 of Intro to Computer Perception."
+  "(draft) Welcome. This is Day 1, Introduction to Visual Systems. Today we only open the question. The lab is tomorrow."
 });
 
 /* The question the whole class keeps coming back to. Title first, then the question. */

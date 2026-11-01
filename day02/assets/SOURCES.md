@@ -16,6 +16,11 @@ It does exactly what the Day 2 scene shows: OpenCV load, BGR to RGB, center squa
   https://commons.wikimedia.org/wiki/File:Warm_cup_of_coffee_on_a_table_at_a_cafe.jpg
   Changes: resized, cropped. Top-5: espresso 85.9%, cup 9.4%, coffee mug 2.9%, eggnog 1.1%, soup bowl 0.3%.
 
+## cube/ (section 2 of the lab; not used on the slides)
+- "Rubik's Cube" by William Warby, CC BY 2.0,
+  https://commons.wikimedia.org/wiki/File:Rubiks_Cube_(11913436786).jpg
+  `photo.jpg` is the 960px Wikimedia thumbnail. No other edits. The notebook downloads that same thumbnail.
+
 ## human-vs-machine/
 - "Elephant bronze sculpture" by Carlos Valenzuela, CC BY-SA 4.0,
   https://commons.wikimedia.org/wiki/File:Elephant_bronze_sculpture.jpg

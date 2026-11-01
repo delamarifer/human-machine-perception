@@ -85,6 +85,28 @@ st(`
 `, { blank: false, notes: [
   "(draft) Not long ago…",
   "(draft) A few years ago, a sink was a sheep, an airplane, a bed and a horse.",
-  "(draft) Today, the same field gives us a cup of cat. That is how fast this has moved, and why it is an exciting time to learn how it works. (Foreshadow: this is a project-based course; you will build some of this yourselves.)"
+  "(draft) Today, the same field gives us a cup of cat. That is how fast this has moved, and why it is an exciting time to learn how it works."
+]});
+
+/* Hand off to the groups: say what each use actually sees. One sentence per click. */
+st(`
+  <h1 class="t">Where it is used</h1>
+  <ul class="frag">
+    <li class="b"><b>Driving.</b> The road, other cars, and people.</li>
+    <li class="b"><b>Health.</b> A scan, or a patient on camera.</li>
+    <li class="b"><b>Shops.</b> What was picked up, or which product this is.</li>
+    <li class="b"><b>Robots and farms.</b> A defect, a box, a sick plant.</li>
+    <li class="b"><b>Augmented reality.</b> Something added to the view.</li>
+    <li class="b"><b>Maps.</b> Damage, a forest, or a border, from above.</li>
+  </ul>
+  ${cite('<a href="https://scale.com/guides/computer-vision">Scale, Guide to Computer Vision Applications</a>')}
+`, { notes: [
+  "(draft) Say these as the seeing task, one sentence each. This is the handoff. They will pick one next.",
+  "(draft) Driving: a car that sees the road, other cars, and people.",
+  "(draft) Health: reading a medical image, or watching a patient.",
+  "(draft) Shops: a checkout that sees what you picked up, or matching a product in a photo.",
+  "(draft) Robots and farms: sorting, finding a defect, harvesting, spotting disease on a plant.",
+  "(draft) Augmented reality: adding something to the world you are already looking at.",
+  "(draft) Maps of the earth: damage after a storm, a forest, a border. That is the list."
 ]});
 }

@@ -5,9 +5,9 @@ page (`index.html`) with the "Open in Colab" badge; nothing to install.
 
 | Notebook | Day | Topic |
 |---|---|---|
-| [day01-lab-simple-vision-system.ipynb](day01-lab-simple-vision-system.ipynb) | 1 | Lab: a simple vision system that recovers 3D from one image of a blocks world (after Ch. 2 of Torralba, Isola & Freeman, *Foundations of Computer Vision*) |
-| [day01-practice-numpy-images.ipynb](day01-practice-numpy-images.ipynb) | 1 | Optional practice: images as NumPy arrays; measuring the checker-shadow illusion |
-| [day02-lab.ipynb](day02-lab.ipynb) | 2 | Day 2 lab: one photograph through a center crop, ResNet-18, a depth map, and a small upload app |
+| [day01-practice-numpy-images.ipynb](day01-practice-numpy-images.ipynb) | Class day 2 | Checker-shadow image and NumPy: pixels, slices, brightness, contrast |
+| [day01-lab-simple-vision-system.ipynb](day01-lab-simple-vision-system.ipynb) | Class day 2 | A simple vision system that recovers 3D from one image of a blocks world (after Ch. 2 of Torralba, Isola & Freeman, *Foundations of Computer Vision*) |
+| [day02-lab.ipynb](day02-lab.ipynb) | Class day 3 | ResNet-18 on the café photo, the Rubik's cube, and the elephant statue, plus an optional depth section |
 
 ## Conventions (every notebook)
 
@@ -38,9 +38,9 @@ errors and no edits:
    Python), then a small example cell they run and change.
 4. **"Your turn"** exercises. Each exercise cell runs without errors when left blank (variables start
    as `None`, and the cell only plots or prints once they are filled in). When later cells need the
-   result, a blank exercise falls back on the course's answer and prints that it did. Its solution sits right below
-   in a collapsed `<details>` block ("Show a solution"). A problem set that is graded keeps its
-   solutions in a separate file that is not in this public repo instead.
+   result, a blank exercise falls back on the course's answer and prints that it did. Solutions are
+   not in the student notebook. This repository is public. Build a local instructor copy with
+   `python3 notebooks/build/<script>.py --solved <path>`, and do not commit that file.
 5. "What you learned" and the homework, to close.
 
 **Honest content.** Never invent data, figures or citations. Credit every image and dataset. Any

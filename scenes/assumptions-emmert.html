@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Emmert's law</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../deck/deck.css">
+<style>
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .cap{ position:absolute; left:0; bottom:-1vh; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">How do we perceive size?</h1>
+  <div class="stagebox">
+    <canvas id="cv"></canvas>
+    <div class="label cap" id="cap"></div>
+  </div>
+  <div class="cite">Class diagram of Emmert's law. Perceived size grows with perceived distance.</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE   the title alone
+   ACT 1  SCENE   a corridor and two spheres of equal size on the screen
+   ACT 2  COMPARE the two circles set side by side: same diameter */
+const CAPS = ['', 'Which sphere looks larger?', 'Same size on the screen. The farther one looks larger.'];
+const NOTES = [
+  "(draft) Title only. A second assumption: size and distance.",
+  "(draft) A corridor, and two white spheres. Ask which looks larger. Most people say the far one.",
+  "(draft) The two circles are the same size on the screen. Emmert's law: the size we see scales with the distance we see. The visual system does not report the size of the patch on the retina."
+];
+const N = NOTES.length - 1;
+const LEVEL = b => ({scene: b >= 1 ? 1 : 0, compare: b >= 2 ? 1 : 0});
+
+let beat = 0, from = LEVEL(0), cur = LEVEL(0), t0 = 0;
+const DUR = 1100;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+function go(b, jump){
+  beat = b; from = {...cur}; t0 = performance.now() - (jump ? DUR : 0);
+  document.getElementById('cap').textContent = CAPS[b];
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 1, H = 1;
+function resize(){
+  const r = devicePixelRatio || 1, box = cv.parentNode.getBoundingClientRect();
+  W = cv.width = Math.max(1, box.width * r); H = cv.height = Math.max(1, box.height * r);
+  cv.style.width = box.width + 'px'; cv.style.height = box.height + 'px';
+  ctx.setTransform(r, 0, 0, r, 0, 0);
+}
+addEventListener('resize', resize); resize();
+const css = () => ({w: cv.clientWidth, h: cv.clientHeight});
+
+function brick(x0, y0, x1, y1){
+  ctx.fillStyle = '#e7c3b4'; ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+  ctx.strokeStyle = '#f6ebe4'; ctx.lineWidth = 2;
+  ctx.strokeRect(x0 + 1, y0 + 1, x1 - x0 - 2, y1 - y0 - 2);
+}
+
+function draw(){
+  const {w, h} = css();
+  ctx.clearRect(0, 0, w, h);
+  const a = cur.scene;
+  if(a < .01) return;
+  ctx.globalAlpha = a;
+
+  const vpX = w * .34, vpY = h * .16;
+  const fl = w * .06, fr = w * .62, fy = h * .9;
+  ctx.fillStyle = '#f4efe9';
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.beginPath();
+  ctx.moveTo(fl, fy); ctx.lineTo(vpX - w * .02, vpY); ctx.lineTo(vpX + w * .02, vpY); ctx.lineTo(fr, fy);
+  ctx.closePath();
+  ctx.fillStyle = '#d9a08e'; ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(0, fy); ctx.lineTo(fl, fy); ctx.lineTo(vpX - w * .02, vpY); ctx.lineTo(0, h * .28);
+  ctx.closePath();
+  ctx.fillStyle = '#e4b5a4'; ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(fr, fy); ctx.lineTo(w * .70, fy); ctx.lineTo(w * .70, h * .28); ctx.lineTo(vpX + w * .02, vpY);
+  ctx.closePath();
+  ctx.fillStyle = '#c48978'; ctx.fill();
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(fl, fy); ctx.lineTo(vpX, vpY); ctx.lineTo(fr, fy); ctx.closePath();
+  ctx.clip();
+  for(let i = 1; i < 8; i++){
+    const t = Math.pow(i / 8, 1.6);
+    const y = fy + (vpY - fy) * t;
+    const xL = fl + (vpX - fl) * t, xR = fr + (vpX - fr) * t;
+    ctx.strokeStyle = 'rgba(255,248,244,.85)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(xL, y); ctx.lineTo(xR, y); ctx.stroke();
+  }
+  for(let i = 0; i <= 6; i++){
+    const u = i / 6;
+    ctx.strokeStyle = 'rgba(255,248,244,.7)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(fl + (fr - fl) * u, fy); ctx.lineTo(vpX, vpY); ctx.stroke();
+  }
+  ctx.restore();
+
+  const R = Math.min(w, h) * .075;
+  const near = {x: w * .24, y: h * .70, r: R};
+  const far = {x: w * .40, y: h * .36, r: R};
+  [near, far].forEach(s => {
+    ctx.fillStyle = 'rgba(90,50,40,.18)';
+    ctx.beginPath(); ctx.ellipse(s.x + R * .15, s.y + R * .72, R * .85, R * .28, 0, 0, 7); ctx.fill();
+    const g = ctx.createRadialGradient(s.x - R * .35, s.y - R * .4, R * .1, s.x, s.y, R);
+    g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#d5d8de');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 7); ctx.fill();
+  });
+
+  const c = cur.compare;
+  if(c > .01){
+    const px = w * .86, py1 = h * .38, py2 = h * .72;
+    ctx.globalAlpha = a * c;
+    ctx.fillStyle = '#0f172a';
+    ctx.font = '22px Calibri, Helvetica, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('on the screen', px, h * .16);
+    [py1, py2].forEach(py => {
+      const g = ctx.createRadialGradient(px - R * .35, py - R * .4, R * .1, px, py, R);
+      g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#d5d8de');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(px, py, R, 0, 7); ctx.fill();
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(px - R, py + R + 16); ctx.lineTo(px + R, py + R + 16); ctx.stroke();
+    });
+  }
+  ctx.globalAlpha = 1;
+}
+
+function frame(now){
+  const T = LEVEL(beat), p = ease(Math.min(1, (now - t0) / DUR));
+  for(const k in T) cur[k] = from[k] + (T[k] - from[k]) * p;
+  draw();
+  requestAnimationFrame(frame);
+}
+
+window.emmert = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(N, true); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) emmert.advance(); if(e.key === 'ArrowLeft') emmert.back(); });
+  addEventListener('click', () => emmert.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
