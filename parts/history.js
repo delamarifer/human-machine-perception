@@ -99,17 +99,17 @@ idea(
 
 idea(
   'Gestalt theory',
-  'gestalt-proximity.svg',
-  'Proximity. Public-domain diagram.',
+  'gestalt-grouping.jpg',
+  'Grouping laws.',
   'Max Wertheimer · 1912',
   'Brain, grouping the parts',
-  'The mind groups marks into wholes, using laws such as proximity, before it lists the parts.',
+  'The mind groups marks into wholes before it lists the parts.',
   'Layout, interface design, and pattern recognition still use these grouping laws.',
   [
-    '(draft) Max Wertheimer, 1912. Gestalt theory. The diagram is proximity, and it is public domain.',
-    '(draft) Dots that sit near each other are seen as one group.',
+    '(draft) Max Wertheimer, 1912. Gestalt theory. The figure shows several grouping laws, not only proximity.',
+    '(draft) Walk the figure. Left: no grouping, then proximity, then similarity of color, size, and orientation. Right: closure, parallelism, and symmetry.',
     '(draft) Wertheimer, 1912. Direction: the brain organizes the input.',
-    '(draft) Raw marks are not yet objects. The mind applies grouping laws: proximity, continuity, closure. The whole is available before the parts are listed. The early theory did not say how the laws compete.',
+    '(draft) Raw marks are not yet objects. Near marks group. Same color, size, or orientation groups. Closed, parallel, and symmetric marks group. The early theory did not say how these laws compete.',
     '(draft) A vision system still has to decide which edges are one thing. Tomorrow that is figure and ground. On Day 3 the cube is grouped as a chest. The grouping ran. The object is wrong.'
   ]
 );

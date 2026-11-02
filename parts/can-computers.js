@@ -96,6 +96,23 @@ st(`
   "(draft) Today, the same field gives us a cup of cat. That is how fast this has moved, and why it is an exciting time to learn how it works."
 ]});
 
+/* The jobs, then the industries. Both from Scale's guide. */
+st(`
+  <h1 class="t">The tasks</h1>
+  <ul class="frag">
+    <li class="b">Classification, detection, recognition</li>
+    <li class="b">Tracking, events, pose</li>
+    <li class="b">Depth, from one camera or from two</li>
+    <li class="b">Generation, including diffusion models</li>
+  </ul>
+`, { notes: [
+  "(draft) Before the photos. These are the jobs in Scale's guide. The next slide is where they show up.",
+  "(draft) Classification names the one thing in the picture. Detection finds each instance and where it is. Recognition returns the objects in a scene, not only one class.",
+  "(draft) Tracking follows those objects over time and keeps an identity for each. Event detection says when something happened, such as an item picked up. Pose is the position of a body, a hand, or a set of points.",
+  "(draft) Depth is how far. From one camera, or from two. The guide lists both.",
+  "(draft) Generation makes a new image. Diffusion models are the current way. Then the industries."
+]});
+
 /* Hand off to the groups. Photos for the uses in Scale's guide. One picture per click. */
 st(`
   <h1 class="t">Where it is used</h1>
@@ -109,12 +126,12 @@ st(`
   </div>
   ${cite('<a href="https://scale.com/guides/computer-vision">Scale, Guide to Computer Vision Applications</a>. Checkout: thekirbster, CC BY 2.0. Augmented reality: Kippelboy, CC BY-SA 3.0. Satellites: NASA.')}
 `, { notes: [
-  "(draft) Say these as the seeing task, one sentence each. This is the handoff. They will pick one next.",
-  "(draft) Driving: a car that sees the road, other cars, and people.",
-  "(draft) Health: reading a medical image, or watching a patient.",
-  "(draft) Shops: a checkout that sees what you picked up, or matching a product in a photo.",
-  "(draft) Robots and farms: sorting, finding a defect, harvesting, spotting disease on a plant.",
-  "(draft) Augmented reality: adding something to the world you are already looking at.",
-  "(draft) Maps of the earth: damage after a storm, a forest, a border. That is the list."
+  "(draft) These six are the industries in Scale's guide. One pass each, using the guide's own examples. Then they pick.",
+  "(draft) Driving. Assistance, levels 1 and 2: staying in a lane, braking, parking. Autonomous vehicles, levels 3 to 5, with little or no human input. The seeing task is the road, other cars, and people.",
+  "(draft) Health. Diagnostics, watching a patient, and research. The guide notes that medical images share a standard format, DICOM, which is what made these sets usable.",
+  "(draft) Shops. A checkout that sees what was picked up. Matching the same product across photos, and dropping duplicates. And generated pictures of products.",
+  "(draft) Robots and farms, one group in the guide. Moving inventory, finding a defect, harvesting, and disease on a plant.",
+  "(draft) The software section of the guide is two things. Augmented and virtual reality: something added to a view you already have. And content understanding: recommendations, and trust and safety. The photo is the first of those.",
+  "(draft) Maps and the public sector. Overhead imagery and video: ordinary cameras, radar, and full-motion video. The guide's examples are damage after a disaster or a war, reconnaissance, a perimeter, and a forest or a coastline. That is the list. Next they choose one."
 ]});
 }

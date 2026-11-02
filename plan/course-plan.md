@@ -42,9 +42,11 @@ Deck: `deck.html`.
 
 | Time | Component | Content |
 |---|---|---|
-| 0–10 min | Recap | Revisit the challenge of vision. What information is available in an image, and what must we infer? |
-| 10–25 min | Images as data | Pixels, channels, color, resolution, image arrays, NumPy indexing and slicing. |
-| 25–45 min | Practice | Checker-shadow image. NumPy slices and arithmetic. How visual information is represented numerically. Notebook: `notebooks/day01-practice-numpy-images.ipynb`. |
+| 0–10 min | Readings | Discussion of Pizlo, perception as an inverse problem, and Pritchard, stabilized images on the retina. |
+| 10–12 min | Question | How can we extract information from an image? |
+| 12–16 min | Recap | Seeing is inference. The image is not the scene. Light is not the object. |
+| 16–31 min | Images as data | Pixels, channels, color, resolution, image arrays, NumPy indexing and slicing. |
+| 31–45 min | Practice | Checker-shadow image. NumPy slices and arithmetic. Notebook: `notebooks/day01-practice-numpy-images.ipynb`. |
 | 45–55 min | The vision problem | Summer Vision Project. Can we recover 3D structure from one image of colored boxes on a floor? |
 | 55–105 min | Lab | A simple vision system: projection, edges, figure-ground, contact and occlusion edges, assumptions, equations, and 3D reconstruction. Notebook: `notebooks/day01-lab-simple-vision-system.ipynb`. |
 | 105–115 min | Discussion | What assumptions enabled reconstruction? Where did they break? |
