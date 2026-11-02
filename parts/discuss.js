@@ -24,6 +24,8 @@ st(`
     <li class="b" data-step="1"><b>Survey.</b> <a href="https://forms.gle/3EP5zfyj7UvarX9B7">Day 1 questionnaire</a></li>
     <li class="b" data-step="1"><b>Read.</b>
       <div><a href="https://www.cogconfluence.com/wp-content/uploads/2017/09/perception_inverse_problem.pdf">Pizlo, Perception viewed as an inverse problem</a></div>
+    </li>
+    <li class="b" data-step="1"><b>Optional.</b>
       <div><a href="https://www.cogconfluence.com/wp-content/uploads/2017/09/Pritchard_stabilization.pdf">Pritchard, Stabilized images on the retina</a></div>
     </li>
   </ul>
@@ -33,7 +35,7 @@ st(`
     .discuss-site a{ color:inherit; }
   </style>
 `, { notes: [
-  "(draft) Last slide. Leave it up. Two things for tonight. The course page address is on the slide.",
-  "(draft) The survey, then the two readings. Pizlo, Perception viewed as an inverse problem, 2001. Pritchard, Stabilized images on the retina, 1961. Everything is at delamarifer.github.io/human-machine-perception."
+  "(draft) Last slide. Leave it up. The survey and one reading for tonight. The course page address is on the slide.",
+  "(draft) The survey, then Pizlo, Perception viewed as an inverse problem, 2001. Pritchard, Stabilized images on the retina, 1961, is optional. Everything is at delamarifer.github.io/human-machine-perception."
 ]});
 }

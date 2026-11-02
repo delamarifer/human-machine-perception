@@ -42,7 +42,7 @@ Deck: `deck.html`.
 
 | Time | Component | Content |
 |---|---|---|
-| 0–10 min | Readings | Discussion of Pizlo, perception as an inverse problem, and Pritchard, stabilized images on the retina. |
+| 0–10 min | Readings | Discussion of Pizlo, perception as an inverse problem. Pritchard, stabilized images on the retina, was optional. |
 | 10–12 min | Question | How can we extract information from an image? |
 | 12–16 min | Recap | Seeing is inference. The image is not the scene. Light is not the object. |
 | 16–31 min | Images as data | Pixels, channels, color, resolution, image arrays, NumPy indexing and slicing. |

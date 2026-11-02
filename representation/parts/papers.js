@@ -1,4 +1,4 @@
-/* Day 2 opening. Discussion of the two readings from Day 1. */
+/* Day 2 opening. Discussion of the Day 1 reading. Pritchard was optional. */
 {
 section('Readings');
 
@@ -6,12 +6,12 @@ st(`
   <h1 class="t">Yesterday's readings</h1>
   <ul class="frag">
     <li class="b"><a href="https://www.cogconfluence.com/wp-content/uploads/2017/09/perception_inverse_problem.pdf">Pizlo, Perception viewed as an inverse problem</a></li>
-    <li class="b"><a href="https://www.cogconfluence.com/wp-content/uploads/2017/09/Pritchard_stabilization.pdf">Pritchard, Stabilized images on the retina</a></li>
+    <li class="b"><a href="https://www.cogconfluence.com/wp-content/uploads/2017/09/Pritchard_stabilization.pdf">Pritchard, Stabilized images on the retina</a> (optional)</li>
   </ul>
 `, { notes: [
   "(draft) Start here, before the question for today. Ask who read them. Take what they say before you explain.",
   "(draft) Pizlo, 2001. Perception as an inverse problem. One image does not determine one scene.",
-  "(draft) Pritchard, 1961. When the image is held still on the retina, it fades."
+  "(draft) Pritchard, 1961, was optional. When the image is held still on the retina, it fades. Ask who read it."
 ]});
 
 st(`
