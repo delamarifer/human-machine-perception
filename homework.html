@@ -2,26 +2,32 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Homework · Human-Machine Perception</title>
+<title>Homework · Visual Perception</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-  :root{ --ink:#0f172a; --mute:#64748b; --line:#e2e8f0; --bg:#fff; --card:#f8fafc; }
-  @media (prefers-color-scheme: dark){ :root{ --ink:#e2e8f0; --mute:#94a3b8; --line:#334155; --bg:#0f172a; --card:#1e293b; } }
-  body{ margin:0; background:var(--bg); color:var(--ink);
+  :root{
+    --cream:#FAF5EC; --sand:#EADFC8; --clay:#D4A373; --teal:#287271; --ink:#1D3B3A;
+  }
+  body{ margin:0; background:var(--cream); color:var(--ink);
     font:17px/1.5 Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif; }
-  main{ max-width:40rem; margin:0 auto; padding:8vh 16px 12vh; }
-  a{ color:inherit; }
-  h1{ font-size:2rem; margin:0 0 .4em; }
-  h2{ font-size:1.25rem; margin:1.4em 0 .4em; }
+  .band{ background:var(--ink); color:var(--cream); }
+  .band main{ padding:6vh 16px 5vh; }
+  main{ max-width:40rem; margin:0 auto; padding:4vh 16px 10vh; }
+  a{ color:var(--teal); }
+  .back{ margin:0 0 .6em; font-size:.95rem; }
+  .back a{ color:var(--sand); text-decoration:none; }
+  h1{ font-size:2.4rem; line-height:1.1; margin:0; color:var(--cream); }
+  h2{ font-size:1.25rem; margin:1.4em 0 .4em; color:var(--teal); }
   p, li{ margin:0 0 .6em; }
   ul{ padding-left:1.2em; }
-  .back{ color:var(--mute); font-size:.95rem; }
 </style>
 </head>
 <body>
-<main>
+<div class="band"><main>
   <p class="back"><a href="index.html">Home</a></p>
   <h1>Homework</h1>
+</main></div>
+<main>
   <p>This is the work that goes with the opening of the course.</p>
 
   <h2>Survey</h2>

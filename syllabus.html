@@ -2,30 +2,37 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Syllabus · Human-Machine Perception</title>
+<title>Syllabus · Visual Perception</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-  :root{ --ink:#0f172a; --mute:#64748b; --line:#e2e8f0; --bg:#fff; }
-  @media (prefers-color-scheme: dark){ :root{ --ink:#e2e8f0; --mute:#94a3b8; --line:#334155; --bg:#0f172a; } }
-  body{ margin:0; background:var(--bg); color:var(--ink);
+  :root{
+    --cream:#FAF5EC; --sand:#EADFC8; --clay:#D4A373; --teal:#287271; --ink:#1D3B3A;
+  }
+  body{ margin:0; background:var(--cream); color:var(--ink);
     font:17px/1.5 Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif; }
-  main{ max-width:40rem; margin:0 auto; padding:8vh 16px 12vh; }
-  a{ color:inherit; }
-  h1{ font-size:2rem; margin:0 0 .2em; }
-  h2{ font-size:1.25rem; margin:1.6em 0 .4em; }
+  .band{ background:var(--ink); color:var(--cream); }
+  .band main{ padding:6vh 16px 5vh; }
+  main{ max-width:40rem; margin:0 auto; padding:4vh 16px 10vh; }
+  a{ color:var(--teal); }
+  .back{ margin:0 0 .6em; font-size:.95rem; }
+  .back a{ color:var(--sand); text-decoration:none; }
+  h1{ font-size:2.4rem; line-height:1.1; margin:0 0 .25em; color:var(--cream); }
+  .who{ margin:0; color:var(--sand); }
+  h2{ font-size:1.25rem; margin:1.6em 0 .4em; color:var(--teal); }
   p, li{ margin:0 0 .6em; }
   ul{ padding-left:1.2em; }
-  .back{ color:var(--mute); font-size:.95rem; }
-  table{ width:100%; border-collapse:collapse; margin:1em 0 1.4em; }
-  th, td{ text-align:left; vertical-align:top; border-top:1px solid var(--line); padding:.55em .4em .55em 0; }
-  th{ font-size:.85rem; letter-spacing:.04em; text-transform:uppercase; color:var(--mute); }
+  table{ width:100%; border-collapse:collapse; margin:1em 0 1.4em; background:var(--sand); border-radius:12px; overflow:hidden; }
+  th, td{ text-align:left; vertical-align:top; border-top:1px solid var(--clay); padding:.7em .9em; }
+  th{ font-size:.85rem; letter-spacing:.04em; text-transform:uppercase; color:var(--teal); border-top:none; }
 </style>
 </head>
 <body>
-<main>
+<div class="band"><main>
   <p class="back"><a href="index.html">Home</a></p>
   <h1>Visual Perception</h1>
-  <p>Instructors: Fernanda De La Torre and Shreya Pandit</p>
+  <p class="who">Fernanda De La Torre · Shreya Pandit</p>
+</main></div>
+<main>
 
   <h2>Course overview</h2>
   <p>This is a three-week, hands-on studio course in computer vision. Students explore how machines process and understand visual information, progressing from raw pixels and classical image processing to learned representations and modern vision models.</p>

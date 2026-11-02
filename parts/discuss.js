@@ -27,8 +27,13 @@ st(`
       <div><a href="https://www.cogconfluence.com/wp-content/uploads/2017/09/Pritchard_stabilization.pdf">Pritchard, Stabilized images on the retina</a></div>
     </li>
   </ul>
+  <div class="discuss-site b" data-step="1"><a href="https://delamarifer.github.io/human-machine-perception/">delamarifer.github.io/human-machine-perception</a></div>
+  <style>
+    .discuss-site{ font-size:clamp(1.2rem, 2.1vw, 1.7rem); margin-top:2vh; }
+    .discuss-site a{ color:inherit; }
+  </style>
 `, { notes: [
-  "(draft) Last slide. Leave it up. Two things for tonight.",
-  "(draft) The survey, then the two readings. Pizlo, Perception viewed as an inverse problem, 2001. Pritchard, Stabilized images on the retina, 1961. The links are on this slide and on the homework page."
+  "(draft) Last slide. Leave it up. Two things for tonight. The course page address is on the slide.",
+  "(draft) The survey, then the two readings. Pizlo, Perception viewed as an inverse problem, 2001. Pritchard, Stabilized images on the retina, 1961. Everything is at delamarifer.github.io/human-machine-perception."
 ]});
 }

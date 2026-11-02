@@ -10,10 +10,15 @@ st(`
     <li class="b" data-step="2">The checker-shadow image, as numbers</li>
     <li class="b" data-step="3">Slices and arithmetic</li>
   </ul>
+  <div class="practice-site b" data-step="1"><a href="https://delamarifer.github.io/human-machine-perception/">delamarifer.github.io/human-machine-perception</a></div>
+  <style>
+    .practice-site{ font-size:clamp(1.2rem, 2.1vw, 1.7rem); margin-top:1vh; }
+    .practice-site a{ color:inherit; }
+  </style>
   ${cite('<a href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-practice-numpy-images.ipynb">Images as arrays, in Colab</a>')}
 `, { notes: [
   "(draft) Practice. The perception story is enough to start. The same checker shadow is now a grid of numbers.",
-  "(draft) Images as arrays. The link is on the slide and on the course page. They open it in Colab, then File, Save a copy in Drive, and work in that copy.",
+  "(draft) Images as arrays. The course page address is on the slide: delamarifer.github.io/human-machine-perception. They open the notebook in Colab, then File, Save a copy in Drive, and work in that copy.",
   "(draft) The picture from the illusion. They will read pixels, including squares A and B, which are the same gray.",
   "(draft) Slices, channels, brightness, contrast. Do not teach it from the front. Walk the room. Then we come back to what a computer does with pictures."
 ]});
