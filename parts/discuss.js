@@ -1,4 +1,4 @@
-/* PART: discuss (Day 1). 110–120 min. No lab today. */
+/* PART: discuss (Day 1). After the groups. */
 {
 section('Discussion');
 
@@ -23,8 +23,8 @@ st(`
   <div class="lead b">The picture is an array of numbers</div>
   <div class="lead b">Then a system that recovers boxes from one image</div>
 `, { notes: [
-  "(draft) No lab today. Tomorrow we start from the numbers.",
-  "(draft) First, the checker-shadow image as an array.",
+  "(draft) Tomorrow we keep going from the numbers.",
+  "(draft) You already opened the checker-shadow image as an array. Finish it if you did not.",
   "(draft) Then a small vision system: one image of colored boxes, and the assumptions that turn it back into 3D."
 ]});
 }

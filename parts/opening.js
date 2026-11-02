@@ -10,7 +10,7 @@ st(`
     <div class="label" style="margin-top:1.5vh">Fernanda · Shreya</div>
   </div>
 `, { blank: false, notes:
-  "(draft) Welcome. This is Day 1, Introduction to Visual Systems. Today we only open the question. The lab is tomorrow."
+  "(draft) Welcome. This is Day 1, Introduction to Visual Systems. Today we open the question, and later we open one image as numbers."
 });
 
 /* The question the whole class keeps coming back to. Title first, then the question. */

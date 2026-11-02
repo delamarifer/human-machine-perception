@@ -8,6 +8,7 @@ const ORDER = [
   ['assumptions',   '',       'Light versus the scene: checker shadow, size and depth'],
   ['visual-system', '',       'Human vision, briefly'],
   ['history',       '',       'Optics, camera obscura, a science of perception'],
+  ['practice',      '',       'Stop. Open Images as arrays'],
   ['bridge',        '',       'From human vision to computer vision'],
   ['can-computers', '',       'Applications, then where vision is used'],
   ['group',         '',       'Groups of four pick one and answer'],
@@ -24,9 +25,10 @@ const SEC_MINUTES = {
   'Seeing': 12,
   'Assumptions': 6,
   'History': 7,
+  'Practice': 15,
   'Machines': 4,
   'Computers': 8,
-  'Groups': 23,
+  'Groups': 15,
   'The course': 4,
-  'Discussion': 20
+  'Discussion': 14
 };

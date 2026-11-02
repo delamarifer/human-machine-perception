@@ -32,7 +32,7 @@ st(`
     <div class="arrow b" data-step="2">→</div>
     <div class="step b" data-step="2"><b>Lecture</b><span class="label">the concepts</span></div>
     <div class="arrow b" data-step="3">→</div>
-    <div class="step b" data-step="3"><b>Lab</b><span class="label">starting tomorrow</span></div>
+    <div class="step b" data-step="3"><b>Lab</b><span class="label">notebook today</span></div>
     <div class="arrow b" data-step="4">→</div>
     <div class="step b" data-step="4"><b>Exit question</b><span class="label">what stuck?</span></div>
   </div>
@@ -40,7 +40,7 @@ st(`
   "(draft) Every class follows the same rhythm.",
   "(draft) We start with an intro question.",
   "(draft) Then a short lecture on the concepts.",
-  "(draft) Then a lab. Not today. Tomorrow you build the simple vision system.",
+  "(draft) Then a lab. Today that is the checker-shadow image as an array. Tomorrow is the system that recovers boxes.",
   "(draft) And we close with an exit question."
 ]});
 

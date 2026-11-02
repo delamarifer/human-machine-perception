@@ -1,4 +1,4 @@
-"""Builds notebooks/day01-practice-numpy-images.ipynb: optional NumPy practice for Day 1.
+"""Builds notebooks/day01-practice-numpy-images.ipynb: the Day 1 notebook.
 See nbtools.py for how to build and check it."""
 from nbtools import md, code, turn, badge, main
 
@@ -9,11 +9,11 @@ BADGE = badge(FILE)
 md(f"""
 {BADGE}
 
-# Day 1 practice (optional) · Images are arrays of numbers
+# Images are arrays of numbers
 
 **Human-Machine Perception** · Day 1 · Fernanda & Shreya
 
-Optional NumPy practice for the Day 1 homework. To a computer, a picture is just a grid of numbers.
+Start this in class and finish whatever you do not reach. To a computer, a picture is just a grid of numbers.
 Here you will open that grid and work with
 it directly. By the end you will be able to:
 

@@ -17,7 +17,7 @@ no Day 0.
 
 ## Day 1 · Introduction to Visual Systems
 **Question:** What does it mean to see?
-**Objective:** Open the question of vision. No lab this day.
+**Objective:** Open the question of vision. After the perception theories, stop and open the checker-shadow image as an array.
 
 The room is two hours. The talking is about 90 minutes. None of the lecture beats is a 10-minute talk. The spare time is for the groups running long.
 
@@ -28,11 +28,12 @@ The room is two hours. The talking is about 90 minutes. None of the lecture beat
 | 6–18 min | The challenge of vision | Why vision is difficult. Illusions, light versus scene properties, ambiguity, inferring depth and structure. |
 | 18–23 min | Human vision | A brief pass through the visual system. |
 | 23–30 min | History | The theories in chapter 1.3, one idea each, then computer vision as the late chapter. |
-| 30–34 min | From human to machine vision | Geometry, designed features, learned models. |
-| 34–42 min | Applications | The field working, then one sentence each: driving, health, shops, robots and farms, augmented reality, maps of the earth. That list is the handoff. |
-| 42–65 min | Group activity | Groups of four pick one application, one just named or another they care about. They name the problem it solves, how it is like human vision, what the system sees, and where it can be wrong. |
-| 65–69 min | Course overview | The first three days, then where the course goes. |
-| 69–90 min | Discussion | Groups share. Connect what they said to the course. |
+| 30–45 min | Notebook | Stop. Images as arrays: the checker-shadow image, slices, and arithmetic. Finish the rest after class. |
+| 45–49 min | From human to machine vision | Geometry, designed features, learned models. |
+| 49–57 min | Applications | The field working, then one sentence each: driving, health, shops, robots and farms, augmented reality, maps of the earth. That list is the handoff. |
+| 57–72 min | Group activity | Groups of four pick one application, one just named or another they care about. They name the problem it solves, how it is like human vision, what the system sees, and where it can be wrong. |
+| 72–76 min | Course overview | The first three days, then where the course goes. |
+| 76–90 min | Discussion | Groups share. Connect what they said to the course. |
 
 Deck: `deck.html`.
 
