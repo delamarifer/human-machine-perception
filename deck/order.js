@@ -9,11 +9,10 @@ const ORDER = [
   ['assumptions',   '',       'Light versus the scene: checker shadow, size and depth'],
   ['visual-system', '',       'Human vision, briefly'],
   ['history',       '',       'Optics, camera obscura, a science of perception'],
-  ['practice',      '',       'Stop. Open Images as arrays'],
-  ['bridge',        '',       'From human vision to computer vision'],
-  ['can-computers', '',       'Applications, then where vision is used'],
+  ['practice',      '',       'Practice: Images as arrays'],
+  ['can-computers', '',       'Can computers do the same, then what computer vision is'],
   ['group',         '',       'Groups of four pick one and answer'],
-  ['discuss',       '',       'Share group ideas. Tomorrow: numbers, then boxes'],
+  ['discuss',       '',       'Share group ideas, then the homework'],
 ];
 const PARTS = ORDER.map(r => r[0]);
 
@@ -26,8 +25,7 @@ const SEC_MINUTES = {
   'Assumptions': 6,
   'History': 9,
   'Practice': 13,
-  'Machines': 4,
-  'Computers': 8,
+  'Computers': 10,
   'Groups': 15,
   'The course': 4,
   'Discussion': 14

@@ -12,6 +12,14 @@ st(`
   "[click] (draft) The short answer: yes for some things, and no for others. Let's look at both."
 });
 
+st(`
+  <h1 class="t">What is computer vision?</h1>
+  <div class="lead b">Getting information about the world from images</div>
+`, { notes: [
+  "(draft) Computer vision is the attempt to get information about the world from images.",
+  "(draft) The input is a picture. The output is something the picture does not store: a name, a distance, a shape."
+]});
+
 /* Applications: one tile per click. Photos from the original deck. */
 const tile = (src, name, step) => `<div class="tile b" data-step="${step}">
   <div class="im"><img src="assets/can-computers/${src}" alt="${name}"></div><div class="label">${name}</div></div>`;

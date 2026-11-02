@@ -30,8 +30,7 @@ The room is two hours. The talking is about 90 minutes. None of the lecture beat
 | 22–27 min | Human vision | A brief pass through the visual system. |
 | 27–36 min | History | One theory per slide, in time order: atomists, Euclid, Ibn al-Haytham, Helmholtz, Wertheimer, Gibson, Marr. Then computer vision as the late chapter. |
 | 36–49 min | Notebook | Stop. Images as arrays: the checker-shadow image, slices, and arithmetic. Finish the rest after class. |
-| 49–53 min | From human to machine vision | Geometry, designed features, learned models. |
-| 53–61 min | Applications | The field working, then photos: driving, health, shops, robots and farms, augmented reality, maps of the earth. That list is the handoff. |
+| 49–61 min | Applications | Can computers do the same, then what computer vision is. The field working, then photos: driving, health, shops, robots and farms, augmented reality, maps of the earth. That list is the handoff. |
 | 61–76 min | Group activity | Groups of four pick one application, one just named or another they care about. They name the problem it solves, how it is like human vision, what the system sees, and where it can be wrong. |
 | 76–90 min | Discussion | Groups share. Connect what they said to the course. |
 

@@ -151,17 +151,17 @@ idea(
 st(`
   <h1 class="t">Computer vision is the late chapter</h1>
   <div class="flow">
-    <div class="step b" data-step="1"><b>Geometry</b><span class="label">Day 2</span></div>
+    <div class="step b" data-step="1"><b>Geometry</b><span class="label">rules about the world</span></div>
     <div class="arrow b" data-step="2">→</div>
     <div class="step b" data-step="2"><b>Designed features</b><span class="label">edges, texture</span></div>
     <div class="arrow b" data-step="3">→</div>
-    <div class="step b" data-step="3"><b>Learning</b><span class="label">Day 3</span></div>
+    <div class="step b" data-step="3"><b>Learning</b><span class="label">features from data</span></div>
   </div>
   ${cite('Torralba, Isola &amp; Freeman, <i>Foundations of Computer Vision</i>, ch. 1.3')}
 `, { notes: [
   '(draft) The book then turns to computer vision. Same question, a short recent history.',
-  '(draft) Geometry and written rules. That is tomorrow: a world of boxes and equations.',
+  '(draft) Geometry and written rules. A world of boxes, a camera, and equations.',
   '(draft) Then features a person designed. Edges, corners, texture. The system measures what we told it to measure.',
-  '(draft) Then learning. The features are trained. Day 3. The argument about seeing is the old part. The network is the new implementation.'
+  '(draft) Then learning. The features come from data, not from a person writing the rule. The argument about seeing is the old part. The network is the new implementation.'
 ]});
 }

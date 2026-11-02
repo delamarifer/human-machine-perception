@@ -19,16 +19,6 @@ st(`
 ]});
 
 st(`
-  <h1 class="t">Tomorrow</h1>
-  <div class="lead b">The picture is an array of numbers</div>
-  <div class="lead b">Then a system that recovers boxes from one image</div>
-`, { notes: [
-  "(draft) Tomorrow we keep going from the numbers.",
-  "(draft) You already opened the checker-shadow image as an array. Finish it if you did not.",
-  "(draft) Then a small vision system: one image of colored boxes, and the assumptions that turn it back into 3D."
-]});
-
-st(`
   <h1 class="t">Homework</h1>
   <ul class="frag">
     <li class="b" data-step="1"><b>Survey.</b> <a href="https://forms.gle/3EP5zfyj7UvarX9B7">Day 1 questionnaire</a></li>
