@@ -24,6 +24,13 @@
   table{ width:100%; border-collapse:collapse; margin:1em 0 1.4em; background:var(--sand); border-radius:12px; overflow:hidden; }
   th, td{ text-align:left; vertical-align:top; border-top:1px solid var(--clay); padding:.7em .9em; }
   th{ font-size:.85rem; letter-spacing:.04em; text-transform:uppercase; color:var(--teal); border-top:none; }
+  td.w{ white-space:nowrap; font-weight:700; }
+  tr.sub td:first-child{ padding-left:2em; }
+  tr.sub td{ font-size:.95rem; }
+  tr.total td{ font-weight:700; }
+  h3{ font-size:1.05rem; margin:1.4em 0 .3em; }
+  .due{ display:block; margin-top:.3em; font-size:.9rem; font-weight:700; color:var(--teal); }
+  @media (max-width:480px){ th, td{ padding:.55em .5em; } tr.sub td:first-child{ padding-left:1.2em; } }
 </style>
 </head>
 <body>
@@ -44,7 +51,7 @@
     <li>Schedule: 2 hours per day</li>
     <li>Format: lectures, discussions, and in-class coding labs</li>
     <li>Platform: Google Colab</li>
-    <li>Assessment: in-class labs, homework assignments, and a final project</li>
+    <li>Assessment: daily response papers, two assignments, and a final project</li>
   </ul>
 
   <h2>Week 1. Understanding images</h2>
@@ -115,15 +122,77 @@
   <h2>Grading</h2>
   <table>
     <thead>
-      <tr><th>Component</th><th>Weight</th><th>Description</th></tr>
+      <tr><th>Component</th><th>Weight</th><th>What it is</th></tr>
     </thead>
     <tbody>
-      <tr><td>In-class labs</td><td>40%</td><td>Guided coding activities, implementation, and experimentation</td></tr>
-      <tr><td>Homework and assignments</td><td>30%</td><td>Coding exercises and conceptual questions reinforcing course material</td></tr>
-      <tr><td>Final project</td><td>30%</td><td>Design, implementation, evaluation, and presentation of an original vision application</td></tr>
-      <tr><td>Total</td><td>100%</td><td></td></tr>
+      <tr><td><b>Final project</b></td><td class="w">45%</td><td>An original vision application, proposed, built, written up and presented</td></tr>
+      <tr class="sub"><td>Proposal</td><td class="w">10%</td><td>Three steps, below</td></tr>
+      <tr class="sub"><td>Write-up</td><td class="w">20%</td><td>A short report on what you built and how well it works</td></tr>
+      <tr class="sub"><td>Presentation</td><td class="w">15%</td><td>Presented to the class on the last day</td></tr>
+      <tr><td><b>Daily response papers</b></td><td class="w">24%</td><td>12 papers, 2% each</td></tr>
+      <tr><td><b>Final-day question</b></td><td class="w">1%</td><td>One short, easy question on the last day</td></tr>
+      <tr><td><b>Assignment 1</b></td><td class="w">15%</td><td>Coding and conceptual questions</td></tr>
+      <tr><td><b>Assignment 2</b></td><td class="w">15%</td><td>Coding and conceptual questions</td></tr>
+      <tr class="total"><td>Total</td><td class="w">100%</td><td></td></tr>
     </tbody>
   </table>
+
+  <h3>Final project proposal (10%)</h3>
+  <table>
+    <thead><tr><th>Step</th><th>Weight</th><th>How it is graded</th></tr></thead>
+    <tbody>
+      <tr><td>General ideas, through a Google Form (template provided)<span class="due">Due Friday</span></td><td class="w">2%</td><td>Full credit for a complete, on-time submission. We share the ideas with the class so you can find teammates.</td></tr>
+      <tr><td>Detailed proposal (template provided)<span class="due">Due Monday</span></td><td class="w">5%</td><td>Problem and motivation (25%) · approach: the models and data you will use (25%) · evaluation: how you will know it works (25%) · a realistic plan for the time we have (25%)</td></tr>
+      <tr><td>Meeting with a teacher to discuss the detailed proposal (sign up on Calendly)<span class="due">Due Wednesday, week 2</span></td><td class="w">3%</td><td>Full credit for attending prepared, with your proposal and your questions</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Final project write-up (20%)</h3>
+  <table>
+    <thead><tr><th>Criterion</th><th>Share</th><th>What we look for</th></tr></thead>
+    <tbody>
+      <tr><td>Problem and motivation</td><td class="w">15%</td><td>A clear question or goal, and why it matters</td></tr>
+      <tr><td>Method</td><td class="w">25%</td><td>What you built, the models and data, and why you chose them</td></tr>
+      <tr><td>Results and evaluation</td><td class="w">25%</td><td>Evidence that it works: examples, a measurement, a comparison</td></tr>
+      <tr><td>Limitations and failure cases</td><td class="w">20%</td><td>Where it breaks, and what that says about how it sees</td></tr>
+      <tr><td>Clarity</td><td class="w">15%</td><td>Readable writing, labeled figures, sources credited</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Final project presentation (15%)</h3>
+  <table>
+    <thead><tr><th>Criterion</th><th>Share</th><th>What we look for</th></tr></thead>
+    <tbody>
+      <tr><td>The idea</td><td class="w">20%</td><td>The audience understands the problem in the first minute</td></tr>
+      <tr><td>Demo and results</td><td class="w">35%</td><td>Show it working, on examples, with evidence</td></tr>
+      <tr><td>Limitations</td><td class="w">20%</td><td>An honest look at where it fails</td></tr>
+      <tr><td>Delivery</td><td class="w">15%</td><td>Clear slides, within time</td></tr>
+      <tr><td>Questions</td><td class="w">10%</td><td>Thoughtful answers to questions from the class</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Daily response papers (24%)</h3>
+  <p>Twelve response papers, each worth 2% of the grade. Each has four questions, 5 points each (20 points):</p>
+  <ul>
+    <li>1 high-level question about the day's paper</li>
+    <li>3 conceptual questions about the take-home lab</li>
+  </ul>
+  <table>
+    <thead><tr><th>Points</th><th>Each question</th></tr></thead>
+    <tbody>
+      <tr><td class="w">5</td><td>Correct and well reasoned, in your own words, with evidence from the paper or the lab</td></tr>
+      <tr><td class="w">4</td><td>Mostly correct, with a small gap or an unsupported step</td></tr>
+      <tr><td class="w">3</td><td>Partly correct, or a correct answer without the reasoning</td></tr>
+      <tr><td class="w">1–2</td><td>A real attempt that shows engagement but misunderstands the idea</td></tr>
+      <tr><td class="w">0</td><td>Missing</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Final-day question (1%)</h3>
+  <p>A short, easy question on the last day. Full credit for any genuine answer.</p>
+
+  <h3>Assignments (15% each)</h3>
+  <p>Each assignment comes with its own rubric, covering correct, working code and the conceptual answers.</p>
 
   <h2>Learning approach</h2>
   <p>The course combines lectures and discussions with hands-on experimentation. Each session introduces new concepts and gives students opportunities to apply them through guided coding labs. Homework assignments reinforce learning and extend lab activities.</p>
