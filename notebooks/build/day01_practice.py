@@ -23,10 +23,13 @@ it directly. By the end you will be able to:
 4. change **brightness and contrast** with plain arithmetic
 5. **measure** the checker-shadow illusion from the lecture: are squares A and B really different?
 
-**How to use this notebook.** Each gray box is a *code cell*. Click it and press **Shift + Enter** to
-run it. Run the cells in order, top to bottom. Cells marked **Your turn** are for you: they run
-without errors as they are, and do something once you fill them in. Each one has a solution hidden
-under *Show a solution*. Try it yourself first.
+**How to use this notebook.** First choose **File → Save a copy in Drive**. Work in that copy.
+The page you opened from the course site is only a view, and your edits there are not kept.
+
+Each gray box is a *code cell*. Click it and press **Shift + Enter** to run it. Run the cells in
+order, top to bottom. Cells marked **Your turn** are for you: they run without errors as they are,
+and do something once you fill them in. Each one has a solution hidden under *Show a solution*.
+Try it yourself first.
 
 New to Python? That's fine. Read the code, run it, and change a number to see what happens.
 You cannot break anything: *Runtime → Restart session* starts over.
@@ -167,11 +170,29 @@ plt.show()
 md("""
 ## 4 · Grayscale
 
-A grayscale image has **one** number per pixel instead of three. The simplest way to get it: average
-the red, green and blue numbers of every pixel. `img.mean(axis=2)` averages along the third direction
-(the channels), so the result has shape `(rows, columns)`.
+A grayscale image has **one** number per pixel instead of three. Get it by averaging the red, green
+and blue numbers of every pixel. Averaging along the channels leaves an array of shape
+`(rows, columns)`.
+
+The next cell is yours. A sample solution is underneath it.
 """)
-code("""
+turn("""
+# TODO: Calculate the average of the three color channels.
+# img[:, :, 0] is red, img[:, :, 1] is green, img[:, :, 2] is blue.
+gray = None
+
+# TODO: Print the shape and data type of the new array.
+
+if gray is None:
+    gray = img.mean(axis=2)
+    print("Used the course default: the average of the three channels.")
+    print("gray shape:", gray.shape, "  dtype:", gray.dtype)
+
+plt.imshow(gray, cmap="gray", vmin=0, vmax=255)
+plt.title("Grayscale (plain average)")
+plt.colorbar(label="pixel value")
+plt.show()
+""", """
 gray = img.mean(axis=2)
 print("gray shape:", gray.shape, "  dtype:", gray.dtype)
 
@@ -221,14 +242,42 @@ md("""
 
 Because the image is numbers, editing it is math on every pixel at once:
 
-- **brightness**: add a number to every pixel (`gray + 60` makes everything lighter)
-- **contrast**: stretch values away from the middle gray, 128 (`(gray - 128) * 1.5 + 128`)
+- **brightness**: add a number to every pixel. Adding 60 makes the picture lighter.
+- **contrast**: stretch values away from middle gray, 128. Subtract 128, multiply, then add 128 back.
 
-Values must stay between 0 and 255, so we **clip** anything outside that range with `np.clip`.
+Values must stay between 0 and 255, so **clip** anything outside that range with `np.clip`.
+
+The next cell is yours. A sample solution is underneath it.
 """)
-code("""
+turn("""
+# TODO: Add 60 to every pixel of gray, then clip the result to 0–255.
+brighter = None
+
+# TODO: Increase contrast. Subtract 128, multiply by 1.5, add 128, then clip to 0–255.
+more_contrast = None
+
+# TODO: Print the shape and data type of brighter, and of more_contrast.
+
+if brighter is None:
+    brighter = np.clip(gray + 60, 0, 255)
+    print("Used the course default for brightness.")
+if more_contrast is None:
+    more_contrast = np.clip((gray - 128) * 1.5 + 128, 0, 255)
+    print("Used the course default for contrast.")
+print("brighter:     ", brighter.shape, brighter.dtype)
+print("more_contrast:", more_contrast.shape, more_contrast.dtype)
+
+fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+for ax, im, title in zip(axes, [gray, brighter, more_contrast], ["original", "brightness + 60", "contrast × 1.5"]):
+    ax.imshow(im, cmap="gray", vmin=0, vmax=255)
+    ax.set_title(title)
+    ax.axis("off")
+plt.show()
+""", """
 brighter = np.clip(gray + 60, 0, 255)
 more_contrast = np.clip((gray - 128) * 1.5 + 128, 0, 255)
+print("brighter:     ", brighter.shape, brighter.dtype)
+print("more_contrast:", more_contrast.shape, more_contrast.dtype)
 
 fig, axes = plt.subplots(1, 3, figsize=(15, 4))
 for ax, im, title in zip(axes, [gray, brighter, more_contrast], ["original", "brightness + 60", "contrast × 1.5"]):
@@ -345,9 +394,31 @@ print("light square in shadow:    ", light_in_shadow.mean())
 # the camera. Your visual system takes it out when it judges the color of the surface.
 """)
 md("""
-**Think about it** (no code): a self-driving car's camera sees a light-gray road in shadow and a
-dark-gray road in sunlight with the same pixel values. Should the car treat them as the same color?
-What would it need to know to tell them apart?
+**Think about it.** A self-driving car's camera sees a light-gray road in shadow and a dark-gray
+road in sunlight with the same pixel values. Should the car treat them as the same color? What
+would it need to know to tell them apart?
+
+Write your answer in the next cell, between the quotes. A sample answer is underneath it. Yours
+does not have to match.
+""")
+turn("""
+# TODO: Write a few sentences between the quotes.
+
+answer = '''
+'''
+
+if answer.strip():
+    print(answer)
+else:
+    print("Write your answer between the quotes, then run this cell again.")
+""", """
+answer = '''
+No. The same numbers can be a light surface in shadow or a dark surface in sunlight.
+The car needs more than this one pixel value: the lighting, a shadow it can see, or another
+view. The pixels alone do not say which surface it is.
+'''
+
+print(answer)
 """)
 
 # ---------------------------------------------------------------------------------------------
