@@ -88,18 +88,18 @@ st(`
   "(draft) Today, the same field gives us a cup of cat. That is how fast this has moved, and why it is an exciting time to learn how it works."
 ]});
 
-/* Hand off to the groups: say what each use actually sees. One sentence per click. */
+/* Hand off to the groups. Photos for the uses in Scale's guide. One picture per click. */
 st(`
   <h1 class="t">Where it is used</h1>
-  <ul class="frag">
-    <li class="b"><b>Driving.</b> The road, other cars, and people.</li>
-    <li class="b"><b>Health.</b> A scan, or a patient on camera.</li>
-    <li class="b"><b>Shops.</b> What was picked up, or which product this is.</li>
-    <li class="b"><b>Robots and farms.</b> A defect, a box, a sick plant.</li>
-    <li class="b"><b>Augmented reality.</b> Something added to the view.</li>
-    <li class="b"><b>Maps.</b> Damage, a forest, or a border, from above.</li>
-  </ul>
-  ${cite('<a href="https://scale.com/guides/computer-vision">Scale, Guide to Computer Vision Applications</a>')}
+  <div class="tiles" style="grid-template-columns:repeat(3,1fr);grid-template-rows:1fr 1fr">
+    ${tile('app-driving.jpg', 'Driving', 1)}
+    ${tile('app-healthcare.jpg', 'Health', 2)}
+    ${tile('app-shops.jpg', 'Shops', 3)}
+    ${tile('app-robotics.jpg', 'Robots and farms', 4)}
+    ${tile('app-ar.jpg', 'Augmented reality', 5)}
+    ${tile('app-maps.jpg', 'Maps', 6)}
+  </div>
+  ${cite('<a href="https://scale.com/guides/computer-vision">Scale, Guide to Computer Vision Applications</a>. Checkout: thekirbster, CC BY 2.0. Augmented reality: Kippelboy, CC BY-SA 3.0. Satellites: NASA.')}
 `, { notes: [
   "(draft) Say these as the seeing task, one sentence each. This is the handoff. They will pick one next.",
   "(draft) Driving: a car that sees the road, other cars, and people.",

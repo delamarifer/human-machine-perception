@@ -4,6 +4,7 @@ const ORDER = [
   // part            outline   what
   ['opening',       '',       'Welcome and the question: what does it mean to see'],
   ['about-shreya',  '',       'About me: AIMS, research, Scale AI, DUST, holographic art'],
+  ['course',        '',       'Course philosophy, then what a day looks like'],
   ['ill-posed',     '',       'Why vision is difficult'],
   ['assumptions',   '',       'Light versus the scene: checker shadow, size and depth'],
   ['visual-system', '',       'Human vision, briefly'],
@@ -12,7 +13,6 @@ const ORDER = [
   ['bridge',        '',       'From human vision to computer vision'],
   ['can-computers', '',       'Applications, then where vision is used'],
   ['group',         '',       'Groups of four pick one and answer'],
-  ['course',        '',       'Course overview'],
   ['discuss',       '',       'Share group ideas. Tomorrow: numbers, then boxes'],
 ];
 const PARTS = ORDER.map(r => r[0]);
@@ -24,8 +24,8 @@ const SEC_MINUTES = {
   'Who we are': 3,
   'Seeing': 12,
   'Assumptions': 6,
-  'History': 7,
-  'Practice': 15,
+  'History': 9,
+  'Practice': 13,
   'Machines': 4,
   'Computers': 8,
   'Groups': 15,

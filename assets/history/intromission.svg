@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360">
+  <defs>
+    <marker id="in" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#4f6d9a"/>
+    </marker>
+  </defs>
+  <rect width="640" height="360" fill="#f8fafc"/>
+  <g fill="none" stroke="#0f172a" stroke-width="3">
+    <rect x="70" y="130" width="70" height="100"/>
+    <circle cx="470" cy="180" r="42"/>
+  </g>
+  <g fill="none" stroke="#4f6d9a" stroke-width="3">
+    <rect x="190" y="158" width="26" height="34" fill="#f8fafc"/>
+    <rect x="270" y="164" width="20" height="26" fill="#f8fafc"/>
+    <rect x="340" y="168" width="14" height="20" fill="#f8fafc"/>
+    <path d="M216 175 L420 178" marker-end="url(#in)"/>
+  </g>
+  <g font-family="Calibri, Helvetica, sans-serif" font-size="20" fill="#0f172a" text-anchor="middle">
+    <text x="105" y="118">object</text>
+    <text x="470" y="118">eye</text>
+    <text x="320" y="310">Copies enter the eye</text>
+  </g>
+</svg>

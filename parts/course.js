@@ -11,17 +11,15 @@ st(`
 st(`
   <h1 class="t">Course philosophy</h1>
   <ul class="frag">
-    <li class="b"><b>Our approach to vision</b><div class="todo">brains and machines side by side?</div></li>
-    <li class="b"><b>Goals and outcomes</b><div class="todo">what you can do by the end</div></li>
-    <li class="b"><b>Co-design</b><div class="todo">how students shape the course</div></li>
-    <li class="b"><b>AI in this course</b><div class="todo">how to use it, and how not to</div></li>
+    <li class="b"><b>Our approach</b> Human vision and machine vision, side by side</li>
+    <li class="b"><b>By the end</b> Build a system, and say where it fails</li>
+    <li class="b"><b>Co-design</b> Your interests shape what we do next</li>
   </ul>
 `, { notes: [
-  "(to write) Course philosophy.",
-  "(to write) Approach to vision.",
-  "(to write) Goals and outcomes for the class.",
-  "(to write) Co-design.",
-  "(to write) AI in this course and how to go about using it."
+  "(draft) How the three weeks actually run. Three ideas. The syllabus is the longer version.",
+  "(draft) Hands-on, from pixels to learned models. At each step we ask the question from this morning: what does the system actually receive, and what does it infer. You build the thing, and you also say where it fails.",
+  "(draft) By the end you can load and change images in Python, use a pretrained model, and build an application of your own. You present the design, the result, and the limits. Labs, homework, and that project are the work of the course.",
+  "(draft) Co-design means we learn what you already know and what you want to build. The questionnaire today is the start. Later days, and the final project, bend toward those interests. We shape the class together."
 ]});
 
 /* What a class day looks like: one stage per click. */
@@ -44,21 +42,4 @@ st(`
   "(draft) And we close with an exit question."
 ]});
 
-st(`
-  <h1 class="t">Course structure</h1>
-  <ul class="frag">
-    <li class="b"><b>Day 1</b> What does it mean to see?</li>
-    <li class="b"><b>Day 2</b> Numbers, then a simple vision system</li>
-    <li class="b"><b>Day 3</b> What a pretrained model sees</li>
-    <li class="b"><b>Resources</b><div class="todo">readings, tutorial practice</div></li>
-    <li class="b"><b>Website and help</b><div class="todo">URL, office hours, where to ask</div></li>
-  </ul>
-`, { notes: [
-  "(draft) The first three days, then the rest of the course.",
-  "(draft) Day 1 is the question. What does it mean to see?",
-  "(draft) Day 2 is a classical answer. The picture is numbers, then a system that recovers boxes from assumptions.",
-  "(draft) Day 3 is a learned model on a real photograph.",
-  "(to write) Resources: readings, tutorial practice, etc.",
-  "(to write) Website, and where to go for help."
-]});
 }

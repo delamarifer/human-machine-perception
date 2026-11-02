@@ -25,14 +25,14 @@ The room is two hours. The talking is about 90 minutes. None of the lecture beat
 |---|---|---|
 | 0–3 min | Welcome | Introductions and one opening illusion. |
 | 3–6 min | About me | AIMS, research, Scale AI, DUST, holographic art. One sentence and a photo each, not a talk. |
-| 6–18 min | The challenge of vision | Why vision is difficult. Illusions, light versus scene properties, ambiguity, inferring depth and structure. |
-| 18–23 min | Human vision | A brief pass through the visual system. |
-| 23–30 min | History | The theories in chapter 1.3, one idea each, then computer vision as the late chapter. |
-| 30–45 min | Notebook | Stop. Images as arrays: the checker-shadow image, slices, and arithmetic. Finish the rest after class. |
-| 45–49 min | From human to machine vision | Geometry, designed features, learned models. |
-| 49–57 min | Applications | The field working, then one sentence each: driving, health, shops, robots and farms, augmented reality, maps of the earth. That list is the handoff. |
-| 57–72 min | Group activity | Groups of four pick one application, one just named or another they care about. They name the problem it solves, how it is like human vision, what the system sees, and where it can be wrong. |
-| 72–76 min | Course overview | The first three days, then where the course goes. |
+| 6–10 min | Course philosophy | Human and machine vision side by side, what you can do by the end, and co-design from student interests. Then what a day looks like. |
+| 10–22 min | The challenge of vision | Why vision is difficult. Illusions, light versus scene properties, ambiguity, inferring depth and structure. |
+| 22–27 min | Human vision | A brief pass through the visual system. |
+| 27–36 min | History | One theory per slide, in time order: atomists, Euclid, Ibn al-Haytham, Helmholtz, Wertheimer, Gibson, Marr. Then computer vision as the late chapter. |
+| 36–49 min | Notebook | Stop. Images as arrays: the checker-shadow image, slices, and arithmetic. Finish the rest after class. |
+| 49–53 min | From human to machine vision | Geometry, designed features, learned models. |
+| 53–61 min | Applications | The field working, then photos: driving, health, shops, robots and farms, augmented reality, maps of the earth. That list is the handoff. |
+| 61–76 min | Group activity | Groups of four pick one application, one just named or another they care about. They name the problem it solves, how it is like human vision, what the system sees, and where it can be wrong. |
 | 76–90 min | Discussion | Groups share. Connect what they said to the course. |
 
 Deck: `deck.html`.
