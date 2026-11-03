@@ -3,7 +3,7 @@
    class project-based?"
    ACT 1 APPLICATIONS (one demo per slide, each mapped to the week of syllabus.html that covers it), then all of
          them on one screen: "this is what we will cover".
-   ACT 2 LIMITATIONS: our own ResNet-18 run on the elephant statue (real output), VLMs are blind, Dollar Street,
+   ACT 2 LIMITATIONS: our own ResNet-18 run on the elephant statue (real output), VLMs are blind,
          texture bias. Numbers only from the papers' abstracts.
    ACT 3 WHY HUMANS, WHY PROJECTS, then the one-photo scene as a taste of the tools.
    Demos were checked on 2026-11-02 (links answer). VGGT, Gemini Robotics and Genie carry the maker's own video.
@@ -42,11 +42,11 @@ const demo = (o) => st(`
    embedding: checked 2026-11-02, Meta and DeepMind/Google pages refuse (X-Frame-Options / frame-ancestors).
    Needs internet in class. Inside another site the deck's keys stop working until you click outside it:
    one click on the slide, outside the site, moves on. */
-const embed = (title, url, say) => st(`
+const embed = (title, url, say, opts = {}) => st(`
   <h1 class="t">${title}</h1>
   <iframe class="motivation-site b" src="${url}" title="${title}" allow="fullscreen" referrerpolicy="no-referrer"></iframe>
   <style>.motivation-site{ flex:1 1 auto; min-height:0; width:100%; border:1px solid var(--line); border-radius:12px; background:#fff; }</style>
-`, { blank: false, notes: [`(draft) ${say[0]}`, `(draft) ${say[1]}`] });
+`, { blank: opts.blank ?? false, notes: [`(draft) ${say[0]}`, `(draft) ${say[1]}`] });
 
 st(`
   <div class="center">
@@ -180,45 +180,14 @@ st(`
   "(draft) ImageNet does have elephants. Indian elephant comes ninth, at about 1 percent. Note for us: we picked this photo because the model gets it wrong; it is one example, not a failure rate."
 ]});
 
-st(`
-  <h1 class="t">Vision-language models are blind</h1>
-  <ul class="frag">
-    <li class="b" data-step="1">Do two circles overlap? How many lines cross? Which letter is circled?</li>
-  </ul>
-  <div class="motivation-bars b" data-step="2" style="max-width:60vw;margin:2vh 0 auto">
-    <div class="label">Four VLMs, average</div><div class="motivation-tr"><div style="width:58.07%;background:var(--ink)"></div></div><div class="label">58.07%</div>
-    <div class="label">Best model</div><div class="motivation-tr"><div style="width:77.84%;background:var(--ink)"></div></div><div class="label">77.84%</div>
-    <div class="label">People, expected</div><div class="motivation-tr"><div style="width:100%;background:var(--ink)"></div></div><div class="label">100%</div>
-  </div>
-  ${cite('Rahmanzadehgervi, Bolton, Taesiri &amp; Nguyen, Vision language models are blind, ACCV 2024 (arXiv 2407.06581 v6) · vlmsareblind.github.io')}
-`, { notes: [
-  "(draft) Models that combine images and language can describe a photo in detail. But here is a paper titled: vision language models are blind.",
-  "(draft) The authors asked questions a child can answer. Do these two circles overlap? How many times do these lines cross? Which letter is circled?",
-  "(draft) Four of the best models of 2024 got 58 percent right on average. The best one, 78 percent. A person is expected to get all of them. These were the 2024 models; whether today's models still fail, and why, is exactly the kind of question you could study."
-]});
 
-embed('Vision-language models are blind', 'https://vlmsareblind.github.io/', [
-  'The paper has its own website, with the tasks and the models\' answers.',
-  '(Scroll through a few examples: the question, the image, and what each model answered.)']);
+embed('What vision models are still “blind” to', 'https://vlmsareblind.github.io/', [
+  "Models that combine images and language can describe a photo in detail. But here is a paper titled: vision language models are blind. (Rahmanzadehgervi et al., ACCV 2024.)",
+  "(Scroll through the examples.) The authors asked questions a child can answer: do two circles overlap, how many times do these lines cross, which letter is circled. Four of the best models of 2024 got 58 percent right on average; the best one, 78 percent. A person is expected to get all of them. Whether today's models still fail, and why, is exactly the kind of question you could study."], { blank: true })
 
-st(`
-  <h1 class="t">Does object recognition work for everyone?</h1>
-  <ul class="frag">
-    <li class="b">Photos of household items from homes around the world</li>
-    <li class="b">Six systems: worse on items common in low-income countries</li>
-    <li class="b">Same object, different look; familiar object, different place</li>
-  </ul>
-  ${cite('DeVries, Misra, Wang &amp; van der Maaten, Does object recognition work for everyone?, CVPR Workshops 2019 · Images: Gapminder Dollar Street')}
-`, { notes: [
-  "(draft) Does object recognition work for everyone?",
-  "(draft) This study used Dollar Street, a collection of photos of everyday objects in homes around the world, across income levels.",
-  "(draft) They tested six object recognition systems that were publicly available. All of them did worse on household items that are common in countries with low household income.",
-  "(draft) Why? The same kind of object looks different from home to home, dish soap for example, and familiar objects show up in unfamiliar places, like a toothbrush outside a bathroom. The training data did not look like these homes."
-]});
-
-embed('Does object recognition work for everyone?', 'https://www.gapminder.org/dollar-street', [
-  'Dollar Street itself is online.',
-  '(Scroll through: pick one object, a toothbrush or a stove, and compare homes across incomes and countries. This is the kind of variation the training data missed.)']);
+/* Adversarial vulnerability, from Fernanda's thesis defense (scenes/adversarial.html: panda + perturbation -> "gibbon",
+   Goodfellow et al. 2015; her own speech attack, "director" -> "center"). Her wording in the notes. */
+sc('adversarialBoxes', 'scenes/adversarial.html');
 
 /* Texture or shape: the paper's finding, then the same idea tested on our two photos with our ResNet-18. Shuffling
    the patches destroys the shape and keeps the texture. Real outputs: day02/assets/shuffle/(coffee, elephant)/result.json, made by

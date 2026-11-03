@@ -72,6 +72,8 @@ aggregates go out on a public site.
 - [ ] Check the Before lines read the way you'd say them, especially MedGemma ("first open model of its kind" is Google's claim).
 
 ### Questions for Fernanda
+- [x] Learning outcomes in orange (#c2410c), Day 2 only (day02/deck.html). Orange now means "learning outcome"; if
+      other days adopt it, it belongs in deck.css and _deck-wide.md (shared files, coordinator's call).
 - [ ] "Why we look to human vision" (slide 22) now gives three reasons, each the Vision Book's own (Ch. 1): people
       still see better (the elephant), many tools came from the brain (RGB, filters, neural networks, attention),
       perception shows what to build (Kanizsa triangle, drawn here). Your own framing can replace the notes.
@@ -82,9 +84,10 @@ aggregates go out on a public site.
 - [ ] Demo slides now show "What it does" / "What it enables that we could not do before" (two sentences each).
       Media: VGGT, Gemini Robotics, Genie (makers' videos); DINOv3 (the live Canopy Height map on Earth Engine);
       AlphaEarth, SAM 3, MedGemma (the makers' own published images, loaded from their sites and credited).
-- [ ] Google Classroom (slide after Grading): does the class exist yet, and who owns it? An AIMS account is best;
-      AIMS IT or the tutors may need to create it and add Fernanda and Shreya as teachers. The code goes on the
-      board only, never on the slides (the deck is public).
+- [x] Google Classroom slide replaced (Fernanda, 2026-11-02) by "Handing in, and staying in touch": assignments through
+      Google Forms (the Day 1 questionnaire embedded live as the example) and a show of hands on Slack / WhatsApp /
+      email / other.
+- [ ] Confirm every assignment (write-up, slides too) goes through Forms; what channel the class picks, and who sets it up.
 - [x] Survey on the public site: grouped data only, never individual answers, except the project ideas (Fernanda, 2026-11-02). Slides: two aggregate charts, an anonymous paraphrased list of the project ideas, and the grouped cards.
 - [ ] Order: your outline today puts project expectations before the lab. The plan's "opening order" from
       earlier today puts the paper discussion at minute 5-15 and the project plan after the lab. I followed
@@ -115,7 +118,7 @@ aggregates go out on a public site.
       (fills in the back; a few lines on top of `reconstruct`), plus the pretrained depth model on the box image
       (both are quick). A second view and learning could be homework extensions.
 - [ ] Paper review: are the three Pizlo questions OK? Pairs or whole class?
-- [ ] Homework: which metamers paper? (The Day 3 plan lists Freeman & Simoncelli 2011 and Portilla-Simoncelli.)
+- [x] Homework reading: the metamers primer (metamers.html), linked from the homework card with its own figure.
 - [ ] Response paper for today: is the Pizlo question the one on the response paper, or tomorrow's paper?
 
 ## Round 1 · 2026-10-28 · first build (Claude, day02 session)

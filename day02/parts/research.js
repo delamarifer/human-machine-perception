@@ -72,7 +72,7 @@ st(`
   "(draft) A research question, or a building project? By the end of this part, you can tell one from the other.",
   "(draft) What kinds of questions are research?",
   "(draft) Mathematical or theoretical: how do we change the way these systems learn? Training on images where texture is unreliable, so the network learns shape, is an example. You saw the problem earlier: shuffle the pieces of the coffee photo and the network stops saying espresso.",
-  "(draft) Fully exploring a limitation, or finding new ones: in which settings do these tools fail? Vision language models are blind, and does object recognition work for everyone, are both papers of this kind. Remember the numbers: 58 percent on average, 78 for the best model, on questions a person gets right.",
+  "(draft) Fully exploring a limitation, or finding new ones: in which settings do these tools fail? Vision language models are blind is a paper of exactly this kind. Remember the numbers: 58 percent on average, 78 for the best model, on questions a person gets right.",
   "(draft) Application: what is a useful way to apply these tools? Mapping tree height across the planet from satellite images is one.",
   "(draft) And this is how it maps onto your project. Building a useful application is the demo track; exploring or overcoming a limitation, and answering with a measurement, is the experiment track."
 ]});

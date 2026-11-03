@@ -2,3 +2,9 @@
 __pycache__/
 *.pyc
 day02/day02-lab-solutions.ipynb
+
+# Teacher copies of the notebooks, with solutions (notebooks/build/<script>.py --teacher). Never commit.
+notebooks/teacher/
+
+# Private solutions for the notebook build scripts (notebooks/build/private/). Never commit.
+notebooks/build/private/

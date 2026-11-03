@@ -47,6 +47,17 @@ Made by running the code cells of `notebooks/day01-lab-simple-vision-system.ipyn
   figure/ground mask (saturation > 0.15); occlusion (orange) and contact (teal) edges; vertical (red) and
   horizontal (blue) 3D edges. Each cropped to its non-white pixels plus 12 px, detected from the pixels.
   The same run printed 45046 equations for 33000 unknowns and "tallest box: true height 70.0, recovered 68.6".
+- `edges-outline.png`, `edges-fold.png`, `patch-alone.png`, `patch-context.png`, `accidental-*.png`: made by
+  `simple-system/make/gen.py` (run as `gen.py <solved.ipynb> <outdir>`, after the notebook's own cells, same versions),
+  from the notebook's arrays, without axes, 4× nearest-neighbor upscaling. Edges by cause: edge pixels within 2 px of
+  the figure/ground border are "outline" (1396 px), the rest "fold" (590 px). Patch: 12 × 12 px at the center of the
+  largest flat face (the green box's front), shown alone, then boxed in the image. Accidental view: the notebook's
+  WORLD with every box turned to angle 0 (its "Your turn 6" suggests this), run through the same steps as its
+  `run_system`; recovered vs true box tops: red 69.0 vs 45.0, blue 36.0 vs 18.0, green 87.3 vs 70.0.
+  `make/run.py` saves every notebook figure; `make/crop.py` trims white margins detected from the pixels.
+- Not images: the slides "What the image throws away" (the notebook's two points, y = 16.38, drawn from its
+  formula), "Priors" (distributions drawn for illustration, said on the slide) and "A world simulator" (a toy:
+  24 towers jittered with seed 7, static stability, computed in the page) are SVG built in `parts/simple-system.js`.
 
 ## shuffle/ (texture or shape)
 Made by `shuffle.py` on 2026-11-02 (torch 2.15.0, torchvision 0.29.2, opencv 5.0.0) from the same two Commons photos
@@ -64,3 +75,10 @@ Two photos, one seed: a probe for class, not a measurement.
 - The Pizlo slide's "many 3D scenes fit it" and the Keshav slide's paper page are schematics drawn in SVG/HTML
   in `parts/papers.js`, not data. The research slide reuses `shuffle/coffee/` and the VLMs-are-blind numbers
   exactly as the motivation slides show them.
+
+## adversarial/ (adversarial vulnerability scene)
+Copied from Fernanda's thesis defense (thesis-defense/assets/outline/, used by
+scenes/adversarial-boxes.final-ch1-adv-vulnerability.html, 2026-10-16):
+- adv-panda.png, adv-panda-delta.png, adv-panda-gibbon.png: Goodfellow, Shlens & Szegedy, Explaining and harnessing
+  adversarial examples, ICLR 2015 (images from the arXiv source, panda_577 / nematode_082 / gibbon_993).
+- adv-std2-coch-clean.png, -delta.png, -adv.png: Fernanda's own speech attack (June 2024), "director" -> "center".
