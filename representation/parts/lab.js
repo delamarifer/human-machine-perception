@@ -11,7 +11,7 @@ st(`
     <li class="b">Assumptions as equations</li>
     <li class="b">A 3D result, and where it breaks</li>
   </ul>
-  <div class="label b">About 50 minutes. notebooks/day01-lab-simple-vision-system.ipynb</div>
+  <div class="label b">About 50 minutes. <a href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-lab-simple-vision-system.ipynb" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--ink)">Open the notebook in Colab ↗</a></div>
 `, { notes: [
   "(draft) The lab notebook. Run it from the top. Fill the Your turn cells.",
   "(draft) Projection: how a 3D point becomes a pixel, and why many 3D points can share one pixel.",

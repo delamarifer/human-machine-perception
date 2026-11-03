@@ -10,11 +10,11 @@ section('Homework');
 st(`
   <h1 class="t">Homework</h1>
   <div class="homework-cards">
-    <div class="homework-card b">
+    <a class="homework-card b" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-lab-simple-vision-system.ipynb" target="_blank" rel="noopener" onclick="event.stopPropagation()">
       <div class="homework-pic"><img src="assets/simple-system/recovered-behind.png" alt=""></div>
       <b>Finish the simple system</b>
-      <div class="label homework-mute">or extend it to a world of your own</div>
-    </div>
+      <div class="label homework-mute">or extend it to a world of your own · Open in Colab ↗</div>
+    </a>
     <div class="homework-card b">
       <div class="homework-pic homework-trio"><img src="../assets/metamers/coffee.jpg" alt=""><img src="../assets/metamers/coffee-pixels.jpg" alt=""><img src="../assets/metamers/coffee-spectrum.jpg" alt=""></div>
       <b>Read the metamers primer</b>
@@ -29,7 +29,7 @@ st(`
   </div>
   <style>
     .homework-cards{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:2vw; margin-bottom:2vh; }
-    .homework-card{ border:2px solid var(--ink); border-radius:14px; padding:2vh 1.2vw; display:flex; flex-direction:column; gap:1vh; min-height:0; }
+    .homework-card{ border:2px solid var(--ink); border-radius:14px; padding:2vh 1.2vw; display:flex; flex-direction:column; gap:1vh; min-height:0; color:var(--ink); text-decoration:none; }
     .homework-card > b{ font-size:clamp(1.4rem, 2.2vw, 2rem); }
     .homework-mute{ color:var(--mute); }
     .homework-pic{ flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center; }
