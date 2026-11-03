@@ -44,7 +44,7 @@ free-text answers, with no names and no quotes. The raw CSV is not in the repo, 
 aggregates go out on a public site.
 
 ### Questions for Fernanda
-- [ ] OK to show survey aggregates on the public site? If not, we can keep the projects slides out of `main`.
+- [x] Survey on the public site: grouped data only, never individual answers, except the project ideas (Fernanda, 2026-11-02). Slides: two aggregate charts, an anonymous paraphrased list of the project ideas, and the grouped cards.
 - [ ] Order: your outline today puts project expectations before the lab. The plan's "opening order" from
       earlier today puts the paper discussion at minute 5-15 and the project plan after the lab. I followed
       today's outline.

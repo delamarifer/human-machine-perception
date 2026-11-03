@@ -57,6 +57,32 @@ st(`
   "(draft) And four want creative experimentation. The project is where all four meet."
 ]});
 
+/* The project ideas you sent, one per answer that named one. Paraphrased, no names, no quotes
+   (Fernanda, 2026-11-02: grouped data only, except the project ideas). */
+const IDEAS = [
+  'Flood mapping from satellite images, with weather and geospatial data',
+  'Finding waste in the ocean and other large bodies of water',
+  'Downscaling climate data from satellite to ground level, maybe with diffusion',
+  'Computer vision for climate change and the environment',
+  'Detecting abnormalities in medical images to help diagnosis',
+  'Cancer detection, and explaining what the model decided',
+  'A memory aid for neurodegenerative disease, adapted to low-resource settings',
+  'Turning a dancer\'s movement into music',
+  'Taking machine perception from 2D images to the 3D world',
+  'Building a video generator'];
+st(`
+  <h1 class="t">The ideas you sent us</h1>
+  <div class="projects-sent b">${IDEAS.map(i => `<div>${i}</div>`).join('')}</div>
+  <div class="cite">From your Day 1 survey; names left out</div>
+  <style>
+    .projects-sent{ margin:auto 0; display:grid; grid-template-columns:1fr 1fr; gap:2.6vh 4vw; }
+    .projects-sent > div{ font-size:clamp(1.1rem, 1.7vw, 1.6rem); line-height:1.3; padding-left:1.2vw; border-left:3px solid var(--line); }
+  </style>
+`, { notes: [
+  "(draft) Here are the project ideas you sent us.",
+  "(draft) Flood mapping from satellite images. Finding waste in the ocean. Downscaling climate data. Medical images: finding abnormalities, detecting cancer, explaining the decision. A memory aid adapted for low-resource settings. Turning dance into music. Going from 2D to 3D. A video generator. These are all real projects you could build in three weeks, with the tools we will cover. Next, we grouped them, and paired each group with tools."
+]});
+
 /* interests (our grouping of the free-text answers) → tools from today's demos */
 const idea = (name, eg, tools, step) => `<div class="projects-idea b" data-step="${step}">
   <b>${name}</b><div class="label">${eg}</div><div class="label projects-tools">Try: ${tools}</div></div>`;
