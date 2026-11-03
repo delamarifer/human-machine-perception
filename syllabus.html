@@ -118,6 +118,20 @@
   .chip small{ display:block; font-size:.66rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--k); }
   .sd-tags .due{ margin-top:0; }
   @media (max-width:760px){ .sday{ grid-template-columns:48px 1fr; } .sd-tags{ grid-column:2; flex-direction:row; flex-wrap:wrap; } }
+  .timeline{ position:relative; max-width:44rem; padding:0; margin:0 0 .4em; list-style:none; }
+  .timeline::before{ content:''; position:absolute; left:63px; top:12px; bottom:14px; width:2px;
+    background:linear-gradient(var(--cyan), var(--violet), var(--amber), var(--pink)); opacity:.6; }
+  .timeline li{ position:relative; display:grid; grid-template-columns:48px 1fr; gap:34px; margin:0; padding:0 0 18px; }
+  .timeline li::after{ content:''; position:absolute; left:58px; top:6px; width:12px; height:12px; border-radius:50%;
+    background:var(--k, var(--mute)); box-shadow:0 0 12px 2px var(--k, transparent); }
+  .timeline time{ font:700 1rem/1.5 'Space Grotesk', sans-serif; color:var(--k, var(--mute)); text-align:right; font-variant-numeric:tabular-nums; }
+  .timeline b{ display:block; font:700 1.05rem/1.5 'Space Grotesk', sans-serif; }
+  .timeline b span{ margin-left:.5em; font:600 .8rem/1 Inter, sans-serif; color:var(--k); padding:.15em .55em; border-radius:999px;
+    background:color-mix(in srgb, var(--k) 14%, transparent); border:1px solid color-mix(in srgb, var(--k) 40%, transparent); vertical-align:2px; }
+  .timeline p{ margin:.1em 0 0; color:var(--mute); font-size:.95rem; }
+  .timeline li.end{ padding-bottom:0; }
+  .timeline li.end b{ color:var(--mute); font-weight:500; }
+  .vary{ color:var(--mute); font-size:.9rem; font-style:italic; margin:0 0 .5em; }
   /* project directions */
   .tags{ display:flex; flex-wrap:wrap; gap:10px; padding:0; margin:1em 0 1.2em; list-style:none; }
   .tags li{ margin:0; padding:.5em .9em; border:1px solid var(--line); border-radius:12px; background:var(--surface); font-size:.95rem; }
@@ -176,6 +190,7 @@
       <a href="#project">Final project</a>
       <a href="#grading">Grading</a>
       <a href="#approach">Learning approach</a>
+      <a href="readings.html">Readings</a>
       <a href="templates.html">Project templates</a>
     </nav>
   </div>
@@ -193,23 +208,25 @@
     <h2>Format</h2>
     <div class="facts">
       <div class="fact"><small>Duration</small>3 weeks (15 sessions)</div>
-      <div class="fact"><small>Schedule</small>2 hours per day</div>
+      <div class="fact"><small>Schedule</small>2 hours per day, 2:00 to 4:00 pm</div>
       <div class="fact"><small>Format</small>Lectures, discussions, and in-class coding labs</div>
       <div class="fact"><small>Platform</small>Google Colab, in the browser. Bring a laptop and a Google account.</div>
       <div class="fact"><small>Assessment</small>Daily response papers, two assignments, and a final project</div>
     </div>
 
     <h3>A typical day</h3>
-    <ol class="day-flow">
-      <li style="--k:var(--cyan)"><b>Review</b><span>About 10 minutes on the reading or the homework</span></li>
-      <li style="--k:var(--violet)"><b>Lecture</b><span>Short blocks, each paired with a piece of human vision</span></li>
-      <li style="--k:var(--amber)"><b>Lab</b><span>Hands-on coding in a Colab notebook, 30 to 45 minutes</span></li>
-      <li style="--k:var(--pink)"><b>Discuss</b><span>What worked, what failed, and how it connects to your project</span></li>
+    <ol class="timeline">
+      <li style="--k:var(--cyan)"><time>2:00</time><div><b>Review <span>10 min</span></b><p>Discussion of the reading or the homework</p></div></li>
+      <li style="--k:var(--violet)"><time>2:10</time><div><b>Lecture <span>about 45 min</span></b><p>Short blocks, each paired with a piece of human vision</p></div></li>
+      <li style="--k:var(--amber)"><time>2:55</time><div><b>Lab <span>about 55 min</span></b><p>Hands-on coding in a Colab notebook, with the teachers going back and forth between explaining and coding</p></div></li>
+      <li style="--k:var(--pink)"><time>3:50</time><div><b>Discuss and wrap up <span>10 min</span></b><p>What worked, what failed, how it connects to your project, and the homework</p></div></li>
+      <li class="end"><time>4:00</time><div><b>End</b></div></li>
     </ol>
+    <p class="vary">Times vary from day to day. This example follows Day 2.</p>
 
     <h3>Every day comes with</h3>
     <div class="facts">
-      <div class="fact"><small>Reading</small>A chapter from Torralba, Isola &amp; Freeman, <i>Foundations of Computer Vision</i>, or a paper</div>
+      <div class="fact"><small>Reading</small>A chapter from Torralba, Isola &amp; Freeman, <i>Foundations of Computer Vision</i>, or a paper. See the <a href="readings.html">reading bank</a>, and suggest your own.</div>
       <div class="fact"><small>Coding practice</small>A Colab notebook you start in class and finish at home</div>
       <div class="fact"><small>Human connection</small>An illusion or finding from human vision, next to what a model does</div>
       <div class="fact"><small>Response paper</small>One question on the reading and three on the lab</div>
