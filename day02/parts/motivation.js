@@ -223,8 +223,9 @@ st(`
   "(draft) Shape gone, texture kept, and the answers change, but not always in the same way. This is two photos and one shuffle, not a measurement. Testing it properly, on many images, against people, is exactly the kind of question you could take on in a project."
 ]});
 
-/* Emmert's law, copied from Day 1 (Shreya did not cover it there; Fernanda, 2026-11-02). */
-sc('emmert', 'scenes/emmert.html');
+/* Size and distance (Emmert's law): the corridor and monster, then the eye and the visual angle (Fernanda, 2026-11-03).
+   Replaces the drawn spheres of scenes/emmert.html, copied from Day 1. */
+sc('sizeCorridor', 'scenes/size.html');
 
 /* Why we look to human vision: three reasons, each the Vision Book's own argument (Torralba, Isola & Freeman,
    Foundations of Computer Vision, Ch. 1 "The Challenge of Vision": the brain's performance "still unmatched by
@@ -251,15 +252,27 @@ const kanizsa = `<svg viewBox="0 0 200 180" class="motivation-why-svg" aria-hidd
     const x1 = x + r * Math.cos(a - w / 2), y1 = y + r * Math.sin(a - w / 2), x2 = x + r * Math.cos(a + w / 2), y2 = y + r * Math.sin(a + w / 2);
     return `<path d="M${x} ${y} L${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 1 0 ${x2.toFixed(1)} ${y2.toFixed(1)} Z" fill="#0f172a"/>`; }).join('')}
   </svg>`;
+/* The failures from earlier in this section, in one card: our ResNet-18 elephant, Goodfellow et al.'s panda (adversarial
+   scene), our shuffled coffee (shuffle/coffee/result.json: shuffled-4 top-1 "toilet tissue"), and VLMs are blind
+   (Rahmanzadehgervi et al. 2024: 58% on average on questions like "do the circles overlap?"; circles drawn here). */
+const exCell = (vis, you, model) => `<div class="motivation-ex-cell"><div class="motivation-ex-im">${vis}</div>
+  <div class="motivation-ex-cap">You: ${you}<br>Model: ${model}</div></div>`;
+const ex = [
+  exCell(`<img src="assets/human-vs-machine/crop.jpg" alt="">`, 'an elephant', 'triceratops'),
+  exCell(`<img src="assets/adversarial/adv-panda-gibbon.png" alt="">`, 'a panda', 'gibbon'),
+  exCell(`<img src="assets/shuffle/coffee/shuffled-4.png" alt="">`, 'coffee, scrambled', 'toilet tissue'),
+  exCell(`<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="34" cy="50" r="22" fill="none" stroke="#0f172a" stroke-width="3"/><circle cx="78" cy="50" r="16" fill="none" stroke="#0f172a" stroke-width="3"/></svg>`,
+    'they don’t overlap', 'right 58% of the time (avg.)')
+].join('');
 st(`
   <h1 class="t">Why we look to human vision</h1>
   <div class="label motivation-outcome"><b>By the end, you can</b> · explain why we look to human vision to get past those limits</div>
   <div class="motivation-whys">
-    ${why(1, `<img src="assets/human-vs-machine/crop.jpg" alt="">`, 'People still see better', 'You: an elephant · ResNet-18: triceratops')}
+    ${why(1, `<div class="motivation-ex">${ex}</div>`, 'People still see better', 'Every failure we saw today, a person gets right')}
     ${why(2, chain, 'Many tools came from the brain', 'Color channels, filters, neural networks, attention')}
     ${why(3, kanizsa, 'Perception shows what to build', 'Grouping and completion: a triangle that is not there')}
   </div>
-  ${cite('Torralba, Isola &amp; Freeman, Foundations of Computer Vision, Ch. 1, The Challenge of Vision · Elephant: our ResNet-18 run · Photo: Carlos Valenzuela, CC BY-SA 4.0')}
+  ${cite('Torralba, Isola &amp; Freeman, Foundations of Computer Vision, Ch. 1, The Challenge of Vision · Elephant and coffee: our ResNet-18 runs · Panda: Goodfellow et al., 2015 · Circles: Rahmanzadehgervi et al., ACCV 2024 · Photo: Carlos Valenzuela, CC BY-SA 4.0')}
   <style>
     .motivation-whys{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:2vw; margin-bottom:3vh; }
     .motivation-why{ border:2px solid var(--line); border-radius:14px; padding:2vh 1.2vw; display:flex; flex-direction:column; gap:1vh; min-height:0; }
@@ -267,10 +280,15 @@ st(`
     .motivation-why-vis{ flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center; }
     .motivation-why-vis img{ max-height:100%; max-width:100%; object-fit:contain; border-radius:8px; }
     .motivation-why-svg{ width:90%; max-height:100%; }
+    .motivation-ex{ width:100%; height:100%; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:1vh .8vw; min-height:0; }
+    .motivation-ex-cell{ display:flex; flex-direction:column; align-items:center; gap:.4vh; min-height:0; }
+    .motivation-ex-im{ flex:1 1 auto; min-height:0; width:100%; display:flex; justify-content:center; }
+    .motivation-ex-im img, .motivation-ex-im svg{ height:100%; max-width:100%; aspect-ratio:1; object-fit:cover; border-radius:6px; }
+    .motivation-ex-cap{ font-size:clamp(.8rem, 1.05vw, 1rem); line-height:1.25; text-align:center; color:var(--ink); }
   </style>
 `, { notes: [
   "(draft) So why do we look to human vision? By the end of this part, you can explain why we look to human vision to get past the limits we just saw.",
-  "(draft) First, because people still see better. Every one of you saw the elephant at a glance; the classifier said triceratops. Our textbook puts it this way: seeing feels effortless, but the brain solves problems that are still unmatched by any artificial system.",
+  "(draft) First, because people still see better. Every failure we just saw, you get right at a glance: the elephant the classifier called a triceratops, the panda that became a gibbon after a little invisible noise, the scrambled coffee it called toilet tissue, and simple questions about circles and lines, where vision language models got 58 percent right on average. Our textbook puts it this way: seeing feels effortless, but the brain solves problems that are still unmatched by any artificial system.",
   "(draft) Second, because many of the tools in this course came from studying the brain. Color images with three channels, filters modeled on cells in the visual cortex that respond to spots and to edges at particular orientations, neural networks themselves, and attention: the textbook traces each of them to neuroscience. You will build some of these filters on Day 3.",
   "(draft) Third, because human perception shows what to build, and how to test it. You see a white triangle here, though none is drawn: your visual system groups the pieces and completes the shape. Principles like this, studied by perception scientists, shaped methods such as image segmentation, and they give us tests to run on models: does a vision model see the triangle?"
 ]});

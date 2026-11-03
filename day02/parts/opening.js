@@ -71,8 +71,8 @@ const SEG = [
    vis: `<div class="opening-weeks"><i>1</i><i>2</i><i>3</i></div>`},
   {min: 30, label: 'Motivation<br><span class=\"opening-mins\">30 min</span>', title: ['Say what today\'s vision systems do well and where they fail', 'Explain why we look to human vision to get past those limits'],
    vis: `<div class="opening-pair"><img src="assets/one-photo/crop.jpg" alt=""><img src="assets/human-vs-machine/crop.jpg" alt=""></div>`},
-  {min: 10, label: 'Project<br><span class=\"opening-mins\">10 min</span>', title: ['Know the two project tracks'],
-   vis: `<div class="opening-weeks opening-kinds"><i>Demo</i><i>Exp.</i></div>`},
+  {min: 10, label: 'Project<br><span class=\"opening-mins\">10 min</span>', title: ['Know what a project can look like'],
+   vis: `<div class="opening-weeks opening-kinds"><i>Demo</i><i>Exp.</i><i>…</i></div>`},
   {min: 55, label: 'Lab<br><span class=\"opening-mins\">50–60 min</span>', title: ['Recover the 3D shape of a simple scene from one image, by writing its assumptions as equations'],
    vis: `<div class="opening-pair"><img src="assets/simple-system/world.png" alt=""><img src="assets/simple-system/recovered-behind.png" alt=""></div>`},
   {min: 20, label: 'Research and papers<br><span class=\"opening-mins\">20 min</span>', title: ['Tell a research question from a building project', 'Read a research paper efficiently, then discuss one: perception as an inverse problem'],
@@ -113,7 +113,7 @@ st(`
   "(draft) Here is today, and what you will be able to do by the end of it. The bar on top is the whole class; each piece fills in as we go.",
   "(draft) First, five minutes on the plan for the next three weeks: week by week, day by day, and how you are graded.",
   "(draft) Then about thirty minutes of motivation. By the end, you can say what today's vision systems do well and where they fail, and explain why we look to human vision to get past those limits.",
-  "(draft) Ten minutes on your project. You will know the two project tracks: build a demo, or run an experiment.",
+  "(draft) Ten minutes on your project. You will know what a project can look like, for example a demo or an experiment, and its steps.",
   "(draft) The biggest piece, about an hour, is the lab: you recover the 3D shape of a simple scene from one image, by writing its assumptions as equations. And at the end, a question for you: what would give it a better world model?",
   "(draft) To close, twenty minutes. You can tell a research question from a building project, and read a research paper efficiently. Then we discuss one: perception as an inverse problem."
 ]});

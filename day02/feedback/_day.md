@@ -159,3 +159,5 @@ aggregates go out on a public site.
 - [ ] Students' own phone photos: upload in Colab, fine? Gradio `share=True` makes a temporary public URL so a
       classmate can open the app; OK for student photos, or keep it local (`share=False`) and swap laptops?
 - [ ] GPU at AIMS, and a shared drive of pre-downloaded weights (ResNet-18 ~45 MB, Depth Anything V2 Small).
+
+- [ ] Size slide (scenes/size.html): the corridor-and-monster figure Fernanda sent (two positions x five sizes, size estimation in mm) needs its paper citation. Now "source: to add".

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>How do we perceive size?</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<script src="../cites.js"></script>
+<style>
+  /* Size and distance, with the corridor and monster (Fernanda, 2026-11-03). Replaces the drawn spheres of emmert.html.
+     The corridor and the monster are cut by script (scratchpad, PIL + OpenCV) from the blank frame and the far-monster frame
+     of the figure Fernanda sent; both monsters in the figure measure 127 px wide, so on screen they are the same size. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stage{ position:relative; flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:3vw; align-items:center; }
+  .stage.solo{ grid-template-columns:1fr; } .stage.solo .diag{ display:none; }
+  .stage.solo .pic{ width:auto; height:100%; }
+  .pic{ position:relative; width:100%; aspect-ratio:334/256; max-height:100%; justify-self:center; transition:opacity .6s; }
+  .pic img{ position:absolute; display:block; }
+  .pic .bg{ inset:0; width:100%; height:100%; border-radius:8px; }
+  /* sprite boxes in % of the 334 x 256 frame: far at (148, 38), near at (44, 78), both 127 x 181 */
+  .mon{ width:38.02%; top:0; left:0; transition:opacity .6s, left 1.1s cubic-bezier(.6,0,.3,1), top 1.1s cubic-bezier(.6,0,.3,1), filter .6s; opacity:0; }
+  .mon.near{ left:13.17%; top:30.47%; }
+  .mon.far{ left:44.31%; top:14.84%; }
+  .mon.ghost{ left:44.31%; top:14.84%; filter:drop-shadow(0 0 0 #fff); }
+  .on{ opacity:1 !important; }
+  .ghost.moved{ left:13.17%; top:30.47%; opacity:.85 !important; filter:drop-shadow(0 0 6px #fff) drop-shadow(0 0 2px #fff); }
+  .diag{ width:100%; height:100%; opacity:0; transition:opacity .6s; }
+  .diag .step{ opacity:0; transition:opacity .6s; }
+  .cap{ min-height:1.6em; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.lit{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">How do we perceive size?</h1>
+  <div class="stage solo" id="stage">
+    <div class="pic" id="pic">
+      <img class="bg" src="../assets/size/corridor.png" alt="">
+      <img class="mon near" id="near" src="../assets/size/monster.png" alt="">
+      <img class="mon far" id="far" src="../assets/size/monster.png" alt="">
+      <img class="mon ghost" id="ghost" src="../assets/size/monster.png" alt="">
+    </div>
+    <svg class="diag" id="diag" viewBox="0 0 620 420" preserveAspectRatio="xMidYMid meet" font-family="Calibri, Helvetica, sans-serif">
+      <!-- nodal point N = (90, 210). Near monster at x = 240 (150 from N), 84 tall; far at x = 540 (450 from N), 252 tall:
+           the same two rays touch the top and bottom of both, so both make the same angle at the eye. -->
+      <g>
+        <ellipse cx="72" cy="210" rx="40" ry="40" fill="#fff" stroke="#0f172a" stroke-width="2.5"/>
+        <path d="M110 192 Q120 210 110 228" fill="none" stroke="#0f172a" stroke-width="2.5"/>
+        <text x="72" y="276" text-anchor="middle" font-size="21" fill="#0f172a">eye</text>
+      </g>
+      <g class="step" data-at="4">
+        <line x1="90" y1="210" x2="560" y2="84" stroke="#64748b" stroke-width="1.8"/>
+        <line x1="90" y1="210" x2="560" y2="336" stroke="#64748b" stroke-width="1.8"/>
+        <line x1="90" y1="210" x2="40" y2="224" stroke="#64748b" stroke-width="1.8"/>
+        <line x1="90" y1="210" x2="40" y2="196" stroke="#64748b" stroke-width="1.8"/>
+        <line x1="38" y1="196" x2="38" y2="224" stroke="#0f172a" stroke-width="6" stroke-linecap="round"/>
+        <path d="M130 199.3 A40 40 0 0 1 130 220.7" fill="none" stroke="#0f172a" stroke-width="2"/>
+        <text x="140" y="170" font-size="21" fill="#0f172a">visual angle</text>
+        <text x="20" y="320" font-size="21" fill="#0f172a">image on the retina</text>
+        <line x1="40" y1="302" x2="38" y2="230" stroke="#94a3b8" stroke-width="1.2"/>
+        <image href="../assets/size/monster.png" x="210.5" y="168" width="58.9" height="84"/>
+        <image href="../assets/size/monster.png" x="451.6" y="84" width="176.8" height="252"/>
+        <text x="240" y="280" text-anchor="middle" font-size="21" fill="#0f172a">near</text>
+        <text x="540" y="362" text-anchor="middle" font-size="21" fill="#0f172a">far</text>
+      </g>
+      <g class="step" data-at="5">
+        <line x1="90" y1="396" x2="240" y2="396" stroke="#0f172a" stroke-width="1.5"/>
+        <line x1="90" y1="410" x2="540" y2="410" stroke="#0f172a" stroke-width="1.5"/>
+        <text x="250" y="400" font-size="19" fill="#0f172a">distance d</text>
+        <text x="550" y="414" font-size="19" fill="#0f172a">3 d</text>
+        <text x="330" y="40" text-anchor="middle" font-size="26" font-weight="700" fill="#0f172a">size ≈ visual angle × distance</text>
+      </g>
+    </svg>
+  </div>
+  <div class="label cap" id="cap"></div>
+  <div class="cite">Corridor and monster cut from the figure of a size-estimation study (two positions, five sizes); source: to add. The illusion is after Roger Shepard's “Terror Subterra” (Mind Sights, 1990). Size–distance scaling (Emmert's law): perceived size grows with perceived distance. The eye diagram is drawn to scale here.</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE    the title alone
+   ACT 1  NEAR     the corridor and one monster, near
+   ACT 2  FAR      a second monster, far down the corridor
+   ACT 3  OVERLAY  a copy of the far one slides onto the near one: the same size on the screen
+   ACT 4  EYE      same size on the screen = same visual angle = same image on the retina
+   ACT 5  DISTANCE same angle, farther away: the brain sees it bigger */
+const CAPS = ['', '', 'Which one is bigger?', 'Same size on the screen.', 'Same angle at the eye, same image on the retina.',
+  'Same angle, but farther away: so it must be bigger.'];
+const NOTES = [
+  "(draft) Title only. How do we perceive size?",
+  "(draft) A corridor, and a monster running toward us.",
+  "(draft) A second monster, further down the corridor. Which one is bigger? Most people say the one at the back, and by a lot.",
+  "(draft) Let me pick up the one at the back and bring it forward. It fits exactly. On the screen they are the same size.",
+  "(draft) Here is why that matters. Same size on the screen means the same visual angle at your eye, so the same image on your retina. The retina alone cannot tell a small monster up close from a big one far away: both fit between the same two rays.",
+  "(draft) So the brain brings in distance. The corridor says the back one is about three times as far. Same angle, three times as far, so it must be about three times as big, and that is what you see. Size is not read off the retina: it is inferred, with an assumption about distance. This is size–distance scaling, or Emmert's law."
+];
+const N = NOTES.length - 1;
+let beat = 0;
+const $ = id => document.getElementById(id);
+function go(b){
+  beat = b;
+  $('stage').classList.toggle('solo', b < 4);
+  $('diag').style.opacity = b >= 4 ? 1 : 0;
+  $('near').classList.toggle('on', b >= 1);
+  $('far').classList.toggle('on', b >= 2);
+  $('ghost').classList.toggle('on', b >= 3);
+  $('ghost').classList.toggle('moved', b >= 3);
+  document.querySelectorAll('.diag .step').forEach(g => g.style.opacity = b >= +g.dataset.at ? 1 : 0);
+  $('cap').textContent = CAPS[b];
+  $('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'lit' : ''}"></i>`).join('');
+}
+window.sizeCorridor = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ go(0); },
+  resetToEnd(){ go(N); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) sizeCorridor.advance(); if(e.key === 'ArrowLeft') sizeCorridor.back(); });
+  addEventListener('click', () => sizeCorridor.advance());
+}
+go(0);
+</script>
+<script>collapseCites(document);</script>
+</body>
+</html>
