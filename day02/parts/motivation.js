@@ -257,34 +257,93 @@ st(`
 /* Emmert's law, copied from Day 1 (Shreya did not cover it there; Fernanda, 2026-11-02). */
 sc('emmert', 'scenes/emmert.html');
 
+/* Why we look to human vision: three reasons, each the Vision Book's own argument (Torralba, Isola & Freeman,
+   Foundations of Computer Vision, Ch. 1 "The Challenge of Vision": the brain's performance "still unmatched by
+   any artificial system"; Sec. 1.3.5, neuroscience inspired RGB encoding, filter-based representations, neural
+   networks and attention; Sec. 1.3.3, Gestalt grouping and completion, e.g. the Kanizsa triangle, influenced
+   segmentation). The elephant is our own ResNet-18 run; the chain and the Kanizsa triangle are drawn here. */
+const why = (step, vis, head, line) => `<div class="motivation-why b" data-step="${step}">
+  <div class="motivation-why-vis">${vis}</div><b>${head}</b><div class="label">${line}</div></div>`;
+const chain = `<svg viewBox="0 0 300 90" class="motivation-why-svg" aria-hidden="true">
+  <g fill="none" stroke="#0f172a" stroke-width="3">
+    <circle cx="35" cy="45" r="22"/><circle cx="35" cy="45" r="8" fill="#0f172a"/>
+    <circle cx="110" cy="45" r="22"/><circle cx="110" cy="45" r="10"/>
+    <rect x="160" y="23" width="44" height="44" rx="6"/>
+    <circle cx="245" cy="25" r="6"/><circle cx="245" cy="65" r="6"/><circle cx="280" cy="45" r="6"/>
+    <path d="M251 25 L274 45 M251 65 L274 45"/>
+  </g>
+  <g stroke="#0f172a" stroke-width="5"><path d="M170 60 L194 30"/><path d="M162 50 L180 28"/><path d="M182 64 L202 40"/></g>
+  <g fill="#64748b" font-size="11" font-family="Helvetica, Arial" text-anchor="middle">
+    <text x="35" y="86">eye</text><text x="110" y="86">cells</text><text x="182" y="86">filters</text><text x="262" y="86">networks</text>
+  </g></svg>`;
+const kanizsa = `<svg viewBox="0 0 200 180" class="motivation-why-svg" aria-hidden="true">
+  ${[[100, 25], [30, 150], [170, 150]].map(([x, y], k) => {
+    const a = [90, 330, 210][k] * Math.PI / 180, r = 28, w = 60 * Math.PI / 180;
+    const x1 = x + r * Math.cos(a - w / 2), y1 = y + r * Math.sin(a - w / 2), x2 = x + r * Math.cos(a + w / 2), y2 = y + r * Math.sin(a + w / 2);
+    return `<path d="M${x} ${y} L${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 1 0 ${x2.toFixed(1)} ${y2.toFixed(1)} Z" fill="#0f172a"/>`; }).join('')}
+  </svg>`;
 st(`
   <h1 class="t">Why we look to human vision</h1>
   <div class="label motivation-outcome"><b>By the end, you can</b> · explain why we look to human vision to get past those limits</div>
-  <ul class="frag">
-    <li class="b">You all saw the elephant</li>
-    <li class="b">People go by shape</li>
-    <li class="b">Human perception: a working answer to the same problems</li>
-  </ul>
-  <div class="todo b">Your own reasons, in your words: why human perception is a source for overcoming these limitations.</div>
+  <div class="motivation-whys">
+    ${why(1, `<img src="assets/human-vs-machine/crop.jpg" alt="">`, 'People still see better', 'You: an elephant · ResNet-18: triceratops')}
+    ${why(2, chain, 'Many tools came from the brain', 'Color channels, filters, neural networks, attention')}
+    ${why(3, kanizsa, 'Perception shows what to build', 'Grouping and completion: a triangle that is not there')}
+  </div>
+  ${cite('Torralba, Isola &amp; Freeman, Foundations of Computer Vision, Ch. 1, The Challenge of Vision · Elephant: our ResNet-18 run · Photo: Carlos Valenzuela, CC BY-SA 4.0')}
+  <style>
+    .motivation-whys{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:2vw; margin-bottom:3vh; }
+    .motivation-why{ border:2px solid var(--line); border-radius:14px; padding:2vh 1.2vw; display:flex; flex-direction:column; gap:1vh; min-height:0; }
+    .motivation-why b{ font-size:clamp(1.3rem, 2.1vw, 1.9rem); line-height:1.2; }
+    .motivation-why-vis{ flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center; }
+    .motivation-why-vis img{ max-height:100%; max-width:100%; object-fit:contain; border-radius:8px; }
+    .motivation-why-svg{ width:90%; max-height:100%; }
+  </style>
 `, { notes: [
   "(draft) So why do we look to human vision? By the end of this part, you can explain why we look to human vision to get past the limits we just saw.",
-  "(draft) Because every one of you saw the elephant, instantly, and you have never seen this statue before.",
-  "(draft) Because people go by shape where these networks go by texture.",
-  "(draft) And because human perception is a working answer to the same problems these systems still struggle with: an image is ambiguous, and we see the world anyway. Studying how we do it gives us ideas, and tests, for machines.",
-  "(to write) Fernanda's own framing."
+  "(draft) First, because people still see better. Every one of you saw the elephant at a glance; the classifier said triceratops. Our textbook puts it this way: seeing feels effortless, but the brain solves problems that are still unmatched by any artificial system.",
+  "(draft) Second, because many of the tools in this course came from studying the brain. Color images with three channels, filters modeled on cells in the visual cortex that respond to spots and to edges at particular orientations, neural networks themselves, and attention: the textbook traces each of them to neuroscience. You will build some of these filters on Day 3.",
+  "(draft) Third, because human perception shows what to build, and how to test it. You see a white triangle here, though none is drawn: your visual system groups the pieces and completes the shape. Principles like this, studied by perception scientists, shaped methods such as image segmentation, and they give us tests to run on models: does a vision model see the triangle?"
 ]});
 
+/* Why projects: Fernanda's own wording (2026-11-02), centered. Click 1 draws the path from an idea to progress;
+   click 2, the project-based course; click 3, topics as inspiration to harness. (The one-photo scene that used
+   to follow was removed at her request; scenes/one-photo-stack.html stays in the repo, unused.) */
 st(`
-  <h1 class="t">Why projects?</h1>
-  <ul class="frag">
-    <li class="b">A high-level overview of the tools out there</li>
-    <li class="b">Geared toward using them for your project</li>
-  </ul>
+  <div class="motivation-proj">
+    <h1 class="t">Why projects?</h1>
+    <div class="motivation-goal b" data-step="1">
+      <div class="label">Our goal is to help you get from</div>
+      <div class="motivation-path">
+        <span class="motivation-node"><i>an idea</i></span>
+        <span class="motivation-arrow"><span></span></span>
+        <span class="motivation-node">meaningful progress on that idea</span>
+      </div>
+    </div>
+    <div class="lead b" data-step="2">That is why the course is heavily <b>project-based</b></div>
+    <div class="lead b motivation-harness" data-step="3">We cover topics at a high level, to inspire you, and to <i><b>harness</b></i> them for your purposes</div>
+  </div>
+  <style>
+    .motivation-proj{ margin:auto; text-align:center; display:flex; flex-direction:column; align-items:center; gap:5vh; max-width:80vw; }
+    .motivation-goal{ display:flex; flex-direction:column; align-items:center; gap:2vh; }
+    .motivation-goal > .label{ font-size:clamp(1.2rem, 1.9vw, 1.7rem); color:var(--mute); }
+    .motivation-path{ display:flex; align-items:center; gap:1.4vw; }
+    .motivation-node{ border:3px solid var(--ink); border-radius:999px; padding:1.4vh 1.8vw; font-weight:700;
+      font-size:clamp(1.4rem, 2.4vw, 2.2rem); white-space:nowrap; }
+    .motivation-arrow{ position:relative; width:10vw; height:4px; }
+    .motivation-arrow > span{ position:absolute; left:0; top:0; height:4px; width:0; background:var(--ink); transition:width 1.4s ease .5s; }
+    .motivation-arrow > span::after{ content:''; position:absolute; right:-2px; top:-8px; border-left:14px solid var(--ink);
+      border-top:10px solid transparent; border-bottom:10px solid transparent; opacity:0; transition:opacity .3s ease 1.8s; }
+    .motivation-goal.shown .motivation-arrow > span{ width:100%; }
+    .motivation-goal.shown .motivation-arrow > span::after{ opacity:1; }
+    .motivation-goal .motivation-node:last-child{ opacity:0; transform:translateX(-12px); transition:opacity .8s ease 1.7s, transform .8s ease 1.7s; }
+    .motivation-goal.shown .motivation-node:last-child{ opacity:1; transform:none; }
+    .motivation-harness{ max-width:60vw; }
+  </style>
 `, { notes: [
   "(draft) Why is this class built around projects?",
-  "(draft) This course is a high-level overview of the tools available out there.",
-  "(draft) But it is heavily geared toward harnessing those tools for your own projects. You will not just learn about these models; you will put them to work on a problem you care about. Here is a taste of how little it takes."
+  "(draft) Our goal is to help you get from an idea to meaningful progress on that idea.",
+  "(draft) That is why the course is heavily project-based.",
+  "(draft) We cover the topics at a high level, to inspire you, and so that you can harness them for your own purposes."
 ]});
-
-sc('onePhotoStack', 'scenes/one-photo-stack.html');
 }
