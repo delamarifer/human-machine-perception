@@ -115,7 +115,7 @@ aggregates go out on a public site.
       (fills in the back; a few lines on top of `reconstruct`), plus the pretrained depth model on the box image
       (both are quick). A second view and learning could be homework extensions.
 - [ ] Paper review: are the three Pizlo questions OK? Pairs or whole class?
-- [ ] Homework: which metamers paper? (The Day 3 plan lists Freeman & Simoncelli 2011 and Portilla-Simoncelli.)
+- [x] Homework reading: the metamers primer (metamers.html), linked from the homework card with its own figure.
 - [ ] Response paper for today: is the Pizlo question the one on the response paper, or tomorrow's paper?
 
 ## Round 1 · 2026-10-28 · first build (Claude, day02 session)
