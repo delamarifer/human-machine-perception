@@ -18,7 +18,7 @@ st(`
     <div class="homework-card b">
       <div class="homework-pic homework-trio"><img src="../assets/metamers/coffee.jpg" alt=""><img src="../assets/metamers/coffee-pixels.jpg" alt=""><img src="../assets/metamers/coffee-spectrum.jpg" alt=""></div>
       <b>Read the metamers primer</b>
-      <div class="label homework-mute">Different, but the same to you · <a href="../metamers.html" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--ink)">Open the primer ↗</a></div>
+      <div class="label homework-mute">Different, but the same to you · response paper by hand, next class · <a href="../metamers.html" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--ink)">Open the primer ↗</a></div>
     </div>
     <div class="homework-card b">
       <div class="homework-pic"><div class="homework-form"><span>Thursday, midnight</span><i></i><i></i><i></i>
@@ -44,7 +44,7 @@ st(`
 `, { notes: [
   "(draft) Homework.",
   "(draft) Finish the simple vision system notebook, or go further: extend it to a world of your own and see where it breaks.",
-  "(draft) Read our primer on metamers, on the course website: things that are physically different but look exactly the same to you, and what that says about what your visual system throws away. These three pictures are from it: the same pixels, or the same frequencies, as the photo, and none of them looks like it. It sets up tomorrow, and it ends with papers to read further.",
+  "(draft) Read our primer on metamers, on the course website: things that are physically different but look exactly the same to you, and what that says about what your visual system throws away. These three pictures are from it: the same pixels, or the same frequencies, as the photo, and none of them looks like it. It sets up tomorrow, and it ends with papers to read further. Your response paper on it is written by hand, at the start of next class.",
   "(draft) And by Thursday at midnight, send us your general project ideas through the form. The link is on the project templates page."
 ]});
 }

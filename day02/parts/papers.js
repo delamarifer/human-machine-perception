@@ -29,7 +29,7 @@ st(`
       <div class="papers-pass b" data-step="3"><div class="papers-n">3</div><div><b>Re-implement it in your head</b>
         <div class="label papers-mute">Same assumptions as the authors: what would you do differently?</div></div></div>
       <div class="papers-resp b" data-step="4"><b>Response paper</b> · one high-level question about the paper
-        <div class="label papers-mute">A good pass 2 is enough</div></div>
+        <div class="label papers-mute">By hand, at the start of class · a good pass 2 is enough</div></div>
     </div>
   </div>
   <div class="label papers-key b" data-step="1"><span class="papers-sw papers-read"></span>read <span class="papers-sw papers-skip"></span>skipped <span class="papers-sw papers-later"></span>not yet</div>
@@ -68,7 +68,7 @@ st(`
   "(draft) Pass one, five to ten minutes: read the title, the abstract and the introduction, the section headings, and the conclusions. Skip everything else. You should know what kind of paper it is and what it claims. Often that is enough to decide whether to read on.",
   "(draft) Pass two, up to an hour for an experienced reader: read carefully, look hard at the figures, and follow the argument, but skip details like proofs.",
   "(draft) Pass three, for the papers that matter most to you: virtually re-implement the paper, making the same assumptions as the authors, and see where you would have done something different.",
-  "(draft) Each daily response paper starts with one high-level question about the day's paper. A good second pass is enough for that."
+  "(draft) Each daily response paper starts with one high-level question about the day's paper. You write it by hand, in the first few minutes of class, so there is nothing to submit online. A good second pass is enough for that."
 ]});
 
 /* Pizlo, with today's lab as the picture: one image (our box world, cropped from simple-system/world.png), the
