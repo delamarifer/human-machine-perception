@@ -4,7 +4,7 @@ Vision (https://visionbook.mit.edu/simplesystem.html). The scenes are rendered b
 (day01_lab_helpers.py), so the notebook needs no downloads and knows the true 3D answer.
 See nbtools.py for how to build and check it."""
 import os
-from nbtools import md, code, hidden, turn, badge, main
+from nbtools import md, code, hidden, turn, answer, badge, main
 
 FILE = 'day01-lab-simple-vision-system.ipynb'
 HELPERS = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'day01_lab_helpers.py')).read()
@@ -37,7 +37,7 @@ By the end you will be able to:
 **How to use this notebook.** Click a gray code cell and press **Shift + Enter** to run it. Run the
 cells in order, top to bottom. Cells marked **Your turn** are for you: they run as they are (the
 notebook falls back on the course's answer so later cells still work), and do your version once you
-fill them in. Each one has a solution hidden under *Show a solution*. Try it yourself first.
+fill them in. We go over the solutions together in class.
 
 New to Python? That's fine. Read the code, run it, change a number, and see what happens.
 *Runtime → Restart session* always starts over.
@@ -55,10 +55,12 @@ import sys
 import numpy as np                 # arrays and math
 import matplotlib.pyplot as plt    # plotting
 import scipy                       # the solver in section 6 uses it
+import plotly                      # the 3D view you can turn around, in section 6
 
 print("Python    ", sys.version.split()[0])
 print("NumPy     ", np.__version__)
 print("SciPy     ", scipy.__version__)
+print("Plotly    ", plotly.__version__)
 print("Running in Colab:", "google.colab" in sys.modules)
 """)
 hidden("#@title Helper code: run this cell (no need to read it)\n" + HELPERS)
@@ -225,7 +227,7 @@ turn("""
 edges = None          # replace None with  strength > some_number
 
 if edges is None:
-    edges = strength > 0.03
+    edges = course_edges(gray)
     print("(using the course's threshold for now)")
 plt.figure(figsize=(8, 5.5))
 plt.imshow(edges, cmap="gray")
@@ -256,7 +258,7 @@ saturation = None     # replace None with your formula
 figure = None         # replace None with  saturation > some_number
 
 if figure is None:
-    figure = (image.max(axis=2) - image.min(axis=2)) > 0.15
+    figure = course_figure(image)
     print("(using the course's mask for now)")
 plt.figure(figsize=(8, 5.5))
 plt.imshow(figure, cmap="gray")
@@ -321,8 +323,7 @@ turn("""
 vertical = None       # replace None with  edges & (your condition)
 
 if vertical is None:
-    angle = np.arctan2(dy, dx)
-    vertical = edges & (np.abs(np.sin(angle)) < np.sin(np.deg2rad(15)))
+    vertical = course_vertical(edges, dx, dy)
     print("(using the course's labels for now)")
 show = np.ones(image.shape)
 show[edges] = (0.2, 0.3, 0.9)      # horizontal 3D edges in blue
@@ -395,6 +396,27 @@ code("""
 show_3d(Y, Z, image, figure, title="Recovered 3D, seen from a new viewpoint", elev=20, azim=-75)
 """)
 md("""
+A still picture only shows one side. In the next view you can **drag to turn it around** (and scroll
+to zoom). Here every pixel is drawn, the floor included. What is missing behind the boxes?
+""")
+code("""
+show_3d_interactive(Y, Z, image)
+""")
+md("""
+### Your turn 6 · What is missing, and why? (talk it over, no code)
+
+Turn the reconstruction so you look at it from behind. Name two things that are missing, and say
+why the system could not have recovered them.
+""")
+answer("""
+- Each box is only a **shell**: its back faces are missing. The camera never saw them, and each pixel
+  gives us exactly one surface point, the nearest one.
+- The **floor behind each box** has a hole in it: the box blocked the camera's view of that floor.
+
+The system recovers only the surfaces it can see. To fill in the rest it would need more knowledge
+about the world, for example that boxes are closed solids, or that floors continue behind objects.
+""")
+md("""
 **Think about it.** The answer is close, but not perfect, even though the image is clean and
 computer-generated. Where could the error come from? (Hints: how wide is an edge, in pixels? On which
 pixel exactly does a box touch the floor?)
@@ -405,29 +427,13 @@ md("""
 ## 7 · When the assumptions break
 
 Our system works because the world obeys its assumptions. What happens outside that world?
-Here is a box that **floats** above the floor. Nothing in the image says it floats.
+Here is a box that **floats** above the floor. Nothing in the image says it floats. The helper
+`run_system` runs every step of this lab on a new world's image (with the course's version of each
+step) and compares the result with the truth.
 """)
 code("""
 floating_world = [make_box(-55, 25, 40, 45, 40, 30, RED),
                   make_box(25, 0, 30, 30, 30, -25, GREEN, base=35)]   # green box 35 units in the air
-
-def run_system(world, title):
-    \"\"\"Render a world, run every step of this lab on its image, and compare with the truth.\"\"\"
-    img, Yt, Zt = render(world)
-    g = img.mean(axis=2)
-    gx, gy = sobel(g)
-    e = np.hypot(gx, gy) > 0.03
-    fig_mask = (img.max(axis=2) - img.min(axis=2)) > 0.15
-    vert = e & (np.abs(np.sin(np.arctan2(gy, gx))) < np.sin(np.deg2rad(15)))
-    cont = fig_mask.copy(); cont[:-1] &= ~fig_mask[1:]
-    Yr, Zr = reconstruct(fig_mask, e, vert, cont, gx, gy)
-    fig, axes = plt.subplots(1, 3, figsize=(16, 4))
-    axes[0].imshow(img); axes[0].set_title(title)
-    axes[1].imshow(Yr, cmap="viridis", vmin=0, vmax=Yt.max()); axes[1].set_title("recovered height Y")
-    axes[2].imshow(Yt, cmap="viridis", vmin=0, vmax=Yt.max()); axes[2].set_title("true height Y")
-    for ax in axes: ax.axis("off")
-    plt.show()
-    show_3d(Yr, Zr, img, fig_mask, title="recovered 3D")
 
 run_system(floating_world, "a floating box")
 """)
@@ -438,7 +444,7 @@ Your visual system makes assumptions like these too. They are usually right abou
 is why they are worth making.
 """)
 turn("""
-# YOUR TURN 6 · Design a world that breaks another assumption, and see what the system does.
+# YOUR TURN 7 · Design a world that breaks another assumption, and see what the system does.
 # Ideas: stack one box on top of another (base = height of the lower box);
 #        put one box in front of another so it hides part of it;
 #        turn a box to angle=0 or 90, an "accidental" view where a horizontal edge looks vertical in the image.
@@ -475,4 +481,4 @@ book: [{CHAPTER}]({CHAPTER}).
 """.replace('{CHAPTER}', CHAPTER))
 
 if __name__ == '__main__':
-    main(FILE)
+    main(FILE, private_solutions=True)

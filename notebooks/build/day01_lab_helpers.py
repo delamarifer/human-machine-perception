@@ -117,6 +117,51 @@ def show_3d(Y, Z, image, figure, title="", elev=20, azim=-75):
     ax.view_init(elev=elev, azim=azim); ax.set_title(title)
     plt.show()
 
+def show_3d_interactive(Y, Z, image, title="Drag to turn it around"):
+    """Like show_3d, but in a 3D view you can drag to rotate and scroll to zoom (uses Plotly).
+    Every pixel is drawn, floor included, so you can see what the camera never saw."""
+    import plotly.graph_objects as go
+    X = np.mgrid[0:H, 0:W][1] - W / 2
+    rgb = (np.clip(image, 0, 1) * 255).astype(int).reshape(-1, 3)
+    colors = [f"rgb({r},{g},{b})" for r, g, b in rgb]
+    # Plotly's axes need distance from the camera (-Z) on the second axis, or the scene comes out mirrored.
+    fig = go.Figure(go.Scatter3d(x=X.ravel(), y=-Z.ravel(), z=Y.ravel(), mode="markers",
+                                 marker=dict(size=1.5, color=colors), hoverinfo="skip"))
+    axis = dict(backgroundcolor="rgb(70,70,80)", gridcolor="rgb(110,110,120)", showbackground=True)
+    fig.update_layout(title=title, height=600, margin=dict(l=0, r=0, t=40, b=0),
+                      scene=dict(xaxis=dict(title="X", **axis), yaxis=dict(title="distance from camera (-Z)", **axis),
+                                 zaxis=dict(title="Y (height)", **axis), aspectmode="data",
+                                 camera=dict(eye=dict(x=0.2, y=-1.6, z=1.0))))
+    fig.show()
+
+# The course's version of each pipeline step, used when a "Your turn" cell is left blank.
+def course_edges(gray):
+    gx, gy = sobel(gray)
+    return np.hypot(gx, gy) > 0.03
+
+def course_figure(img):
+    return np.ptp(img, axis=2) > 0.15
+
+def course_vertical(edge_mask, gx, gy):
+    return edge_mask & (np.abs(gy) < np.tan(np.deg2rad(15)) * np.abs(gx))
+
+def run_system(world, title):
+    """Render a world, run every step of this lab on its image, and compare with the truth."""
+    img, Yt, Zt = render(world)
+    g = img.mean(axis=2)
+    gx, gy = sobel(g)
+    e = course_edges(g)
+    fig_mask = course_figure(img)
+    cont = fig_mask.copy(); cont[:-1] &= ~fig_mask[1:]
+    Yr, Zr = reconstruct(fig_mask, e, course_vertical(e, gx, gy), cont, gx, gy)
+    fig, axes = plt.subplots(1, 3, figsize=(16, 4))
+    axes[0].imshow(img); axes[0].set_title(title)
+    axes[1].imshow(Yr, cmap="viridis", vmin=0, vmax=Yt.max()); axes[1].set_title("recovered height Y")
+    axes[2].imshow(Yt, cmap="viridis", vmin=0, vmax=Yt.max()); axes[2].set_title("true height Y")
+    for ax in axes: ax.axis("off")
+    plt.show()
+    show_3d(Yr, Zr, img, fig_mask, title="recovered 3D")
+
 RED, GREEN, BLUE = (0.85, 0.2, 0.2), (0.2, 0.65, 0.3), (0.2, 0.35, 0.85)
 WORLD = [make_box(-55, 25, 40, 45, 40, 30, RED),
          make_box(25, 0, 30, 70, 30, -25, GREEN),
