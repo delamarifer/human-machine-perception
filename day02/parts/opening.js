@@ -10,6 +10,58 @@ st(`
   </div>
 `, { blank: false, notes: "(draft) Welcome back. Day 2: Computer Vision: promise, pitfalls, and your place in it." });
 
+/* About me (Fernanda, 2026-11-03), right after the title. The visual is borrowed from her thesis defense, "Models as
+   candidates of computational accounts" (thesis-defense/outline/parts/intro.js): a model and the brain, joined by her
+   question. The brain is her own render (thesis-defense/assets/outline/intro-cortex/handoff-brain.png, resized). */
+const NET = `<svg viewBox="0 0 160 110" class="opening-net" aria-hidden="true">
+  ${[[8, 20, 14, 80], [30, 28, 12, 64], [48, 28, 12, 64], [70, 36, 12, 48], [88, 36, 12, 48], [110, 44, 12, 32], [132, 50, 14, 20]].map(([x, y, w, h]) =>
+    `<path d="M${x},${y} l6,-6 l${w},0 l-6,6 z M${x + w},${y} l6,-6 l0,${h} l-6,6 z" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>
+     <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>`).join('')}
+</svg>`;
+st(`
+  <h1 class="t">About me</h1>
+  <div class="opening-about">
+    <div class="opening-me">
+      <div class="lead b" data-step="1"><b>Just defended: PhD, Brain and Cognitive Sciences, MIT</b></div>
+      <div class="lead b" data-step="2">Looking into how AI models can serve as hypotheses for the brain, and other questions</div>
+      <div class="opening-help b" data-step="3">
+        <div class="label opening-help-head">How I can help</div>
+        <ul class="frag">
+          <li class="b" data-step="3">Questions and advice about PhD programs</li>
+          <li class="b" data-step="4">Connections to MIT or other academics</li>
+        </ul>
+      </div>
+    </div>
+    <div class="opening-hyp b" data-step="2">
+      <div class="opening-hyp-model">${NET}<div class="label">AI model</div></div>
+      <div class="opening-hyp-link"><span>A good computational account?</span></div>
+      <div class="opening-hyp-brain"><img src="assets/about/brain.png" alt=""><div class="label">Brain</div></div>
+    </div>
+  </div>
+  ${cite('Visual: from my thesis defense (brain: my render of auditory cortex)')}
+  <style>
+    .opening-about{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1.15fr; gap:3vw; align-items:center; }
+    .opening-me{ display:flex; flex-direction:column; gap:2.4vh; }
+    .opening-help{ border:2px solid var(--line); border-radius:14px; padding:1.6vh 1.4vw; }
+    .opening-help-head{ font-weight:700; color:var(--mute); text-transform:uppercase; letter-spacing:.06em; }
+    .opening-help ul.frag{ margin:.6vh 0 0; }
+    .opening-hyp{ display:grid; grid-template-columns:1fr 1.1fr 1.2fr; align-items:center; gap:.6vw; }
+    .opening-hyp-model, .opening-hyp-brain{ display:flex; flex-direction:column; align-items:center; gap:1vh; text-align:center; }
+    .opening-hyp-model{ border:3px solid #334155; border-radius:18px; padding:2vh .8vw; }
+    .opening-net{ width:100%; }
+    .opening-hyp-brain img{ width:100%; }
+    .opening-hyp-link{ position:relative; border-top:3px solid #64748b; }
+    .opening-hyp-link span{ position:absolute; left:-1vw; right:-1vw; bottom:.5em; text-align:center; font-weight:700; font-style:italic;
+      font-size:clamp(1.05rem, 1.6vw, 1.5rem); line-height:1.2; }
+  </style>
+`, { notes: [
+  "(draft) A little about me.",
+  "(draft) I just defended my PhD in Brain and Cognitive Sciences at MIT.",
+  "(draft) My research looks at how AI models can serve as hypotheses for the brain: if a model is a good computational account of what the brain does, it should line up with people's behavior and with brain responses, and we can test that. And other questions along the way.",
+  "(draft) How I can help you: if you have questions about PhD programs, or want advice on applying, come talk to me.",
+  "(draft) And I'm happy to help with connections to MIT or to other academics working on what you care about."
+]});
+
 /* Today: one row per segment. Row titles are the syllabus's own Day 2 outcomes ("By the end, you can", and
    "In the lab, you will"), in syllabus.html #schedule; the label is the segment and its minutes (plan, Day 2).
    The syllabus review has no outcome of its own. Each row has a small visual taken from later in the deck.
