@@ -56,3 +56,11 @@ resized, cropped, tiles shuffled (credits as above: Shixart1985, CC BY 2.0; Carl
 - Coffee: intact espresso 85.9%; 4 x 4 toilet tissue 30.5% (espresso 4th, 7.5%); 8 x 8 wardrobe 14.2% (espresso 326th).
 - Elephant: intact triceratops 28.7%; 4 x 4 sock 40.7%, cowboy boot 24.1%; 8 x 8 wine bottle 24.0%, barrel, quilt.
 Two photos, one seed: a probe for class, not a measurement.
+
+## research/ (Day 2 "Research and papers")
+- `world-crop.png`: `simple-system/world.png` with the matplotlib title and axes cut away, nothing else changed.
+  Crop box (70, 47, 998, 680), found by script as the rows and columns that are mostly the plot's background
+  gray (232, 232, 232); every edge pixel of the crop is that gray. Used on the Pizlo slide as "One image".
+- The Pizlo slide's "many 3D scenes fit it" and the Keshav slide's paper page are schematics drawn in SVG/HTML
+  in `parts/papers.js`, not data. The research slide reuses `shuffle/coffee/` and the VLMs-are-blind numbers
+  exactly as the motivation slides show them.
