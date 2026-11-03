@@ -61,6 +61,16 @@ aggregates go out on a public site.
   tracks", 30 (the lab), 38 "A research question, or a building project?", 39 "Read a paper efficiently", 40 (Pizlo).
 - [ ] If the syllabus wording changes, these lines don't update by themselves (they are text on the slides).
 
+### Demo slides: Before → Now, videos, texture test (Fernanda, 2026-11-02)
+- Each demo slide has a takeaway on click 2: what it does that earlier systems couldn't ("Before · … / Now · …"),
+  from the makers' descriptions and papers. Week tag moved to the top right (click 3).
+- Makers' videos on the slides: VGGT (project page mp4), Gemini Robotics 1.5 (DeepMind's YouTube, "Using agentic
+  capabilities"), Genie 4 (DeepMind's page). SAM 3, DINOv3, AlphaEarth, MedGemma: no embeddable official video.
+- Slide 19 "Texture, not shape?": Geirhos's finding, then our own test with ResNet-18 (patches shuffled). Real outputs
+  in assets/shuffle/; the result is mixed (espresso disappears; the elephant's guesses turn to sock, cowboy boot,
+  quilt), and the notes say it is a probe, not a measurement.
+- [ ] Check the Before lines read the way you'd say them, especially MedGemma ("first open model of its kind" is Google's claim).
+
 ### Questions for Fernanda
 - [x] Survey on the public site: grouped data only, never individual answers, except the project ideas (Fernanda, 2026-11-02). Slides: two aggregate charts, an anonymous paraphrased list of the project ideas, and the grouped cards.
 - [ ] Order: your outline today puts project expectations before the lab. The plan's "opening order" from
