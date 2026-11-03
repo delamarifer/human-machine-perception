@@ -1,4 +1,4 @@
-/* Day 2 running order: Motivation and limitations. Same format as deck/order.js (Day 1).
+/* Day 2 running order: Computer Vision: Promise, Pitfalls, and Your Place in It. Same format as deck/order.js (Day 1).
    Parts live in day02/parts/, scenes in day02/scenes/, images in day02/assets/.
    A scene in day02/scenes/ links the shared stylesheet as ../../deck/deck.css.
    Segments and minutes: Fernanda's outline of 2026-11-02 (plan/course-plan.md, Day 2), with the paper

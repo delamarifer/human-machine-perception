@@ -1,4 +1,4 @@
-# Day 2 · Seeing with Machines: feedback and open questions
+# Day 2 · Computer Vision: Promise, Pitfalls, and Your Place in It: feedback and open questions
 
 Plan: `plan/course-plan.md`, Day 2. Images and model outputs: `day02/assets/SOURCES.md`.
 Every notes passage Claude wrote is marked `(draft)`; `(to write)` is yours to fill.
