@@ -49,4 +49,26 @@ st(`
   "(draft) How you are graded. Again, all of it is on the website.",
   "(draft) (Scroll through the grading.) The final project is 45 percent: the proposal, the write-up and the presentation on the last day. Daily response papers are 24 percent: twelve of them, each with one question about the day's paper and three about the take-home lab. Two assignments, 15 percent each. And 1 percent for one short, easy question on the last day. Each piece has its rubric right here."
 ]});
+
+/* Google Classroom sign-up, about 3 minutes, right after grading (Fernanda, via the coordinator, 2026-11-02).
+   No class code or join link on the slide: the deck is public on GitHub Pages, so the code goes on the board. */
+st(`
+  <h1 class="t">Join our Google Classroom</h1>
+  <ul class="frag">
+    <li class="b">Sign in with your AIMS Google account (@aims.ac.za)</li>
+    <li class="b">Join with the class code, or accept the email invite</li>
+    <li class="b">Hand in here: proposal, write-up, slides, response papers, assignments</li>
+  </ul>
+  <div class="syllabus-code b">Class code: on the board</div>
+  <style>
+    .syllabus-code{ margin:auto; border:3px dashed var(--ink); border-radius:14px; padding:2.4vh 3vw;
+      font-size:clamp(1.5rem, 2.5vw, 2.3rem); font-weight:700; }
+  </style>
+`, { notes: [
+  "(draft) One more thing before we move on: our Google Classroom.",
+  "(draft) Sign in to Google with your AIMS account, the one that ends in aims.ac.za, not a personal Gmail.",
+  "(draft) Join with the class code, or accept the email invite if you got one.",
+  "(draft) This is where you hand in everything: the project proposal, the write-up, your slides, the response papers and the assignments.",
+  "(draft) The class code is on the board. Join now, and check that you can see the class before we move on. (to write: does the class exist yet, and who owns it? An AIMS account is best; AIMS IT or the tutors may need to create it and add Fernanda and Shreya as teachers. Write the code on the board, never on the slides: the deck is public.)"
+]});
 }

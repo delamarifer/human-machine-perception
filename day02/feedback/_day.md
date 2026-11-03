@@ -72,6 +72,9 @@ aggregates go out on a public site.
 - [ ] Check the Before lines read the way you'd say them, especially MedGemma ("first open model of its kind" is Google's claim).
 
 ### Questions for Fernanda
+- [ ] Google Classroom (slide after Grading): does the class exist yet, and who owns it? An AIMS account is best;
+      AIMS IT or the tutors may need to create it and add Fernanda and Shreya as teachers. The code goes on the
+      board only, never on the slides (the deck is public).
 - [x] Survey on the public site: grouped data only, never individual answers, except the project ideas (Fernanda, 2026-11-02). Slides: two aggregate charts, an anonymous paraphrased list of the project ideas, and the grouped cards.
 - [ ] Order: your outline today puts project expectations before the lab. The plan's "opening order" from
       earlier today puts the paper discussion at minute 5-15 and the project plan after the lab. I followed
