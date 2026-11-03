@@ -19,6 +19,14 @@ Known gaps and glitches in the source doc are marked **[check]**:
   segmentation, datasets, robustness).
 - Day 9 and Day 11 have a title only. Day 10 has an objective only.
 
+**Day order on the public syllabus (Fernanda, 2026-11-02).** This supersedes the day labels below:
+1 Introduction · 2 Motivation and limitations · 3 Image representation and processing · 4 CNNs and object
+recognition · 5 Transformers and visual representations (Days 3–5 are Shreya's draft, still being decided) ·
+6 3D and motion · 7 Generative models · 8 Robotics and RL · 9 Robotics and multimodal · 10 Extra day ·
+11 AI and society · 12 topic to be added · 13–14 project work · 15 presentations. There is no separate neural
+networks day. Days 6–11 on the syllabus were filled in from the Vision Book, MIT 6.S058, Advances in CV and
+6.S191 (learning objectives, suggested labs and readings are drafts).
+
 The previous version of this plan (with the detailed Day 1–3 timings the built decks follow, and the earlier
 brainstorm notes for each day) is kept at the bottom under "Earlier revision".
 

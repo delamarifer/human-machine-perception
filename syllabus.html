@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Syllabus · Visual Perception</title>
+<title>Syllabus · Computer Vision</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,6 +56,8 @@
     letter-spacing:-.01em; text-transform:uppercase;
     background:linear-gradient(90deg, #fff 0%, #c7fff4 45%, #e4d8ff 100%); -webkit-background-clip:text; background-clip:text; color:transparent;
     text-shadow:0 0 40px rgba(94,234,212,.25); }
+  .tagline{ position:relative; margin:-.1em 0 .9em; font:500 clamp(1.15rem, 3vw, 1.6rem)/1.3 'Space Grotesk', sans-serif; font-style:italic;
+    background:linear-gradient(90deg, var(--amber), var(--pink) 55%, var(--violet)); -webkit-background-clip:text; background-clip:text; color:transparent; }
   .who{ position:relative; margin:0; color:var(--mute); font-size:1.05rem; }
 
   /* pill nav */
@@ -205,7 +207,7 @@
 </style>
 </head>
 <body>
-<div class="spine" aria-hidden="true"><span><b>Visual Perception</b> &nbsp;/&nbsp; Syllabus</span></div>
+<div class="spine" aria-hidden="true"><span><b>Computer Vision</b> &nbsp;/&nbsp; Syllabus</span></div>
 <div class="page">
 
 <header class="hero">
@@ -213,7 +215,8 @@
   <div class="hero-in">
     <p class="back"><a href="index.html">← Home</a></p>
     <p class="kicker">Syllabus</p>
-    <h1>Visual<br>Perception</h1>
+    <h1>Computer<br>Vision</h1>
+    <p class="tagline">with an eye toward human perception</p>
     <p class="who">Fernanda de la Torre · Shreya Pandit</p>
     <nav class="nav" aria-label="Sections">
       <a href="#overview">Overview</a>
@@ -259,7 +262,7 @@
 
     <h3>Every day comes with</h3>
     <div class="facts">
-      <div class="fact"><small>Reading</small>A chapter from Torralba, Isola &amp; Freeman, <i>Foundations of Computer Vision</i>, or a paper. See the <a href="readings.html">reading bank</a>, and suggest your own.</div>
+      <div class="fact"><small>Reading</small>A chapter from Torralba, Isola &amp; Freeman, <i>Foundations of Computer Vision</i>, or a paper, posted on the <a href="readings.html">readings page</a> when we assign it. You can suggest your own.</div>
       <div class="fact"><small>Coding practice</small>A Colab notebook you start in class and finish at home</div>
       <div class="fact"><small>Human connection</small>What can we learn from human vision?</div>
       <div class="fact"><small>Response paper</small>5 to 10 minutes at the start of class: one question on the reading and three on the lab</div>
@@ -344,7 +347,7 @@
           <i>What does it mean to see?</i>
           <p class="sd-lbl">By the end, you can</p><ul><li>Explain why seeing is hard: the same image can come from many different scenes</li><li>Name the big ideas in the history of vision, from ancient theories to computer vision</li><li>Describe the parts of a simple vision system, from image to answer</li><li>Pick an application of computer vision and say what it sees and where it can fail</li><li>Run Python in a Colab notebook</li></ul>
         </div>
-        <div class="sd-tags"><span class="chip" style="--k:var(--sky)"><small>Reading</small>Ch. 1–4</span><span class="chip" style="--k:var(--amber)"><small>In the lab, you will</small>Open a photo as an array of numbers, and change it with NumPy</span><span class="chip" style="--k:var(--pink)"><small>Human</small>Checker-shadow illusion, perception as inference</span></div>
+        <div class="sd-tags"><span class="chip" style="--k:var(--amber)"><small>In the lab, you will</small>Open a photo as an array of numbers, and change it with NumPy</span><span class="chip" style="--k:var(--pink)"><small>Human</small>Checker-shadow illusion, perception as inference</span></div>
       </article>
       <article class="sday" style="--c:var(--cyan)">
         <div class="sd-num"><small>Day</small>2</div>
@@ -352,33 +355,34 @@
           <b>Motivation and limitations</b>
           <p class="sd-lbl">By the end, you can</p><ul><li>Say what today's vision systems do well and where they fail</li><li>Explain why we look to human vision to get past those limits</li><li>Tell a research question from a building project, and know the two project tracks</li><li>Read a research paper efficiently, then discuss one: perception as an inverse problem</li></ul>
         </div>
-        <div class="sd-tags"><span class="chip" style="--k:var(--amber)"><small>In the lab, you will</small>Recover the 3D shape of a simple scene from one image, by writing its assumptions as equations</span><span class="chip" style="--k:var(--sky)"><small>Reading</small>A paper on metamers</span></div>
+        <div class="sd-tags"><span class="chip" style="--k:var(--amber)"><small>In the lab, you will</small>Recover the 3D shape of a simple scene from one image, by writing its assumptions as equations</span></div>
       </article>
       <article class="sday" style="--c:var(--cyan)">
         <div class="sd-num"><small>Day</small>3</div>
         <div class="sd-main">
-          <b>Image formation, processing and representations</b>
-          <i>What information is represented in an image?</i>
-          <p class="sd-lbl">By the end, you can</p><ul><li>Explain how a camera turns the 3D world into a 2D image, and what is lost</li><li>Use a convolution to blur, sharpen, or find the edges in a photo</li><li>Compare receptive fields in the visual cortex with a bank of filters</li><li>Explain how two images with different pixels can look the same (metamers)</li></ul>
+          <b>Image representation and processing</b>
+          <i>How do humans and machines extract, represent, and preserve information from images?</i>
+          <p class="sd-lbl">By the end, you can</p><ul><li>Explain what is lost when the 3D world becomes a 2D image</li><li>Use filters to blur an image, find its edges, and pick out fine and coarse detail</li><li>Compare cells in the early visual cortex (V1) with a bank of Gabor filters</li><li>Look at an image at several scales with an image pyramid</li><li>Make two images that differ in their pixels but look the same (metamers), and explain why</li></ul>
         </div>
-        <div class="sd-tags"><span class="chip" style="--k:var(--sky)"><small>Reading</small>Ch. 5–7</span><span class="chip" style="--k:var(--amber)"><small>In the lab, you will</small>Write a convolution yourself, and use it to blur an image and find its edges</span><span class="chip" style="--k:var(--pink)"><small>Human</small>Mach bands, Hermann grid, Hubel &amp; Wiesel; texture metamers</span></div>
+        <div class="sd-tags"><span class="chip" style="--k:var(--amber)"><small>In the lab, you will</small>Build a bank of filters and run it on your own photo</span><span class="chip" style="--k:var(--amber)"><small>In the lab, you will</small>Synthesize textures and metamers with plenoptic, and see what your peripheral vision misses</span><span class="chip" style="--k:var(--pink)"><small>Human</small>Hubel &amp; Wiesel, texture metamers, peripheral vision</span></div>
       </article>
       <article class="sday" style="--c:var(--cyan)">
         <div class="sd-num"><small>Day</small>4</div>
         <div class="sd-main">
-          <b>Neural networks</b>
-          <p class="sd-lbl">By the end, you can</p><ul><li>Explain how a network learns its own filters instead of using hand-made ones</li><li>Follow an image through a network to a prediction</li><li>Explain how a loss, backpropagation and gradient descent make the network better</li><li>Change one training setting and explain what happens</li></ul>
+          <b>CNNs and object recognition</b>
+          <i>How do CNNs recognize objects, what features do they use, and when do they fail to generalize?</i>
+          <p class="sd-lbl">By the end, you can</p><ul><li>Describe how a CNN builds up from pixels to local features to object parts</li><li>Tell classification, localization, detection and segmentation apart</li><li>Explain how dataset bias and distribution shift make models fail</li><li>Compare how people and CNNs recognize objects: shape vs. texture</li><li>Decide when to reuse a pretrained model as is and when to fine-tune it</li></ul>
         </div>
-        <div class="sd-tags"><span class="chip" style="--k:var(--amber)"><small>In the lab, you will</small>Train a small classifier, and read its loss and accuracy curves</span><span class="chip" style="--k:var(--pink)"><small>Human</small>Learned vs. biological visual representations</span></div>
+        <div class="sd-tags"><span class="chip" style="--k:var(--amber)"><small>In the lab, you will</small>Probe a pretrained model: find what it gets right, what it gets wrong, and why</span><span class="chip" style="--k:var(--pink)"><small>Human</small>Shape vs. texture, Mooney faces, Dollar Street</span></div>
       </article>
       <article class="sday" style="--c:var(--cyan)">
         <div class="sd-num"><small>Day</small>5</div>
         <div class="sd-main">
-          <b>CNNs, evaluation and object recognition</b>
-          <i>How do we know whether it sees correctly?</i>
-          <p class="sd-lbl">By the end, you can</p><ul><li>Describe how a CNN builds up from edges to object parts</li><li>Tell classification, detection and segmentation apart</li><li>Judge a model beyond accuracy: confusion matrices, precision, recall, failure cases</li><li>Adapt a pretrained model to a new set of images</li></ul>
+          <b>Transformers and visual representations</b>
+          <i>How do machines organize visual information, and how does that compare to human seeing?</i>
+          <p class="sd-lbl">By the end, you can</p><ul><li>Explain how attention works, and how a Vision Transformer applies it to image patches</li><li>Compare a CNN and a Vision Transformer</li><li>Measure how similar images are to a model with embeddings, and map them with k-NN, K-means and t-SNE</li><li>Compare how models and brains organize images (RSA)</li><li>Test whether a Vision Transformer shows a Thatcher effect</li></ul>
         </div>
-        <div class="sd-tags"><span class="due">Project ideas due</span><span class="chip" style="--k:var(--amber)"><small>In the lab, you will</small>Train a small CNN, and adapt a pretrained model to new images</span><span class="chip" style="--k:var(--pink)"><small>Human</small>Texture bias, cue-conflict images, Dollar Street</span></div>
+        <div class="sd-tags"><span class="due">Project ideas due</span><span class="chip" style="--k:var(--amber)"><small>In the lab, you will</small>Extract embeddings from a Vision Transformer and probe what they encode</span><span class="chip" style="--k:var(--pink)"><small>Human</small>Face inversion, the Thatcher illusion</span></div>
       </article>
     </div>
     <h3 class="wk" style="--c:var(--violet)">Week 2</h3>
@@ -386,44 +390,43 @@
       <article class="sday" style="--c:var(--violet)">
         <div class="sd-num"><small>Day</small>6</div>
         <div class="sd-main">
-          <b>Transformers and visual representation</b>
-          <i>How can machines learn richer visual representations?</i>
-          <p class="sd-lbl">By the end, you can</p><ul><li>Explain how a Vision Transformer splits an image into patches and uses attention</li><li>Use embeddings to measure how similar two images are to a model</li><li>Compare which images a model groups together, and why</li></ul>
+          <b>3D and motion</b>
+          <i>How do we perceive depth and a dynamic world?</i>
+          <p class="sd-lbl">By the end, you can</p><ul><li>Explain how perspective, shading and two eyes (stereo) tell us about depth</li><li>Estimate depth from a single photo with a pretrained model, and say where it goes wrong</li><li>Measure how things move between video frames (optical flow), and track points over time</li><li>Explain why motion seen through a small window is ambiguous (the aperture problem)</li></ul>
         </div>
-        <div class="sd-tags"><span class="due">Detailed proposal due</span><span class="chip" style="--k:var(--sky)"><small>Reading</small>Ch. 30</span><span class="chip" style="--k:var(--amber)"><small>In the lab, you will</small>Extract embeddings from a Vision Transformer, and use them to compare images</span><span class="chip" style="--k:var(--pink)"><small>Human</small>Face inversion, the Thatcher illusion</span></div>
+        <div class="sd-tags"><span class="due">Detailed proposal due</span><span class="chip" style="--k:var(--amber)"><small>In the lab, you will</small>Estimate depth on your own photos, and track motion in a short phone video</span><span class="chip" style="--k:var(--pink)"><small>Human</small>Ames room, Ponzo, motion aftereffect, barber pole, point-light walkers</span></div>
       </article>
       <article class="sday" style="--c:var(--violet)">
         <div class="sd-num"><small>Day</small>7</div>
         <div class="sd-main">
-          <b>3D and motion</b>
-          <i>How do we perceive depth and a dynamic world?</i>
-          <p class="sd-lbl">By the end, you can</p><ul><li>Explain how a visual system can infer depth and motion from 2D images and video</li></ul>
+          <b>Generative models</b>
+          <i>How can machines generate visual worlds?</i>
+          <p class="sd-lbl">By the end, you can</p><ul><li>Name the main families of generative models: autoencoders, GANs, diffusion and flow models</li><li>Explain how a diffusion model turns noise into an image, step by step</li><li>Generate and edit images with a pretrained model, guided by text</li><li>Explain how generated images can be used to test human perception</li></ul>
         </div>
-        <div class="sd-tags"><span class="chip" style="--k:var(--pink)"><small>Human</small>Ames room, Ponzo, motion aftereffect, barber pole, point-light walkers</span></div>
+        <div class="sd-tags"><span class="chip" style="--k:var(--amber)"><small>In the lab, you will</small>Train a tiny generative model, and make new images with a pretrained one</span><span class="chip" style="--k:var(--pink)"><small>Human</small>Helmholtz: perception as unconscious inference</span></div>
       </article>
       <article class="sday" style="--c:var(--violet)">
         <div class="sd-num"><small>Day</small>8</div>
         <div class="sd-main">
-          <b>Generative models</b>
-          <i>How can machines generate visual worlds?</i>
-          <p class="sd-lbl">By the end, you can</p><ul><li>Name the main families of generative models</li><li>Describe how modern systems generate and edit images</li></ul>
+          <b>Robotics (embodied) and reinforcement learning</b>
+          <p class="sd-lbl">By the end, you can</p><ul><li>Explain what makes an embodied agent different: it acts, and its actions change what it sees</li><li>Explain how a robot can learn from demonstrations (behavior cloning, imitation learning)</li><li>Explain reinforcement learning: learning from rewards, by trial and error</li><li>Discuss how predicting video (a world model) can help a robot plan</li></ul>
         </div>
-        <div class="sd-tags"><span class="due">Teacher meetings</span><span class="chip" style="--k:var(--sky)"><small>Reading</small>Ch. 32, flow matching, diffusers</span><span class="chip" style="--k:var(--amber)"><small>In the lab, you will</small>Train a tiny generative model, and make new images with a pretrained one</span><span class="chip" style="--k:var(--pink)"><small>Human</small>Helmholtz: perception as unconscious inference</span></div>
+        <div class="sd-tags"><span class="due">Teacher meetings</span></div>
       </article>
       <article class="sday" style="--c:var(--violet)">
         <div class="sd-num"><small>Day</small>9</div>
         <div class="sd-main">
-          <b>Robotics (embodied) and reinforcement learning</b>
+          <b>Robotics and multimodal models</b>
+          <i>How can machines connect images with concepts and language?</i>
+          <p class="sd-lbl">By the end, you can</p><ul><li>Explain how models like CLIP put images and text in the same embedding space</li><li>Classify images with no training examples, using only text labels (zero-shot)</li><li>Search a set of images with a sentence</li><li>Ask a vision-language model about an image, and find where it fails</li></ul>
         </div>
+        <div class="sd-tags"><span class="chip" style="--k:var(--amber)"><small>In the lab, you will</small>Use CLIP for zero-shot classification and text-to-image search</span><span class="chip" style="--k:var(--pink)"><small>Human</small>The Kanizsa triangle, asked to a vision-language model; color naming across languages</span></div>
       </article>
       <article class="sday" style="--c:var(--violet)">
         <div class="sd-num"><small>Day</small>10</div>
         <div class="sd-main">
-          <b>Robotics and multimodal models</b>
-          <i>How can machines connect images with concepts and language?</i>
-          <p class="sd-lbl">By the end, you can</p><ul><li>Explain how models connect images with language and sound</li></ul>
+          <b>Extra day</b>
         </div>
-        <div class="sd-tags"><span class="chip" style="--k:var(--pink)"><small>Human</small>The Kanizsa triangle, asked to a vision-language model; color naming across languages</span></div>
       </article>
     </div>
     <h3 class="wk" style="--c:var(--pink)">Week 3</h3>
@@ -431,14 +434,15 @@
       <article class="sday" style="--c:var(--pink)">
         <div class="sd-num"><small>Day</small>11</div>
         <div class="sd-main">
-          <b>Extra day</b>
+          <b>AI and society</b>
+          <p class="sd-lbl">By the end, you can</p><ul><li>Discuss who is represented in vision datasets, and what happens when they are not</li><li>Explain how generated images and deepfakes change what we can trust</li><li>Discuss where visual AI is used today, and who it affects</li><li>Package a model as a small demo that others can try</li></ul>
         </div>
+        <div class="sd-tags"><span class="chip" style="--k:var(--amber)"><small>In the lab, you will</small>Package a model as a small Gradio demo with a README</span><span class="chip" style="--k:var(--pink)"><small>Human</small>Inattentional blindness: what any vision system leaves out</span></div>
       </article>
       <article class="sday" style="--c:var(--pink)">
         <div class="sd-num"><small>Day</small>12</div>
         <div class="sd-main">
-          <b>AI and society</b>
-          <p class="sd-lbl">By the end, you can</p><ul><li>Discuss real-world uses of visual AI, and how they change society</li></ul>
+          <b>Topic to be added</b>
         </div>
       </article>
       <article class="sday" style="--c:var(--pink)">
