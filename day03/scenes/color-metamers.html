@@ -17,7 +17,7 @@
   The knob targets are the exact 3×3 solution (R 1.000, G 0.397, B 0.232), so the
   match on screen is a genuine metamer and the cone levels are computed, not drawn.
 
-  Layout (Fer's mockup, 2026-10-07): a monitor on the left shows the field split
+  Layout (Fer's mockup, 2026-10-07; field changed 2026-11-03 to a small 2-degree split disk in a dark surround, as in the classic experiments): an instrument on the left shows the field split
   left | right; the lamp sits on its bezel under the left half, the three knobs under
   the right half. Light from each half runs into an eye on the right and focuses on two
   neighbouring spots of retina; a zoom box opens onto a retinal cross-section (light
@@ -161,7 +161,9 @@ const mk = (t, a, parent) => { const e = document.createElementNS(NS, t);
   for(const k in a) e.setAttribute(k, a[k]); if(parent) parent.appendChild(e); return e; };
 const CONE_COL = ['#d23c3c', '#2e9b4f', '#2f6fd1'];         // L, M, S
 const PRIM_COL = ['#d23c3c', '#2e9b4f', '#2f6fd1'];         // the three knobs' lights
-const SCR = {x:140, y:158, w:365, h:246};                    // the monitor's screen
+const SCR = {x:140, y:158, w:365, h:246};                    // the instrument's window: a dark surround
+// the bipartite field, as in the classic color-matching experiments: a small disk split in two (about 2 degrees)
+const FR = 50, FCY = 158 + 246/2 - 8;
 const MID = SCR.x + SCR.w/2;
 const KNOB_Y = 470, KNOB_X = [345, 414, 483], KR = 21, DIAL_MAX = 1.3;
 const LAMP_X = 231, LAMP_Y = 468;
@@ -177,9 +179,12 @@ const ang = v => -140 + v/DIAL_MAX*280;                      // dial value → d
     mk('line', {x1:66, y1:y, x2:88, y2:y+3, stroke:'#979ea6', 'stroke-width':1.2}, g);
   mk('rect', {x:95, y:118, width:455, height:440, rx:14, fill:'url(#case)', stroke:'#b5bbc1', 'stroke-width':1.5}, g);
   mk('rect', {x:SCR.x-12, y:SCR.y-12, width:SCR.w+24, height:SCR.h+24, rx:12, fill:'#3a4047'}, g);
-  mk('rect', {id:'fieldL', x:SCR.x, y:SCR.y, width:SCR.w/2+1, height:SCR.h, fill:'#111'}, g);
-  mk('rect', {id:'fieldR', x:MID, y:SCR.y, width:SCR.w/2, height:SCR.h, fill:'#111'}, g);
-  mk('line', {x1:MID, y1:SCR.y, x2:MID, y2:SCR.y+SCR.h, stroke:'#334155', 'stroke-width':1.2}, g);
+  mk('rect', {x:SCR.x, y:SCR.y, width:SCR.w, height:SCR.h, fill:'#0b0d10'}, g);       // dark surround
+  mk('path', {id:'fieldL', d:`M${MID},${FCY-FR} A${FR},${FR} 0 0,0 ${MID},${FCY+FR} Z`, fill:'#111'}, g);
+  mk('path', {id:'fieldR', d:`M${MID},${FCY-FR} A${FR},${FR} 0 0,1 ${MID},${FCY+FR} Z`, fill:'#111'}, g);
+  mk('circle', {cx:MID, cy:FCY, r:FR, fill:'none', stroke:'#334155', 'stroke-width':1.2}, g);
+  mk('line', {x1:MID, y1:FCY-FR, x2:MID, y2:FCY+FR, stroke:'#334155', 'stroke-width':1}, g);
+  mk('text', {x:MID, y:FCY+FR+26, 'text-anchor':'middle', class:'nm', style:'fill:#cbd5e1'}, g).textContent = 'a 2° split field';
   mk('rect', {x:SCR.x, y:SCR.y, width:SCR.w, height:SCR.h, fill:'none', stroke:'#22272d', 'stroke-width':1}, g);
   mk('rect', {x:516, y:532, width:20, height:9, rx:2, fill:'#2c3238'}, g);   // power button
   mk('rect', {x:275, y:558, width:100, height:26, fill:'#c2c7cc'}, g);       // neck
@@ -416,14 +421,14 @@ requestAnimationFrame(flow);
 
 // ── beats ───────────────────────────────────────────────────────────────────
 const NOTES = [
-  "(draft) Title only. Before images, the classic metamer: color.",
-  "(defense) A screen split in two, both halves dark. Light from each half will reach the eye and land on its own patch of retina; the cross-section shows what it does to the cones there.",
+  "(draft) Title only. Before images, the classic metamer: color. In the original color-matching experiments of the 1920s and 1930s, by Wright and by Guild, observers looked into an instrument at a small round field, about 2 degrees across, split in two. (check before class)",
+  "(draft, adapted from the defense) A small field split in two, both halves dark, in a dark surround. Light from each half will reach the eye and land on its own patch of retina; the cross-section shows what it does to the cones there.",
   "(defense) A real light. A tungsten lamp, energy at every wavelength. It reaches the retina, and only three cone types sample it: L, then M, then S. The lamp drives L most and S least. Those three numbers are all that is left of the spectrum.",
   "(defense) The experiment. The right half gets a different light: three single wavelengths, 700, 546 and 436 nm, the primaries of the original color-matching experiments, each with its own knob, all at zero.",
   "(defense) Turn the red knob. 700 nm drives mostly the L cones, some M, almost no S. The right half turns red.",
   "(defense) Add green. 546 nm drives M and L. L and M on the right now match the left; the color is close, but S is still off.",
   "(defense) Add blue. 436 nm supplies the S cones. At R 1.000, G 0.397, B 0.232 the three cone numbers agree, and the boundary disappears: two physically different lights, one color. That is a metamer.",
-  "(draft) Now look at what is physically coming out of each half. On the left, the lamp: energy at every wavelength, rising toward the red. On the right, three narrow spikes, and nothing in between. The scale is logarithmic: the red spike carries hundreds of times more energy than the other two, because your cones are so insensitive at 700 nm. Almost no wavelength has the same energy on both sides. A spectrometer would call these two lights completely different. Your cones report the same three numbers, so you see one color."
+  "(draft) Now look at what is physically coming out of each half of the field. On the left, the lamp: energy at every wavelength, rising toward the red. On the right, three narrow spikes, and nothing in between. The scale is logarithmic: the red spike carries hundreds of times more energy than the other two, because your cones are so insensitive at 700 nm. Almost no wavelength has the same energy on both sides. A spectrometer would call these two lights completely different. Your cones report the same three numbers, so you see one color."
 ];
 const N = NOTES.length;
 const settle = b => {                                       // the state a beat lands on
@@ -459,21 +464,21 @@ function enter(prev, jumped){
 
 // ── the last beat: each half's spectrum, drawn on that half. Log scale, 4 decades below each curve's peak:
 //    the 700 nm primary carries ~600x the energy of the other two, so a linear axis would hide them ──
-{ const g = $('#spectra'), pad = 18, w = SCR.w/2 - 2*pad, h = SCR.h - 2*pad - 40;
+{ const g = $('#spectra'), pad = 14, w = SCR.w/2 - FR - 22 - 2*pad, h = SCR.h - 2*pad - 62;
   const X = (x0, l) => x0 + (l - LAM0)/(LAM1 - LAM0)*w, DEC = 4;
-  const Y = (v, mx) => SCR.y + pad + h - Math.max(0, DEC + Math.log10(Math.max(v, 1e-12)/mx))/DEC*h;
+  const Y = (v, mx) => SCR.y + pad + 24 + h - Math.max(0, DEC + Math.log10(Math.max(v, 1e-12)/mx))/DEC*h;
   const right = lam.map((_, i) => dialsAtMatch().reduce((s, d, k) => s + d*P[k][i], 0));
-  [[SCR.x + pad, TEST, 'the lamp'], [MID + pad, right, 'three primaries']].forEach(([x0, sp, name]) => {
+  [[SCR.x + 8 + pad, TEST, 'lamp'], [MID + FR + 14 + pad, right, 'primaries']].forEach(([x0, sp, name]) => {
     mk('rect', {x:x0 - 8, y:SCR.y + 8, width:w + 16, height:SCR.h - 16, rx:6, fill:'#fff', 'fill-opacity':.88}, g);
     const mx = Math.max(...sp);
     let d = ''; sp.forEach((v, i) => { d += (i ? 'L' : 'M') + X(x0, lam[i]).toFixed(1) + ',' + Y(v, mx).toFixed(1); });
     mk('path', {d: d + `L${X(x0, LAM1)},${Y(0, mx)}L${X(x0, LAM0)},${Y(0, mx)}Z`, fill:'#0f172a', 'fill-opacity':.12}, g);
     mk('path', {d, fill:'none', stroke:'#0f172a', 'stroke-width':2.2}, g);
     mk('line', {x1:x0, y1:Y(0, mx), x2:x0 + w, y2:Y(0, mx), stroke:'#64748b', 'stroke-width':1}, g);
-    [400, 500, 600, 700].forEach(l => mk('text', {x:X(x0, l), y:Y(0, mx) + 16, 'text-anchor':'middle', class:'nm'}, g).textContent = l);
-    mk('text', {x:x0 + w/2, y:SCR.y + pad + 4, 'text-anchor':'middle', class:'lbl'}, g).textContent = name;
+    [400, 550, 700].forEach(l => mk('text', {x:X(x0, l), y:Y(0, mx) + 16, 'text-anchor':'middle', class:'nm'}, g).textContent = l);
+    mk('text', {x:x0 + w/2, y:SCR.y + pad + 12, 'text-anchor':'middle', class:'lbl'}, g).textContent = name;
   });
-  [SCR.x + SCR.w/4, MID + SCR.w/4].forEach(x => mk('text', {x, y:SCR.y + SCR.h - 14, 'text-anchor':'middle', class:'nm'}, g).textContent = 'wavelength (nm), log energy');
+  [SCR.x + 8 + pad + w/2, MID + FR + 14 + pad + w/2].forEach(x => mk('text', {x, y:SCR.y + SCR.h - 14, 'text-anchor':'middle', class:'nm'}, g).textContent = 'nm, log energy');
 }
 function dialsAtMatch(){ return TARGET; }
 
