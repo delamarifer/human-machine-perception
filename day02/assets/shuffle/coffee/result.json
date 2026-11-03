@@ -1,0 +1,92 @@
+{
+ "model": "torchvision resnet18, ResNet18_Weights.IMAGENET1K_V1",
+ "torch": "2.15.0",
+ "opencv": "5.0.0",
+ "source": "coffee.jpg",
+ "seed": 0,
+ "tracked": "espresso as [rank, probability]",
+ "intact": {
+  "top5": [
+   [
+    "espresso",
+    0.8588
+   ],
+   [
+    "cup",
+    0.0938
+   ],
+   [
+    "coffee mug",
+    0.029
+   ],
+   [
+    "eggnog",
+    0.0108
+   ],
+   [
+    "soup bowl",
+    0.003
+   ]
+  ],
+  "espresso": [
+   1,
+   0.8588
+  ]
+ },
+ "shuffled-4": {
+  "top5": [
+   [
+    "toilet tissue",
+    0.305
+   ],
+   [
+    "paper towel",
+    0.2991
+   ],
+   [
+    "cup",
+    0.1603
+   ],
+   [
+    "espresso",
+    0.0746
+   ],
+   [
+    "coffee mug",
+    0.0531
+   ]
+  ],
+  "espresso": [
+   4,
+   0.0746
+  ]
+ },
+ "shuffled-8": {
+  "top5": [
+   [
+    "wardrobe",
+    0.1419
+   ],
+   [
+    "window shade",
+    0.1303
+   ],
+   [
+    "paper towel",
+    0.1257
+   ],
+   [
+    "carton",
+    0.1044
+   ],
+   [
+    "envelope",
+    0.0856
+   ]
+  ],
+  "espresso": [
+   326,
+   0.0
+  ]
+ }
+}

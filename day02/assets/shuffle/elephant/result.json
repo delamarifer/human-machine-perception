@@ -1,0 +1,92 @@
+{
+ "model": "torchvision resnet18, ResNet18_Weights.IMAGENET1K_V1",
+ "torch": "2.15.0",
+ "opencv": "5.0.0",
+ "source": "elephant.jpg",
+ "seed": 0,
+ "tracked": "Indian elephant as [rank, probability]",
+ "intact": {
+  "top5": [
+   [
+    "triceratops",
+    0.2869
+   ],
+   [
+    "cowboy boot",
+    0.2662
+   ],
+   [
+    "shield",
+    0.0581
+   ],
+   [
+    "chain mail",
+    0.0436
+   ],
+   [
+    "cuirass",
+    0.0258
+   ]
+  ],
+  "Indian elephant": [
+   9,
+   0.0128
+  ]
+ },
+ "shuffled-4": {
+  "top5": [
+   [
+    "sock",
+    0.4069
+   ],
+   [
+    "cowboy boot",
+    0.2408
+   ],
+   [
+    "thimble",
+    0.1433
+   ],
+   [
+    "beer bottle",
+    0.0405
+   ],
+   [
+    "water bottle",
+    0.0256
+   ]
+  ],
+  "Indian elephant": [
+   94,
+   0.0001
+  ]
+ },
+ "shuffled-8": {
+  "top5": [
+   [
+    "wine bottle",
+    0.2401
+   ],
+   [
+    "barrel",
+    0.1528
+   ],
+   [
+    "quilt",
+    0.0733
+   ],
+   [
+    "padlock",
+    0.0594
+   ],
+   [
+    "scabbard",
+    0.0548
+   ]
+  ],
+  "Indian elephant": [
+   25,
+   0.005
+  ]
+ }
+}
