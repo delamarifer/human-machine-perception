@@ -10,76 +10,157 @@
      6. Discussion, then "now you try" into the lab
    Scenes julesz-textons and metamers-scramble are copied from day04/. */
 {
+/* ---------- visuals for this part (drawn here, in SVG) ----------
+   Cone curves: Stockman & Sharpe (2000) 2-degree fundamentals, assets/metamers/cones.json (as in the primer),
+   filled in after the deck starts. Cone numbers 1.00 / 0.87 / 0.33: the match computed by color-metamers.html.
+   The lamp: Planck's law at 2856 K (CIE Illuminant A). The three primaries are drawn as equal spikes: a
+   schematic of WHERE the energy is, with no energy axis (their true energies differ a lot; see slide 22). */
+const MV_INK = '#0f172a', MV_MUTE = '#94a3b8', MV_CONE = ['#d23c3c', '#2e9b4f', '#2f6fd1'], MV_LMS = [1.00, .87, .33];
+const mvLamp = l => 1 / (Math.pow(l, 5) * (Math.exp(1.4388e7 / (2856 * l)) - 1));
+const mvSpectrum = (kind, w = 220, h = 120) => {
+  const x = l => 10 + (l - 380) / 400 * (w - 20), base = h - 22;
+  let body;
+  if(kind === 'lamp'){ const mx = mvLamp(780); let d = '';
+    for(let l = 380; l <= 780; l += 5) d += (l === 380 ? 'M' : 'L') + x(l).toFixed(1) + ',' + (base - mvLamp(l) / mx * (h - 40)).toFixed(1);
+    body = `<path d="${d}L${x(780)},${base}L${x(380)},${base}Z" fill="${MV_INK}" fill-opacity=".12"/><path d="${d}" fill="none" stroke="${MV_INK}" stroke-width="3"/>`; }
+  else body = [436, 546, 700].map(l => `<path d="M${x(l) - 5},${base} L${x(l)},${base - (h - 40)} L${x(l) + 5},${base} Z" fill="${MV_INK}"/>`).join('');
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto">${body}
+    <line x1="10" y1="${base}" x2="${w - 10}" y2="${base}" stroke="${MV_MUTE}" stroke-width="2"/>
+    <text x="10" y="${h - 4}" font-size="15" fill="${MV_INK}">400</text><text x="${w - 10}" y="${h - 4}" font-size="15" fill="${MV_INK}" text-anchor="end">700 nm</text></svg>`;
+};
+const mvBars = (vals = MV_LMS, w = 200, h = 120) => {
+  const bw = (w - 40) / 3;
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto">${vals.map((v, k) => {
+    const bh = v * (h - 40), x = 20 + k * bw;
+    return `<rect x="${x + 8}" y="${h - 22 - bh}" width="${bw - 16}" height="${bh}" fill="${MV_CONE[k]}"/>
+      <text x="${x + bw / 2}" y="${h - 4}" font-size="16" font-weight="700" fill="${MV_INK}" text-anchor="middle">${'LMS'[k]}</text>`; }).join('')}
+    <line x1="14" y1="${h - 22}" x2="${w - 14}" y2="${h - 22}" stroke="${MV_MUTE}" stroke-width="2"/></svg>`;
+};
+const mvKnobs = (w = 220, h = 120) => `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto">${[0, 1, 2].map(k => {
+  const cx = 40 + k * 70, cy = 52, a = [-60, 20, 70][k] * Math.PI / 180;
+  return `<circle cx="${cx}" cy="${cy}" r="27" fill="#e2e8f0" stroke="${MV_MUTE}" stroke-width="2"/>
+    <line x1="${cx}" y1="${cy}" x2="${(cx + 22 * Math.sin(a)).toFixed(1)}" y2="${(cy - 22 * Math.cos(a)).toFixed(1)}" stroke="${MV_INK}" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy + 44}" r="6" fill="${MV_CONE[k]}"/>`; }).join('')}</svg>`;
+/* the cone curves, from the real data once it has loaded */
+const mvCones = `<svg class="metamers-cones" viewBox="0 0 220 120" style="width:100%;height:auto"></svg>`;
+fetch('../assets/metamers/cones.json').then(r => r.json()).then(c => {
+  const x = l => 10 + (l - 380) / 400 * 200, y = v => 98 - v * 80;
+  const paths = ['L', 'M', 'S'].map((n, k) => { const mx = Math.max(...c[n]);
+    return `<path d="${c.wl.map((l, i) => (i ? 'L' : 'M') + x(l).toFixed(1) + ',' + y(c[n][i] / mx).toFixed(1)).join('')}" fill="none" stroke="${MV_CONE[k]}" stroke-width="3.5"/>`; }).join('');
+  const fill = () => { const svgs = document.querySelectorAll('svg.metamers-cones'); if(!svgs.length) return setTimeout(fill, 200);
+    svgs.forEach(g => g.innerHTML = paths + `<line x1="10" y1="98" x2="210" y2="98" stroke="${MV_MUTE}" stroke-width="2"/>
+      <text x="10" y="116" font-size="15" fill="${MV_INK}">400</text><text x="210" y="116" font-size="15" fill="${MV_INK}" text-anchor="end">700 nm</text>`); };
+  fill();
+}).catch(() => {});
+/* objects for "Beyond color": one gray ball, changed in one way per tile (drawn, not photographed) */
+const mvBall = (kind, id) => {
+  const ground = `<line x1="10" y1="132" x2="190" y2="132" stroke="${MV_MUTE}" stroke-width="2"/>`;
+  const grad = (gid, fx) => `<radialGradient id="${gid}" cx="${fx}" cy=".35" r=".75"><stop offset="0" stop-color="#e2e8f0"/><stop offset="1" stop-color="#475569"/></radialGradient>`;
+  if(kind === 'light') return `<svg viewBox="0 0 200 140" style="width:100%;height:auto"><defs>${grad(id + 'a', '.3')}${grad(id + 'b', '.8')}</defs>${ground}
+    <ellipse cx="62" cy="130" rx="34" ry="5" fill="#0f172a" fill-opacity=".18"/><circle cx="55" cy="96" r="34" fill="url(#${id}a)"/>
+    <ellipse cx="146" cy="130" rx="34" ry="5" fill="#0f172a" fill-opacity=".18"/><circle cx="145" cy="96" r="34" fill="url(#${id}b)" opacity=".75"/></svg>`;
+  if(kind === 'texture') return `<svg viewBox="0 0 200 140" style="width:100%;height:auto"><defs>${grad(id, '.3')}
+    <pattern id="${id}p" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(30)"><rect width="6" height="12" fill="#0f172a" fill-opacity=".35"/></pattern></defs>${ground}
+    <circle cx="100" cy="90" r="40" fill="url(#${id})"/><circle cx="100" cy="90" r="40" fill="url(#${id}p)"/></svg>`;
+  if(kind === 'shape') return `<svg viewBox="0 0 200 140" style="width:100%;height:auto">${ground}
+    <path d="M70,62 L100,48 L136,58 L106,72 Z" fill="#cbd5e1"/><path d="M70,62 L106,72 L106,130 L70,120 Z" fill="#94a3b8"/><path d="M106,72 L136,58 L136,116 L106,130 Z" fill="#64748b"/></svg>`;
+  return `<svg viewBox="0 0 200 140" style="width:100%;height:auto"><defs>${grad(id, '.3')}</defs>${ground}
+    <circle cx="44" cy="112" r="20" fill="url(#${id})"/><ellipse cx="150" cy="118" rx="30" ry="16" fill="url(#${id})"/></svg>`;
+};
+const mvCol = (inner, label, step) => `<div class="b" data-step="${step}" style="display:flex;flex-direction:column;align-items:center;gap:1vh;width:100%">
+  <div style="width:100%">${inner}</div><div class="label center">${label}</div></div>`;
+const mvArrow = step => `<div class="b" data-step="${step}" style="font-size:clamp(1.6rem,2.6vw,2.4rem);color:#64748b">→</div>`;
+
 /* ---------- 1. Definition, then color ---------- */
 section('Metamers');
 
 st(`
   <h1 class="t">Metamers</h1>
-  <div style="margin:auto 0;display:flex;flex-direction:column;gap:4vh;align-items:center">
-    <div class="statement b" data-step="1">x₁ ≠ x₂ &nbsp;&nbsp;but&nbsp;&nbsp; f(x₁) = f(x₂)</div>
-    <div class="lead b" data-step="2">Physically different, the same to the system</div>
-    <div class="lead b" data-step="3">They show what f throws away</div>
+  <div class="statement center b" data-step="1">x₁ ≠ x₂ &nbsp;&nbsp;but&nbsp;&nbsp; f(x₁) = f(x₂)</div>
+  <div style="margin:auto 0;display:grid;grid-template-columns:1fr 1fr auto 1fr auto 1fr;gap:2vw;align-items:center">
+    ${mvCol(mvSpectrum('lamp'), 'x₁: a lamp', 1)}${mvCol(mvSpectrum('spikes'), 'x₂: three lights', 1)}
+    ${mvArrow(2)}<div class="b" data-step="2" style="border:2px solid ${MV_INK};border-radius:14px;padding:3vh 1vw;text-align:center"><b class="lead">f</b><div class="label">the cones</div></div>
+    ${mvArrow(2)}${mvCol(mvBars(), 'f(x₁) = f(x₂)', 2)}
   </div>
+  <div class="lead center b" data-step="3">They show what f throws away</div>
 `, { notes: [
   "(draft) You read about metamers in the primer. Here is the short version, in the language we just set up.",
-  "(draft) Two inputs, x one and x two, that are physically different, but that the representation f maps to exactly the same numbers.",
-  "(draft) The system cannot tell them apart. They are physically different, but the same to the system.",
-  "(draft) And that is what makes them useful: whatever differs between two metamers is information f has thrown away. The classic case, where we know f exactly, is color."
+  "(draft) Two inputs, x one and x two, that are physically different. Here, the light of a lamp, with energy at every wavelength, and a mix of three single wavelengths.",
+  "(draft) A representation f, here the cones, maps them to exactly the same three numbers. The system cannot tell them apart: physically different, the same to the system.",
+  "(draft) And that is what makes them useful: whatever differs between two metamers is information f has thrown away. Let's see this happen."
 ]});
 
 sc('colorMetamers', 'scenes/color-metamers.html');
 
 st(`
   <h1 class="t">In color, we have knobs</h1>
-  <div class="flow" style="margin:auto 0">
-    <div class="step b" data-step="1"><b>Knobs</b><span class="label">three lights we can turn</span></div>
-    <div class="arrow b" data-step="2">→</div>
-    <div class="step b" data-step="2"><b>Sensors</b><span class="label">three cone types</span></div>
-    <div class="arrow b" data-step="3">→</div>
-    <div class="step b" data-step="3"><b>What is encoded</b><span class="label">three numbers</span></div>
+  <div style="margin:auto 0;display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:2vw;align-items:center">
+    ${mvCol(mvKnobs(), '<b>Knobs</b>: three lights we can turn', 1)}
+    ${mvArrow(2)}${mvCol(mvCones, '<b>Sensors</b>: three cone types', 2)}
+    ${mvArrow(3)}${mvCol(mvBars(), '<b>What is encoded</b>: three numbers', 3)}
   </div>
+  ${cite('Cone sensitivities: Stockman &amp; Sharpe (2000), via the CVRL database')}
 `, { notes: [
   "(draft) Why is color the easy case?",
   "(draft) Because we have knobs. Three lights whose intensities we can turn, one at a time, as precisely as we like.",
-  "(draft) With them we can probe the sensors directly: three types of cone, each summing the light through its own sensitivity curve.",
+  "(draft) With them we can probe the sensors directly: three types of cone, each summing the light through its own sensitivity curve. These are the measured curves.",
   "(draft) And so we can find out exactly what is represented, or encoded, in those cells: three numbers per patch of retina, and nothing else."
 ]});
 
+/* the lamp's spectrum as 41 numbers (every 10 nm), squeezed into three */
+const mvMany = (() => { const mx = mvLamp(780), n = 41, w = 420, h = 130;
+  const bars = [...Array(n)].map((_, i) => { const l = 380 + i * 10, bh = mvLamp(l) / mx * (h - 30);
+    return `<rect x="${10 + i * (w - 20) / n}" y="${h - 20 - bh}" width="${(w - 20) / n - 2}" height="${bh}" fill="${MV_INK}" fill-opacity=".55"/>`; }).join('');
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto">${bars}<line x1="8" y1="${h - 20}" x2="${w - 8}" y2="${h - 20}" stroke="${MV_MUTE}" stroke-width="2"/></svg>`; })();
 st(`
   <h1 class="t">Metamers show the edges of a representation</h1>
-  <ul class="frag" style="margin:auto 0">
-    <li class="b">Some differences between spectra are not captured by the cones</li>
-    <li class="b">Those differences are thrown away</li>
-    <li class="b">There is no sensory machinery to make sense of them</li>
+  <div class="b" data-step="1" style="display:grid;grid-template-columns:2fr auto 1fr;gap:2vw;align-items:center;width:80%;margin:2vh auto 0">
+    <div>${mvMany}<div class="label center">a spectrum: hundreds of numbers</div></div>
+    <div style="font-size:clamp(1.6rem,2.6vw,2.4rem);color:#64748b">→</div>
+    <div>${mvBars()}<div class="label center">the cones: three</div></div>
+  </div>
+  <ul class="frag" style="margin:auto 0;list-style:disc;padding-left:1.4em">
+    <li class="b" data-step="1">Some differences between spectra are not captured by the cones</li>
+    <li class="b" data-step="2">Those differences are thrown away</li>
+    <li class="b" data-step="3">There is no sensory machinery to make sense of them</li>
   </ul>
 `, { notes: [
   "(draft) So what do metamers tell us?",
-  "(draft) They show us the edges of the representation. Some differences in the real wavelengths, like the lamp's smooth spectrum against three narrow spikes, are simply not captured by those three cell types.",
+  "(draft) They show us the edges of the representation. A spectrum has energy at hundreds of wavelengths; the cones keep three numbers. Some differences in the real wavelengths, like the lamp's smooth spectrum against three narrow spikes, are simply not captured by those three cell types.",
   "(draft) Which means the visual system throws those differences away, right at the first step.",
   "(draft) Or, more precisely: there is no sensory machinery to make sense of them. No amount of attention or training will let you see the difference between the two halves of that field."
 ]});
 
+/* screen subpixels showing yellow: red and green lit, blue off (a sketch; real layouts vary) */
+const mvSub = (() => { const px = [], cols = 6, rows = 4, s = 30;
+  for(let r = 0; r < rows; r++) for(let c = 0; c < cols; c++) ['#e53935', '#43a047', '#1e2a4a'].forEach((f, k) =>
+    px.push(`<rect x="${c * s + k * s / 3 + 1}" y="${r * s + 1}" width="${s / 3 - 2}" height="${s - 2}" rx="2" fill="${f}"/>`));
+  return `<svg viewBox="0 0 ${cols * s} ${rows * s}" style="height:16vh;width:auto;background:#0b0d10">${px.join('')}</svg>`; })();
 st(`
   <h1 class="t">Every screen is a metamer machine</h1>
-  <div class="flow" style="margin:auto 0">
+  <div class="flow" style="margin:2vh 0 0">
     <div class="step b" data-step="1"><b>Camera</b><span class="label">red, green, blue filters</span></div>
     <div class="arrow b" data-step="2">→</div>
     <div class="step b" data-step="2"><b>Screen</b><span class="label">three lights per pixel</span></div>
     <div class="arrow b" data-step="3">→</div>
     <div class="step b" data-step="3"><b>Eye</b><span class="label">three cone types</span></div>
   </div>
+  <div class="b" data-step="2" style="display:flex;justify-content:center;align-items:center;gap:3vw;margin:auto 0">
+    <div style="text-align:center">${mvSub}<div class="label">up close: red and green lit, blue off</div></div>
+    <div style="text-align:center"><div style="height:16vh;aspect-ratio:1.5;background:#e8c32e;margin:auto"></div><div class="label">from a normal distance: yellow</div></div>
+  </div>
   <div class="statement center b" data-step="4">Three numbers in, three numbers out</div>
 `, { notes: [
   "(draft) We exploit this edge every day.",
   "(draft) Remember Shreya's Bayer mosaic: the camera records only three numbers per pixel, through red, green and blue filters.",
-  "(draft) The screen never reproduces the spectrum of the scene. It lights three primaries, red, green and blue subpixels, in the amounts those numbers say: three knobs per pixel.",
+  "(draft) The screen never reproduces the spectrum of the scene. It lights three primaries, red, green and blue subpixels, in the amounts those numbers say: three knobs per pixel. Your screen has no yellow pixels: up close, yellow is red and green subpixels lit, blue off. This is a sketch; real layouts vary.",
   "(draft) And your three cone types compare that light with what the real scene would have sent. If the three cone responses agree, you see the same color.",
   "(draft) Three numbers in, three numbers out. A banana on your screen is a metamer of the real banana, for you."
 ]});
 
 st(`
   <h1 class="t">A metamer is always a metamer for someone</h1>
-  <ul class="frag" style="margin:auto 0">
+  <ul class="frag" style="margin:auto 0;list-style:disc;padding-left:1.4em">
     <li class="b"><b>For a system:</b> a match for your cones need not be a match for a camera</li>
     <li class="b"><b>Under conditions:</b> a match under one light can break under another</li>
     <li class="b"><b>For a task:</b> a glance in the periphery, or a careful look</li>
@@ -94,11 +175,9 @@ st(`
 /* ---------- 2. Beyond color ---------- */
 st(`
   <h1 class="t">Beyond color, it is hard</h1>
-  <div class="tiles" style="grid-template-columns:repeat(4,1fr);flex:0 0 auto;margin-top:4vh">
-    <div class="tile b" data-step="1"><div class="lead center">lighting</div></div>
-    <div class="tile b" data-step="1"><div class="lead center">texture</div></div>
-    <div class="tile b" data-step="1"><div class="lead center">shape</div></div>
-    <div class="tile b" data-step="1"><div class="lead center">position, size, viewpoint</div></div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3vw;margin-top:4vh">
+    ${mvCol(mvBall('light', 'mvb1'), 'lighting', 1)}${mvCol(mvBall('texture', 'mvb2'), 'texture', 1)}
+    ${mvCol(mvBall('shape', 'mvb3'), 'shape', 1)}${mvCol(mvBall('where', 'mvb4'), 'position, size, viewpoint', 1)}
   </div>
   <div class="question center b" data-step="2" style="margin:auto">What are the knobs?</div>
 `, { notes: [
