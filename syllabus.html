@@ -132,6 +132,38 @@
   .timeline li.end{ padding-bottom:0; }
   .timeline li.end b{ color:var(--mute); font-weight:500; }
   .vary{ color:var(--mute); font-size:.9rem; font-style:italic; margin:0 0 .5em; }
+  /* grading modules, like course-site modules */
+  .m-hint{ color:var(--mute); font-size:.9rem; margin:0 0 .7em; }
+  .mods{ border:1px solid var(--line); border-radius:16px; overflow:hidden; background:var(--surface); }
+  .mod{ border-top:1px solid var(--line); }
+  .mods > .mod:first-child{ border-top:none; }
+  .mod summary{ display:grid; grid-template-columns:20px minmax(150px, 220px) 1fr auto; gap:14px; align-items:baseline; padding:15px 18px; cursor:pointer; list-style:none; }
+  .mod summary::-webkit-details-marker{ display:none; }
+  .mod summary::before{ content:'▸'; color:var(--c); transition:transform .2s; display:inline-block; }
+  .mod[open] > summary::before{ transform:rotate(90deg); }
+  .mod summary:hover{ background:rgba(255,255,255,.025); }
+  .m-name{ font-weight:600; }
+  .m-desc{ color:#c5cce0; font-size:.95rem; }
+  .m-w{ font:700 1.05rem/1 'Space Grotesk', sans-serif; color:var(--c); text-shadow:0 0 10px color-mix(in srgb, var(--c) 45%, transparent); }
+  .m-body{ padding:2px 18px 16px 52px; border-left:3px solid var(--c); margin-left:18px; margin-bottom:14px; }
+  .m-body > p{ color:#d3d9e6; }
+  .mod.sub{ border:1px solid var(--line); border-radius:12px; margin:0 0 10px; background:var(--surface2); }
+  .mod.sub summary{ grid-template-columns:20px minmax(110px, 160px) 1fr auto; padding:12px 14px; }
+  .mod.sub .m-body{ padding-left:30px; margin-left:14px; }
+  .mod .tw{ margin:.4em 0 .8em; }
+  .m-total{ display:flex; justify-content:space-between; padding:15px 18px 15px 52px; border-top:1px solid var(--line); background:var(--surface2); font-weight:700; --c:var(--sky); }
+  .m-actions{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:.2em 0 0; }
+  .m-actions > a:not(.submit){ font-size:.9rem; }
+  .submit{ display:inline-block; margin-top:.5em; padding:.4em .9em; border-radius:999px; font-size:.82rem; font-weight:700; text-decoration:none;
+    color:var(--bg); background:var(--c, var(--cyan)); box-shadow:0 0 14px color-mix(in srgb, var(--c, var(--cyan)) 50%, transparent); }
+  .m-actions .submit{ margin-top:0; }
+  .submit[aria-disabled="true"]{ color:var(--mute); background:transparent; border:1px dashed var(--line); box-shadow:none; pointer-events:none; font-weight:600; }
+  @media (max-width:640px){
+    .mod summary, .mod.sub summary{ grid-template-columns:18px 1fr auto; gap:4px 10px; }
+    .m-desc{ grid-column:2 / 4; grid-row:2; font-size:.88rem; }
+    .m-body, .mod.sub .m-body{ padding:2px 4px 12px 14px; margin-left:12px; }
+    .m-total{ padding-left:40px; }
+  }
   /* project directions */
   .tags{ display:flex; flex-wrap:wrap; gap:10px; padding:0; margin:1em 0 1.2em; list-style:none; }
   .tags li{ margin:0; padding:.5em .9em; border:1px solid var(--line); border-radius:12px; background:var(--surface); font-size:.95rem; }
@@ -216,9 +248,9 @@
 
     <h3>A typical day</h3>
     <ol class="timeline">
-      <li style="--k:var(--cyan)"><time>2:00</time><div><b>Review <span>10 min</span></b><p>Discussion of the reading or the homework</p></div></li>
+      <li style="--k:var(--cyan)"><time>2:00</time><div><b>Response paper and review <span>10 min</span></b><p>The response paper (5 to 10 minutes), then a short discussion of the reading or the homework</p></div></li>
       <li style="--k:var(--violet)"><time>2:10</time><div><b>Lecture <span>about 45 min</span></b><p>Short blocks, each paired with a piece of human vision</p></div></li>
-      <li style="--k:var(--amber)"><time>2:55</time><div><b>Lab <span>about 55 min</span></b><p>Hands-on coding in a Colab notebook, with the teachers going back and forth between explaining and coding</p></div></li>
+      <li style="--k:var(--amber)"><time>2:55</time><div><b>Lab and lecture <span>about 55 min</span></b><p>Coding in a Colab notebook, in short rounds: you work on a step, then we come back together to talk about it and introduce the next idea</p></div></li>
       <li style="--k:var(--pink)"><time>3:50</time><div><b>Discuss and wrap up <span>10 min</span></b><p>What worked, what failed, how it connects to your project, and the homework</p></div></li>
       <li class="end"><time>4:00</time><div><b>End</b></div></li>
     </ol>
@@ -228,8 +260,8 @@
     <div class="facts">
       <div class="fact"><small>Reading</small>A chapter from Torralba, Isola &amp; Freeman, <i>Foundations of Computer Vision</i>, or a paper. See the <a href="readings.html">reading bank</a>, and suggest your own.</div>
       <div class="fact"><small>Coding practice</small>A Colab notebook you start in class and finish at home</div>
-      <div class="fact"><small>Human connection</small>An illusion or finding from human vision, next to what a model does</div>
-      <div class="fact"><small>Response paper</small>One question on the reading and three on the lab</div>
+      <div class="fact"><small>Human connection</small>What can we learn from human vision?</div>
+      <div class="fact"><small>Response paper</small>5 to 10 minutes at the start of class: one question on the reading and three on the lab</div>
     </div>
   </section>
 
@@ -463,80 +495,46 @@
       <li style="--k:var(--sky)">Assignment 2 15%</li>
     </ul>
 
-    <div class="tw"><table>
-      <thead>
-        <tr><th>Component</th><th>Weight</th><th>What it is</th></tr>
-      </thead>
-      <tbody>
-        <tr style="--c:var(--pink)"><td><b>Final project</b></td><td class="w">45%</td><td>An original vision application, proposed, built, written up and presented</td></tr>
-        <tr class="sub" style="--c:var(--pink)"><td>Proposal</td><td class="w">10%</td><td>Three steps, below</td></tr>
-        <tr class="sub" style="--c:var(--pink)"><td>Write-up</td><td class="w">20%</td><td>A short report on what you built and how well it works</td></tr>
-        <tr class="sub" style="--c:var(--pink)"><td>Presentation</td><td class="w">15%</td><td>Presented to the class on the last day</td></tr>
-        <tr style="--c:var(--cyan)"><td><b>Daily response papers</b></td><td class="w">24%</td><td>12 papers, 2% each</td></tr>
-        <tr style="--c:var(--violet)"><td><b>Final-day question</b></td><td class="w">1%</td><td>One short, easy question on the last day</td></tr>
-        <tr style="--c:var(--amber)"><td><b>Assignment 1</b></td><td class="w">15%</td><td>Coding and conceptual questions</td></tr>
-        <tr style="--c:var(--sky)"><td><b>Assignment 2</b></td><td class="w">15%</td><td>Coding and conceptual questions</td></tr>
-        <tr class="total"><td>Total</td><td class="w">100%</td><td></td></tr>
-      </tbody>
-    </table></div>
-
-    <h3>Final project proposal (10%)</h3>
-    <p>Templates for every step, for a built demo or a research experiment: <a href="templates.html">project templates</a>.</p>
-    <div class="tw" style="--c:var(--pink)"><table>
-      <thead><tr><th>Step</th><th>Weight</th><th>How it is graded</th></tr></thead>
-      <tbody>
-        <tr><td>General ideas, through a Google Form (<a href="templates.html#idea">template</a>)<br><span class="due">Due Friday</span></td><td class="w">2%</td><td>Full credit for a complete, on-time submission. We share the ideas with the class so you can find teammates.</td></tr>
-        <tr><td>Detailed proposal (<a href="templates.html#proposal">template</a>)<br><span class="due">Due Monday</span></td><td class="w">5%</td><td>Problem and motivation (25%) · approach: the models and data you will use (25%) · evaluation: how you will know it works (25%) · a realistic plan for the time we have (25%)</td></tr>
-        <tr><td>Meeting with a teacher to discuss the detailed proposal (sign up on Calendly)<br><span class="due">Due Wednesday, week 2</span></td><td class="w">3%</td><td>Full credit for attending prepared, with your proposal and your questions</td></tr>
-      </tbody>
-    </table></div>
-
-    <h3>Final project write-up (20%)</h3>
-    <div class="tw" style="--c:var(--pink)"><table>
-      <thead><tr><th>Criterion</th><th>Share</th><th>What we look for</th></tr></thead>
-      <tbody>
-        <tr><td>Problem and motivation</td><td class="w">15%</td><td>A clear question or goal, and why it matters</td></tr>
-        <tr><td>Method</td><td class="w">25%</td><td>What you built, the models and data, and why you chose them</td></tr>
-        <tr><td>Results and evaluation</td><td class="w">25%</td><td>Evidence that it works: examples, a measurement, a comparison</td></tr>
-        <tr><td>Limitations and failure cases</td><td class="w">20%</td><td>Where it breaks, and what that says about how it sees</td></tr>
-        <tr><td>Clarity</td><td class="w">15%</td><td>Readable writing, labeled figures, sources credited</td></tr>
-      </tbody>
-    </table></div>
-
-    <h3>Final project presentation (15%)</h3>
-    <div class="tw" style="--c:var(--pink)"><table>
-      <thead><tr><th>Criterion</th><th>Share</th><th>What we look for</th></tr></thead>
-      <tbody>
-        <tr><td>The idea</td><td class="w">20%</td><td>The audience understands the problem in the first minute</td></tr>
-        <tr><td>Demo and results</td><td class="w">35%</td><td>Show it working, on examples, with evidence</td></tr>
-        <tr><td>Limitations</td><td class="w">20%</td><td>An honest look at where it fails</td></tr>
-        <tr><td>Delivery</td><td class="w">15%</td><td>Clear slides, within time</td></tr>
-        <tr><td>Questions</td><td class="w">10%</td><td>Thoughtful answers to questions from the class</td></tr>
-      </tbody>
-    </table></div>
-
-    <h3>Daily response papers (24%)</h3>
-    <p>Twelve response papers, each worth 2% of the grade. Each has four questions, 5 points each (20 points):</p>
-    <ul style="--c:var(--cyan)">
-      <li>1 high-level question about the day's paper</li>
-      <li>3 conceptual questions about the take-home lab</li>
-    </ul>
-    <div class="tw" style="--c:var(--cyan)"><table>
-      <thead><tr><th>Points</th><th>Each question</th></tr></thead>
-      <tbody>
-        <tr><td class="w">5</td><td>Correct and well reasoned, in your own words, with evidence from the paper or the lab</td></tr>
-        <tr><td class="w">4</td><td>Mostly correct, with a small gap or an unsupported step</td></tr>
-        <tr><td class="w">3</td><td>Partly correct, or a correct answer without the reasoning</td></tr>
-        <tr><td class="w">1–2</td><td>A real attempt that shows engagement but misunderstands the idea</td></tr>
-        <tr><td class="w">0</td><td>Missing</td></tr>
-      </tbody>
-    </table></div>
-
-    <h3>Final-day question (1%)</h3>
-    <p>A short, easy question on the last day. Full credit for any genuine answer.</p>
-
-    <h3>Assignments (15% each)</h3>
-    <p>Each assignment comes with its own rubric, covering correct, working code and the conceptual answers.</p>
+    <p class="m-hint">Click a component to see how it is graded and where to hand it in.</p>
+    <div class="mods">
+      <details class="mod" style="--c:var(--pink)">
+        <summary><span class="m-name">Final project</span><span class="m-desc">An original vision application, proposed, built, written up and presented</span><span class="m-w">45%</span></summary>
+        <div class="m-body"><p>Two tracks: build a demo, or run an experiment that explores or overcomes a limitation. Templates for every step: <a href="templates.html">project templates</a>.</p><details class="mod sub" style="--c:var(--pink)">
+        <summary><span class="m-name">Proposal</span><span class="m-desc">Three steps: ideas, a detailed proposal, a meeting</span><span class="m-w">10%</span></summary>
+        <div class="m-body"><div class="tw"><table><thead><tr><th>Step</th><th>Weight</th><th>How it is graded</th></tr></thead><tbody><tr><td>General ideas, through a Google Form (<a href="templates.html#idea">template</a>)<br><span class="due">Due Friday</span><br><a class="submit" href="" data-what="your idea">Submit your idea</a></td><td class="w">2%</td><td>Full credit for a complete, on-time submission. We share the ideas with the class so you can find teammates.</td></tr><tr><td>Detailed proposal (<a href="templates.html#proposal">template</a>)<br><span class="due">Due Monday</span><br><a class="submit" href="" data-what="your proposal">Submit your proposal</a></td><td class="w">5%</td><td>Problem and motivation (25%) · approach: the models and data you will use (25%) · evaluation: how you will know it works (25%) · a realistic plan for the time we have (25%)</td></tr><tr><td>Meeting with a teacher to discuss the detailed proposal (sign up on Calendly)<br><span class="due">Due Wednesday, week 2</span><br><a class="submit" href="" data-what="a meeting">Book a meeting</a></td><td class="w">3%</td><td>Full credit for attending prepared, with your proposal and your questions</td></tr></tbody></table></div></div>
+      </details><details class="mod sub" style="--c:var(--pink)">
+        <summary><span class="m-name">Write-up</span><span class="m-desc">A short report on what you built and how well it works</span><span class="m-w">20%</span></summary>
+        <div class="m-body"><div class="tw"><table><thead><tr><th>Criterion</th><th>Share</th><th>What we look for</th></tr></thead><tbody><tr><td>Problem and motivation</td><td class="w">15%</td><td>A clear question or goal, and why it matters</td></tr><tr><td>Method</td><td class="w">25%</td><td>What you built, the models and data, and why you chose them</td></tr><tr><td>Results and evaluation</td><td class="w">25%</td><td>Evidence that it works: examples, a measurement, a comparison</td></tr><tr><td>Limitations and failure cases</td><td class="w">20%</td><td>Where it breaks, and what that says about how it sees</td></tr><tr><td>Clarity</td><td class="w">15%</td><td>Readable writing, labeled figures, sources credited</td></tr></tbody></table></div><p class="m-actions"><a href="templates.html#writeup">Template</a><a class="submit" href="" data-what="your write-up">Submit your write-up</a></p></div>
+      </details><details class="mod sub" style="--c:var(--pink)">
+        <summary><span class="m-name">Presentation</span><span class="m-desc">Presented to the class on the last day</span><span class="m-w">15%</span></summary>
+        <div class="m-body"><div class="tw"><table><thead><tr><th>Criterion</th><th>Share</th><th>What we look for</th></tr></thead><tbody><tr><td>The idea</td><td class="w">20%</td><td>The audience understands the problem in the first minute</td></tr><tr><td>Demo and results</td><td class="w">35%</td><td>Show it working, on examples, with evidence</td></tr><tr><td>Limitations</td><td class="w">20%</td><td>An honest look at where it fails</td></tr><tr><td>Delivery</td><td class="w">15%</td><td>Clear slides, within time</td></tr><tr><td>Questions</td><td class="w">10%</td><td>Thoughtful answers to questions from the class</td></tr></tbody></table></div><p class="m-actions"><a href="templates.html#presentation">Template</a><a class="submit" href="" data-what="your slides">Submit your slides</a></p></div>
+      </details></div>
+      </details>
+      <details class="mod" style="--c:var(--cyan)">
+        <summary><span class="m-name">Daily response papers</span><span class="m-desc">12 papers, 2% each</span><span class="m-w">24%</span></summary>
+        <div class="m-body"><p>Twelve response papers, each worth 2% of the grade, written in the first 5 to 10 minutes of class. Each has four questions, 5 points each (20 points):</p>
+          <ul><li>1 high-level question about the day's paper</li><li>3 conceptual questions about the take-home lab</li></ul>
+          <div class="tw"><table><thead><tr><th>Points</th><th>Each question</th></tr></thead><tbody>
+          <tr><td class="w">5</td><td>Correct and well reasoned, in your own words, with evidence from the paper or the lab</td></tr>
+          <tr><td class="w">4</td><td>Mostly correct, with a small gap or an unsupported step</td></tr>
+          <tr><td class="w">3</td><td>Partly correct, or a correct answer without the reasoning</td></tr>
+          <tr><td class="w">1–2</td><td>A real attempt that shows engagement but misunderstands the idea</td></tr>
+          <tr><td class="w">0</td><td>Missing</td></tr></tbody></table></div><p class="m-actions"><a class="submit" href="" data-what="a response paper">Submit a response paper</a></p></div>
+      </details>
+      <details class="mod" style="--c:var(--violet)">
+        <summary><span class="m-name">Final-day question</span><span class="m-desc">One short, easy question on the last day</span><span class="m-w">1%</span></summary>
+        <div class="m-body"><p>A short, easy question on the last day. Full credit for any genuine answer.</p></div>
+      </details>
+      <details class="mod" style="--c:var(--amber)">
+        <summary><span class="m-name">Assignment 1</span><span class="m-desc">Coding and conceptual questions</span><span class="m-w">15%</span></summary>
+        <div class="m-body"><p>Each assignment comes with its own rubric, covering correct, working code and the conceptual answers.</p><p class="m-actions"><a class="submit" href="" data-what="Assignment 1">Submit Assignment 1</a></p></div>
+      </details>
+      <details class="mod" style="--c:var(--sky)">
+        <summary><span class="m-name">Assignment 2</span><span class="m-desc">Coding and conceptual questions</span><span class="m-w">15%</span></summary>
+        <div class="m-body"><p>Each assignment comes with its own rubric, covering correct, working code and the conceptual answers.</p><p class="m-actions"><a class="submit" href="" data-what="Assignment 2">Submit Assignment 2</a></p></div>
+      </details>
+      <div class="m-total"><span class="m-name">Total</span><span class="m-w">100%</span></div>
+    </div>
   </section>
 
   <section id="approach" style="--c:var(--cyan)">
@@ -547,5 +545,12 @@
 
 </main>
 </div>
+<script>
+  // Submission links: fill in each href when the form or folder exists; until then the button says so.
+  document.querySelectorAll('a.submit').forEach(a => {
+    if(!a.getAttribute('href')){ a.setAttribute('aria-disabled', 'true'); a.textContent = a.dataset.what === 'a meeting' ? 'Booking link coming soon' : 'Submission link coming soon'; }
+    else{ a.target = '_blank'; a.rel = 'noopener'; }
+  });
+</script>
 </body>
 </html>
