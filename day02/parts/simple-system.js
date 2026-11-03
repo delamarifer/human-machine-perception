@@ -174,19 +174,43 @@ st(`
   "(draft) Run section 7, then try one of your ideas."
 ]});
 
+/* What you built: one visual per point. 1 = Day 1's ill-posed scene (Fernanda's scenes/ill-posed-shapes.html),
+   shown live at its "infinitely many 3D shapes" beat, title and caption hidden; 2 and 3 = our own lab results
+   (assets/simple-system, SOURCES.md); 4 = the four kinds of answer from Phase 2. */
+const illPosedLive = `try{ const w = this.contentWindow, d = this.contentDocument;
+  const st = d.createElement('style'); st.textContent = '.deck-title, .cap, .dots, .pop{ display:none !important } .wrap{ padding:2vh 2vw !important }';
+  d.head.appendChild(st);
+  for(let k = 0; k < 7; k++) w.illPosed.advance(); }catch(e){}`;
+const built = (step, vis, text) => `<div class="simple-system-built b" data-step="${step}"><div class="simple-system-built-vis">${vis}</div><div class="simple-system-built-text">${text}</div></div>`;
 st(`
   <h1 class="t">What you built</h1>
-  <ul class="frag">
-    <li class="b">One image is not enough: ill-posed</li>
-    <li class="b">Assumptions fill the gap: a world model</li>
-    <li class="b">Outside its world: confidently wrong</li>
-    <li class="b">Better world models: assumed, seen, learned, or borrowed</li>
-  </ul>
+  <div class="simple-system-builts">
+    ${built(1, `<iframe src="../scenes/ill-posed-shapes.html" title="Many 3D shapes, one image" tabindex="-1" onload="${illPosedLive.replace(/"/g, '&quot;')}"></iframe>`,
+      '<b>One image is not enough</b><span class="label">Many 3D worlds, the same picture: ill-posed</span>')}
+    ${built(2, `<img src="assets/simple-system/recovered-front.png" alt="">`,
+      '<b>Assumptions fill the gap</b><span class="label">Flat floor, boxes on it, flat faces: a world model</span>')}
+    ${built(3, `<img src="assets/simple-system/floating-box.png" alt="">`,
+      '<b>Outside its world: confidently wrong</b><span class="label">A floating box, recovered too low</span>')}
+    ${built(4, `<div class="simple-system-four"><span>assumed</span><span>seen</span><span>learned</span><span>borrowed</span></div>`,
+      '<b>Better world models</b><span class="label">Where the rest of the course goes</span>')}
+  </div>
+  <style>
+    .simple-system-builts{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(4, 1fr); gap:1.4vw; }
+    .simple-system-built{ border:2px solid var(--line); border-radius:14px; padding:1.6vh 1vw; display:flex; flex-direction:column; gap:1.2vh; min-height:0; }
+    .simple-system-built-vis{ flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center; }
+    .simple-system-built-vis img{ max-width:100%; max-height:100%; object-fit:contain; }
+    .simple-system-built-vis iframe{ width:100%; height:100%; border:0; pointer-events:none; }
+    .simple-system-built-text{ display:flex; flex-direction:column; gap:.6vh; }
+    .simple-system-built-text b{ font-size:clamp(1.15rem, 1.8vw, 1.6rem); line-height:1.2; }
+    .simple-system-four{ display:grid; grid-template-columns:1fr 1fr; gap:.8vw; width:90%; }
+    .simple-system-four span{ border:2px solid var(--ink); border-radius:10px; padding:1.6vh .4vw; text-align:center; font-weight:700;
+      font-size:clamp(.95rem, 1.4vw, 1.3rem); }
+  </style>
 `, { notes: [
   "(draft) What you built today.",
-  "(draft) Going from 3D to a 2D image loses a dimension, so recovering 3D from one image is ill-posed.",
-  "(draft) Assumptions fill the gap. Together they are a world model, written by hand.",
-  "(draft) Outside the world it was designed for, the system can be confidently wrong.",
+  "(draft) Going from 3D to a 2D image loses a dimension: this is Day 1's figure, where many different 3D shapes all give the same picture. Recovering 3D from one image is ill-posed.",
+  "(draft) Assumptions fill the gap: a flat floor, boxes resting on it, flat faces. Together they are a world model, written by hand, and with it you recovered this 3D scene.",
+  "(draft) Outside the world it was designed for, the system can be confidently wrong: the floating box comes out far too low, and nothing tells the system it is wrong.",
   "(draft) And a better world model can come from better assumptions, from more data, from learning, or from a model someone else trained. The rest of the course is about the last two; the questions stay the same: what does the system assume, and what happens when the world disagrees?"
 ]});
 }
