@@ -17,4 +17,5 @@ const PARTS = ORDER.map(r => r[0]);
 
 /* Minutes per section (the progress bar), from plan/course-plan.md, Day 3. */
 const SEC_MINUTES = {'Homework review': 10, 'Image formation': 20, 'Convolution': 20, 'Human vision': 10,
-  'Lab': 45, 'Edges and blur': 15, 'Metamers': 55};
+  'Lab': 45, 'Edges and blur': 15,
+  'Metamers': 20, 'Activity': 15, 'Beyond texture': 16, 'Invariance': 5};   // Fernanda's outline, 2026-11-03
