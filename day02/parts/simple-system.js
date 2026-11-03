@@ -20,6 +20,9 @@ const go = (s) => `<div class="simple-system-go b" data-step="99"><span class="l
    In class: Your turn 1 and 2 only; the rest of the notebook is homework. Exercises open in the public student
    notebook at a fixed cell id (turn-N). Note: the deck is public, so these two solutions are visible on the site. */
 const turnLink = n => `${NB}#scrollTo=turn-${n}`;
+/* The teacher copy (with solutions) lives privately in Fernanda's Google Drive; paste its Colab URL here and the
+   link appears on the first lab slide. Students who follow it can't open it (access restricted). */
+const TEACHER_NB = '';
 const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const SOLUTION = {
   1: {code: `theta = np.deg2rad(35)
@@ -83,15 +86,23 @@ st(`
     <div class="tile b" data-step="1"><div class="im"><img src="assets/simple-system/world.png" alt=""></div></div>
     <div class="b" data-step="2">
       <div class="question">Can we recover its 3D shape from this one image?</div>
-      <p class="lead" style="margin-top:3vh"><a href="${NB}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--ink)">Open the notebook in Colab ↗</a></p>
+      <div class="simple-system-nbs">
+        <a class="simple-system-nb" href="${NB}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><span class="label">For students</span><b>Open the lab in Colab ↗</b></a>
+        ${TEACHER_NB ? `<a class="simple-system-nb simple-system-nb-t" href="${TEACHER_NB}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><span class="label">For teachers (private)</span><b>Teacher copy, with solutions ↗</b></a>` : ''}
+      </div>
     </div>
   </div>
-  <div class="todo b" data-step="3" style="position:absolute;right:6vw;bottom:6vh;max-width:34vw">Minutes for Phase 1 and Phase 2 (50-60 in total).</div>
+  <div class="todo b" data-step="3" style="position:absolute;right:6vw;bottom:6vh;max-width:34vw">Minutes for Your turn 1 and 2, and the wrap-up (50-60 in total).</div>
   ${cite('After Chapter 2, A Simple Vision System, in Torralba, Isola &amp; Freeman, Foundations of Computer Vision')}
   <style>
 .simple-system-outcome{ color:var(--mute); } .simple-system-outcome b{ color:var(--ink); }
     .simple-system-split{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1.2fr 1fr; gap:4vw; align-items:center; }
     .simple-system-split .im{ background:#fff; }
+    .simple-system-nbs{ margin-top:3vh; display:flex; flex-direction:column; gap:1.4vh; }
+    .simple-system-nb{ align-self:flex-start; border:3px solid var(--ink); border-radius:14px; padding:1.2vh 1.4vw; color:var(--ink); text-decoration:none;
+      display:flex; flex-direction:column; gap:.2vh; }
+    .simple-system-nb b{ font-size:clamp(1.15rem, 1.8vw, 1.6rem); }
+    .simple-system-nb-t{ border-style:dashed; }
     .simple-system-split .im img{ object-fit:contain; }
     .simple-system-go{ position:absolute; right:6vw; top:9vh; border:2px solid var(--ink); border-radius:14px; padding:1.4vh 1.4vw;
       display:flex; flex-direction:column; gap:.4vh; min-width:13vw; }
