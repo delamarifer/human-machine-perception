@@ -1,21 +1,47 @@
 /* PART: homework (Day 2). Owner: to decide. Plan: 2 min. "Homework (finish simple system or extend to their
-   own), paper (a metamers paper)". Which metamers paper is still open (feedback/_day.md). */
+   own), paper (a metamers paper)". Which metamers paper is still open (feedback/_day.md).
+   One card per task, each with its picture: the lab's own recovered scene (simple-system/recovered-behind.png,
+   the back still missing), the paper (a TO DO box until Fernanda picks it), the project form (templates.html#idea:
+   Google Form, due Friday, shared with the class). */
 {
 section('Homework');
 
 st(`
   <h1 class="t">Homework</h1>
-  <ul class="frag">
-    <li class="b">Finish the simple system, or extend it to a world of your own</li>
-    <li class="b">Read a paper on metamers</li>
-    <li class="b">Friday: your project ideas (form)</li>
-  </ul>
-  <div class="todo b">Which metamers paper, with its link.</div>
+  <div class="homework-cards">
+    <div class="homework-card b">
+      <div class="homework-pic"><img src="assets/simple-system/recovered-behind.png" alt=""></div>
+      <b>Finish the simple system</b>
+      <div class="label homework-mute">or extend it to a world of your own</div>
+    </div>
+    <div class="homework-card b">
+      <div class="homework-pic"><div class="todo">Which metamers paper, with its link.</div></div>
+      <b>Read a paper on metamers</b>
+      <div class="label homework-mute">Different pixels, same look to us</div>
+    </div>
+    <div class="homework-card b">
+      <div class="homework-pic"><div class="homework-form"><span>Friday</span><i></i><i></i><i></i>
+        <a href="../templates.html#idea" target="_blank" rel="noopener" onclick="event.stopPropagation()">Google Form ↗</a></div></div>
+      <b>Your project idea</b>
+      <div class="label homework-mute">One form, shared with the class</div>
+    </div>
+  </div>
+  <style>
+    .homework-cards{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:2vw; margin-bottom:2vh; }
+    .homework-card{ border:2px solid var(--ink); border-radius:14px; padding:2vh 1.2vw; display:flex; flex-direction:column; gap:1vh; min-height:0; }
+    .homework-card > b{ font-size:clamp(1.4rem, 2.2vw, 2rem); }
+    .homework-mute{ color:var(--mute); }
+    .homework-pic{ flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center; }
+    .homework-pic img{ max-width:100%; max-height:100%; object-fit:contain; }
+    .homework-form{ width:80%; border:2px solid var(--ink); border-radius:10px; padding:2vh 1.2vw; display:flex; flex-direction:column; gap:1.2vh; }
+    .homework-form span{ align-self:flex-start; font-weight:700; font-size:clamp(1.1rem, 1.7vw, 1.5rem); border-bottom:3px solid var(--ink); }
+    .homework-form i{ height:2.6vh; border:1.5px solid #cbd5e1; border-radius:4px; }
+    .homework-form a{ color:var(--ink); font-size:clamp(1rem, 1.4vw, 1.3rem); }
+  </style>
 `, { notes: [
   "(draft) Homework.",
   "(draft) Finish the simple vision system notebook, or go further: extend it to a world of your own and see where it breaks.",
-  "(draft) Read a paper on metamers: images that differ in their pixels but look the same to us. It sets up tomorrow.",
-  "(draft) And by Friday, send us your general project ideas through the form.",
-  "(to write) The paper."
+  "(draft) Read a paper on metamers: images that differ in their pixels but look the same to us. It sets up tomorrow. (to write) Which paper.",
+  "(draft) And by Friday, send us your general project ideas through the form. The link is on the project templates page."
 ]});
 }

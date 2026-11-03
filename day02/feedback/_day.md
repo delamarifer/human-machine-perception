@@ -1,4 +1,4 @@
-# Day 2 · Seeing with Machines: feedback and open questions
+# Day 2 · Computer Vision: Promise, Pitfalls, and Your Place in It: feedback and open questions
 
 Plan: `plan/course-plan.md`, Day 2. Images and model outputs: `day02/assets/SOURCES.md`.
 Every notes passage Claude wrote is marked `(draft)`; `(to write)` is yours to fill.
@@ -72,6 +72,16 @@ aggregates go out on a public site.
 - [ ] Check the Before lines read the way you'd say them, especially MedGemma ("first open model of its kind" is Google's claim).
 
 ### Questions for Fernanda
+- [ ] "Why we look to human vision" (slide 22) now gives three reasons, each the Vision Book's own (Ch. 1): people
+      still see better (the elephant), many tools came from the brain (RGB, filters, neural networks, attention),
+      perception shows what to build (Kanizsa triangle, drawn here). Your own framing can replace the notes.
+- [x] "Why projects?" (slide 23): your wording, centered, with the idea → progress path drawn on click 1.
+- [x] The "One photo through the whole stack" scene is removed from the deck (the file stays in day02/scenes/, unused).
+- [ ] Emmert's law (slide 21, copied from Day 1's assumptions scene): the Day 1 feedback asks whether to keep the title,
+      since Emmert's law is strictly about afterimage size vs distance and the figure shows size constancy.
+- [ ] Demo slides now show "What it does" / "What it enables that we could not do before" (two sentences each).
+      Media: VGGT, Gemini Robotics, Genie (makers' videos); DINOv3 (the live Canopy Height map on Earth Engine);
+      AlphaEarth, SAM 3, MedGemma (the makers' own published images, loaded from their sites and credited).
 - [ ] Google Classroom (slide after Grading): does the class exist yet, and who owns it? An AIMS account is best;
       AIMS IT or the tutors may need to create it and add Fernanda and Shreya as teachers. The code goes on the
       board only, never on the slides (the deck is public).

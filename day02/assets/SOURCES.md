@@ -40,6 +40,13 @@ Made by running the code cells of `notebooks/day01-lab-simple-vision-system.ipyn
   "tallest box: true height 70.0, recovered 68.6"; "typical error on the boxes: 2.9 units"; 45046 equations,
   33000 unknowns.
 - `floating-box.png`: section 7, a box 35 units in the air: input, recovered height, true height.
+- `gray.png`, `dx.png`, `edge-pixels.png` (sections 2–3) and `figure-ground.png`, `contact-occlusion.png`,
+  `vertical-horizontal.png` (sections 4–5): the notebook's own figures, unchanged, from a later run of the same
+  solved build (same NumPy and SciPy, Matplotlib 3.11.2, Agg backend, 150 dpi): its code cells executed in order,
+  each `plt.show()` saved as it came. Grayscale; horizontal derivative (RdBu, ±0.3); edge pixels (strength > 0.03);
+  figure/ground mask (saturation > 0.15); occlusion (orange) and contact (teal) edges; vertical (red) and
+  horizontal (blue) 3D edges. Each cropped to its non-white pixels plus 12 px, detected from the pixels.
+  The same run printed 45046 equations for 33000 unknowns and "tallest box: true height 70.0, recovered 68.6".
 
 ## shuffle/ (texture or shape)
 Made by `shuffle.py` on 2026-11-02 (torch 2.15.0, torchvision 0.29.2, opencv 5.0.0) from the same two Commons photos
@@ -49,3 +56,11 @@ resized, cropped, tiles shuffled (credits as above: Shixart1985, CC BY 2.0; Carl
 - Coffee: intact espresso 85.9%; 4 x 4 toilet tissue 30.5% (espresso 4th, 7.5%); 8 x 8 wardrobe 14.2% (espresso 326th).
 - Elephant: intact triceratops 28.7%; 4 x 4 sock 40.7%, cowboy boot 24.1%; 8 x 8 wine bottle 24.0%, barrel, quilt.
 Two photos, one seed: a probe for class, not a measurement.
+
+## research/ (Day 2 "Research and papers")
+- `world-crop.png`: `simple-system/world.png` with the matplotlib title and axes cut away, nothing else changed.
+  Crop box (70, 47, 998, 680), found by script as the rows and columns that are mostly the plot's background
+  gray (232, 232, 232); every edge pixel of the crop is that gray. Used on the Pizlo slide as "One image".
+- The Pizlo slide's "many 3D scenes fit it" and the Keshav slide's paper page are schematics drawn in SVG/HTML
+  in `parts/papers.js`, not data. The research slide reuses `shuffle/coffee/` and the VLMs-are-blind numbers
+  exactly as the motivation slides show them.

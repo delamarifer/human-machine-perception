@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Day 2 · Motivation and limitations (working deck)</title>
+<title>Day 2 · Computer Vision: Promise, Pitfalls, and Your Place in It (working deck)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>/* cache-bust while editing, so nobody presents a stale file */
 document.write(`<link rel="stylesheet" href="../deck/deck.css?v=${Date.now()}">`);
-document.write(`<script src="../deck/engine.js?v=${Date.now()}"><\/script><script src="order.js?v=${Date.now()}"><\/script>`);</script>
+document.write(`<script src="../deck/engine.js?v=${Date.now()}"><\/script><script src="order.js?v=${Date.now()}"><\/script><script src="cites.js?v=${Date.now()}"><\/script>`);</script>
 </head>
 <body>
 <div id="root"></div>
@@ -15,7 +15,7 @@ document.write(`<script src="../deck/engine.js?v=${Date.now()}"><\/script><scrip
 <div id="notes"><div id="notes-body"></div></div>
 <script>
 /* WORKING deck: loads everyone's live drafts from parts/. Preview parts with ?only=intro,thanks */
-loadParts('parts', PARTS, {minutes: SEC_MINUTES});
+loadParts('parts', PARTS, {minutes: SEC_MINUTES}).then(() => collapseCites(document));   /* citations behind a toggle (cites.js) */
 </script>
 </body>
 </html>

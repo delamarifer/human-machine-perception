@@ -41,35 +41,52 @@ st(`
   "(to write) Timing."
 ]});
 
+// Board ↔ notebook: one cue per click on the left, and the notebook's own figure for it on the right
+// (each new figure covers the one before; going back uncovers it).
+const steps = (items) => `
+  <div class="simple-system-steps">
+    <ul class="frag">${items.map(([cue], k) => `<li class="b" data-step="${k + 1}">${cue}</li>`).join('')}</ul>
+    <div class="simple-system-stage">${items.map(([, img], k) =>
+      `<div class="simple-system-shot b" data-step="${k + 1}"><img src="assets/simple-system/${img}" alt=""></div>`).join('')}</div>
+  </div>`;
+
 st(`
   <h1 class="t">From world to image to edges</h1>
-  <ul class="frag">
-    <li class="b" data-step="1">Parallel projection: height and depth mix into one image row</li>
-    <li class="b" data-step="2">The image is an array: rows × columns × 3</li>
-    <li class="b" data-step="3">Edges: differences between neighboring pixels</li>
-  </ul>
+  ${steps([
+    ['Parallel projection: height and depth mix into one image row', 'world.png'],
+    ['The image is an array: rows × columns × 3', 'gray.png'],
+    ['Edges: differences between neighboring pixels', 'dx.png'],
+    ['Strong differences become edge pixels', 'edge-pixels.png'],
+  ])}
   ${go('Sections 1–3')}
+  <style>
+    .simple-system-steps{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1.35fr; gap:3vw; align-items:center; margin-top:2vh; }
+    .simple-system-stage{ position:relative; height:100%; min-height:0; }
+    .simple-system-shot{ position:absolute; inset:0; background:var(--bg, #fff); display:flex; align-items:center; justify-content:center; }
+    .simple-system-shot img{ max-width:100%; max-height:100%; object-fit:contain; background:#fff; }
+  </style>
 `, { notes: [
   "(draft) Step one: from the world to an image, and from the image to edges.",
   "(draft) Our camera uses parallel projection, tilted down by an angle theta. A point's image row depends on both its height and its depth: y equals cos theta times Y, minus sin theta times Z. Raise a point and push it back by the right amount, and it lands on the same pixel. That is why one image is not enough.",
-  "(draft) To the computer the image is an array: rows, columns, and three color values. We average the colors to get brightness.",
-  "(draft) An edge is where brightness changes fast, and with pixels a derivative is just the difference between neighbors: one subtraction of two shifted copies of the image.",
+  "(draft) To the computer the image is an array: rows, columns, and three color values. We average the colors to get brightness. This is the grayscale image you get in section 2.",
+  "(draft) An edge is where brightness changes fast, and with pixels a derivative is just the difference between neighbors: one subtraction of two shifted copies of the image. Red, brightness goes down to the right; blue, it goes up; white, no change. Edges that run left to right nearly vanish here: they need the vertical derivative.",
+  "(draft) Combine both derivatives into an edge strength, keep the pixels above a threshold you choose, and you get the edge pixels. Too low and you get noise; too high and you lose the faint edges between two faces of the same box.",
   "(draft) Run sections 1 to 3."
 ]});
 
 st(`
   <h1 class="t">What each edge means</h1>
-  <ul class="frag">
-    <li class="b" data-step="1">Figure and ground: boxes are colored, the floor is not</li>
-    <li class="b" data-step="2">Contact or occlusion: touching the floor, or hiding it</li>
-    <li class="b" data-step="3">Generic view: vertical in the image means vertical in the world</li>
-  </ul>
+  ${steps([
+    ['Figure and ground: boxes are colored, the floor is not', 'figure-ground.png'],
+    ['Contact or occlusion: touching the floor, or hiding it', 'contact-occlusion.png'],
+    ['Generic view: vertical in the image means vertical in the world', 'vertical-horizontal.png'],
+  ])}
   ${go('Sections 4–5')}
 `, { notes: [
   "(draft) Step two: what does each edge mean?",
-  "(draft) Figure and ground. The floor is white, so its three color channels are about equal; the boxes are colored. Saturation, the largest channel minus the smallest, separates them.",
-  "(draft) Where a box meets the floor, the edge is either a contact edge, the box touching the floor, or an occlusion edge, the box hiding the floor behind it. They look alike, and mean very different things in 3D.",
-  "(draft) And the generic view assumption: unless the camera sits at an accidental viewpoint, edges that look vertical in the image are vertical in the world.",
+  "(draft) Figure and ground. The floor is white, so its three color channels are about equal; the boxes are colored. Saturation, the largest channel minus the smallest, separates them: boxes in white, floor in black.",
+  "(draft) Where a box meets the floor, the edge is either a contact edge, the box touching the floor, or an occlusion edge, the box hiding the floor behind it. They look alike, and mean very different things in 3D. In the notebook's figure, occlusion edges are orange, on the upper outline of each box, and contact edges are teal, on the lower outline.",
+  "(draft) And the generic view assumption: unless the camera sits at an accidental viewpoint, edges that look vertical in the image are vertical in the world. The notebook draws them in red, and every other box edge, horizontal in 3D, in blue.",
   "(draft) Run sections 4 and 5."
 ]});
 
@@ -157,19 +174,43 @@ st(`
   "(draft) Run section 7, then try one of your ideas."
 ]});
 
+/* What you built: one visual per point. 1 = Day 1's ill-posed scene (Fernanda's scenes/ill-posed-shapes.html),
+   shown live at its "infinitely many 3D shapes" beat, title and caption hidden; 2 and 3 = our own lab results
+   (assets/simple-system, SOURCES.md); 4 = the four kinds of answer from Phase 2. */
+const illPosedLive = `try{ const w = this.contentWindow, d = this.contentDocument;
+  const st = d.createElement('style'); st.textContent = '.deck-title, .cap, .dots, .pop{ display:none !important } .wrap{ padding:2vh 2vw !important }';
+  d.head.appendChild(st);
+  for(let k = 0; k < 7; k++) w.illPosed.advance(); }catch(e){}`;
+const built = (step, vis, text) => `<div class="simple-system-built b" data-step="${step}"><div class="simple-system-built-vis">${vis}</div><div class="simple-system-built-text">${text}</div></div>`;
 st(`
   <h1 class="t">What you built</h1>
-  <ul class="frag">
-    <li class="b">One image is not enough: ill-posed</li>
-    <li class="b">Assumptions fill the gap: a world model</li>
-    <li class="b">Outside its world: confidently wrong</li>
-    <li class="b">Better world models: assumed, seen, learned, or borrowed</li>
-  </ul>
+  <div class="simple-system-builts">
+    ${built(1, `<iframe src="../scenes/ill-posed-shapes.html" title="Many 3D shapes, one image" tabindex="-1" onload="${illPosedLive.replace(/"/g, '&quot;')}"></iframe>`,
+      '<b>One image is not enough</b><span class="label">Many 3D worlds, the same picture: ill-posed</span>')}
+    ${built(2, `<img src="assets/simple-system/recovered-front.png" alt="">`,
+      '<b>Assumptions fill the gap</b><span class="label">Flat floor, boxes on it, flat faces: a world model</span>')}
+    ${built(3, `<img src="assets/simple-system/floating-box.png" alt="">`,
+      '<b>Outside its world: confidently wrong</b><span class="label">A floating box, recovered too low</span>')}
+    ${built(4, `<div class="simple-system-four"><span>assumed</span><span>seen</span><span>learned</span><span>borrowed</span></div>`,
+      '<b>Better world models</b><span class="label">Where the rest of the course goes</span>')}
+  </div>
+  <style>
+    .simple-system-builts{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(4, 1fr); gap:1.4vw; }
+    .simple-system-built{ border:2px solid var(--line); border-radius:14px; padding:1.6vh 1vw; display:flex; flex-direction:column; gap:1.2vh; min-height:0; }
+    .simple-system-built-vis{ flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center; }
+    .simple-system-built-vis img{ max-width:100%; max-height:100%; object-fit:contain; }
+    .simple-system-built-vis iframe{ width:100%; height:100%; border:0; pointer-events:none; }
+    .simple-system-built-text{ display:flex; flex-direction:column; gap:.6vh; }
+    .simple-system-built-text b{ font-size:clamp(1.15rem, 1.8vw, 1.6rem); line-height:1.2; }
+    .simple-system-four{ display:grid; grid-template-columns:1fr 1fr; gap:.8vw; width:90%; }
+    .simple-system-four span{ border:2px solid var(--ink); border-radius:10px; padding:1.6vh .4vw; text-align:center; font-weight:700;
+      font-size:clamp(.95rem, 1.4vw, 1.3rem); }
+  </style>
 `, { notes: [
   "(draft) What you built today.",
-  "(draft) Going from 3D to a 2D image loses a dimension, so recovering 3D from one image is ill-posed.",
-  "(draft) Assumptions fill the gap. Together they are a world model, written by hand.",
-  "(draft) Outside the world it was designed for, the system can be confidently wrong.",
+  "(draft) Going from 3D to a 2D image loses a dimension: this is Day 1's figure, where many different 3D shapes all give the same picture. Recovering 3D from one image is ill-posed.",
+  "(draft) Assumptions fill the gap: a flat floor, boxes resting on it, flat faces. Together they are a world model, written by hand, and with it you recovered this 3D scene.",
+  "(draft) Outside the world it was designed for, the system can be confidently wrong: the floating box comes out far too low, and nothing tells the system it is wrong.",
   "(draft) And a better world model can come from better assumptions, from more data, from learning, or from a model someone else trained. The rest of the course is about the last two; the questions stay the same: what does the system assume, and what happens when the world disagrees?"
 ]});
 }

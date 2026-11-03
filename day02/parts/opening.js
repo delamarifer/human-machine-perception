@@ -4,11 +4,11 @@ section('Title');
 
 st(`
   <div class="center" style="margin:auto">
-    <div class="statement" style="font-weight:700;font-size:clamp(2.4rem,4.4vw,4rem)">Motivation and limitations</div>
+    <div class="statement" style="font-weight:700;font-size:clamp(2.4rem,4.4vw,4rem)">Computer Vision:<br>Promise, Pitfalls, and Your Place in It</div>
     <div class="lead" style="margin-top:3vh">Day 2</div>
     <div class="label" style="margin-top:1.5vh">Fernanda de la Torre · Shreya Pandit</div>
   </div>
-`, { blank: false, notes: "(draft) Welcome back. Day 2: motivation and limitations." });
+`, { blank: false, notes: "(draft) Welcome back. Day 2: Computer Vision: promise, pitfalls, and your place in it." });
 
 /* Today: one row per segment. Row titles are the syllabus's own Day 2 outcomes ("By the end, you can", and
    "In the lab, you will"), in syllabus.html #schedule; the label is the segment and its minutes (plan, Day 2).
