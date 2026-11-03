@@ -99,7 +99,7 @@ st(`
     <ul class="frag">
       <li class="b" data-step="2">The back is missing</li>
       <li class="b" data-step="3">We recover only what the camera saw</li>
-      <li class="b" data-step="4"><a href="${BOOK}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--ink)">Turn it yourself: the book's 3D demo ↗</a></li>
+      <li class="b" data-step="4"><a href="${BOOK}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--ink)">Turn it yourself: in the notebook, or the book's demo ↗</a></li>
     </ul>
   </div>
 `, { blank: false, notes: [
@@ -107,7 +107,7 @@ st(`
   "(draft) The same reconstruction, seen from behind the boxes.",
   "(draft) The back is missing. Each box is a shell with no back face, and the white patches are floor that the boxes hid from the camera. Nothing was recovered there.",
   "(draft) We only recover what the camera saw. That is the limit of one 2D image, made visible: the image never contained the back.",
-  "(draft) The book's chapter has an interactive version of this; rotate it yourself and look for what is missing."
+  "(draft) Now turn it yourself: in section 6 of the notebook, drag the 3D view around to the back (the book's chapter has an interactive version too). Then answer the talk-it-over question: what is missing, and why?"
 ]});
 
 st(`

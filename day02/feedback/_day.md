@@ -66,6 +66,9 @@ aggregates go out on a public site.
   better assumptions (boxes are closed, so fill in the back; stacking), more data (a second view), learned
   (many rendered worlds), borrowed (a pretrained depth model on the box image). The floating box (section 7) is
   the first test.
+- [x] Drag-to-rotate 3D in the notebook: done by the Day 1 Colab session (commit 22f21b6 on claude/colab-day1-8c736e,
+      not merged yet). Section 6 has show_3d_interactive (Plotly, every pixel) and a talk-it-over "Your turn 6"
+      on what is missing. Slide 30B points students to it.
 - [ ] Phase 2 notebook cells don't exist yet. Which ideas do we test in class? My pick: "boxes are closed"
       (fills in the back; a few lines on top of `reconstruct`), plus the pretrained depth model on the box image
       (both are quick). A second view and learning could be homework extensions.
