@@ -57,32 +57,6 @@ st(`
   "(draft) And four want creative experimentation. The project is where all four meet."
 ]});
 
-/* The project ideas you sent, one per answer that named one. Paraphrased, no names, no quotes
-   (Fernanda, 2026-11-02: grouped data only, except the project ideas). */
-const IDEAS = [
-  'Flood mapping from satellite images, with weather and geospatial data',
-  'Finding waste in the ocean and other large bodies of water',
-  'Downscaling climate data from satellite to ground level, maybe with diffusion',
-  'Computer vision for climate change and the environment',
-  'Detecting abnormalities in medical images to help diagnosis',
-  'Cancer detection, and explaining what the model decided',
-  'A memory aid for neurodegenerative disease, adapted to low-resource settings',
-  'Turning a dancer\'s movement into music',
-  'Taking machine perception from 2D images to the 3D world',
-  'Building a video generator'];
-st(`
-  <h1 class="t">The ideas you sent us</h1>
-  <div class="projects-sent b">${IDEAS.map(i => `<div>${i}</div>`).join('')}</div>
-  <div class="cite">From your Day 1 survey; names left out</div>
-  <style>
-    .projects-sent{ margin:auto 0; display:grid; grid-template-columns:1fr 1fr; gap:2.6vh 4vw; }
-    .projects-sent > div{ font-size:clamp(1.1rem, 1.7vw, 1.6rem); line-height:1.3; padding-left:1.2vw; border-left:3px solid var(--line); }
-  </style>
-`, { notes: [
-  "(draft) Here are the project ideas you sent us.",
-  "(draft) Flood mapping from satellite images. Finding waste in the ocean. Downscaling climate data. Medical images: finding abnormalities, detecting cancer, explaining the decision. A memory aid adapted for low-resource settings. Turning dance into music. Going from 2D to 3D. A video generator. These are all real projects you could build in three weeks, with the tools we will cover. Next, we grouped them, and paired each group with tools."
-]});
-
 /* Simple line icons, drawn here (no outside images). 48 x 48, ink stroke. */
 const icon = (body) => `<svg class="projects-icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2"
   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
@@ -96,6 +70,60 @@ const ICON = {
   demo: icon('<rect x="5" y="8" width="38" height="26" rx="2"/><path d="M17 42h14M24 34v8"/><path d="M20 15l10 6-10 6z"/>'),
   experiment: icon('<path d="M6 6v36h36"/><path d="M14 34V24M22 34V14M30 34V20M38 34V10"/><path d="M12 18l8-8 8 6 10-10" stroke-dasharray="3 3"/>'),
 };
+
+/* The project ideas you sent, one per answer that named one. Paraphrased, no names, no quotes
+   (Fernanda, 2026-11-02: grouped data only, except the project ideas). Clustered by theme, the same groups as
+   the cards on the next slide. A keyword on screen; hover it for the full idea. */
+const CLUSTERS = [
+  ['above', 'Climate and environment', [
+    ['Flood mapping', 'Flood mapping from satellite images, with weather and geospatial data'],
+    ['Ocean waste', 'Finding waste in the ocean and other large bodies of water'],
+    ['Climate downscaling', 'Downscaling climate data from satellite to ground level, maybe with diffusion'],
+    ['Climate change', 'Computer vision for climate change and the environment']]],
+  ['medical', 'Medical images', [
+    ['Abnormalities', 'Detecting abnormalities in medical images to help diagnosis'],
+    ['Cancer, explained', 'Cancer detection, and explaining what the model decided']]],
+  ['assist', 'Assistive and creative', [
+    ['Memory aid', 'A memory aid for neurodegenerative disease, adapted to low-resource settings'],
+    ['Dance into music', 'Turning a dancer\'s movement into music']]],
+  ['depth', 'Beyond 2D', [['2D to 3D', 'Taking machine perception from 2D images to the 3D world']]],
+  ['generate', 'Generating', [['Video generator', 'Building a video generator']]]];
+st(`
+  <h1 class="t">The ideas you sent us</h1>
+  <div class="projects-cloud b" data-step="1">
+    ${CLUSTERS.map(([ic, name, ideas]) => `<div class="projects-cluster projects-n${ideas.length}">
+      <div class="projects-cluster-head">${ICON[ic]}<span class="label">${name}</span></div>
+      <div class="projects-chips">${ideas.map(([k, full]) =>
+        `<span class="projects-chip" tabindex="0" data-full="${full.replace(/"/g, '&quot;')}">${k}</span>`).join('')}</div>
+    </div>`).join('')}
+  </div>
+  <div class="label projects-hint b" data-step="1">Hover over an idea to read it in full</div>
+  <div class="cite">From your Day 1 survey; names left out</div>
+  <style>
+    .projects-cloud{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(6, minmax(0, 1fr));
+      grid-template-rows:1.15fr 1fr; gap:2.2vh 1.4vw; padding-top:1vh; }
+    .projects-cluster{ grid-column:span 2; background:#f8fafc; border:1px solid var(--line); border-radius:28px;
+      padding:1.6vh 1.2vw; display:flex; flex-direction:column; gap:1.4vh; }
+    .projects-cluster.projects-n4{ grid-column:span 4; }
+    .projects-cluster-head{ display:flex; align-items:center; gap:.8vw; }
+    .projects-cluster-head .projects-icon{ width:clamp(2rem, 3.4vw, 3.1rem); }
+    .projects-cluster-head .label{ color:var(--mute); text-transform:uppercase; letter-spacing:.06em; font-size:clamp(.85rem, 1.1vw, 1.05rem) !important; font-weight:700; }
+    .projects-chips{ flex:1 1 auto; display:flex; flex-wrap:wrap; align-content:center; justify-content:center; gap:1.4vh 1vw; }
+    .projects-chip{ position:relative; background:#fff; border:2px solid var(--ink); border-radius:999px; padding:.9vh 1.3vw;
+      font-size:clamp(1.15rem, 1.9vw, 1.75rem); font-weight:700; cursor:help; white-space:nowrap;
+      transition:background .2s, color .2s; }
+    .projects-chip:hover, .projects-chip:focus{ background:var(--ink); color:#fff; outline:none; }
+    .projects-chip::after{ content:attr(data-full); position:absolute; left:50%; bottom:calc(100% + 1.2vh); transform:translate(-50%, 6px);
+      width:max-content; max-width:26vw; white-space:normal; text-align:center; background:var(--ink); color:#fff;
+      font-size:clamp(.95rem, 1.35vw, 1.25rem); font-weight:400; line-height:1.3; padding:1vh 1vw; border-radius:10px;
+      box-shadow:0 8px 24px rgba(15,23,42,.18); opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:5; }
+    .projects-chip:hover::after, .projects-chip:focus::after{ opacity:1; transform:translate(-50%, 0); }
+    .projects-hint{ color:var(--mute); text-align:right; font-size:clamp(.9rem, 1.2vw, 1.1rem) !important; }
+  </style>
+`, { notes: [
+  "(draft) Here are the project ideas you sent us.",
+  "(draft) (Hover over a keyword to show the full idea.) Climate and the environment, the biggest group: flood mapping from satellite images, finding waste in the ocean, downscaling climate data, and computer vision for climate change. Medical images: finding abnormalities, detecting cancer and explaining the decision. Assistive and creative: a memory aid adapted for low-resource settings, and turning dance into music. Going from 2D to 3D. And a video generator. These are all real projects you could build in three weeks, with the tools we will cover. Next, we paired each group with tools."
+]});
 
 /* "Seen today" refs: the slide number of each demo, looked up by its title once the deck has started,
    so it stays right when other parts add or move slides. (Previewing ?only=projects, no number shows.) */
@@ -156,55 +184,73 @@ st(`
 ]});
 
 /* The two tracks: templates.html (hero) and syllabus.html (Final project, Grading). Step weights from
-   templates.html: 2 + 5 + 3 + 15 + 20 = 45. */
-const track = (ic, name, what, step) => `<div class="projects-track b" data-step="${step}">
-  ${ICON[ic]}<div><b>${name}</b><div class="label">${what}</div></div></div>`;
-const stepT = (when, what, w, step) => `<div class="projects-step b" data-step="${step}"><span class="projects-dot"></span><span class="label projects-when">${when}</span>
-  <span class="label projects-what">${what}</span><span class="label projects-w b" data-step="6">${w}</span></div>`;
+   templates.html: 2 + 5 + 3 + 15 + 20 = 45. Examples: syllabus.html "Possible directions include" (the five
+   building ones under the demo, the perception one under the experiment) and the experiment proposal template's
+   own example (normal images vs. images with texture swapped). Colors are the course site's: each track and
+   each step keeps the color it has on templates.html (fills and dots only, never text). Each step links to
+   its template. */
+const PC = { demo:'#14b8a6', experiment:'#f59e0b', idea:'#14b8a6', proposal:'#8b5cf6', meeting:'#3b82f6', presentation:'#ec4899', writeup:'#f59e0b' };
+const track = (ic, name, what, eg, step) => `<div class="projects-track b" data-step="${step}" style="--pc:${PC[ic]}">
+  <div class="projects-track-head">${ICON[ic]}<div><b>${name}</b><div class="label">${what}</div></div></div>
+  <div class="projects-eg-list"><span class="label projects-tag">For example</span>${eg.map(e => `<span class="label projects-egchip">${e}</span>`).join('')}</div></div>`;
+const stepT = (id, when, what, w, step) => `<a class="projects-step b" data-step="${step}" style="--pc:${PC[id]}" href="../templates.html#${id}"
+  target="_blank" rel="noopener" onclick="event.stopPropagation()"><span class="projects-dot"></span><span class="label projects-when">${when}</span>
+  <span class="label projects-what">${what} ↗</span><span class="label projects-w b" data-step="6">${w}</span></a>`;
 st(`
   <h1 class="t">Two project tracks</h1>
   <div class="label projects-outcome"><b>By the end, you can</b> · know the two project tracks</div>
   <div class="projects-tracks">
-    ${track('demo', 'Build a demo', 'A working application someone can try', 1)}
+    ${track('demo', 'Build a demo', 'A working application someone can try',
+      ['Visual search, an image memory', 'A creative image generation tool', 'A multimodal assistant', 'Detection or segmentation', 'An app for your own field'], 1)}
     <div class="projects-or label b" data-step="2">or</div>
-    ${track('experiment', 'Run an experiment', 'Explore or overcome a limitation, and answer with a measurement', 2)}
+    ${track('experiment', 'Run an experiment', 'Explore or overcome a limitation, and answer with a measurement',
+      ['Human perception and vision models', 'Ambiguity or hallucination', 'Normal images vs. texture swapped'], 2)}
   </div>
   <div class="projects-time">
-    <div class="label projects-same b" data-step="3">Same steps for both</div>
+    <div class="label projects-same b" data-step="3">Same steps for both · each has a template</div>
     <div class="projects-line">
       <div class="projects-rail b" data-step="3"></div>
-      ${stepT('Friday', 'General idea', '2%', 3)}${stepT('Monday', 'Detailed proposal', '5%', 3)}
-      ${stepT('Week 2, Wednesday', 'Meet with us', '3%', 4)}
-      ${stepT('Last day', 'Presentation', '15%', 5)}${stepT('End of course', 'Write-up', '20%', 5)}
+      ${stepT('idea', 'Friday', 'General idea', '2%', 3)}${stepT('proposal', 'Monday', 'Detailed proposal', '5%', 3)}
+      ${stepT('meeting', 'Week 2, Wednesday', 'Meet with us', '3%', 4)}
+      ${stepT('presentation', 'Last day', 'Presentation', '15%', 5)}${stepT('writeup', 'End of course', 'Write-up', '20%', 5)}
     </div>
     <div class="projects-total b" data-step="6"><span></span><b>45% of the grade</b><span></span></div>
   </div>
   <style>
     .projects-outcome{ color:var(--mute); } .projects-outcome b{ color:var(--ink); }
-    .projects-tracks{ display:grid; grid-template-columns:1fr auto 1fr; gap:2vw; align-items:stretch; margin-top:auto; }
-    .projects-track{ border:2px solid var(--ink); border-radius:16px; padding:2.2vh 1.6vw; display:flex; gap:1.4vw; align-items:center; }
-    .projects-track .projects-icon{ width:clamp(3.4rem, 6vw, 5.6rem); }
-    .projects-track b{ display:block; font-size:clamp(1.5rem, 2.5vw, 2.3rem); margin-bottom:.6vh; }
+    .projects-tracks{ display:grid; grid-template-columns:1fr auto 1fr; gap:1.6vw; align-items:stretch; margin-top:auto; }
+    .projects-track{ border:2px solid var(--pc); background:color-mix(in srgb, var(--pc) 9%, #fff); border-radius:16px;
+      padding:2vh 1.5vw; display:flex; flex-direction:column; gap:1.6vh; box-shadow:inset 6px 0 0 var(--pc); }
+    .projects-track-head{ display:flex; gap:1.2vw; align-items:center; }
+    .projects-track .projects-icon{ width:clamp(3rem, 5vw, 4.6rem); color:var(--ink); }
+    .projects-track b{ display:block; font-size:clamp(1.4rem, 2.3vw, 2.1rem); margin-bottom:.4vh; }
     .projects-track .label{ line-height:1.3; }
+    .projects-eg-list{ display:flex; flex-wrap:wrap; gap:.8vh .5vw; align-items:center; }
+    .projects-egchip{ background:#fff; border:1px solid color-mix(in srgb, var(--pc) 55%, #fff); border-radius:999px; padding:.3vh .8vw;
+      font-size:clamp(.85rem, 1.15vw, 1.1rem) !important; }
+    .projects-tag{ font-size:clamp(.75rem, .95vw, .9rem) !important; text-transform:uppercase; letter-spacing:.06em; color:var(--mute); }
     .projects-or{ align-self:center; color:var(--mute); }
     .projects-time{ margin:auto 0; display:flex; flex-direction:column; gap:1.4vh; }
     .projects-same{ color:var(--mute); }
     .projects-line{ display:grid; grid-template-columns:repeat(5, 1fr); position:relative; }
-    .projects-rail{ position:absolute; left:0; right:0; top:1vh; height:2px; background:var(--line); }
-    .projects-step{ position:relative; display:flex; flex-direction:column; gap:.4vh; padding-right:1vw; }
-    .projects-dot{ width:2vh; height:2vh; border-radius:50%; background:var(--ink); margin-bottom:.8vh; position:relative; }
+    .projects-rail{ position:absolute; left:0; right:0; top:1.1vh; height:3px; border-radius:2px;
+      background:linear-gradient(90deg, ${[PC.idea, PC.proposal, PC.meeting, PC.presentation, PC.writeup].map(c => `color-mix(in srgb, ${c} 40%, #fff)`).join(', ')}); }
+    .projects-step{ position:relative; display:flex; flex-direction:column; gap:.4vh; padding-right:1vw; color:var(--ink); text-decoration:none; }
+    .projects-step:hover .projects-what{ text-decoration:underline; }
+    .projects-dot{ width:2.4vh; height:2.4vh; border-radius:50%; background:var(--pc); margin-bottom:.8vh; box-shadow:0 0 0 4px #fff; }
     .projects-when{ color:var(--mute); }
     .projects-what{ font-weight:700; }
-    .projects-w{ font-variant-numeric:tabular-nums; }
+    .projects-w{ font-variant-numeric:tabular-nums; align-self:flex-start; background:color-mix(in srgb, var(--pc) 16%, #fff);
+      border-radius:6px; padding:0 .5vw; }
     .projects-total{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:1vw; }
     .projects-total span{ height:2px; background:var(--ink); }
     .projects-total b{ font-size:clamp(1.4rem, 2.3vw, 2.1rem); }
   </style>
 `, { notes: [
   "(draft) The final project comes in two tracks. By the end of this part, you know both.",
-  "(draft) Build a demo: a working computer vision application that someone can try.",
-  "(draft) Or run an experiment: explore a limitation of a vision model, or try to overcome one, and answer with a measurement. It is a small rehearsal for a research project.",
-  "(draft) The steps are the same for both. By Friday, your general idea, through a short Google form; we share them so you can find teammates. By Monday, a detailed proposal.",
+  "(draft) Build a demo: a working computer vision application that someone can try. For example, from the syllabus: visual search or an image memory, a creative image generation tool, a multimodal assistant, detection or segmentation, or an application for your own field.",
+  "(draft) Or run an experiment: explore a limitation of a vision model, or try to overcome one, and answer with a measurement. It is a small rehearsal for a research project. For example, from the syllabus: human perception and vision models, ambiguity, or hallucination; or, from the proposal template, the same model on normal images and on images with their texture swapped.",
+  "(draft) The steps are the same for both, and each one has a template on the course website. By Friday, your general idea, through a short Google form; we share them so you can find teammates. By Monday, a detailed proposal.",
   "(draft) By Wednesday of week two, a meeting with one of us about your proposal.",
   "(draft) On the last day, a presentation to the class; and at the end of the course, a short write-up. Show it working, and show honestly where it fails.",
   "(draft) Altogether, the project is 45 percent of your grade: two percent for the idea, five for the proposal, three for the meeting, fifteen for the presentation and twenty for the write-up."
