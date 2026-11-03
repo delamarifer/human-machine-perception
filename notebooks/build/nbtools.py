@@ -85,7 +85,11 @@ def build(mode='student', private_solutions=False):
             if not src:
                 continue
             if mode == 'teacher':
-                nb.cells.append(_id(nbf.v4.new_markdown_cell('#### Solution\n\n' + src), f'solution-{last}'))
+                # after a code solution, solution-N is taken: the talk-it-over answer gets solution-N-answer
+                name = f'solution-{last}'
+                if any(c.get('id') == name for c in nb.cells):
+                    name += '-answer'
+                nb.cells.append(_id(nbf.v4.new_markdown_cell('#### Solution\n\n' + src), name))
             elif not private_solutions:
                 nb.cells.append(nbf.v4.new_markdown_cell(
                     '<details><summary><b>Show an answer</b> (try it yourself first)</summary>\n\n'
