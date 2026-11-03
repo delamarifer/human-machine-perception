@@ -43,6 +43,17 @@ Only aggregate counts are on the slides (familiarity, focus). The interest cards
 free-text answers, with no names and no quotes. The raw CSV is not in the repo, because it has names. Even
 aggregates go out on a public site.
 
+### Live websites on slides (Fernanda, 2026-11-02)
+- Slides 3 and 4 show `syllabus.html` itself, opening at Weeks and at Grading. Scroll with the trackpad or ↑/↓;
+  → / ← still change slides after a click inside the page.
+- Embedded demos: Vision language models are blind (16B) and Dollar Street (17B). Both need internet in class.
+  Inside an outside site, the deck's keys stop until you click on the slide outside the site; that click moves on.
+- Can't embed (the sites refuse: X-Frame-Options DENY or frame-ancestors): every Meta page (SAM 3 Playground,
+  DINOv3, Canopy Height), every DeepMind/Google page (AlphaEarth, MedGemma, Gemini Robotics, Genie), and the
+  book's 3D demo (SAMEORIGIN). Those stay as links that open a new tab.
+- [ ] VGGT's live demo (facebook-vggt.hf.space) allows embedding, but it showed a 500 error today. Re-check before
+      class; the line to embed it again is in motivation.js.
+
 ### Questions for Fernanda
 - [x] Survey on the public site: grouped data only, never individual answers, except the project ideas (Fernanda, 2026-11-02). Slides: two aggregate charts, an anonymous paraphrased list of the project ideas, and the grouped cards.
 - [ ] Order: your outline today puts project expectations before the lab. The plan's "opening order" from

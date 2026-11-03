@@ -1,50 +1,43 @@
 /* PART: syllabus (Day 2). Owner: to decide. Plan: 5 min, "the plan for the next 3 weeks, and the grading
-   details". Content from syllabus.html (Weeks, Grading), not invented. */
+   details". Fernanda (2026-11-02): show the course website itself and scroll through it, instead of slides.
+   Each slide embeds ../syllabus.html at one section. Scroll with the trackpad or the up/down keys; the
+   right and left arrows still change slides after a click inside the page. */
 {
 section('Syllabus');
 
-const week = (n, name, goal, step) => `<div class="syllabus-week b" data-step="${step}">
-  <div class="label">Week ${n}</div><b>${name}</b><div class="label">${goal}</div></div>`;
+/* the arrow keys inside the page still drive the deck (Space, up and down are left to scroll the page) */
+/* and each time the slide appears, the page jumps to its section (slides are hidden until shown, so the
+   #anchor in the address alone does not land) */
+const onload = `try{ const f = this, a = f.src.split('#')[1];
+  f.contentWindow.addEventListener('keydown', e => {
+    if(e.key === 'ArrowRight' || e.key === 'PageDown'){ e.preventDefault(); deck.fwd(); }
+    if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); deck.bwd(); } });
+  let seen = false;
+  setInterval(() => { const on = f.clientHeight > 0;
+    if(on && !seen){ const t = f.contentDocument.getElementById(a);   /* again once fonts and images settle */
+      if(t) [0, 300, 900].forEach(ms => setTimeout(() => t.scrollIntoView({block: 'start', behavior: 'instant'}), ms)); }
+    seen = on; }, 200); }catch(e){}`;
+const site = (anchor) => `<iframe class="syllabus-site b" src="../syllabus.html#${anchor}" title="Course syllabus"
+  onload="${onload.replace(/"/g, '&quot;')}"></iframe>`;
+const style = `<style>
+  .syllabus-site{ flex:1 1 auto; min-height:0; width:100%; border:1px solid var(--line); border-radius:12px; }
+</style>`;
+
 st(`
   <h1 class="t">Three weeks</h1>
-  <div class="syllabus-weeks">
-    ${week(1, 'Understanding images', 'How images encode visual information; structure from pixels', 1)}
-    ${week(2, 'Learning visual representations', 'How models learn meaningful representations of images', 2)}
-    ${week(3, 'Building vision systems', 'Modern models combined into applications', 3)}
-  </div>
-  <div class="cite">Full syllabus: delamarifer.github.io/human-machine-perception/syllabus.html</div>
-  <style>
-    .syllabus-weeks{ margin:auto 0; display:grid; grid-template-columns:repeat(3, 1fr); gap:2vw; }
-    .syllabus-week{ border:2px solid var(--ink); border-radius:14px; padding:3vh 1.4vw; display:flex; flex-direction:column; gap:1.2vh; }
-    .syllabus-week b{ font-size:clamp(1.5rem, 2.4vw, 2.2rem); line-height:1.2; }
-  </style>
+  ${site('weeks')}
+  ${style}
 `, { notes: [
-  "(draft) The plan for the next three weeks.",
-  "(draft) Week one, understanding images: how images encode visual information, and how we pull structure out of pixels. Image processing, edges, geometry, matching.",
-  "(draft) Week two, learning visual representations: neural networks, transfer learning, embeddings, and vision-language models like CLIP.",
-  "(draft) Week three, building vision systems: foundation models, detection and segmentation, multimodal systems, image generation, and how to evaluate where a system fails."
+  "(draft) The plan for the next three weeks. This is the course website; everything is here.",
+  "(draft) (Scroll through the weeks.) Week one, understanding images: how images encode visual information, and how we pull structure out of pixels. Week two, learning visual representations: neural networks, transfer learning, embeddings, and vision-language models like CLIP. Week three, building vision systems: foundation models, detection and segmentation, multimodal systems, image generation, and how to evaluate where a system fails. Then the final project."
 ]});
 
-const W = [['Final project', 45], ['Daily response papers', 24], ['Assignment 1', 15], ['Assignment 2', 15], ['Final-day question', 1]];
 st(`
   <h1 class="t">Grading</h1>
-  <div class="syllabus-grade">
-    ${W.map(([n, p], k) => `<div class="label b" data-step="${k + 1}">${n}</div>
-      <div class="syllabus-tr b" data-step="${k + 1}"><div style="width:${p / 45 * 100}%"></div></div>
-      <div class="lead b" data-step="${k + 1}">${p}%</div>`).join('')}
-  </div>
-  <style>
-    .syllabus-grade{ margin:auto 0; display:grid; grid-template-columns:auto 1fr auto; gap:2.4vh 1.2vw; align-items:center; }
-    .syllabus-grade > .label{ text-align:right; font-size:clamp(1.3rem, 2vw, 1.8rem); }
-    .syllabus-tr{ height:3.4vh; }
-    .syllabus-tr > div{ height:100%; background:var(--ink); border-radius:4px; }
-  </style>
+  ${site('grading')}
+  ${style}
 `, { notes: [
-  "(draft) How you are graded.",
-  "(draft) The final project is the biggest piece: 45 percent. That is the proposal, the write-up and the presentation on the last day.",
-  "(draft) Daily response papers: 24 percent. Twelve of them, 2 percent each. Each has one high-level question about the day's paper and three conceptual questions about the take-home lab.",
-  "(draft) Assignment 1: 15 percent, coding and conceptual questions.",
-  "(draft) Assignment 2: another 15 percent.",
-  "(draft) And 1 percent for one short, easy question on the last day. Any genuine answer gets full credit."
+  "(draft) How you are graded. Again, all of it is on the website.",
+  "(draft) (Scroll through the grading.) The final project is 45 percent: the proposal, the write-up and the presentation on the last day. Daily response papers are 24 percent: twelve of them, each with one question about the day's paper and three about the take-home lab. Two assignments, 15 percent each. And 1 percent for one short, easy question on the last day. Each piece has its rubric right here."
 ]});
 }

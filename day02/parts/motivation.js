@@ -25,6 +25,16 @@ const demo = (o) => st(`
   <div class="todo b" data-step="1" style="position:absolute;right:6vw;bottom:6vh;max-width:30vw">Pick the clip to play: ${o.clip}</div>
 `, { notes: [`(draft) ${o.say[0]}`, `(draft) ${o.say[1]}`, `(draft) ${o.say[2]}`] });
 
+/* A live website on a slide, to scroll through in class (Fernanda, 2026-11-02). Only sites that allow
+   embedding: checked 2026-11-02, Meta and DeepMind/Google pages refuse (X-Frame-Options / frame-ancestors).
+   Needs internet in class. Inside another site the deck's keys stop working until you click outside it:
+   one click on the slide, outside the site, moves on. */
+const embed = (title, url, say) => st(`
+  <h1 class="t">${title}</h1>
+  <iframe class="motivation-site b" src="${url}" title="${title}" allow="fullscreen" referrerpolicy="no-referrer"></iframe>
+  <style>.motivation-site{ flex:1 1 auto; min-height:0; width:100%; border:1px solid var(--line); border-radius:12px; background:#fff; }</style>
+`, { blank: false, notes: [`(draft) ${say[0]}`, `(draft) ${say[1]}`] });
+
 st(`
   <div class="center">
     <div class="question" style="font-size:clamp(2.4rem,4.2vw,3.8rem)">Why take this course?</div>
@@ -52,6 +62,8 @@ demo({ title: 'From photos to 3D', name: 'VGGT', who: 'Meta AI and Oxford · CVP
     'This is VGGT, from Meta AI and Oxford. You give it a few photos of a scene; it returns where each camera was, the depth of every pixel, and a cloud of 3D points, typically in under a second. You can try it in your browser.',
     'The ideas underneath, image geometry and matching points across images, are week one.'] });
 
+/* VGGT's live demo (https://facebook-vggt.hf.space/) allows embedding, but it returned a 500 error on 2026-11-02;
+   to embed it again once it works: embed('From photos to 3D', 'https://facebook-vggt.hf.space/', [...]). */
 demo({ title: 'Learning to see without labels', name: 'DINOv3 → Canopy Height Maps v2', who: 'Meta and World Resources Institute · 2025–2026',
   cues: ['Features learned from images, no labels', 'Trained on satellite images', 'Tree height, mapped worldwide'],
   url: 'https://ai.meta.com/blog/world-resources-institute-dino-canopy-height-maps-v2/', urlText: 'Canopy Height Maps v2',
@@ -176,6 +188,10 @@ st(`
   "(draft) Four of the best models of 2024 got 58 percent right on average. The best one, 78 percent. A person is expected to get all of them. These were the 2024 models; whether today's models still fail, and why, is exactly the kind of question you could study."
 ]});
 
+embed('Vision-language models are blind', 'https://vlmsareblind.github.io/', [
+  'The paper has its own website, with the tasks and the models\' answers.',
+  '(Scroll through a few examples: the question, the image, and what each model answered.)']);
+
 st(`
   <h1 class="t">Does object recognition work for everyone?</h1>
   <ul class="frag">
@@ -190,6 +206,10 @@ st(`
   "(draft) They tested six object recognition systems that were publicly available. All of them did worse on household items that are common in countries with low household income.",
   "(draft) Why? The same kind of object looks different from home to home, dish soap for example, and familiar objects show up in unfamiliar places, like a toothbrush outside a bathroom. The training data did not look like these homes."
 ]});
+
+embed('Does object recognition work for everyone?', 'https://www.gapminder.org/dollar-street', [
+  'Dollar Street itself is online.',
+  '(Scroll through: pick one object, a toothbrush or a stove, and compare homes across incomes and countries. This is the kind of variation the training data missed.)']);
 
 st(`
   <h1 class="t">Texture, not shape</h1>
