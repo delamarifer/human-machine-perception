@@ -224,21 +224,51 @@ st(`
   "(draft) (Scroll through.) Two tracks, pick the one that fits. Build a demo: a working computer vision application someone can try. Or run an experiment: explore a limitation of a vision model, or try to overcome one, and answer with a measurement. Then one template per step: the general idea by Friday, the detailed proposal by Monday, the meeting with us in week two, the presentation on the last day, and the write-up."
 ]});
 
-/* Placeholder until Fernanda picks our own examples (Day 1 plan): one slot per track. */
+/* Example projects: real, public final projects from MIT 6.S898 Deep Learning, Fall 2023 (chosen by Fernanda via
+   the coordinator, 2026-11-02). Facts checked against each post on 2026-11-02; authors from each post's metadata.
+   No figures copied from the posts (the deck is public): icons only, and the template wording
+   (demo: what it does / tools / in words; experiment: question / measurement / result). */
+const plink = (url, text) => `<a class="projects-link" href="${url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${text} ↗</a>`;
+const exRow = (k, v) => `<div class="projects-ex-row"><span class="label">${k}</span><span>${v}</span></div>`;
 st(`
   <h1 class="t">Example projects</h1>
-  <div class="projects-examples b">
-    <div class="projects-example">${ICON.demo}<b>Build a demo</b><div class="todo">An example project of ours for this track: what it does, the tools, one picture.</div></div>
-    <div class="projects-example">${ICON.experiment}<b>Run an experiment</b><div class="todo">An example project of ours for this track: the question, the measurement, one result.</div></div>
+  <div class="projects-examples">
+    <div class="projects-example b" data-step="1">
+      <div class="projects-ex-head">${ICON.demo}<span class="label"><b>Build a demo</b></span></div>
+      <b class="projects-ex-title">Stable Diffusion for Oracle Bone Script</b>
+      <div class="label">Jenny Moralejo · MIT 6.S898, Fall 2023</div>
+      ${exRow('What it does', 'Renders modern Chinese characters from oracle bone script, ancient characters carved on bone')}
+      ${exRow('Tools', 'Stable Diffusion + ControlNet, a dataset of paired characters')}
+      ${exRow('In words', 'Not real Chinese, but real radicals and structure: a tool to help decipher, not a translator')}
+      ${plink('https://deep-learning-mit.github.io/staging/blog/2023/stable-diffusion-for-obs/', 'Read the project')}
+    </div>
+    <div class="projects-example b" data-step="2">
+      <div class="projects-ex-head">${ICON.experiment}<span class="label"><b>Run an experiment</b> · overcome a limitation</span></div>
+      <b class="projects-ex-title">Improving CLIP Spatial Awareness Using Hard Negative Mining</b>
+      <div class="label">Andrew Wang · MIT 6.S898, Fall 2023</div>
+      ${exRow('Question', 'CLIP mixes up left and right: can captions with swapped positions, used in training, fix it?')}
+      ${exRow('Measurement', 'Accuracy matching images to spatial captions')}
+      ${exRow('Result', '19.8% for CLIP, 64.4% at best after training; not fully solved')}
+      ${plink('https://deep-learning-mit.github.io/staging/blog/2023/spacial-CLIP/', 'Read the project')}
+    </div>
   </div>
+  <div class="label projects-ex-more b" data-step="3"><b>Explore a limitation</b> · “Can CNN learn shapes?”, Chloe Hong, MIT 6.S898, Fall 2023 · ${plink('https://deep-learning-mit.github.io/staging/blog/2023/how-cnns-learn-shapes/', 'read')}</div>
   <style>
-    .projects-examples{ margin:auto 0; display:grid; grid-template-columns:1fr 1fr; gap:3vw; }
-    .projects-example{ border:2px dashed var(--line); border-radius:16px; padding:3vh 2vw; display:flex; flex-direction:column; gap:1.6vh; align-items:flex-start; }
-    .projects-example b{ font-size:clamp(1.5rem, 2.5vw, 2.3rem); }
-    .projects-example .projects-icon{ width:clamp(3rem, 5vw, 4.6rem); }
+    .projects-examples{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:2.4vw; align-items:start; }
+    .projects-example{ border:2px solid var(--line); border-radius:16px; padding:2vh 1.6vw; display:flex; flex-direction:column; gap:1vh; }
+    .projects-ex-head{ display:flex; align-items:center; gap:.8vw; }
+    .projects-ex-head .projects-icon{ width:clamp(2.2rem, 3.4vw, 3.2rem); }
+    .projects-ex-title{ font-size:clamp(1.25rem, 2vw, 1.8rem); line-height:1.2; }
+    .projects-ex-row{ display:grid; grid-template-columns:10.5vw 1fr; gap:.8vw; font-size:clamp(1rem, 1.45vw, 1.35rem); line-height:1.3; }
+    .projects-ex-row .label{ color:var(--mute); font-weight:700; }
+    .projects-link{ color:var(--ink); font-size:clamp(.95rem, 1.3vw, 1.2rem); }
+    .projects-ex-more{ text-align:center; color:var(--mute); }
+    .projects-ex-more b{ color:var(--ink); }
   </style>
 `, { notes: [
-  "(draft) A few examples to get you started.",
-  "(to write) The examples."
+  "(draft) What does a project look like? Here are real final projects by MIT students in a deep learning class, Fall 2023. Their write-ups are public.",
+  "(draft) A demo: Stable Diffusion for oracle bone script, by Jenny Moralejo. Oracle bone script is ancient Chinese writing carved on bones; only about 1,000 of over 4,000 identified characters have been deciphered. She trained a ControlNet on Stable Diffusion to render a modern character from an oracle bone one. The results were not real Chinese, but they used real radicals and structure, and she presents it as a tool to help decipherment, not a translator. What it does, the tools, and an honest description of what came out: exactly our demo template.",
+  "(draft) An experiment that tries to overcome a limitation: Andrew Wang asked whether CLIP, which mixes up left and right, can learn spatial relations if you train it with captions that use the same words with the positions swapped. He measured accuracy at matching images to spatial captions: 19.8 percent for the original CLIP, 64.4 percent at best after training. And he says honestly that the problem is not fully solved. Question, measurement, result: our experiment template.",
+  "(draft) And one that explores a limitation, which connects to the texture slide from earlier: Chloe Hong asked whether CNNs can learn shapes, varying filter sizes and data augmentation; her models still did not generalize to images where shape and texture conflict. A negative result, honestly reported, is a good project too."
 ]});
 }
