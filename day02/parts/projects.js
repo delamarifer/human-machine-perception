@@ -194,15 +194,18 @@ st(`
    own example (normal images vs. images with texture swapped). Colors are the course site's: each track and
    each step keeps the color it has on templates.html (fills and dots only, never text). Each step links to
    its template. */
-const PC = { demo:'#14b8a6', experiment:'#f59e0b', idea:'#14b8a6', proposal:'#8b5cf6', meeting:'#3b82f6', presentation:'#ec4899', writeup:'#f59e0b' };
+const PC = { demo:'#14b8a6', experiment:'#f59e0b', idea:'#14b8a6', feedback:'#94a3b8', proposal:'#8b5cf6', meeting:'#3b82f6', presentation:'#ec4899', writeup:'#f59e0b' };
 const track = (ic, name, what, eg, step) => `<div class="projects-track b" data-step="${step}" style="--pc:${PC[ic]}">
   <div class="projects-track-head">${ICON[ic]}<div><b>${name}</b><div class="label">${what}</div></div></div>
   <div class="projects-eg-list"><span class="label projects-tag">For example</span>${eg.map(e => `<span class="label projects-egchip">${e}</span>`).join('')}</div></div>`;
 const stepT = (id, when, what, w, step) => `<a class="projects-step b" data-step="${step}" style="--pc:${PC[id]}" href="../templates.html#${id}"
   target="_blank" rel="noopener" onclick="event.stopPropagation()"><span class="projects-dot"></span><span class="label projects-when">${when}</span>
   <span class="label projects-what">${what} ↗</span><span class="label projects-w b" data-step="6">${w}</span></a>`;
+/* a step that is ours, not theirs: no template link, no grade (Fernanda, 2026-11-03) */
+const stepUs = (when, what, step) => `<div class="projects-step projects-us b" data-step="${step}" style="--pc:${PC.feedback}"><span class="projects-dot"></span>
+  <span class="label projects-when">${when}</span><span class="label projects-what">${what}</span></div>`;
 st(`
-  <h1 class="t">Two project tracks</h1>
+  <h1 class="t">Two kinds of projects</h1>
   <div class="label projects-outcome"><b>By the end, you can</b> · know the two project tracks</div>
   <div class="projects-tracks">
     ${track('demo', 'Build a demo', 'A working application someone can try',
@@ -215,8 +218,9 @@ st(`
     <div class="label projects-same b" data-step="3">Same steps for both · each has a template</div>
     <div class="projects-line">
       <div class="projects-rail b" data-step="3"></div>
-      ${stepT('idea', 'Friday', 'General idea', '2%', 3)}${stepT('proposal', 'Monday', 'Detailed proposal', '5%', 3)}
-      ${stepT('meeting', 'Week 2, Wednesday', 'Meet with us', '3%', 4)}
+      ${stepT('idea', 'Thursday, midnight', 'General idea', '2%', 3)}${stepUs('Friday night', 'Our high-level feedback', 3)}
+      ${stepT('proposal', 'Monday', 'Detailed proposal', '5%', 3)}
+      ${stepT('meeting', 'Monday–Wednesday', 'Meet with us (Calendly)', '3%', 4)}
       ${stepT('presentation', 'Last day', 'Presentation', '15%', 5)}${stepT('writeup', 'End of course', 'Write-up', '20%', 5)}
     </div>
     <div class="projects-total b" data-step="6"><span></span><b>45% of the grade</b><span></span></div>
@@ -237,13 +241,14 @@ st(`
     .projects-or{ align-self:center; color:var(--mute); }
     .projects-time{ margin:auto 0; display:flex; flex-direction:column; gap:1.4vh; }
     .projects-same{ color:var(--mute); }
-    .projects-line{ display:grid; grid-template-columns:repeat(5, 1fr); position:relative; }
+    .projects-line{ display:grid; grid-template-columns:repeat(6, 1fr); position:relative; }
     .projects-rail{ position:absolute; left:0; right:0; top:1.1vh; height:3px; border-radius:2px;
-      background:linear-gradient(90deg, ${[PC.idea, PC.proposal, PC.meeting, PC.presentation, PC.writeup].map(c => `color-mix(in srgb, ${c} 40%, #fff)`).join(', ')}); }
+      background:linear-gradient(90deg, ${[PC.idea, PC.feedback, PC.proposal, PC.meeting, PC.presentation, PC.writeup].map(c => `color-mix(in srgb, ${c} 40%, #fff)`).join(', ')}); }
     .projects-step{ position:relative; display:flex; flex-direction:column; gap:.4vh; padding-right:1vw; color:var(--ink); text-decoration:none; }
     .projects-step:hover .projects-what{ text-decoration:underline; }
     .projects-dot{ width:2.4vh; height:2.4vh; border-radius:50%; background:var(--pc); margin-bottom:.8vh; box-shadow:0 0 0 4px #fff; }
     .projects-when{ color:var(--mute); }
+    .projects-us .projects-what{ font-weight:400; font-style:italic; }
     .projects-what{ font-weight:700; }
     .projects-w{ font-variant-numeric:tabular-nums; align-self:flex-start; background:color-mix(in srgb, var(--pc) 16%, #fff);
       border-radius:6px; padding:0 .5vw; }
@@ -252,11 +257,11 @@ st(`
     .projects-total b{ font-size:clamp(1.4rem, 2.3vw, 2.1rem); }
   </style>
 `, { notes: [
-  "(draft) The final project comes in two tracks. By the end of this part, you know both.",
+  "(draft) There are two kinds of projects. By the end of this part, you know both.",
   "(draft) Build a demo: a working computer vision application that someone can try. For example, from the syllabus: visual search or an image memory, a creative image generation tool, a multimodal assistant, detection or segmentation, or an application for your own field.",
   "(draft) Or run an experiment: explore a limitation of a vision model, or try to overcome one, and answer with a measurement. It is a small rehearsal for a research project. For example, from the syllabus: human perception and vision models, ambiguity, or hallucination; or, from the proposal template, the same model on normal images and on images with their texture swapped.",
-  "(draft) The steps are the same for both, and each one has a template on the course website. By Friday, your general idea, through a short Google form; we share them so you can find teammates. By Monday, a detailed proposal.",
-  "(draft) By Wednesday of week two, a meeting with one of us about your proposal.",
+  "(draft) The steps are the same for both, and each one has a template on the course website. By Thursday at midnight, your general idea, through a short Google form; we share them so you can find teammates. By Friday night, we send you high-level feedback on it. Then by Monday, a detailed proposal.",
+  "(draft) Between Monday and Wednesday, you must meet with one of us to get feedback on your detailed proposal. We will share a Calendly to book a time.",
   "(draft) On the last day, a presentation to the class; and at the end of the course, a short write-up. Show it working, and show honestly where it fails.",
   "(draft) Altogether, the project is 45 percent of your grade: two percent for the idea, five for the proposal, three for the meeting, fifteen for the presentation and twenty for the write-up."
 ]});
@@ -272,7 +277,7 @@ st(`
   <style>.projects-site{ flex:1 1 auto; min-height:0; width:100%; border:1px solid var(--line); border-radius:12px; }</style>
 `, { notes: [
   "(draft) Every step has a template, on the course website.",
-  "(draft) (Scroll through.) Two tracks, pick the one that fits. Build a demo: a working computer vision application someone can try. Or run an experiment: explore a limitation of a vision model, or try to overcome one, and answer with a measurement. Then one template per step: the general idea by Friday, the detailed proposal by Monday, the meeting with us in week two, the presentation on the last day, and the write-up."
+  "(draft) (Scroll through.) Two tracks, pick the one that fits. Build a demo: a working computer vision application someone can try. Or run an experiment: explore a limitation of a vision model, or try to overcome one, and answer with a measurement. Then one template per step: the general idea by Thursday at midnight, our feedback by Friday night, the detailed proposal by Monday, a meeting with us between Monday and Wednesday, the presentation on the last day, and the write-up."
 ]});
 
 /* Example projects: real, public final projects from MIT 6.S898 Deep Learning, Fall 2023 (chosen by Fernanda via
