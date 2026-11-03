@@ -4,199 +4,351 @@
 <meta charset="utf-8">
 <title>Syllabus · Visual Perception</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --cream:#FAF5EC; --sand:#EADFC8; --clay:#D4A373; --teal:#287271; --ink:#1D3B3A;
+    --bg:#0a0d16; --surface:#121827; --surface2:#171f33; --line:#25304a;
+    --text:#e9edf6; --mute:#9aa5bd;
+    --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa;
   }
-  body{ margin:0; background:var(--cream); color:var(--ink);
-    font:17px/1.5 Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif; }
-  .band{ background:var(--ink); color:var(--cream); }
-  .band main{ padding:6vh 16px 5vh; }
-  main{ max-width:40rem; margin:0 auto; padding:4vh 16px 10vh; }
-  a{ color:var(--teal); }
-  .back{ margin:0 0 .6em; font-size:.95rem; }
-  .back a{ color:var(--sand); text-decoration:none; }
-  h1{ font-size:2.4rem; line-height:1.1; margin:0 0 .25em; color:var(--cream); }
-  .who{ margin:0; color:var(--sand); }
-  h2{ font-size:1.25rem; margin:1.6em 0 .4em; color:var(--teal); }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{ margin:0; background:var(--bg); color:var(--text);
+    font:16.5px/1.6 Inter, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif; }
+  a{ color:var(--cyan); }
+  b, strong{ font-weight:600; }
+
+  /* side label, like a book spine */
+  .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
+  .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;
+    font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
+  .spine b{ color:var(--text); font-weight:500; }
+  .page{ margin-left:44px; }
+
+  /* hero: a glowing iris */
+  .hero{ position:relative; overflow:hidden; border-bottom:1px solid var(--line);
+    background:radial-gradient(120% 90% at 70% 50%, #121a33 0%, var(--bg) 60%); }
+  .hero-in{ position:relative; max-width:64rem; margin:0 auto; padding:9vh 24px 4vh; min-height:340px; }
+  .iris{ position:absolute; right:-40px; top:50%; width:440px; height:440px; transform:translateY(-50%);
+    border-radius:50%; pointer-events:none;
+    background:
+      radial-gradient(circle, #05060b 0 17%, transparent 17.5%),
+      radial-gradient(circle, transparent 0 16%, rgba(255,255,255,.18) 16.5%, transparent 19%),
+      repeating-conic-gradient(from 0deg, rgba(94,234,212,.55) 0deg 2deg, rgba(167,139,250,.35) 2deg 5deg, rgba(251,191,36,.45) 5deg 7deg),
+      radial-gradient(circle, #f59e0b 0 22%, #14b8a6 40%, #6d28d9 62%, transparent 70%);
+    -webkit-mask:radial-gradient(circle, #000 0 52%, rgba(0,0,0,.5) 62%, transparent 70%);
+            mask:radial-gradient(circle, #000 0 52%, rgba(0,0,0,.5) 62%, transparent 70%);
+    filter:saturate(1.2) drop-shadow(0 0 40px rgba(94,234,212,.35));
+    animation:breathe 9s ease-in-out infinite; }
+  .iris::after{ content:''; position:absolute; left:37%; top:37%; width:7%; height:7%; border-radius:50%;
+    background:rgba(255,255,255,.75); filter:blur(2px); }
+  @keyframes breathe{ 50%{ transform:translateY(-50%) scale(1.04); } }
+  @media (prefers-reduced-motion:reduce){ .iris{ animation:none; } }
+  .back{ margin:0 0 2.5em; font-size:.95rem; }
+  .back a{ color:var(--mute); text-decoration:none; }
+  .back a:hover{ color:var(--text); }
+  .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--cyan); }
+  h1{ position:relative; margin:0 0 .3em; font:700 clamp(2.6rem, 8vw, 5rem)/.95 'Space Grotesk', sans-serif;
+    letter-spacing:-.01em; text-transform:uppercase;
+    background:linear-gradient(90deg, #fff 0%, #c7fff4 45%, #e4d8ff 100%); -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 0 40px rgba(94,234,212,.25); }
+  .who{ position:relative; margin:0; color:var(--mute); font-size:1.05rem; }
+
+  /* pill nav */
+  .nav{ position:relative; display:flex; flex-wrap:wrap; gap:8px; margin-top:2.4em; }
+  .nav a{ padding:.45em .95em; border:1px solid var(--line); border-radius:999px; background:rgba(18,24,39,.8);
+    color:var(--text); text-decoration:none; font-size:.9rem; font-weight:500; transition:all .2s; }
+  .nav a:hover{ border-color:var(--cyan); box-shadow:0 0 18px rgba(94,234,212,.35); }
+
+  main{ max-width:64rem; margin:0 auto; padding:2vh 24px 12vh; }
+  section{ padding-top:3.2em; scroll-margin-top:1em; }
+  h2{ margin:0 0 .8em; font:700 1.6rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
+  h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c, var(--cyan));
+    box-shadow:0 0 12px 2px var(--c, var(--cyan)); flex:none; }
+  h3{ margin:2em 0 .6em; font:700 1.15rem/1.3 'Space Grotesk', sans-serif; }
   p, li{ margin:0 0 .6em; }
   ul{ padding-left:1.2em; }
-  table{ width:100%; border-collapse:collapse; margin:1em 0 1.4em; background:var(--sand); border-radius:12px; overflow:hidden; }
-  th, td{ text-align:left; vertical-align:top; border-top:1px solid var(--clay); padding:.7em .9em; }
-  th{ font-size:.85rem; letter-spacing:.04em; text-transform:uppercase; color:var(--teal); border-top:none; }
-  td.w{ white-space:nowrap; font-weight:700; }
-  tr.sub td:first-child{ padding-left:2em; }
-  tr.sub td{ font-size:.95rem; }
-  tr.total td{ font-weight:700; }
-  h3{ font-size:1.05rem; margin:1.4em 0 .3em; }
-  .due{ display:block; margin-top:.3em; font-size:.9rem; font-weight:700; color:var(--teal); }
-  @media (max-width:480px){ th, td{ padding:.55em .5em; } tr.sub td:first-child{ padding-left:1.2em; } }
+  li::marker{ color:var(--c, var(--cyan)); }
+  .lead{ max-width:44rem; color:#d3d9e6; font-size:1.05rem; }
+
+  /* format chips */
+  .facts{ display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:12px; }
+  .fact{ padding:14px 16px; border:1px solid var(--line); border-radius:14px; background:var(--surface); }
+  .fact small{ display:block; font-size:.75rem; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); margin-bottom:.3em; }
+
+  /* weeks */
+  .weeks{ display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px; }
+  .week{ position:relative; padding:22px 22px 16px; border:1px solid var(--line); border-radius:18px;
+    background:linear-gradient(180deg, var(--surface2), var(--surface)); overflow:hidden; }
+  .week::before{ content:''; position:absolute; inset:0 0 auto 0; height:3px; background:var(--c);
+    box-shadow:0 0 18px 2px var(--c); }
+  .week .n{ display:inline-block; padding:.2em .7em; border-radius:999px; font-size:.78rem; font-weight:700;
+    letter-spacing:.12em; text-transform:uppercase; color:var(--bg); background:var(--c); box-shadow:0 0 16px var(--c); }
+  .week h3{ margin:.7em 0 .5em; font-size:1.3rem; }
+  .week .goal{ color:#d3d9e6; }
+  .week h4{ margin:1.1em 0 .4em; font-size:.75rem; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); }
+  .week li{ font-size:.95rem; margin-bottom:.35em; }
+
+  /* project directions */
+  .tags{ display:flex; flex-wrap:wrap; gap:10px; padding:0; margin:1em 0 1.2em; list-style:none; }
+  .tags li{ margin:0; padding:.5em .9em; border:1px solid var(--line); border-radius:12px; background:var(--surface); font-size:.95rem; }
+  .tags li:nth-child(5n+1){ box-shadow:inset 3px 0 0 var(--cyan); }
+  .tags li:nth-child(5n+2){ box-shadow:inset 3px 0 0 var(--violet); }
+  .tags li:nth-child(5n+3){ box-shadow:inset 3px 0 0 var(--amber); }
+  .tags li:nth-child(5n+4){ box-shadow:inset 3px 0 0 var(--pink); }
+  .tags li:nth-child(5n+5){ box-shadow:inset 3px 0 0 var(--sky); }
+
+  /* grade bar */
+  .bar{ display:flex; height:14px; border-radius:999px; overflow:hidden; margin:.4em 0 .6em; gap:2px; }
+  .bar i{ display:block; height:100%; }
+  .legend{ display:flex; flex-wrap:wrap; gap:6px 18px; padding:0; margin:0 0 1.4em; list-style:none; font-size:.88rem; color:var(--mute); }
+  .legend li{ margin:0; display:flex; align-items:center; gap:.45em; }
+  .legend li::before{ content:''; width:9px; height:9px; border-radius:50%; background:var(--k); box-shadow:0 0 8px var(--k); }
+
+  /* tables */
+  .tw{ border:1px solid var(--line); border-radius:16px; overflow:hidden; background:var(--surface); margin:0 0 1.4em; }
+  table{ width:100%; border-collapse:collapse; }
+  th, td{ text-align:left; vertical-align:top; padding:.8em 1em; border-top:1px solid var(--line); }
+  th{ border-top:none; background:var(--surface2); font-size:.75rem; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); font-weight:600; }
+  td.w{ white-space:nowrap; font:700 1rem/1.5 'Space Grotesk', sans-serif; color:var(--c, var(--cyan)); text-shadow:0 0 10px color-mix(in srgb, var(--c, var(--cyan)) 45%, transparent); }
+  tr.sub td:first-child{ padding-left:2.2em; color:#d3d9e6; }
+  tr.sub td{ font-size:.94rem; }
+  tr.total td{ font-weight:700; background:var(--surface2); }
+  tbody tr:hover td{ background:rgba(94,234,212,.04); }
+  .due{ display:inline-block; margin-top:.5em; padding:.15em .6em; border-radius:6px; font-size:.8rem; font-weight:600;
+    color:var(--amber); background:rgba(251,191,36,.12); border:1px solid rgba(251,191,36,.35); }
+
+  @media (max-width:640px){
+    .spine{ display:none; } .page{ margin-left:0; }
+    .hero-in{ padding:5vh 16px 3vh; min-height:0; }
+    .iris{ width:260px; height:260px; right:-90px; top:120px; opacity:.55; }
+    main{ padding:0 16px 10vh; }
+    th, td{ padding:.6em .55em; }
+    tr.sub td:first-child{ padding-left:1.2em; }
+  }
 </style>
 </head>
 <body>
-<div class="band"><main>
-  <p class="back"><a href="index.html">Home</a></p>
-  <h1>Visual Perception</h1>
-  <p class="who">Fernanda De La Torre · Shreya Pandit</p>
-</main></div>
+<div class="spine" aria-hidden="true"><span><b>Visual Perception</b> &nbsp;/&nbsp; Syllabus</span></div>
+<div class="page">
+
+<header class="hero">
+  <div class="iris" aria-hidden="true"></div>
+  <div class="hero-in">
+    <p class="back"><a href="index.html">← Home</a></p>
+    <p class="kicker">Syllabus</p>
+    <h1>Visual<br>Perception</h1>
+    <p class="who">Fernanda De La Torre · Shreya Pandit</p>
+    <nav class="nav" aria-label="Sections">
+      <a href="#overview">Overview</a>
+      <a href="#format">Format</a>
+      <a href="#weeks">Weeks</a>
+      <a href="#project">Final project</a>
+      <a href="#grading">Grading</a>
+      <a href="#approach">Learning approach</a>
+    </nav>
+  </div>
+</header>
+
 <main>
 
-  <h2>Course overview</h2>
-  <p>This is a three-week, hands-on studio course in computer vision. Students explore how machines process and understand visual information, progressing from raw pixels and classical image processing to learned representations and modern vision models.</p>
-  <p>The course emphasizes practical applications and experimentation. Students will build working vision systems, explore how models represent and interpret images, and critically evaluate their capabilities and limitations.</p>
+  <section id="overview">
+    <h2>Course overview</h2>
+    <p class="lead">This is a three-week, hands-on studio course in computer vision. Students explore how machines process and understand visual information, progressing from raw pixels and classical image processing to learned representations and modern vision models.</p>
+    <p class="lead">The course emphasizes practical applications and experimentation. Students will build working vision systems, explore how models represent and interpret images, and critically evaluate their capabilities and limitations.</p>
+  </section>
 
-  <h2>Format</h2>
-  <ul>
-    <li>Duration: 3 weeks (15 sessions)</li>
-    <li>Schedule: 2 hours per day</li>
-    <li>Format: lectures, discussions, and in-class coding labs</li>
-    <li>Platform: Google Colab</li>
-    <li>Assessment: daily response papers, two assignments, and a final project</li>
-  </ul>
+  <section id="format" style="--c:var(--violet)">
+    <h2>Format</h2>
+    <div class="facts">
+      <div class="fact"><small>Duration</small>3 weeks (15 sessions)</div>
+      <div class="fact"><small>Schedule</small>2 hours per day</div>
+      <div class="fact"><small>Format</small>Lectures, discussions, and in-class coding labs</div>
+      <div class="fact"><small>Platform</small>Google Colab</div>
+      <div class="fact"><small>Assessment</small>Daily response papers, two assignments, and a final project</div>
+    </div>
+  </section>
 
-  <h2>Week 1. Understanding images</h2>
-  <p>Goal: understand how images encode visual information and how we can extract meaningful structure from pixels.</p>
-  <p>Topics:</p>
-  <ul>
-    <li>Images as data: pixels, color, channels, and perception</li>
-    <li>Image processing: filtering, edges, and transformations</li>
-    <li>Image geometry and feature detection</li>
-    <li>Feature matching and image alignment</li>
-    <li>Classical computer vision applications</li>
-  </ul>
-  <p>Learning outcomes:</p>
-  <ul>
-    <li>Load, manipulate, and transform images using Python</li>
-    <li>Apply image processing techniques to extract visual structure</li>
-    <li>Detect and match features across images</li>
-    <li>Build simple computer vision applications</li>
-  </ul>
+  <section id="weeks" style="--c:var(--amber)">
+    <h2>Three weeks</h2>
+    <div class="weeks">
+      <article class="week" style="--c:var(--cyan)">
+        <span class="n">Week 1</span>
+        <h3>Understanding images</h3>
+        <p class="goal">Goal: understand how images encode visual information and how we can extract meaningful structure from pixels.</p>
+        <h4>Topics</h4>
+        <ul>
+          <li>Images as data: pixels, color, channels, and perception</li>
+          <li>Image processing: filtering, edges, and transformations</li>
+          <li>Image geometry and feature detection</li>
+          <li>Feature matching and image alignment</li>
+          <li>Classical computer vision applications</li>
+        </ul>
+        <h4>Learning outcomes</h4>
+        <ul>
+          <li>Load, manipulate, and transform images using Python</li>
+          <li>Apply image processing techniques to extract visual structure</li>
+          <li>Detect and match features across images</li>
+          <li>Build simple computer vision applications</li>
+        </ul>
+      </article>
+      <article class="week" style="--c:var(--violet)">
+        <span class="n">Week 2</span>
+        <h3>Learning visual representations</h3>
+        <p class="goal">Goal: understand how machine learning models learn meaningful representations of images.</p>
+        <h4>Topics</h4>
+        <ul>
+          <li>Convolutional neural networks</li>
+          <li>Feature extraction and transfer learning</li>
+          <li>Visual embeddings and similarity</li>
+          <li>Image classification and retrieval</li>
+          <li>Vision-language models, such as CLIP</li>
+        </ul>
+        <h4>Learning outcomes</h4>
+        <ul>
+          <li>Use pretrained models for image classification</li>
+          <li>Understand how neural networks represent visual information</li>
+          <li>Compare images using learned embeddings</li>
+          <li>Build visual search and zero-shot classification systems</li>
+        </ul>
+      </article>
+      <article class="week" style="--c:var(--pink)">
+        <span class="n">Week 3</span>
+        <h3>Building vision systems</h3>
+        <p class="goal">Goal: combine modern vision models into applications that perceive, interpret, and generate visual information.</p>
+        <h4>Topics</h4>
+        <ul>
+          <li>Foundation vision models</li>
+          <li>Object detection and segmentation</li>
+          <li>Multimodal vision-language systems</li>
+          <li>Image generation and diffusion models</li>
+          <li>Evaluating vision systems: capabilities, limitations, and failure modes</li>
+        </ul>
+        <h4>Learning outcomes</h4>
+        <ul>
+          <li>Apply modern vision models to real-world problems</li>
+          <li>Combine models into end-to-end vision pipelines</li>
+          <li>Build applications involving image understanding, retrieval, or generation</li>
+          <li>Evaluate model performance and identify limitations</li>
+        </ul>
+      </article>
+    </div>
+  </section>
 
-  <h2>Week 2. Learning visual representations</h2>
-  <p>Goal: understand how machine learning models learn meaningful representations of images.</p>
-  <ul>
-    <li>Convolutional neural networks</li>
-    <li>Feature extraction and transfer learning</li>
-    <li>Visual embeddings and similarity</li>
-    <li>Image classification and retrieval</li>
-    <li>Vision-language models, such as CLIP</li>
-  </ul>
-  <p>Learning outcomes:</p>
-  <ul>
-    <li>Use pretrained models for image classification</li>
-    <li>Understand how neural networks represent visual information</li>
-    <li>Compare images using learned embeddings</li>
-    <li>Build visual search and zero-shot classification systems</li>
-  </ul>
+  <section id="project" style="--c:var(--pink)">
+    <h2>Final project</h2>
+    <p class="lead">Students design and build an original computer vision application using concepts and techniques from the course.</p>
+    <p>Possible directions include:</p>
+    <ul class="tags">
+      <li>Visual search or an image memory system</li>
+      <li>Image generation or a creative exploration tool</li>
+      <li>A multimodal assistant for image understanding</li>
+      <li>Object detection or segmentation</li>
+      <li>A domain-specific computer vision application</li>
+      <li>An exploration of human perception, ambiguity, or hallucination in vision models</li>
+    </ul>
+    <p>Students present their projects and discuss their design decisions, results, and limitations.</p>
+  </section>
 
-  <h2>Week 3. Building vision systems</h2>
-  <p>Goal: combine modern vision models into applications that perceive, interpret, and generate visual information.</p>
-  <ul>
-    <li>Foundation vision models</li>
-    <li>Object detection and segmentation</li>
-    <li>Multimodal vision-language systems</li>
-    <li>Image generation and diffusion models</li>
-    <li>Evaluating vision systems: capabilities, limitations, and failure modes</li>
-  </ul>
-  <p>Learning outcomes:</p>
-  <ul>
-    <li>Apply modern vision models to real-world problems</li>
-    <li>Combine models into end-to-end vision pipelines</li>
-    <li>Build applications involving image understanding, retrieval, or generation</li>
-    <li>Evaluate model performance and identify limitations</li>
-  </ul>
+  <section id="grading" style="--c:var(--sky)">
+    <h2>Grading</h2>
+    <div class="bar" role="img" aria-label="Final project 45%, daily response papers 24%, final-day question 1%, assignment 1 15%, assignment 2 15%">
+      <i style="width:45%; background:var(--pink)"></i><i style="width:24%; background:var(--cyan)"></i><i style="width:1%; background:var(--violet)"></i><i style="width:15%; background:var(--amber)"></i><i style="width:15%; background:var(--sky)"></i>
+    </div>
+    <ul class="legend">
+      <li style="--k:var(--pink)">Final project 45%</li>
+      <li style="--k:var(--cyan)">Daily response papers 24%</li>
+      <li style="--k:var(--violet)">Final-day question 1%</li>
+      <li style="--k:var(--amber)">Assignment 1 15%</li>
+      <li style="--k:var(--sky)">Assignment 2 15%</li>
+    </ul>
 
-  <h2>Final project</h2>
-  <p>Students design and build an original computer vision application using concepts and techniques from the course.</p>
-  <p>Possible directions include:</p>
-  <ul>
-    <li>Visual search or an image memory system</li>
-    <li>Image generation or a creative exploration tool</li>
-    <li>A multimodal assistant for image understanding</li>
-    <li>Object detection or segmentation</li>
-    <li>A domain-specific computer vision application</li>
-    <li>An exploration of human perception, ambiguity, or hallucination in vision models</li>
-  </ul>
-  <p>Students present their projects and discuss their design decisions, results, and limitations.</p>
+    <div class="tw"><table>
+      <thead>
+        <tr><th>Component</th><th>Weight</th><th>What it is</th></tr>
+      </thead>
+      <tbody>
+        <tr style="--c:var(--pink)"><td><b>Final project</b></td><td class="w">45%</td><td>An original vision application, proposed, built, written up and presented</td></tr>
+        <tr class="sub" style="--c:var(--pink)"><td>Proposal</td><td class="w">10%</td><td>Three steps, below</td></tr>
+        <tr class="sub" style="--c:var(--pink)"><td>Write-up</td><td class="w">20%</td><td>A short report on what you built and how well it works</td></tr>
+        <tr class="sub" style="--c:var(--pink)"><td>Presentation</td><td class="w">15%</td><td>Presented to the class on the last day</td></tr>
+        <tr style="--c:var(--cyan)"><td><b>Daily response papers</b></td><td class="w">24%</td><td>12 papers, 2% each</td></tr>
+        <tr style="--c:var(--violet)"><td><b>Final-day question</b></td><td class="w">1%</td><td>One short, easy question on the last day</td></tr>
+        <tr style="--c:var(--amber)"><td><b>Assignment 1</b></td><td class="w">15%</td><td>Coding and conceptual questions</td></tr>
+        <tr style="--c:var(--sky)"><td><b>Assignment 2</b></td><td class="w">15%</td><td>Coding and conceptual questions</td></tr>
+        <tr class="total"><td>Total</td><td class="w">100%</td><td></td></tr>
+      </tbody>
+    </table></div>
 
-  <h2>Grading</h2>
-  <table>
-    <thead>
-      <tr><th>Component</th><th>Weight</th><th>What it is</th></tr>
-    </thead>
-    <tbody>
-      <tr><td><b>Final project</b></td><td class="w">45%</td><td>An original vision application, proposed, built, written up and presented</td></tr>
-      <tr class="sub"><td>Proposal</td><td class="w">10%</td><td>Three steps, below</td></tr>
-      <tr class="sub"><td>Write-up</td><td class="w">20%</td><td>A short report on what you built and how well it works</td></tr>
-      <tr class="sub"><td>Presentation</td><td class="w">15%</td><td>Presented to the class on the last day</td></tr>
-      <tr><td><b>Daily response papers</b></td><td class="w">24%</td><td>12 papers, 2% each</td></tr>
-      <tr><td><b>Final-day question</b></td><td class="w">1%</td><td>One short, easy question on the last day</td></tr>
-      <tr><td><b>Assignment 1</b></td><td class="w">15%</td><td>Coding and conceptual questions</td></tr>
-      <tr><td><b>Assignment 2</b></td><td class="w">15%</td><td>Coding and conceptual questions</td></tr>
-      <tr class="total"><td>Total</td><td class="w">100%</td><td></td></tr>
-    </tbody>
-  </table>
+    <h3>Final project proposal (10%)</h3>
+    <div class="tw" style="--c:var(--pink)"><table>
+      <thead><tr><th>Step</th><th>Weight</th><th>How it is graded</th></tr></thead>
+      <tbody>
+        <tr><td>General ideas, through a Google Form (template provided)<br><span class="due">Due Friday</span></td><td class="w">2%</td><td>Full credit for a complete, on-time submission. We share the ideas with the class so you can find teammates.</td></tr>
+        <tr><td>Detailed proposal (template provided)<br><span class="due">Due Monday</span></td><td class="w">5%</td><td>Problem and motivation (25%) · approach: the models and data you will use (25%) · evaluation: how you will know it works (25%) · a realistic plan for the time we have (25%)</td></tr>
+        <tr><td>Meeting with a teacher to discuss the detailed proposal (sign up on Calendly)<br><span class="due">Due Wednesday, week 2</span></td><td class="w">3%</td><td>Full credit for attending prepared, with your proposal and your questions</td></tr>
+      </tbody>
+    </table></div>
 
-  <h3>Final project proposal (10%)</h3>
-  <table>
-    <thead><tr><th>Step</th><th>Weight</th><th>How it is graded</th></tr></thead>
-    <tbody>
-      <tr><td>General ideas, through a Google Form (template provided)<span class="due">Due Friday</span></td><td class="w">2%</td><td>Full credit for a complete, on-time submission. We share the ideas with the class so you can find teammates.</td></tr>
-      <tr><td>Detailed proposal (template provided)<span class="due">Due Monday</span></td><td class="w">5%</td><td>Problem and motivation (25%) · approach: the models and data you will use (25%) · evaluation: how you will know it works (25%) · a realistic plan for the time we have (25%)</td></tr>
-      <tr><td>Meeting with a teacher to discuss the detailed proposal (sign up on Calendly)<span class="due">Due Wednesday, week 2</span></td><td class="w">3%</td><td>Full credit for attending prepared, with your proposal and your questions</td></tr>
-    </tbody>
-  </table>
+    <h3>Final project write-up (20%)</h3>
+    <div class="tw" style="--c:var(--pink)"><table>
+      <thead><tr><th>Criterion</th><th>Share</th><th>What we look for</th></tr></thead>
+      <tbody>
+        <tr><td>Problem and motivation</td><td class="w">15%</td><td>A clear question or goal, and why it matters</td></tr>
+        <tr><td>Method</td><td class="w">25%</td><td>What you built, the models and data, and why you chose them</td></tr>
+        <tr><td>Results and evaluation</td><td class="w">25%</td><td>Evidence that it works: examples, a measurement, a comparison</td></tr>
+        <tr><td>Limitations and failure cases</td><td class="w">20%</td><td>Where it breaks, and what that says about how it sees</td></tr>
+        <tr><td>Clarity</td><td class="w">15%</td><td>Readable writing, labeled figures, sources credited</td></tr>
+      </tbody>
+    </table></div>
 
-  <h3>Final project write-up (20%)</h3>
-  <table>
-    <thead><tr><th>Criterion</th><th>Share</th><th>What we look for</th></tr></thead>
-    <tbody>
-      <tr><td>Problem and motivation</td><td class="w">15%</td><td>A clear question or goal, and why it matters</td></tr>
-      <tr><td>Method</td><td class="w">25%</td><td>What you built, the models and data, and why you chose them</td></tr>
-      <tr><td>Results and evaluation</td><td class="w">25%</td><td>Evidence that it works: examples, a measurement, a comparison</td></tr>
-      <tr><td>Limitations and failure cases</td><td class="w">20%</td><td>Where it breaks, and what that says about how it sees</td></tr>
-      <tr><td>Clarity</td><td class="w">15%</td><td>Readable writing, labeled figures, sources credited</td></tr>
-    </tbody>
-  </table>
+    <h3>Final project presentation (15%)</h3>
+    <div class="tw" style="--c:var(--pink)"><table>
+      <thead><tr><th>Criterion</th><th>Share</th><th>What we look for</th></tr></thead>
+      <tbody>
+        <tr><td>The idea</td><td class="w">20%</td><td>The audience understands the problem in the first minute</td></tr>
+        <tr><td>Demo and results</td><td class="w">35%</td><td>Show it working, on examples, with evidence</td></tr>
+        <tr><td>Limitations</td><td class="w">20%</td><td>An honest look at where it fails</td></tr>
+        <tr><td>Delivery</td><td class="w">15%</td><td>Clear slides, within time</td></tr>
+        <tr><td>Questions</td><td class="w">10%</td><td>Thoughtful answers to questions from the class</td></tr>
+      </tbody>
+    </table></div>
 
-  <h3>Final project presentation (15%)</h3>
-  <table>
-    <thead><tr><th>Criterion</th><th>Share</th><th>What we look for</th></tr></thead>
-    <tbody>
-      <tr><td>The idea</td><td class="w">20%</td><td>The audience understands the problem in the first minute</td></tr>
-      <tr><td>Demo and results</td><td class="w">35%</td><td>Show it working, on examples, with evidence</td></tr>
-      <tr><td>Limitations</td><td class="w">20%</td><td>An honest look at where it fails</td></tr>
-      <tr><td>Delivery</td><td class="w">15%</td><td>Clear slides, within time</td></tr>
-      <tr><td>Questions</td><td class="w">10%</td><td>Thoughtful answers to questions from the class</td></tr>
-    </tbody>
-  </table>
+    <h3>Daily response papers (24%)</h3>
+    <p>Twelve response papers, each worth 2% of the grade. Each has four questions, 5 points each (20 points):</p>
+    <ul style="--c:var(--cyan)">
+      <li>1 high-level question about the day's paper</li>
+      <li>3 conceptual questions about the take-home lab</li>
+    </ul>
+    <div class="tw" style="--c:var(--cyan)"><table>
+      <thead><tr><th>Points</th><th>Each question</th></tr></thead>
+      <tbody>
+        <tr><td class="w">5</td><td>Correct and well reasoned, in your own words, with evidence from the paper or the lab</td></tr>
+        <tr><td class="w">4</td><td>Mostly correct, with a small gap or an unsupported step</td></tr>
+        <tr><td class="w">3</td><td>Partly correct, or a correct answer without the reasoning</td></tr>
+        <tr><td class="w">1–2</td><td>A real attempt that shows engagement but misunderstands the idea</td></tr>
+        <tr><td class="w">0</td><td>Missing</td></tr>
+      </tbody>
+    </table></div>
 
-  <h3>Daily response papers (24%)</h3>
-  <p>Twelve response papers, each worth 2% of the grade. Each has four questions, 5 points each (20 points):</p>
-  <ul>
-    <li>1 high-level question about the day's paper</li>
-    <li>3 conceptual questions about the take-home lab</li>
-  </ul>
-  <table>
-    <thead><tr><th>Points</th><th>Each question</th></tr></thead>
-    <tbody>
-      <tr><td class="w">5</td><td>Correct and well reasoned, in your own words, with evidence from the paper or the lab</td></tr>
-      <tr><td class="w">4</td><td>Mostly correct, with a small gap or an unsupported step</td></tr>
-      <tr><td class="w">3</td><td>Partly correct, or a correct answer without the reasoning</td></tr>
-      <tr><td class="w">1–2</td><td>A real attempt that shows engagement but misunderstands the idea</td></tr>
-      <tr><td class="w">0</td><td>Missing</td></tr>
-    </tbody>
-  </table>
+    <h3>Final-day question (1%)</h3>
+    <p>A short, easy question on the last day. Full credit for any genuine answer.</p>
 
-  <h3>Final-day question (1%)</h3>
-  <p>A short, easy question on the last day. Full credit for any genuine answer.</p>
+    <h3>Assignments (15% each)</h3>
+    <p>Each assignment comes with its own rubric, covering correct, working code and the conceptual answers.</p>
+  </section>
 
-  <h3>Assignments (15% each)</h3>
-  <p>Each assignment comes with its own rubric, covering correct, working code and the conceptual answers.</p>
+  <section id="approach" style="--c:var(--cyan)">
+    <h2>Learning approach</h2>
+    <p class="lead">The course combines lectures and discussions with hands-on experimentation. Each session introduces new concepts and gives students opportunities to apply them through guided coding labs. Homework assignments reinforce learning and extend lab activities.</p>
+    <p class="lead">Students are encouraged to experiment, ask questions, explore their own interests, and critically evaluate how computer vision systems work and where they fail.</p>
+  </section>
 
-  <h2>Learning approach</h2>
-  <p>The course combines lectures and discussions with hands-on experimentation. Each session introduces new concepts and gives students opportunities to apply them through guided coding labs. Homework assignments reinforce learning and extend lab activities.</p>
-  <p>Students are encouraged to experiment, ask questions, explore their own interests, and critically evaluate how computer vision systems work and where they fail.</p>
 </main>
+</div>
 </body>
 </html>
