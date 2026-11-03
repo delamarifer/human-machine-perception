@@ -55,10 +55,12 @@ import sys
 import numpy as np                 # arrays and math
 import matplotlib.pyplot as plt    # plotting
 import scipy                       # the solver in section 6 uses it
+import plotly                      # the 3D view you can turn around, in section 6
 
 print("Python    ", sys.version.split()[0])
 print("NumPy     ", np.__version__)
 print("SciPy     ", scipy.__version__)
+print("Plotly    ", plotly.__version__)
 print("Running in Colab:", "google.colab" in sys.modules)
 """)
 hidden("#@title Helper code: run this cell (no need to read it)\n" + HELPERS)
@@ -395,6 +397,30 @@ code("""
 show_3d(Y, Z, image, figure, title="Recovered 3D, seen from a new viewpoint", elev=20, azim=-75)
 """)
 md("""
+A still picture only shows one side. In the next view you can **drag to turn it around** (and scroll
+to zoom). Here every pixel is drawn, the floor included. What is missing behind the boxes?
+""")
+code("""
+show_3d_interactive(Y, Z, image)
+""")
+md("""
+### Your turn 6 · What is missing, and why? (talk it over, no code)
+
+Turn the reconstruction so you look at it from behind. Name two things that are missing, and say
+why the system could not have recovered them.
+
+<details><summary><b>Show an answer</b> (try it yourself first)</summary>
+
+- Each box is only a **shell**: its back faces are missing. The camera never saw them, and each pixel
+  gives us exactly one surface point, the nearest one.
+- The **floor behind each box** has a hole in it: the box blocked the camera's view of that floor.
+
+The system recovers only the surfaces it can see. To fill in the rest it would need more knowledge
+about the world, for example that boxes are closed solids, or that floors continue behind objects.
+
+</details>
+""")
+md("""
 **Think about it.** The answer is close, but not perfect, even though the image is clean and
 computer-generated. Where could the error come from? (Hints: how wide is an edge, in pixels? On which
 pixel exactly does a box touch the floor?)
@@ -438,7 +464,7 @@ Your visual system makes assumptions like these too. They are usually right abou
 is why they are worth making.
 """)
 turn("""
-# YOUR TURN 6 · Design a world that breaks another assumption, and see what the system does.
+# YOUR TURN 7 · Design a world that breaks another assumption, and see what the system does.
 # Ideas: stack one box on top of another (base = height of the lower box);
 #        put one box in front of another so it hides part of it;
 #        turn a box to angle=0 or 90, an "accidental" view where a horizontal edge looks vertical in the image.
