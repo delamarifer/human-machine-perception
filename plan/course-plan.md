@@ -9,9 +9,10 @@ Vision (spring 2026), https://scenerepresentations.org/courses/2026/spring/advan
 are chapters of Torralba, Isola & Freeman, *Foundations of Computer Vision* (the "Vision Book").
 
 Known gaps and glitches in the source doc are marked **[check]**:
-- **[check] There is no Day 4 row.** The Day 3 cell ends with a leftover stub of another day ("Homework: Read
-  material, convolution/math practice, continue work on PSET", "Objective:", "(10 mins) Homework Review"), and
-  its resources column holds a second block (textures and metamers). Day 3 as written runs about 175 minutes.
+- **Day 3 stays one day** (Fernanda, 2026-11-02): image formation, processing and representations together,
+  so there is no Day 4. As written it runs about 175 minutes **[check: trim]**. The cell also ends with a
+  leftover stub ("Homework: Read material, convolution/math practice, continue work on PSET", "Objective:",
+  "(10 mins) Homework Review") and a second resources block (textures and metamers), kept under Day 3.
 - **[check] The Day 5 row holds three blocks:** Neural Networks, CNNs + evaluation, and Object Recognition +
   Robustness (no day number). Read in order, the doc has more days than labels.
 - **[check] Day 7 (3D + Motion):** the segment list repeats object recognition (classification, detection,
@@ -91,7 +92,7 @@ The built Day 1 deck (`deck.html`) follows the earlier, more detailed timing bel
 - **Human connection:** Mach bands, Hermann grid, Hubel & Wiesel next to a Gabor bank (Michael Bach illusions, Adelson gallery)
 - **Labs/Project:** Convolution from scratch, edge detection
 
-Leftover block in the same row (no day label) **[check]:**
+Leftover block in the same cell (Day 3 stays one day, so this belongs to Day 3):
 - **Homework:** Read material, convolution/math practice, continue work on PSET
 - **Objective:** blank. **Segments:** (10 min) Homework review
 - **Human connection:** Julesz texture pairs, Portilla-Simoncelli metamers, peripheral vision as texture (Rosenholtz mongrels, Freeman & Simoncelli 2011), auditory metamers as the cross-modal version
