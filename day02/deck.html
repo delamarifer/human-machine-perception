@@ -7,6 +7,14 @@
 <script>/* cache-bust while editing, so nobody presents a stale file */
 document.write(`<link rel="stylesheet" href="../deck/deck.css?v=${Date.now()}">`);
 document.write(`<script src="../deck/engine.js?v=${Date.now()}"><\/script><script src="order.js?v=${Date.now()}"><\/script><script src="cites.js?v=${Date.now()}"><\/script>`);</script>
+<style>
+/* Day 2: learning outcomes ("By the end, you can" / "In the lab, you will") in orange, a color with no other meaning
+   in the decks (Fernanda, 2026-11-02). Plum, slate-blue and pine stay data colors; the amber on TO DO labels and
+   highlight rings is a different, lighter orange. */
+:root{ --outcome:#c2410c; }
+[class*="-outcome"]{ color:var(--ink) !important; }
+[class*="-outcome"] b, .opening-lead{ color:var(--outcome) !important; font-weight:700; }
+</style>
 </head>
 <body>
 <div id="root"></div>

@@ -72,6 +72,8 @@ aggregates go out on a public site.
 - [ ] Check the Before lines read the way you'd say them, especially MedGemma ("first open model of its kind" is Google's claim).
 
 ### Questions for Fernanda
+- [x] Learning outcomes in orange (#c2410c), Day 2 only (day02/deck.html). Orange now means "learning outcome"; if
+      other days adopt it, it belongs in deck.css and _deck-wide.md (shared files, coordinator's call).
 - [ ] "Why we look to human vision" (slide 22) now gives three reasons, each the Vision Book's own (Ch. 1): people
       still see better (the elephant), many tools came from the brain (RGB, filters, neural networks, attention),
       perception shows what to build (Kanizsa triangle, drawn here). Your own framing can replace the notes.
