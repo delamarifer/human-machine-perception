@@ -71,6 +71,10 @@ const ICON = {
   experiment: icon('<path d="M6 6v36h36"/><path d="M14 34V24M22 34V14M30 34V20M38 34V10"/><path d="M12 18l8-8 8 6 10-10" stroke-dasharray="3 3"/>'),
 };
 
+/* One color per theme, the same on this slide and on the cards after it (fills, borders and icons only,
+   never text). */
+const THEME = { above:'#0ea5e9', medical:'#f43f5e', outline:'#10b981', depth:'#f97316', generate:'#d946ef', assist:'#8b5cf6' };
+
 /* The project ideas you sent, one per answer that named one. Paraphrased, no names, no quotes
    (Fernanda, 2026-11-02: grouped data only, except the project ideas). Clustered by theme, the same groups as
    the cards on the next slide. A keyword on screen; hover it for the full idea. */
@@ -91,7 +95,7 @@ const CLUSTERS = [
 st(`
   <h1 class="t">The ideas you sent us</h1>
   <div class="projects-cloud b" data-step="1">
-    ${CLUSTERS.map(([ic, name, ideas]) => `<div class="projects-cluster projects-n${ideas.length}">
+    ${CLUSTERS.map(([ic, name, ideas]) => `<div class="projects-cluster projects-n${ideas.length}" style="--pc:${THEME[ic]}">
       <div class="projects-cluster-head">${ICON[ic]}<span class="label">${name}</span></div>
       <div class="projects-chips">${ideas.map(([k, full]) =>
         `<span class="projects-chip" tabindex="0" data-full="${full.replace(/"/g, '&quot;')}">${k}</span>`).join('')}</div>
@@ -102,17 +106,17 @@ st(`
   <style>
     .projects-cloud{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(6, minmax(0, 1fr));
       grid-template-rows:1.15fr 1fr; gap:2.2vh 1.4vw; padding-top:1vh; }
-    .projects-cluster{ grid-column:span 2; background:#f8fafc; border:1px solid var(--line); border-radius:28px;
+    .projects-cluster{ grid-column:span 2; background:color-mix(in srgb, var(--pc) 10%, #fff); border:2px solid color-mix(in srgb, var(--pc) 35%, #fff); border-radius:28px;
       padding:1.6vh 1.2vw; display:flex; flex-direction:column; gap:1.4vh; }
     .projects-cluster.projects-n4{ grid-column:span 4; }
     .projects-cluster-head{ display:flex; align-items:center; gap:.8vw; }
-    .projects-cluster-head .projects-icon{ width:clamp(2rem, 3.4vw, 3.1rem); }
+    .projects-cluster-head .projects-icon{ width:clamp(2rem, 3.4vw, 3.1rem); color:color-mix(in srgb, var(--pc) 75%, #0f172a); }
     .projects-cluster-head .label{ color:var(--mute); text-transform:uppercase; letter-spacing:.06em; font-size:clamp(.85rem, 1.1vw, 1.05rem) !important; font-weight:700; }
     .projects-chips{ flex:1 1 auto; display:flex; flex-wrap:wrap; align-content:center; justify-content:center; gap:1.4vh 1vw; }
-    .projects-chip{ position:relative; background:#fff; border:2px solid var(--ink); border-radius:999px; padding:.9vh 1.3vw;
+    .projects-chip{ position:relative; background:#fff; border:2px solid var(--pc); box-shadow:0 2px 0 color-mix(in srgb, var(--pc) 45%, #fff); border-radius:999px; padding:.9vh 1.3vw;
       font-size:clamp(1.15rem, 1.9vw, 1.75rem); font-weight:700; cursor:help; white-space:nowrap;
       transition:background .2s, color .2s; }
-    .projects-chip:hover, .projects-chip:focus{ background:var(--ink); color:#fff; outline:none; }
+    .projects-chip:hover, .projects-chip:focus{ background:color-mix(in srgb, var(--pc) 22%, #fff); outline:none; }
     .projects-chip::after{ content:attr(data-full); position:absolute; left:50%; bottom:calc(100% + 1.2vh); transform:translate(-50%, 6px);
       width:max-content; max-width:26vw; white-space:normal; text-align:center; background:var(--ink); color:#fff;
       font-size:clamp(.95rem, 1.35vw, 1.25rem); font-weight:400; line-height:1.3; padding:1vh 1vw; border-radius:10px;
@@ -138,7 +142,7 @@ const seen = (name, title) => `<span class="projects-seen-ref">${name}<span data
 })();
 
 /* interests (our grouping of the free-text answers) → tools → the demo slide that showed them */
-const idea = (ic, name, eg, tools, refs, step) => `<div class="projects-idea b" data-step="${step}">
+const idea = (ic, name, eg, tools, refs, step) => `<div class="projects-idea b" data-step="${step}" style="--pc:${THEME[ic]}">
   <div class="projects-idea-head">${ICON[ic]}<b>${name}</b></div>
   <div class="label projects-eg">${eg}</div>
   <div class="projects-path"><span class="label projects-tag">Try</span><span class="label projects-tools">${tools}</span></div>
@@ -161,10 +165,11 @@ st(`
   </div>
   <style>
     .projects-ideas{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); grid-template-rows:1fr 1fr; gap:2vh 1.6vw; }
-    .projects-idea{ border:2px solid var(--line); border-radius:14px; padding:1.6vh 1.1vw; display:flex; flex-direction:column; gap:.9vh; min-height:0; }
+    .projects-idea{ border:2px solid color-mix(in srgb, var(--pc) 40%, #fff); background:color-mix(in srgb, var(--pc) 6%, #fff); box-shadow:inset 0 5px 0 var(--pc); border-radius:14px; padding:1.6vh 1.1vw; display:flex; flex-direction:column; gap:.9vh; min-height:0; }
     .projects-idea-head{ display:flex; align-items:center; gap:.9vw; }
     .projects-idea-head b{ font-size:clamp(1.15rem, 1.8vw, 1.65rem); line-height:1.15; }
     .projects-icon{ flex:0 0 auto; width:clamp(2.4rem, 4.2vw, 3.8rem); height:auto; color:var(--ink); }
+    .projects-idea .projects-icon{ color:color-mix(in srgb, var(--pc) 75%, #0f172a); }
     .projects-eg{ color:var(--mute); line-height:1.25; }
     .projects-path{ display:grid; grid-template-columns:auto 1fr; gap:.7vw; align-items:baseline; }
     .projects-eg{ margin-bottom:auto; }
