@@ -129,7 +129,7 @@ st(`
     ${idea('generate', 'Generate images and video', 'Diffusion, video generation', 'Hugging Face diffusers · open video models',
       seen('Genie 4', 'Generating worlds'), 5)}
     ${idea('assist', 'Assistive and creative', 'Memory aids, movement into music', 'Vision-language models · pose estimation',
-      seen('Where they are blind', 'Vision-language models are blind'), 6)}
+      seen('Where they are blind', 'What vision models are still “blind” to'), 6)}
   </div>
   <style>
     .projects-ideas{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); grid-template-rows:1fr 1fr; gap:2vh 1.6vw; }
