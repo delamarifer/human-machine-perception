@@ -30,7 +30,7 @@ const demo = (o) => st(`
       <ul class="frag">${o.cues.map(c => `<li>${c}</li>`).join('')}</ul>
       <div>${link(o.url, o.urlText)}</div>
       <div class="motivation-new b" data-step="2"><div class="label"><b>Before</b> · ${o.before}</div><div class="motivation-now"><b>Now</b> · ${o.now}</div></div>
-      <div class="motivation-week b" data-step="3"><span class="label">In the course</span><b>Week ${o.week}</b><span class="label">${o.topic}</span></div>
+      <div class="motivation-week b" data-step="3"><span class="label">Fundamentals in</span><b>Week ${o.week}</b><span class="label">${o.topic}</span></div>
     </div>
     ${media(o) ? `<div class="motivation-media b" data-step="1">${media(o)}<div class="label">Video: ${o.credit}</div></div>` : ''}
   </div>
@@ -134,26 +134,30 @@ demo({ title: 'Generating worlds', name: 'Genie 4', before: 'generated video: a 
     'Genie 4, from Google DeepMind. You describe a world in text, and it generates one you can move through, frame by frame, as you move. It is a research preview: most of us can only watch the videos for now.',
     'How machines generate images is week three.'] });
 
-/* All of it on one screen */
+/* All of it on one screen: we teach the fundamentals these tools are built on, not the tools themselves
+   (Fernanda, 2026-11-02). Fundamentals are worded from syllabus.html, Weeks; each names the demo it powers. */
 const col = (w, name, items, step) => `<div class="motivation-col b" data-step="${step}">
-  <div class="label">Week ${w}</div><b>${name}</b>${items.map(i => `<div class="lead">${i}</div>`).join('')}</div>`;
+  <div class="label">Week ${w}</div><b>${name}</b>${items.map(([f, tool]) =>
+    `<div class="motivation-fund"><div class="lead">${f}</div><div class="label">→ ${tool}</div></div>`).join('')}</div>`;
 st(`
-  <h1 class="t">We will cover all of this</h1>
+  <h1 class="t">The fundamentals behind all of this</h1>
   <div class="motivation-cols">
-    ${col(1, 'Understanding images', ['VGGT'], 1)}
-    ${col(2, 'Learning representations', ['DINOv3, Canopy Height', 'AlphaEarth'], 2)}
-    ${col(3, 'Building vision systems', ['SAM 3', 'MedGemma', 'Gemini Robotics', 'Genie 4'], 3)}
+    ${col(1, 'Understanding images', [['Image geometry, feature matching', 'VGGT']], 1)}
+    ${col(2, 'Learning representations', [['Learned features, transfer learning', 'DINOv3, Canopy Height'], ['Embeddings and similarity', 'AlphaEarth']], 2)}
+    ${col(3, 'Building vision systems', [['Detection and segmentation', 'SAM 3'], ['Vision and language together', 'MedGemma, Gemini Robotics'], ['Image generation', 'Genie 4']], 3)}
   </div>
   <style>
     .motivation-cols{ margin:auto 0; display:grid; grid-template-columns:repeat(3, 1fr); gap:2vw; }
-    .motivation-col{ border-top:3px solid var(--ink); padding-top:2vh; display:flex; flex-direction:column; gap:1.4vh; }
+    .motivation-col{ border-top:3px solid var(--ink); padding-top:2vh; display:flex; flex-direction:column; gap:1.6vh; }
     .motivation-col b{ font-size:clamp(1.4rem, 2.2vw, 2rem); }
+    .motivation-fund .lead{ line-height:1.2; }
+    .motivation-fund .label{ color:var(--mute); margin-top:.3vh; }
   </style>
 `, { notes: [
-  "(draft) Everything you just saw, we will cover.",
-  "(draft) Week one: the geometry behind going from photos to 3D.",
-  "(draft) Week two: the learned representations behind DINOv3 and AlphaEarth.",
-  "(draft) Week three: segmentation, vision with language, vision for robots, and generation. Not to make you an expert in each, but so you know these tools exist and how to use them for your own project."
+  "(draft) We will not teach you each of these tools. We will teach you the fundamentals they are built on, so you can understand them, use them, and see where they break.",
+  "(draft) Week one: image geometry and matching features across images, the ideas underneath going from photos to 3D, as VGGT does.",
+  "(draft) Week two: how networks learn their own features and reuse them for new tasks, as DINOv3 does for tree height; and embeddings, how to compare things by their learned summaries, as AlphaEarth does for every place on Earth.",
+  "(draft) Week three: detection and segmentation, behind SAM 3; vision and language together, behind MedGemma and Gemini Robotics; and image generation, behind Genie. With these fundamentals, you can pick up the next tool, which will be out before the course ends, and put it to work on your project."
 ]});
 
 /* ---- Limitations ---- */
