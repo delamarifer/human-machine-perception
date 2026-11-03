@@ -33,6 +33,15 @@ st(`
 ]});
 
 st(`
+  <h1 class="t">Day by day</h1>
+  ${site('schedule')}
+  ${style}
+`, { notes: [
+  "(draft) Day by day: what you will be able to do after each session.",
+  "(draft) (Scroll through the days.) Each day has its question, what you will be able to do by the end, the reading, the lab, and the link to human vision. Today is Day 2. It may shift a little as we go."
+]});
+
+st(`
   <h1 class="t">Grading</h1>
   ${site('grading')}
   ${style}
