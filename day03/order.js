@@ -5,8 +5,8 @@
 const ORDER = [
   // part               what
   ['opening',           'Title: Day 3 in two parts'],
-  // Part 1 (Fernanda): metamers first, with the response question on the primer (decided 2026-11-03)
-  ['part1',             'Part 1 divider and the response question on the metamers primer'],
+  // Part 1 (Fernanda): metamers first (decided 2026-11-03)
+  ['part1',             'Part 1 divider'],
   ['representation',    'What a representation is: decoding from a network or the brain; pixels to objects'],
   ['metamers',          'Metamers: color knobs, textures, drive and suppress, model metamers, into the lab'],
   // Part 2 (Shreya): images
@@ -21,6 +21,6 @@ const ORDER = [
 const PARTS = ORDER.map(r => r[0]);
 
 /* Minutes per section (the progress bar), from plan/course-plan.md, Day 3. */
-const SEC_MINUTES = {'Response question': 10, 'Homework review': 10, 'Image formation': 20, 'Convolution': 20, 'Human vision': 10,
+const SEC_MINUTES = {'Homework review': 10, 'Image formation': 20, 'Convolution': 20, 'Human vision': 10,
   'Lab': 45, 'Edges and blur': 15,
   'Representation': 10, 'Metamers': 10, 'Textures': 12, 'Networks': 15, 'Your turn': 5};   // Fernanda's storyline, 2026-11-03 (minutes are a first guess)

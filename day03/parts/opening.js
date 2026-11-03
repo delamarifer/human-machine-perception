@@ -1,6 +1,6 @@
 /* PART: opening (Day 3). Owner: to decide (see README.md).
-   2026-11-03 (Fernanda and Shreya): Day 3 opens with metamers. Part 1 = metamers (Fernanda), with the
-   response question on the primer first; Part 2 = images (Shreya). The image half's opening question
+   2026-11-03 (Fernanda and Shreya): Day 3 opens with metamers. Part 1 = metamers (Fernanda);
+   Part 2 = images (Shreya). The image half's opening question
    moved to parts/part2.js. */
 {
 section('Title');
