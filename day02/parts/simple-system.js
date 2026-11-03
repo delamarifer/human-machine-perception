@@ -15,6 +15,30 @@ section('Lab');
 
 const NB = 'https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-lab-simple-vision-system.ipynb';
 const go = (s) => `<div class="simple-system-go b" data-step="99"><span class="label">Notebook</span><b>${s}</b></div>`;
+/* The lab loop (Fernanda, 2026-11-02): students try an exercise → we come back together → the concept animated →
+   the solution revealed. Exercises open in the PUBLIC student notebook (no solutions) at a fixed cell id
+   (turn-N); solutions open in the PRIVATE teacher notebook (Fernanda's Google Drive) at solution-N. The deck is
+   public, so solution code is never on a slide. TEACHER_NB: paste the Drive/Colab URL of the uploaded teacher
+   notebook here; until then the reveal shows a placeholder. */
+const TEACHER_NB = '';
+const turnLink = n => `${NB}#scrollTo=turn-${n}`;
+const reveal = n => TEACHER_NB
+  ? `<a class="simple-system-go simple-system-reveal b" data-step="99" href="${TEACHER_NB}#scrollTo=solution-${n}" target="_blank" rel="noopener" onclick="event.stopPropagation()"><span class="label">Teacher notebook</span><b>Reveal the solution ↗</b></a>`
+  : `<div class="simple-system-go simple-system-reveal b" data-step="99"><span class="label">Teacher notebook</span><b>Reveal the solution</b><span class="label">link: to add</span></div>`;
+const yourTurn = (n, title, cues, say) => st(`
+  <h1 class="t">Your turn ${n}</h1>
+  <div class="simple-system-turn">
+    <div class="question b" data-step="1">${title}</div>
+    <ul class="frag">${cues.map(c => `<li class="b" data-step="2">${c}</li>`).join('')}</ul>
+    <a class="simple-system-open b" data-step="3" href="${turnLink(n)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open Your turn ${n} in Colab ↗</a>
+  </div>
+  <style>
+    .simple-system-turn{ margin:auto 0; display:flex; flex-direction:column; gap:3vh; }
+    .simple-system-open{ align-self:flex-start; border:3px solid var(--ink); border-radius:999px; padding:1.4vh 2vw;
+      font-weight:700; font-size:clamp(1.2rem, 2vw, 1.8rem); color:var(--ink); text-decoration:none; }
+    .simple-system-reveal{ text-decoration:none; color:var(--ink); top:auto !important; bottom:1.2vh; padding:.8vh 1.2vw; }
+  </style>
+`, { notes: [`(draft) Your turn ${n}.`, `(draft) ${say[0]}`, `(draft) ${say[1]}`, `(draft) ${say[2]}`] });
 
 st(`
   <h1 class="t">A simple vision system</h1>
@@ -102,6 +126,11 @@ st(`
   "(draft) Ours is in the same spirit: colored boxes on a white floor. Simple enough that we can build a whole vision system today, by hand."
 ]});
 
+yourTurn(1, 'Two different 3D points, one pixel', ['Write the projection: y = cos θ · Y − sin θ · Z', 'Find a different 3D point that lands on the same pixel'], [
+  'Two different 3D points that land on exactly the same pixel. Can you find them?',
+  'In the notebook, first write the projection: y equals cos theta times Y, minus sin theta times Z. Then find a second 3D point that lands on the same pixel as the first. Hint: raise it a little, and change its depth to make up for it.',
+  'Open Your turn 1 in Colab, and take a few minutes. Then we come back together.']);
+
 { // What the image throws away: the notebook's two points (section 1), drawn from the side
   const th = 35 * Math.PI / 180, Z2 = 10 * Math.cos(th) / Math.sin(th);
   const px = Z => 60 + Z * 7, py = Y => 470 - Y * 7;                 // side view: Z to the right, Y up
@@ -141,7 +170,7 @@ st(`
       <g class="b" data-step="3">${line(ray(20), 'simple-system-thick')}</g>
     </svg>
   </div>
-  ${go('Section 1')}
+  ${reveal(1)}
   <style>
     .simple-system-ray{ width:100%; height:100%; min-height:0; }
     .simple-system-ray text{ font-size:15px; fill:var(--ink); font-family:var(--font); }
@@ -155,12 +184,12 @@ st(`
     .simple-system-ray .simple-system-pix circle{ fill:var(--bg); stroke:var(--ink); stroke-width:3; }
   </style>
 `, { notes: [
-  "(draft) First: what does the image throw away?",
+  "(draft) Let's come back together. What does the image throw away?",
   "(draft) Our camera uses parallel projection, tilted down by an angle theta of 35 degrees. A point's image row is y equals cos theta times its height Y, minus sin theta times its depth Z. Point 1, at height 20 and depth 0, lands at y equals 16.38. That projection is our first assumption, about the camera.",
   "(draft) Point 2 is ten units higher, and pushed back by 14.28. It lands on exactly the same pixel: y equals 16.38 again. These are the two points you find yourself in section 1 of the notebook.",
   "(draft) And it's not just two points: every point on this line of sight lands on the same pixel. Height and depth get mixed into one number.",
   "(draft) So the image alone cannot tell us where things are: the problem is ill-posed. To recover 3D, we have to add assumptions about the world. We'll collect them in this list as we go.",
-  "(draft) Run section 1."
+  "(draft) And here is the solution, in the teacher notebook: the formula, and the second point, ten units higher and 14.28 deeper."
 ]});
 }
 
