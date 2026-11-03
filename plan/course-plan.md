@@ -64,10 +64,11 @@ The built Day 1 deck (`deck.html`) follows the earlier, more detailed timing bel
 
 **Opening order from Fernanda (2026-11-02):**
 1. First 5 minutes: the plan for the next 3 weeks, and the grading details (see `syllabus.html`, Grading).
-2. First 10 minutes: discussion question on the paper (perception as an inverse problem).
-3. Motivation: applications of vision, 20–30 minutes.
-4. Lab.
-5. Explain the project plan.
+2. Motivation: applications of vision, 20–30 minutes.
+3. Lab.
+4. Explain the project plan.
+5. Research vs. building, and how to read a paper.
+6. Paper discussion (perception as an inverse problem), moved to the end, after how to read a paper (Fernanda, 2026-11-02).
 
 ## Day 3 · Image Formation + Processing + Representations
 **Question:** What information is represented in an image?
