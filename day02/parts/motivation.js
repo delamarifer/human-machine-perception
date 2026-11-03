@@ -16,7 +16,11 @@ const link = (url, text) => `<a class="motivation-link" href="${url}" target="_b
 /* A demo slide: the card (name, who, cues, link, the week that covers it) and, where the maker publishes one
    that can be embedded, their own video next to it (checked 2026-11-02; needs internet in class).
    o.video = a video file from the maker's site; o.youtube = the id of the maker's own YouTube video. */
-const media = (o) => o.video
+const media = (o) => o.site
+  ? `<iframe class="motivation-video" src="${o.site}" title="${o.name}" referrerpolicy="no-referrer"></iframe>`
+  : o.image
+  ? `<img class="motivation-video motivation-still" src="${o.image}" alt="" referrerpolicy="no-referrer">`
+  : o.video
   ? `<video class="motivation-video" src="${o.video}" controls muted loop playsinline preload="metadata" onclick="event.stopPropagation()"></video>`
   : o.youtube
   ? `<iframe class="motivation-video" src="https://www.youtube-nocookie.com/embed/${o.youtube}?rel=0" title="${o.name} video" allow="fullscreen; encrypted-media; picture-in-picture"></iframe>`
@@ -24,17 +28,15 @@ const media = (o) => o.video
 const demo = (o) => st(`
   <h1 class="t">${o.title}</h1>
   <div class="motivation-row ${media(o) ? '' : 'motivation-solo'}">
-    <div class="motivation-demo b" data-step="1">
-      <div class="motivation-name">${o.name}</div>
-      <div class="label">${o.who}</div>
-      <ul class="frag">${o.cues.map(c => `<li>${c}</li>`).join('')}</ul>
-      <div>${link(o.url, o.urlText)}</div>
-      <div class="motivation-new b" data-step="2"><div class="label"><b>Before</b> · ${o.before}</div><div class="motivation-now"><b>Now</b> · ${o.now}</div></div>
-      <div class="motivation-week b" data-step="3"><span class="label">Fundamentals in</span><b>Week ${o.week}</b><span class="label">${o.topic}</span></div>
+    <div class="motivation-demo">
+      <div class="b" data-step="1"><div class="motivation-name">${o.name}</div><div class="label">${o.who}</div></div>
+      <div class="motivation-say b" data-step="1"><div class="label">What it does</div><div class="motivation-line">${o.does}</div></div>
+      <div class="motivation-say b" data-step="2"><div class="label">What it enables that we could not do before</div><div class="motivation-line">${o.enables}</div></div>
+      <div class="b" data-step="1">${link(o.url, o.urlText)}</div>
     </div>
-    ${media(o) ? `<div class="motivation-media b" data-step="1">${media(o)}<div class="label">Video: ${o.credit}</div></div>` : ''}
+    ${media(o) ? `<div class="motivation-media b" data-step="1">${media(o)}<div class="label">${o.video || o.youtube ? 'Video' : o.site ? 'Live' : 'Image'}: ${o.credit}</div></div>` : ''}
   </div>
-`, { notes: [`(draft) ${o.say[0]}`, `(draft) ${o.say[1]}`, `(draft) ${o.takeaway}`, `(draft) ${o.say[2]}`] });
+`, { notes: [`(draft) ${o.say[0]}`, `(draft) ${o.say[1]}`, `(draft) ${o.takeaway.replace(/^What is new: /, '')}`] });
 
 /* A live website on a slide, to scroll through in class (Fernanda, 2026-11-02). Only sites that allow
    embedding: checked 2026-11-02, Meta and DeepMind/Google pages refuse (X-Frame-Options / frame-ancestors).
@@ -56,80 +58,61 @@ st(`
     .motivation-outcome{ color:var(--mute); } .motivation-outcome b{ color:var(--ink); }
     .motivation-row{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1.35fr); gap:3vw; align-items:center; }
     .motivation-row.motivation-solo{ grid-template-columns:minmax(0, 1fr); max-width:62vw; }
-    .motivation-demo{ display:flex; flex-direction:column; gap:1.2vh; }
+    .motivation-demo{ display:flex; flex-direction:column; gap:2vh; }
     .motivation-media{ display:flex; flex-direction:column; gap:.8vh; min-height:0; }
     .motivation-video{ width:100%; aspect-ratio:16/9; border:0; border-radius:10px; background:#0f172a; }
+    .motivation-still{ object-fit:contain; background:#fff; border:1px solid var(--line); }
     .motivation-name{ font-size:clamp(1.8rem, 3vw, 2.8rem); font-weight:700; }
     .motivation-link{ color:var(--ink); font-size:clamp(1.1rem, 1.6vw, 1.5rem); }
-    .motivation-new{ margin-top:1.2vh; padding:1.2vh 1vw; border-left:4px solid var(--ink); background:#f8fafc; border-radius:0 8px 8px 0;
-      display:flex; flex-direction:column; gap:.6vh; }
-    .motivation-new .label b, .motivation-now b{ font-weight:700; }
-    .motivation-now{ font-size:clamp(1.15rem, 1.8vw, 1.6rem); line-height:1.3; }
-    .motivation-week{ position:absolute; right:6vw; top:8vh; border:2px solid var(--ink); border-radius:14px; padding:1vh 1.2vw;
-      display:flex; flex-direction:column; gap:.2vh; text-align:right; }
-    .motivation-week b{ font-size:clamp(1.2rem, 1.9vw, 1.7rem) !important; }
-    .motivation-demo ul.frag li{ font-size:clamp(1.1rem, 1.75vw, 1.6rem); margin:.2vh 0; }
-    .motivation-week b{ font-size:clamp(1.5rem, 2.4vw, 2.2rem); }
+    .motivation-say{ border-left:4px solid var(--line); padding-left:1vw; }
+    .motivation-say .label{ color:var(--mute); font-weight:700; }
+    .motivation-line{ font-size:clamp(1.15rem, 1.85vw, 1.65rem); line-height:1.3; margin-top:.3vh; }
   </style>
 `, { notes: [
   "(draft) So what can this course give you? By the end of this part, you can say what today's vision systems do well and where they fail.",
   "(draft) Where computer vision can take you, and where it can't yet. First what it can do right now; then where it still fails. Everything I show you, we will cover, and the failures are open problems you could work on."
 ]});
 
-demo({ title: 'From photos to 3D', name: 'VGGT', before: '3D from photos: a slow chain of steps (match points, solve for cameras, refine)', now: 'one network, one pass, under a second', takeaway: 'What is new: before, getting 3D from a set of photos meant a long chain of steps: match points between images, solve for the cameras, then refine everything with an optimization that could take minutes or more. VGGT does it in one pass of one network, typically in under a second.', video: 'https://vgg-t.github.io/resources/teaser_video_v3_compressed_short.mp4', credit: 'VGGT project page (vgg-t.github.io)', who: 'Meta AI and Oxford · CVPR 2025',
-  cues: ['A few photos in', 'Cameras, depth and 3D points out', 'Typically under a second'],
+demo({ title: 'From photos to 3D', name: 'VGGT', does: 'Turns a few photos of a scene into where each camera was, the depth of every pixel, and a 3D point cloud.', enables: '3D from photos in one pass, typically under a second, where it used to take a slow chain of matching and optimization.', takeaway: 'What is new: before, getting 3D from a set of photos meant a long chain of steps: match points between images, solve for the cameras, then refine everything with an optimization that could take minutes or more. VGGT does it in one pass of one network, typically in under a second.', video: 'https://vgg-t.github.io/resources/teaser_video_v3_compressed_short.mp4', credit: 'VGGT project page (vgg-t.github.io)', who: 'Meta AI and Oxford · CVPR 2025',
   url: 'https://huggingface.co/spaces/facebook/vggt', urlText: 'Try it: Hugging Face demo',
-  week: 1, topic: 'Image geometry, feature matching',
   say: ['From a handful of photos to a 3D scene.',
     'This is VGGT, from Meta AI and Oxford. You give it a few photos of a scene; it returns where each camera was, the depth of every pixel, and a cloud of 3D points, typically in under a second. Here is their video; you can also try it in your browser.',
     'The ideas underneath, image geometry and matching points across images, are week one.'] });
 
 /* VGGT's live demo (https://facebook-vggt.hf.space/) allows embedding, but it returned a 500 error on 2026-11-02;
    to embed it again once it works: embed('From photos to 3D', 'https://facebook-vggt.hf.space/', [...]). */
-demo({ title: 'Learning to see without labels', name: 'DINOv3 → Canopy Height Maps v2', before: 'a new task needed many labeled examples', now: 'features learned without labels, reused for new tasks, like tree height worldwide', takeaway: "What is new: before, each new task needed its own pile of labeled examples. DINOv3 learns its features from images alone, with no labels, and those same features carry over to new tasks: here, the height of the world's trees from satellite images.", who: 'Meta and World Resources Institute · 2025–2026',
-  cues: ['Features learned from images, no labels', 'Trained on satellite images', 'Tree height, mapped worldwide'],
+demo({ title: 'Learning to see without labels', name: 'DINOv3 → Canopy Height Maps v2', site: 'https://meta-forest-monitoring-okw37.projects.earthengine.app/view/canopyheight', credit: 'the live tree-height map, Meta and WRI on Google Earth Engine (drag and zoom)', does: 'Learns visual features from images alone, with no labels; trained on satellite images, it maps the height of trees.', enables: "Reusing one model's features for new tasks without labeled data, like mapping the height of the world's trees.", takeaway: "What is new: before, each new task needed its own pile of labeled examples. DINOv3 learns its features from images alone, with no labels, and those same features carry over to new tasks: here, the height of the world's trees from satellite images.", who: 'Meta and World Resources Institute · 2025–2026',
   url: 'https://ai.meta.com/blog/world-resources-institute-dino-canopy-height-maps-v2/', urlText: 'Canopy Height Maps v2',
-  week: 2, topic: 'Learned representations, transfer learning',
   say: ['Learning to see without labels.',
     'DINOv3 is a model from Meta that learns visual features from images alone, without anyone labeling them. A version trained on satellite images is the backbone of Canopy Height Maps version 2, built with the World Resources Institute: the height of trees, mapped across the world, and released openly.',
     'Learned representations, and reusing them for a new task, which is transfer learning, are week two.'] });
 
-demo({ title: 'An embedding of the planet', name: 'AlphaEarth Foundations', before: 'each map built from raw, gappy satellite images, one task at a time', now: 'one summary of every place on Earth, reused across maps without retraining', takeaway: 'What is new: before, every mapping project started over from raw satellite images, full of clouds and gaps. AlphaEarth gives one ready-made summary of every 10 meter square, from many kinds of data at once, and in the paper it beat earlier approaches across mapping tasks without retraining.', who: 'Google DeepMind · 2025',
-  cues: ['Optical, radar, 3D laser and climate data, combined', '64 numbers for every 10 m of land', 'Each year, 2017–2024'],
+demo({ title: 'An embedding of the planet', name: 'AlphaEarth Foundations', image: 'https://lh3.googleusercontent.com/7vH7h8I8REIlyuvVWa6rIBAuFi8Wgx2YNE5j2F1tcym5UCjH6e6KcDji_ZHvYutiLFypKUuHK-fvJ2LaGTTp_8Fxs-qLf_ul74zLW-Y5pMWiYwfskg=w1200-h630-n-nu-rw', credit: 'Google DeepMind, AlphaEarth Foundations blog post', does: 'Summarizes every 10 m square of land, each year, as 64 numbers, combining satellite, radar, 3D laser and climate data.', enables: 'One ready-made description of every place on Earth that many mapping tasks can reuse, without retraining.', takeaway: 'What is new: before, every mapping project started over from raw satellite images, full of clouds and gaps. AlphaEarth gives one ready-made summary of every 10 meter square, from many kinds of data at once, and in the paper it beat earlier approaches across mapping tasks without retraining.', who: 'Google DeepMind · 2025',
   url: 'https://deepmind.google/discover/blog/alphaearth-foundations-helps-map-our-planet-in-unprecedented-detail/', urlText: 'AlphaEarth Foundations',
-  week: 2, topic: 'Embeddings and similarity',
   say: ['An embedding of the whole planet.',
     'AlphaEarth Foundations, from Google DeepMind, combines satellite images, radar, 3D laser scans and climate simulations into one summary: 64 numbers for every 10 meter square of land, for each year from 2017 to 2024. They are available in Google Earth Engine.',
     'What an embedding is, and how to compare things with it, is week two.'] });
 
-demo({ title: 'Segment anything you can name', name: 'SAM 3', before: 'a fixed list of categories, or a click on each object', now: 'type any concept; every match found, outlined and tracked', takeaway: 'What is new: before, segmentation models knew a fixed list of categories, or, like the earlier Segment Anything models, needed you to click on each object. SAM 3 takes a short phrase, any concept, and finds every match, in images and video.', who: 'Meta · 2025',
-  cues: ['Type a short phrase', 'Finds, outlines and tracks every match', 'In images and video'],
+demo({ title: 'Segment anything you can name', name: 'SAM 3', image: 'https://raw.githubusercontent.com/facebookresearch/sam3/main/assets/dog.gif', credit: 'Meta, SAM 3 repository (facebookresearch/sam3)', does: 'Finds, outlines and tracks every object that matches a short text phrase, in images and video.', enables: 'Segmenting any concept you can name, not just a fixed list of categories or one click per object.', takeaway: 'What is new: before, segmentation models knew a fixed list of categories, or, like the earlier Segment Anything models, needed you to click on each object. SAM 3 takes a short phrase, any concept, and finds every match, in images and video.', who: 'Meta · 2025',
   url: 'https://aidemos.meta.com/segment-anything', urlText: 'Try it: Segment Anything Playground',
-  week: 3, topic: 'Detection and segmentation',
   say: ['Segment anything you can name.',
     'SAM 3, from Meta. You type a short phrase, and it finds every matching object, outlines it pixel by pixel, and tracks it through a video. The model is open, and there is a playground in the browser.',
     'Detection and segmentation are week three.'] });
 
-demo({ title: 'Images and language, in medicine', name: 'MedGemma 1.5', before: 'a separate narrow model for each kind of scan', now: 'one open model for 3D scans, pathology slides and text together', takeaway: 'What is new: before, medical imaging AI meant a narrow model for each kind of scan and question. MedGemma 1.5 is one open model that reads 3D CT and MRI volumes, whole pathology slides and text together; Google describes it as the first open model of its kind for high-dimensional medical data.', who: 'Google · 2026 · open model',
-  cues: ['CT and MRI volumes, pathology slides', 'Images and text together', 'A research model, not a doctor'],
+demo({ title: 'Images and language, in medicine', name: 'MedGemma 1.5', image: 'https://storage.googleapis.com/gweb-research2023-media/images/MedGemma15-3-CT.width-1250.png', credit: 'Google Research, MedGemma 1.5 blog post (CT example, with a radiologist checking the answer)', does: 'An open model that reads medical images, including 3D CT and MRI scans and pathology slides, together with text.', enables: 'One open model to build on across kinds of scans and questions, instead of a separate narrow model for each.', takeaway: 'What is new: before, medical imaging AI meant a narrow model for each kind of scan and question. MedGemma 1.5 is one open model that reads 3D CT and MRI volumes, whole pathology slides and text together; Google describes it as the first open model of its kind for high-dimensional medical data.', who: 'Google · 2026 · open model',
   url: 'https://developers.google.com/health-ai-developer-foundations/medgemma', urlText: 'MedGemma',
-  week: 3, topic: 'Multimodal vision-language systems',
   say: ['Images and language together, in medicine.',
     'MedGemma 1.5 is an open model from Google that reads medical images, including 3D CT and MRI scans and pathology slides, together with text. It is meant for developers and researchers to build on, not to make clinical decisions on its own.',
     'Models that connect images and language are week three.'] });
 
-demo({ title: 'Robots that see, plan and act', name: 'Gemini Robotics 1.5', before: 'a robot programmed task by task, one robot at a time', now: 'plans multi-step tasks from what it sees; skills move between robots', takeaway: 'What is new: before, robots were programmed task by task, for one particular robot. Gemini Robotics 1.5 looks at the scene, plans a multi-step task, and acts, and skills learned on one robot transfer to robots with different bodies.', youtube: 'AMRxbIO04kQ', credit: 'Google DeepMind, Gemini Robotics 1.5: Using agentic capabilities', who: 'Google DeepMind · 2025',
-  cues: ['Sees the scene', 'Plans a task in steps, then acts', 'Same skills on different robots'],
+demo({ title: 'Robots that see, plan and act', name: 'Gemini Robotics 1.5', does: 'Looks at a scene, plans a task in steps, and controls a robot to carry it out.', enables: 'Robots that plan multi-step tasks from what they see, with skills that transfer between different robots.', takeaway: 'What is new: before, robots were programmed task by task, for one particular robot. Gemini Robotics 1.5 looks at the scene, plans a multi-step task, and acts, and skills learned on one robot transfer to robots with different bodies.', youtube: 'AMRxbIO04kQ', credit: 'Google DeepMind, Gemini Robotics 1.5: Using agentic capabilities', who: 'Google DeepMind · 2025',
   url: 'https://deepmind.google/discover/blog/gemini-robotics-15-brings-ai-agents-into-the-physical-world/', urlText: 'Gemini Robotics 1.5',
-  week: 3, topic: 'Multimodal systems, vision for action',
   say: ['Robots that see, plan and act.',
     'Gemini Robotics 1.5, from Google DeepMind: a robot looks at a scene, plans a task in steps, and then acts. Here is one of their videos. The same skills transfer across different robots.',
     'Vision as one part of a larger system that acts in the world is week three.'] });
 
-demo({ title: 'Generating worlds', name: 'Genie 4', before: 'generated video: a clip you watch', now: 'a world you move through, generated as you go', takeaway: 'What is new: before, video generators made a clip you watch. A world model like Genie makes a world you can move through and change, generated frame by frame as you act. Genie 4 adds sound to it.', video: 'https://storage.googleapis.com/gdm-deepmind-com-prod-public/media/0XTXKGGiuw14X2EL/genie4_hero_tokyo-mirage__alt-3__16x9__261027.webm', credit: 'Google DeepMind, Genie page', who: 'Google DeepMind · 2026 · research preview',
-  cues: ['A text prompt in', 'A world you can walk through', 'Generated as you move'],
+demo({ title: 'Generating worlds', name: 'Genie 4', does: 'Generates an interactive world from a text prompt, frame by frame as you move through it.', enables: 'Not a clip to watch but a world to explore and change, generated as you go.', takeaway: 'What is new: before, video generators made a clip you watch. A world model like Genie makes a world you can move through and change, generated frame by frame as you act. Genie 4 adds sound to it.', video: 'https://storage.googleapis.com/gdm-deepmind-com-prod-public/media/0XTXKGGiuw14X2EL/genie4_hero_tokyo-mirage__alt-3__16x9__261027.webm', credit: 'Google DeepMind, Genie page', who: 'Google DeepMind · 2026 · research preview',
   url: 'https://deepmind.google/models/genie/', urlText: 'Genie',
-  week: 3, topic: 'Image generation and diffusion models',
   say: ['Generating whole worlds.',
     'Genie 4, from Google DeepMind. You describe a world in text, and it generates one you can move through, frame by frame, as you move. It is a research preview: most of us can only watch the videos for now.',
     'How machines generate images is week three.'] });
@@ -270,6 +253,9 @@ st(`
   "(draft) The elephant. Intact: triceratops. Shuffled into 16 pieces: sock, with cowboy boot still second, just as it was for the intact statue. Into 64: wine bottle, then barrel and quilt. The guesses follow the patterns on the surface, not the animal.",
   "(draft) Shape gone, texture kept, and the answers change, but not always in the same way. This is two photos and one shuffle, not a measurement. Testing it properly, on many images, against people, is exactly the kind of question you could take on in a project."
 ]});
+
+/* Emmert's law, copied from Day 1 (Shreya did not cover it there; Fernanda, 2026-11-02). */
+sc('emmert', 'scenes/emmert.html');
 
 st(`
   <h1 class="t">Why we look to human vision</h1>

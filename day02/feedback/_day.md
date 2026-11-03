@@ -72,6 +72,11 @@ aggregates go out on a public site.
 - [ ] Check the Before lines read the way you'd say them, especially MedGemma ("first open model of its kind" is Google's claim).
 
 ### Questions for Fernanda
+- [ ] Emmert's law (slide 21, copied from Day 1's assumptions scene): the Day 1 feedback asks whether to keep the title,
+      since Emmert's law is strictly about afterimage size vs distance and the figure shows size constancy.
+- [ ] Demo slides now show "What it does" / "What it enables that we could not do before" (two sentences each).
+      Media: VGGT, Gemini Robotics, Genie (makers' videos); DINOv3 (the live Canopy Height map on Earth Engine);
+      AlphaEarth, SAM 3, MedGemma (the makers' own published images, loaded from their sites and credited).
 - [ ] Google Classroom (slide after Grading): does the class exist yet, and who owns it? An AIMS account is best;
       AIMS IT or the tutors may need to create it and add Fernanda and Shreya as teachers. The code goes on the
       board only, never on the slides (the deck is public).
