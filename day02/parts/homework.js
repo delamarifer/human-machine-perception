@@ -3,7 +3,7 @@
    One card per task, each with its picture: the lab's own recovered scene (simple-system/recovered-behind.png,
    the back still missing), the metamers primer (metamers.html on the site, Day 2 reading homework; its own figure
    from assets/metamers/), the project form (templates.html#idea:
-   Google Form, due Thursday at midnight, shared with the class). */
+   Google Form, due Thursday night, shared with the class). */
 {
 section('Homework');
 
@@ -21,7 +21,7 @@ st(`
       <div class="label homework-mute">Different, but the same to you · response paper by hand, next class · <a href="../metamers.html" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--ink)">Open the primer ↗</a></div>
     </div>
     <div class="homework-card b">
-      <div class="homework-pic"><div class="homework-form"><span>Thursday, midnight</span><i></i><i></i><i></i>
+      <div class="homework-pic"><div class="homework-form"><span>Thursday night</span><i></i><i></i><i></i>
         <a href="../templates.html#idea" target="_blank" rel="noopener" onclick="event.stopPropagation()">Google Form ↗</a></div></div>
       <b>Your project idea</b>
       <div class="label homework-mute">One form, shared with the class</div>
@@ -45,6 +45,6 @@ st(`
   "(draft) Homework.",
   "(draft) Finish the simple vision system notebook, or go further: extend it to a world of your own and see where it breaks.",
   "(draft) Read our primer on metamers, on the course website: things that are physically different but look exactly the same to you, and what that says about what your visual system throws away. These three pictures are from it: the same pixels, or the same frequencies, as the photo, and none of them looks like it. It sets up tomorrow, and it ends with papers to read further. Your response paper on it is written by hand, at the start of next class.",
-  "(draft) And by Thursday at midnight, send us your general project ideas through the form. The link is on the project templates page."
+  "(draft) And by Thursday night, send us your general project ideas through the form. The link is on the project templates page."
 ]});
 }
