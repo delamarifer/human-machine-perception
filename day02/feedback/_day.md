@@ -84,9 +84,10 @@ aggregates go out on a public site.
 - [ ] Demo slides now show "What it does" / "What it enables that we could not do before" (two sentences each).
       Media: VGGT, Gemini Robotics, Genie (makers' videos); DINOv3 (the live Canopy Height map on Earth Engine);
       AlphaEarth, SAM 3, MedGemma (the makers' own published images, loaded from their sites and credited).
-- [ ] Google Classroom (slide after Grading): does the class exist yet, and who owns it? An AIMS account is best;
-      AIMS IT or the tutors may need to create it and add Fernanda and Shreya as teachers. The code goes on the
-      board only, never on the slides (the deck is public).
+- [x] Google Classroom slide replaced (Fernanda, 2026-11-02) by "Handing in, and staying in touch": assignments through
+      Google Forms (the Day 1 questionnaire embedded live as the example) and a show of hands on Slack / WhatsApp /
+      email / other.
+- [ ] Confirm every assignment (write-up, slides too) goes through Forms; what channel the class picks, and who sets it up.
 - [x] Survey on the public site: grouped data only, never individual answers, except the project ideas (Fernanda, 2026-11-02). Slides: two aggregate charts, an anonymous paraphrased list of the project ideas, and the grouped cards.
 - [ ] Order: your outline today puts project expectations before the lab. The plan's "opening order" from
       earlier today puts the paper discussion at minute 5-15 and the project plan after the lab. I followed
