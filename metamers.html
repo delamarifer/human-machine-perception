@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Metamers · Computer Vision</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Same look as syllabus.html. A primer page: one column of reading, with figures. */
+  :root{
+    --bg:#0a0d16; --surface:#121827; --surface2:#171f33; --line:#25304a;
+    --text:#e9edf6; --mute:#9aa5bd;
+    --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa;
+    --L:#f87171; --M:#4ade80; --S:#60a5fa;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--text);
+    font:17px/1.7 Inter, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif; }
+  a{ color:var(--cyan); }
+  b, strong{ font-weight:600; }
+
+  .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
+  .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;
+    font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
+  .spine b{ color:var(--text); font-weight:500; }
+  .page{ margin-left:44px; }
+
+  .hero{ position:relative; overflow:hidden; border-bottom:1px solid var(--line);
+    background:radial-gradient(120% 90% at 80% 30%, #2a1f0a 0%, var(--bg) 60%); }
+  .hero-in{ position:relative; max-width:46rem; margin:0 auto; padding:8vh 24px 5vh; }
+  .back{ margin:0 0 2.2em; font-size:.95rem; }
+  .back a{ color:var(--mute); text-decoration:none; margin-right:1.2em; }
+  .back a:hover{ color:var(--text); }
+  .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--amber); }
+  h1{ margin:0 0 .3em; font:700 clamp(2.6rem, 8vw, 4.6rem)/.95 'Space Grotesk', sans-serif; text-transform:uppercase;
+    background:linear-gradient(90deg, #fff 0%, #fde68a 50%, #fbcfe8 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lead{ color:#d3d9e6; font-size:1.12rem; margin:0 0 .6em; }
+  .meta{ color:var(--mute); font-size:.92rem; margin:1em 0 0; }
+
+  main{ max-width:46rem; margin:0 auto; padding:0 24px 12vh; }
+  section{ padding-top:2.8em; }
+  h2{ margin:0 0 .6em; font:700 1.55rem/1.25 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
+  h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c, var(--amber)); box-shadow:0 0 12px 2px var(--c, var(--amber)); flex:none; }
+  h3{ margin:1.6em 0 .4em; font:700 1.15rem/1.3 'Space Grotesk', sans-serif; }
+  p{ margin:0 0 1em; }
+  ul, ol{ padding-left:1.3em; margin:0 0 1em; }
+  li{ margin:0 0 .5em; }
+  li::marker{ color:var(--c, var(--amber)); }
+
+  .def{ border:1px solid color-mix(in srgb, var(--amber) 45%, var(--line)); border-radius:16px; padding:18px 20px; margin:0 0 1.2em;
+    background:radial-gradient(120% 140% at 0% 0%, rgba(251,191,36,.12), transparent 55%), var(--surface); }
+  .def p:last-child{ margin:0; }
+  .math{ display:block; text-align:center; margin:.6em 0; font:600 1.2rem/1.5 'Space Grotesk', sans-serif; color:#fde68a; letter-spacing:.02em; }
+
+  figure{ margin:1.4em 0 1.6em; border:1px solid var(--line); border-radius:16px; background:var(--surface); padding:16px; }
+  figcaption{ color:var(--mute); font-size:.9rem; line-height:1.55; margin-top:.8em; }
+  figcaption b{ color:#d3d9e6; }
+  .trio{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
+  .trio div{ text-align:center; font-size:.85rem; color:#d3d9e6; }
+  .trio img{ display:block; width:100%; aspect-ratio:1; object-fit:cover; border-radius:10px; margin-bottom:.4em; }
+
+  /* the light mixer */
+  .mixer{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .panel{ border:1px solid var(--line); border-radius:12px; background:var(--surface2); padding:10px 12px; }
+  .panel h4{ margin:0 0 .3em; font:700 .78rem/1 Inter, sans-serif; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); }
+  canvas{ display:block; width:100%; height:150px; }
+  .controls{ display:grid; grid-template-columns:auto 1fr auto; gap:6px 12px; align-items:center; margin:14px 0 6px; font-size:.92rem; }
+  .controls input{ width:100%; accent-color:var(--amber); }
+  .controls output{ font-variant-numeric:tabular-nums; color:var(--mute); min-width:3.2em; text-align:right; }
+  .bars{ display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-top:10px; }
+  .bar{ font-size:.85rem; color:#d3d9e6; }
+  .bar .track{ position:relative; height:52px; display:flex; align-items:flex-end; gap:6px; border-bottom:1px solid var(--line); padding:0 18%; }
+  .bar .track i{ flex:1; border-radius:4px 4px 0 0; transition:height .15s; }
+  .bar small{ display:flex; justify-content:space-between; color:var(--mute); margin-top:.2em; }
+  .status{ margin:12px 0 0; padding:10px 14px; border-radius:10px; font-weight:600; font-size:.95rem; border:1px solid var(--line); background:var(--surface2); }
+  .status.ok{ color:#bbf7d0; border-color:rgba(74,222,128,.5); background:rgba(74,222,128,.1); }
+  .btn{ border:1px solid var(--line); background:var(--surface2); color:var(--text); font:600 .85rem/1 Inter, sans-serif; padding:.6em 1em; border-radius:999px; cursor:pointer; margin-top:10px; }
+  .btn:hover{ border-color:var(--amber); }
+
+  .subpix{ display:flex; gap:18px; align-items:center; flex-wrap:wrap; }
+  .grid{ display:grid; grid-template-columns:repeat(6, 14px); gap:3px; padding:8px; background:#000; border-radius:8px; }
+  .grid i{ height:34px; border-radius:2px; }
+  .grid i.r{ background:#ff3b30; box-shadow:0 0 8px #ff3b30; } .grid i.g{ background:#34c759; box-shadow:0 0 8px #34c759; } .grid i.b{ background:#0a1530; }
+
+  svg.recipe{ width:100%; height:auto; display:block; }
+  .summary{ font:600 1.15rem/1.5 'Space Grotesk', sans-serif; border-left:3px solid var(--amber); padding:10px 18px; background:rgba(251,191,36,.08); border-radius:0 12px 12px 0; }
+  .refs li{ font-size:.95rem; }
+  .refs span{ color:var(--mute); }
+  .credits{ color:var(--mute); font-size:.85rem; }
+
+  @media (max-width:640px){
+    .spine{ display:none; } .page{ margin-left:0; }
+    .hero-in{ padding:5vh 16px 3vh; }
+    main{ padding:0 16px 10vh; }
+    .mixer{ grid-template-columns:1fr; }
+    .trio{ gap:6px; } .trio div{ font-size:.75rem; }
+  }
+</style>
+</head>
+<body>
+<div class="spine" aria-hidden="true"><span><b>Computer Vision</b> &nbsp;/&nbsp; Metamers</span></div>
+<div class="page">
+
+<header class="hero">
+  <div class="hero-in">
+    <p class="back"><a href="index.html">← Home</a><a href="readings.html">Readings</a></p>
+    <p class="kicker">Day 2 homework · Reading</p>
+    <h1>Metamers</h1>
+    <p class="lead">Two things that are physically different but look exactly the same to you. They show precisely what your visual system throws away.</p>
+    <p class="meta">A short primer for Day 3. It ends with papers to read further.</p>
+  </div>
+</header>
+
+<main>
+
+  <section id="what">
+    <h2>What a metamer is</h2>
+    <div class="def">
+      <p>A <b>metamer</b> is a stimulus that is physically different from another but looks the same to an observer. The word comes from Greek: <i>meta</i>, change, and <i>meros</i>, part. The parts differ; the whole looks the same.</p>
+      <p>More formally: if a visual system turns an image <i>x</i> into a representation <i>f</i>(<i>x</i>), then two images <i>x</i>₁ ≠ <i>x</i>₂ are metamers when</p>
+      <span class="math">f(x₁) = f(x₂)</span>
+      <p>The system cannot tell them apart, because it has thrown away whatever made them different.</p>
+    </div>
+  </section>
+
+  <section id="color" style="--c:var(--L)">
+    <h2>The classic example: color</h2>
+    <p>Light reaching your eye is a full spectrum, with energy at every wavelength. Your retina reduces it to just three numbers: the responses of your three types of cone cells, called L, M and S (long, medium and short wavelengths). A spectrum has many dimensions; you keep three. So countless different spectra give the same three cone responses, and look like the same color.</p>
+    <p>Try it. On the left is pure yellow light at 580 nm. On the right, mix a red light (620 nm) and a green light (540 nm) until your cones respond exactly as they do to the yellow.</p>
+
+    <figure>
+      <div class="mixer">
+        <div class="panel"><h4>Yellow light, 580 nm</h4><canvas id="cv-target" aria-label="Spectrum of a single yellow wavelength, with the three cone sensitivity curves"></canvas></div>
+        <div class="panel"><h4>Your mix: red + green</h4><canvas id="cv-mix" aria-label="Spectrum of your red and green mix, with the three cone sensitivity curves"></canvas></div>
+      </div>
+      <div class="controls">
+        <label for="r">Red, 620 nm</label><input id="r" type="range" min="0" max="2" step="0.01" value="0.4"><output id="r-out">0.40</output>
+        <label for="g">Green, 540 nm</label><input id="g" type="range" min="0" max="1.2" step="0.01" value="0.9"><output id="g-out">0.90</output>
+      </div>
+      <div class="bars" id="bars"></div>
+      <p class="status" id="status">Move the sliders until the bars match.</p>
+      <button class="btn" id="solve" type="button">Show me the match</button>
+      <figcaption><b>Cone responses</b> are the light's spectrum weighted by each cone's sensitivity curve (L red, M green, S blue) and summed. In each pair of bars, the left one is the yellow light and the right one is your mix. Cone sensitivities: Stockman &amp; Sharpe (2000), 2° cone fundamentals, from the <a href="http://www.cvrl.org/">Colour &amp; Vision Research Laboratory</a> database. S cones barely respond to either light.</figcaption>
+    </figure>
+
+    <p>You use this every day. Your screen has no yellow pixels: it makes yellow by lighting red and green subpixels side by side. It does not reproduce the spectrum of a banana, only something that gives your cones the same three numbers. <b>Every screen is a metamer machine.</b></p>
+    <figure>
+      <div class="subpix">
+        <div class="grid" aria-hidden="true"><i class="r"></i><i class="g"></i><i class="b"></i><i class="r"></i><i class="g"></i><i class="b"></i><i class="r"></i><i class="g"></i><i class="b"></i><i class="r"></i><i class="g"></i><i class="b"></i></div>
+        <div style="flex:1; min-width:200px; color:#d3d9e6">Up close: red and green subpixels lit, blue off.<br>From a normal distance: yellow.</div>
+      </div>
+      <figcaption><b>A sketch of screen subpixels</b> showing yellow. Real layouts vary between screens.</figcaption>
+    </figure>
+  </section>
+
+  <section id="why" style="--c:var(--cyan)">
+    <h2>Why metamers matter</h2>
+    <p>Metamers exist whenever a system maps many inputs to one output, and every real perceptual system does. That makes them a scientific tool:</p>
+    <ul>
+      <li><b>Metamers reveal what a system discards.</b> If two images look identical, whatever differs between them is information your visual system does not use, at least under those viewing conditions.</li>
+      <li><b>They flip the question.</b> Instead of asking "what does vision see?", ask "what can I change without anyone noticing?" The answer tells you the system's <i>invariances</i>.</li>
+    </ul>
+  </section>
+
+  <section id="texture" style="--c:var(--violet)">
+    <h2>Beyond color: texture</h2>
+    <p>The same logic scales up from cones to the rest of the visual system. In the 1960s, Bela Julesz proposed that two textures with the same simple statistics would look identical. That early version turned out to be wrong. You can see why by keeping some statistics of a photo and destroying the rest:</p>
+    <figure>
+      <div class="trio">
+        <div><img src="assets/metamers/coffee.jpg" alt="A cup of coffee on a cafe table">The photo</div>
+        <div><img src="assets/metamers/coffee-pixels.jpg" alt="The same pixels in random positions: brown noise">Same pixels, shuffled</div>
+        <div><img src="assets/metamers/coffee-spectrum.jpg" alt="Same frequency content with random phase: a blurry cloud">Same frequencies, scrambled</div>
+      </div>
+      <figcaption><b>Middle:</b> exactly the same pixel values in random places, so the same histogram of brightness and color. <b>Right:</b> the same amount of every spatial frequency (the amplitude spectrum), with the phases randomized. Each keeps a simple statistic of the photo, and neither looks like it. Matching simple statistics is not enough. Made with <a href="https://github.com/delamarifer/human-machine-perception/blob/main/assets/metamers/make_figures.py">this script</a>.</figcaption>
+    </figure>
+    <p>The approach survived with richer statistics. <b>Portilla and Simoncelli (2000)</b> measured hundreds of statistics of the outputs of a bank of oriented, multi-scale filters, like the Gabor filters we will meet on Day 3. Matching those statistics produces textures that look like the same "stuff", even though every pixel is different. In the Day 3 lab you will make these yourself with <a href="https://plenoptic.readthedocs.io/">plenoptic</a>.</p>
+  </section>
+
+  <section id="periphery" style="--c:var(--sky)">
+    <h2>Peripheral vision</h2>
+    <p><b>Freeman and Simoncelli (2011)</b> applied the idea to whole scenes. Away from where you are looking, vision seems to keep only texture-like summary statistics, pooled over regions that grow larger the farther they are from the center of gaze. They synthesized images that match those statistics. While a viewer fixates the center, a heavily scrambled image looks the same as the original. Look at it directly, and the scrambling is obvious.</p>
+    <p>The figures in their paper are worth a look: <a href="https://doi.org/10.1038/nn.2889">Metamers of the ventral stream</a>.</p>
+  </section>
+
+  <section id="recipe" style="--c:var(--pink)">
+    <h2>How metamers are made</h2>
+    <p>The recipe is simple, and it uses tools you will build in this course:</p>
+    <ol>
+      <li><b>Pick a model</b> of the visual system: a set of filters, plus statistics computed on their outputs.</li>
+      <li><b>Compute the model's representation</b> of a target image.</li>
+      <li><b>Start from random noise</b> and adjust its pixels, usually with gradient descent, until the model's representation of the noise matches the target's.</li>
+    </ol>
+    <figure>
+      <svg class="recipe" viewBox="0 0 640 252" role="img" aria-label="Diagram: the target image and a noise image both go through the same model; the difference between their representations is used to adjust the noise image, again and again">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9aa5bd"/></marker></defs>
+        <g font-family="Inter, sans-serif" font-size="13" fill="#e9edf6">
+          <rect x="10" y="20" width="120" height="56" rx="10" fill="#171f33" stroke="#25304a"/><text x="70" y="53" text-anchor="middle">Target image</text>
+          <rect x="10" y="150" width="120" height="56" rx="10" fill="#171f33" stroke="#f472b6"/><text x="70" y="176" text-anchor="middle">Noise image</text><text x="70" y="194" text-anchor="middle" fill="#9aa5bd" font-size="11">(being adjusted)</text>
+          <rect x="220" y="80" width="150" height="66" rx="12" fill="#121827" stroke="#a78bfa"/><text x="295" y="108" text-anchor="middle">Model</text><text x="295" y="127" text-anchor="middle" fill="#9aa5bd" font-size="11">filters + statistics</text>
+          <rect x="460" y="20" width="160" height="56" rx="10" fill="#171f33" stroke="#25304a"/><text x="540" y="53" text-anchor="middle">Target's numbers</text>
+          <rect x="460" y="150" width="160" height="56" rx="10" fill="#171f33" stroke="#25304a"/><text x="540" y="183" text-anchor="middle">Noise's numbers</text>
+          <path d="M130,48 C180,48 190,95 220,100" fill="none" stroke="#9aa5bd" stroke-width="1.6" marker-end="url(#ar)"/>
+          <path d="M130,178 C180,178 190,130 220,126" fill="none" stroke="#9aa5bd" stroke-width="1.6" marker-end="url(#ar)"/>
+          <path d="M370,100 C410,95 420,48 460,48" fill="none" stroke="#9aa5bd" stroke-width="1.6" marker-end="url(#ar)"/>
+          <path d="M370,126 C410,130 420,178 460,178" fill="none" stroke="#9aa5bd" stroke-width="1.6" marker-end="url(#ar)"/>
+          <path d="M540,76 L540,150" fill="none" stroke="#fbbf24" stroke-width="1.6" stroke-dasharray="4 4"/>
+          <text x="552" y="118" fill="#fbbf24" font-size="12">compare</text>
+          <path d="M460,206 C330,226 200,226 130,200" fill="none" stroke="#f472b6" stroke-width="1.8" marker-end="url(#ar)"/>
+          <text x="295" y="246" text-anchor="middle" fill="#f472b6" font-size="12">nudge the noise's pixels to shrink the difference, and repeat</text>
+        </g>
+      </svg>
+      <figcaption><b>When the numbers match,</b> the noise image has become a <i>model metamer</i>: an image the model considers identical to the target.</figcaption>
+    </figure>
+  </section>
+
+  <section id="test" style="--c:var(--cyan)">
+    <h2>The test</h2>
+    <p>Now show the model's metamers to people:</p>
+    <ul>
+      <li>If people cannot tell them apart either, the model throws away the same information people do. That is evidence it captures human invariances.</li>
+      <li>If people can easily tell them apart, the model throws away information people actually use. The model is wrong, in a revealing way.</li>
+    </ul>
+    <p><b>Feather and colleagues (2023)</b> ran this test on deep neural networks trained to recognize images and sounds. Many of the images the networks treat as identical look like noise to people. It is a sharp way to show that high accuracy does not mean a model sees the way we do.</p>
+  </section>
+
+  <section id="caveat" style="--c:var(--amber)">
+    <h2>One caveat</h2>
+    <p>Metamers are always relative to an observer and to viewing conditions. Two images can be metamers when you glance at them in your periphery for a fraction of a second, and obviously different when you inspect them closely. "Looks the same" always means looks the same <i>to this system, under these conditions</i>.</p>
+  </section>
+
+  <section id="summary" style="--c:var(--pink)">
+    <h2>In one line</h2>
+    <p class="summary">A metamer is a physically different stimulus that a perceptual system cannot distinguish, and metamers show us exactly what information that system throws away.</p>
+  </section>
+
+  <section id="further" style="--c:var(--sky)">
+    <h2>To read further</h2>
+    <ul class="refs">
+      <li><a href="https://doi.org/10.1109/TIT.1962.1057698">Visual pattern discrimination</a> <span>Bela Julesz, IRE Transactions on Information Theory, 1962</span></li>
+      <li><a href="https://doi.org/10.1023/A:1026553619983">A parametric texture model based on joint statistics of complex wavelet coefficients</a> <span>Javier Portilla &amp; Eero Simoncelli, International Journal of Computer Vision, 2000</span></li>
+      <li><a href="https://doi.org/10.1038/nn.2889">Metamers of the ventral stream</a> <span>Jeremy Freeman &amp; Eero Simoncelli, Nature Neuroscience, 2011</span></li>
+      <li><a href="https://doi.org/10.1038/s41593-023-01442-0">Model metamers reveal divergent invariances between biological and artificial neural networks</a> <span>Jenelle Feather et al., Nature Neuroscience, 2023</span></li>
+      <li><a href="https://visionbook.mit.edu/stat_image_models_revised.html">Ch. 27, Statistical Image Models</a> <span>Torralba, Isola &amp; Freeman, Foundations of Computer Vision</span></li>
+    </ul>
+    <p class="credits">Photo: "Warm cup of coffee on a table at a cafe" by Shixart1985, <a href="https://commons.wikimedia.org/wiki/File:Warm_cup_of_coffee_on_a_table_at_a_cafe.jpg">CC BY 2.0</a>, cropped and resized; the two altered versions are ours. Cone fundamentals: Stockman, A. &amp; Sharpe, L. T. (2000), via <a href="http://www.cvrl.org/cones.htm">cvrl.org</a>.</p>
+  </section>
+
+</main>
+</div>
+
+<script>
+/* Light mixer. Cone response = sum over wavelengths of spectrum x sensitivity; our lights are single
+   wavelengths, so a light of intensity a at w gives a * (L(w), M(w), S(w)). */
+(async () => {
+  let C;
+  try{ C = await (await fetch('assets/metamers/cones.json')).json(); }
+  catch(e){ document.getElementById('status').textContent = 'The cone data did not load.'; return; }
+  const at = w => { const i = C.wl.indexOf(w); return [C.L[i], C.M[i], C.S[i]]; };
+  const Y = at(580), R = at(620), G = at(540);
+  // the exact match in L and M (two lights, two equations)
+  const det = R[0]*G[1] - G[0]*R[1];
+  const rStar = (Y[0]*G[1] - G[0]*Y[1]) / det, gStar = (R[0]*Y[1] - Y[0]*R[1]) / det;
+  const col = { L: getComputedStyle(document.documentElement).getPropertyValue('--L').trim(),
+                M: getComputedStyle(document.documentElement).getPropertyValue('--M').trim(),
+                S: getComputedStyle(document.documentElement).getPropertyValue('--S').trim() };
+  const lineCol = { 580:'#fde047', 620:'#ff4d4d', 540:'#39e46a' };
+  const rIn = document.getElementById('r'), gIn = document.getElementById('g');
+  const bars = document.getElementById('bars');
+  bars.innerHTML = ['L','M','S'].map(k => `<div class="bar"><div class="track"><i data-k="${k}" data-s="y"></i><i data-k="${k}" data-s="m"></i></div><small><span>${k} cones</span><span id="v-${k}"></span></small></div>`).join('');
+
+  function plot(id, lights){
+    const cv = document.getElementById(id), d = devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+    cv.width = W*d; cv.height = H*d; const x = cv.getContext('2d'); x.setTransform(d,0,0,d,0,0);
+    const X = w => 6 + (w - 390) / (780 - 390) * (W - 12), Yp = v => H - 18 - v * (H - 30) / 2.1;
+    x.clearRect(0,0,W,H);
+    [['L',C.L],['M',C.M],['S',C.S]].forEach(([k,arr]) => {          // cone curves, faint
+      x.beginPath(); C.wl.forEach((w,i) => { const px = X(w), py = Yp(arr[i]); i ? x.lineTo(px,py) : x.moveTo(px,py); });
+      x.strokeStyle = col[k]; x.globalAlpha = .45; x.lineWidth = 1.5; x.stroke(); x.globalAlpha = 1;
+    });
+    lights.forEach(([w,a]) => {                                        // the lights, as bright lines
+      x.strokeStyle = lineCol[w]; x.lineWidth = 4; x.shadowColor = lineCol[w]; x.shadowBlur = 10;
+      x.beginPath(); x.moveTo(X(w), Yp(0)); x.lineTo(X(w), Yp(a)); x.stroke(); x.shadowBlur = 0;
+    });
+    x.fillStyle = '#9aa5bd'; x.font = '11px Inter, sans-serif';
+    [400,500,600,700].forEach(w => x.fillText(w + ' nm', X(w) - 14, H - 4));
+  }
+  function update(){
+    const r = +rIn.value, g = +gIn.value;
+    document.getElementById('r-out').textContent = r.toFixed(2);
+    document.getElementById('g-out').textContent = g.toFixed(2);
+    plot('cv-target', [[580, 1]]);
+    plot('cv-mix', [[620, r], [540, g]]);
+    const mix = [0,1,2].map(i => r*R[i] + g*G[i]);
+    ['L','M','S'].forEach((k,i) => {
+      bars.querySelector(`[data-k="${k}"][data-s="y"]`).style.cssText = `height:${Math.min(100, Y[i]/1.2*100)}%; background:#fde047; box-shadow:0 0 8px #fde047`;
+      bars.querySelector(`[data-k="${k}"][data-s="m"]`).style.cssText = `height:${Math.min(100, mix[i]/1.2*100)}%; background:${col[k]}`;
+      document.getElementById('v-' + k).textContent = `${Y[i].toFixed(2)} / ${mix[i].toFixed(2)}`;
+    });
+    const ok = Math.abs(mix[0] - Y[0]) < .02 && Math.abs(mix[1] - Y[1]) < .02;
+    const st = document.getElementById('status');
+    st.classList.toggle('ok', ok);
+    st.textContent = ok ? 'Match. Your cones give the same three numbers for both lights, so they look like the same yellow, even though the spectra are completely different.'
+                        : 'Move the sliders until the bars match.';
+  }
+  rIn.addEventListener('input', update); gIn.addEventListener('input', update);
+  document.getElementById('solve').addEventListener('click', () => { rIn.value = rStar.toFixed(2); gIn.value = gStar.toFixed(2); update(); });
+  addEventListener('resize', update);
+  update();
+})();
+</script>
+</body>
+</html>
