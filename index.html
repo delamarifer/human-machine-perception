@@ -67,6 +67,9 @@
   a.card span{ color:var(--mute); font-size:.95rem; }
   a.card .badge{ display:block; margin-top:12px; height:20px; }
 
+  .card.empty{ position:relative; display:block; padding:20px 20px 18px; border:1px dashed var(--line); border-radius:18px; background:rgba(18,24,39,.5); }
+  .card.empty small{ display:block; font-size:.72rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--k); margin-bottom:.4em; }
+  .card.empty b{ display:block; font:500 1.05rem/1.3 'Space Grotesk', sans-serif; color:var(--mute); }
   @media (max-width:640px){
     .spine{ display:none; } .page{ margin-left:0; }
     .hero-in{ padding:8vh 16px 6vh; min-height:0; }
@@ -107,6 +110,15 @@
     <div class="cards">
       <a class="card" href="deck.html" style="--k:var(--cyan)"><small>Slides</small><b>Introduction to Visual Systems</b>
         <span>What does it mean to see?</span></a>
+    </div>
+  </section>
+
+  <section style="--c:var(--violet)">
+    <h2>Day 2</h2>
+    <div class="cards">
+      <div class="card empty" style="--k:var(--violet)"><small>Lecture slides</small><b>Coming soon</b></div>
+      <div class="card empty" style="--k:var(--amber)"><small>In-class lab (continued at home)</small><b>Coming soon</b></div>
+      <div class="card empty" style="--k:var(--sky)"><small>Homework / Readings</small><b>Coming soon</b></div>
     </div>
   </section>
 
