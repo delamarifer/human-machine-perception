@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Readings · Visual Perception</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Same look as syllabus.html and templates.html. */
+  :root{
+    --bg:#0a0d16; --surface:#121827; --surface2:#171f33; --line:#25304a;
+    --text:#e9edf6; --mute:#9aa5bd;
+    --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{ margin:0; background:var(--bg); color:var(--text);
+    font:16.5px/1.6 Inter, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif; }
+  a{ color:var(--cyan); }
+
+  .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
+  .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;
+    font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
+  .spine b{ color:var(--text); font-weight:500; }
+  .page{ margin-left:44px; }
+
+  .hero{ position:relative; overflow:hidden; border-bottom:1px solid var(--line);
+    background:radial-gradient(120% 90% at 78% 40%, #0f2a33 0%, var(--bg) 60%); }
+  .hero-in{ position:relative; max-width:64rem; margin:0 auto; padding:8vh 24px 5vh; }
+  .back{ margin:0 0 2.2em; font-size:.95rem; }
+  .back a{ color:var(--mute); text-decoration:none; margin-right:1.2em; }
+  .back a:hover{ color:var(--text); }
+  .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--cyan); }
+  h1{ margin:0 0 .35em; font:700 clamp(2.4rem, 7vw, 4.4rem)/.95 'Space Grotesk', sans-serif; text-transform:uppercase;
+    background:linear-gradient(90deg, #fff 0%, #c7fff4 50%, #bfdbfe 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lead{ max-width:44rem; color:#d3d9e6; font-size:1.05rem; margin:0 0 .7em; }
+
+  main{ max-width:64rem; margin:0 auto; padding:0 24px 12vh; }
+  section{ padding-top:3em; scroll-margin-top:1em; }
+  h2{ margin:0 0 .8em; font:700 1.5rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
+  h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
+  p{ margin:0 0 .6em; }
+
+  /* suggest a reading */
+  .suggest{ position:relative; display:grid; grid-template-columns:1fr auto; gap:18px 28px; align-items:center; padding:24px;
+    border:1px solid color-mix(in srgb, var(--pink) 45%, var(--line)); border-radius:20px;
+    background:radial-gradient(120% 140% at 0% 0%, rgba(244,114,182,.14), transparent 55%), var(--surface); box-shadow:0 0 40px rgba(244,114,182,.08); }
+  .suggest h2{ margin-bottom:.4em; }
+  .flow{ display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:10px; padding:0; margin:1em 0 0; list-style:none; counter-reset:s; grid-column:1 / -1; }
+  .flow li{ position:relative; margin:0; padding:12px 14px 12px 48px; border:1px solid var(--line); border-radius:14px; background:var(--surface2); font-size:.93rem; color:#d3d9e6; counter-increment:s; }
+  .flow li::before{ content:counter(s); position:absolute; left:12px; top:12px; width:24px; height:24px; border-radius:50%; display:grid; place-items:center;
+    font:700 .8rem/1 'Space Grotesk', sans-serif; color:var(--bg); background:var(--k); box-shadow:0 0 12px var(--k); }
+  .flow b{ display:block; color:var(--text); font-family:'Space Grotesk', sans-serif; }
+  .btn{ display:inline-block; padding:.85em 1.4em; border-radius:999px; font-weight:700; text-decoration:none; white-space:nowrap;
+    color:var(--bg); background:var(--pink); box-shadow:0 0 22px rgba(244,114,182,.55); transition:transform .2s; }
+  .btn:hover{ transform:translateY(-2px); }
+  .btn[aria-disabled="true"]{ background:var(--surface2); color:var(--mute); box-shadow:none; border:1px dashed var(--line); pointer-events:none; }
+
+  /* legend */
+  .legend{ display:flex; flex-wrap:wrap; gap:8px 18px; margin:0 0 1.2em; padding:0; list-style:none; font-size:.88rem; color:var(--mute); }
+  .legend li{ display:flex; align-items:center; gap:.45em; }
+
+  /* the bank */
+  .day{ display:grid; grid-template-columns:64px 1fr; gap:4px 18px; padding:18px; border-top:1px solid var(--line); }
+  .day:first-child{ border-top:none; }
+  .bank{ border:1px solid var(--line); border-radius:16px; overflow:hidden; background:var(--surface); }
+  .d-num{ font:700 1.7rem/1 'Space Grotesk', sans-serif; color:var(--c); text-shadow:0 0 14px color-mix(in srgb, var(--c) 55%, transparent); }
+  .d-num small{ display:block; font:600 .68rem/1.4 Inter, sans-serif; letter-spacing:.16em; text-transform:uppercase; color:var(--mute); text-shadow:none; }
+  .d-title{ font:700 1.08rem/1.3 'Space Grotesk', sans-serif; margin:0 0 .6em; }
+  .reads{ display:grid; gap:8px; padding:0; margin:0; list-style:none; }
+  .reads li{ margin:0; padding:10px 14px; border-radius:12px; background:var(--surface2); border:1px solid var(--line); }
+  .reads a{ color:var(--text); font-weight:600; text-decoration:none; }
+  .reads a:hover{ color:var(--cyan); text-decoration:underline; }
+  .reads .src{ display:block; color:var(--mute); font-size:.88rem; }
+  .pill{ display:inline-block; padding:.08em .55em; margin-right:.5em; border-radius:6px; font-size:.7rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; vertical-align:2px; }
+  .p-assigned{ color:var(--bg); background:var(--cyan); box-shadow:0 0 10px rgba(94,234,212,.5); }
+  .p-optional{ color:var(--amber); border:1px solid rgba(251,191,36,.45); }
+  .p-bank{ color:var(--violet); border:1px solid rgba(167,139,250,.45); }
+  .p-student{ color:var(--pink); border:1px solid rgba(244,114,182,.45); }
+  .later{ color:var(--mute); font-size:.93rem; }
+
+  .res{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; }
+  .res a{ display:block; padding:14px 16px; border:1px solid var(--line); border-radius:14px; background:var(--surface); color:var(--text); text-decoration:none; transition:all .2s; }
+  .res a:hover{ border-color:var(--sky); box-shadow:0 0 18px rgba(96,165,250,.3); }
+  .res b{ display:block; font-family:'Space Grotesk', sans-serif; }
+  .res span{ color:var(--mute); font-size:.9rem; }
+  .empty{ padding:18px; border:1px dashed var(--line); border-radius:16px; color:var(--mute); }
+
+  @media (max-width:640px){
+    .spine{ display:none; } .page{ margin-left:0; }
+    .hero-in{ padding:5vh 16px 3vh; }
+    main{ padding:0 16px 10vh; }
+    .suggest{ grid-template-columns:1fr; padding:18px; }
+    .day{ grid-template-columns:44px 1fr; padding:14px; }
+  }
+</style>
+</head>
+<body>
+<div class="spine" aria-hidden="true"><span><b>Visual Perception</b> &nbsp;/&nbsp; Readings</span></div>
+<div class="page">
+
+<header class="hero">
+  <div class="hero-in">
+    <p class="back"><a href="index.html">← Home</a><a href="syllabus.html#schedule">Syllabus: day by day</a></p>
+    <p class="kicker">Reading bank</p>
+    <h1>Readings</h1>
+    <p class="lead">Most days have one assigned reading: a chapter of Torralba, Isola &amp; Freeman, <i>Foundations of Computer Vision</i> (free online), or a paper. The rest of the bank is there if you want to go further.</p>
+    <p class="lead">The bank is open. If you find something worth reading, suggest it.</p>
+  </div>
+</header>
+
+<main>
+
+  <section id="suggest" style="--c:var(--pink)">
+    <div class="suggest">
+      <div>
+        <h2>Suggest a reading</h2>
+        <p>A paper, a chapter, a blog post or a video that helped you see something about vision, in people or machines.</p>
+      </div>
+      <!-- Set the Google Form link here; until then the button shows as unavailable. -->
+      <a class="btn" id="suggest-btn" href="" target="_blank" rel="noopener">Suggest a reading</a>
+      <ol class="flow">
+        <li style="--k:var(--pink)"><b>You suggest it</b>The link, why it is worth reading, and any question you have about it.</li>
+        <li style="--k:var(--violet)"><b>We read it</b>Fernanda and Shreya read every suggestion.</li>
+        <li style="--k:var(--cyan)"><b>It joins the bank</b>Good ones are added below, and some become the reading for a day.</li>
+        <li style="--k:var(--amber)"><b>We answer</b>We discuss it in class or answer your question about it.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="bank" style="--c:var(--cyan)">
+    <h2>The bank, by day</h2>
+    <ul class="legend">
+      <li><span class="pill p-assigned">Assigned</span>the reading for that day</li>
+      <li><span class="pill p-optional">Optional</span>listed with the homework</li>
+      <li><span class="pill p-bank">Bank</span>if you want to go further</li>
+    </ul>
+
+    <div class="bank">
+      <article class="day" style="--c:var(--cyan)">
+        <div class="d-num"><small>Day</small>1</div>
+        <div>
+          <p class="d-title">Introduction to visual systems</p>
+          <ul class="reads">
+            <li><span class="pill p-assigned">Assigned</span><a href="https://visionbook.mit.edu/taxonomy.html">Ch. 1, The Challenge of Vision</a><span class="src">Torralba, Isola &amp; Freeman, Foundations of Computer Vision</span></li>
+            <li><span class="pill p-assigned">Assigned</span><a href="https://visionbook.mit.edu/simplesystem.html">Ch. 2, A Simple Vision System</a><span class="src">Torralba, Isola &amp; Freeman, Foundations of Computer Vision</span></li>
+            <li><span class="pill p-assigned">Assigned</span><a href="https://visionbook.mit.edu/visionscience.html">Ch. 3, Looking at Images</a><span class="src">Torralba, Isola &amp; Freeman, Foundations of Computer Vision</span></li>
+            <li><span class="pill p-assigned">Assigned</span><a href="https://visionbook.mit.edu/fairness.html">Ch. 4, Computer Vision and Society</a><span class="src">Torralba, Isola &amp; Freeman, Foundations of Computer Vision</span></li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="day" style="--c:var(--cyan)">
+        <div class="d-num"><small>Day</small>2</div>
+        <div>
+          <p class="d-title">Motivation and limitations</p>
+          <ul class="reads">
+            <li><span class="pill p-assigned">Assigned</span><a href="https://www.cogconfluence.com/wp-content/uploads/2017/09/perception_inverse_problem.pdf">Perception viewed as an inverse problem</a><span class="src">Zygmunt Pizlo, Vision Research, 2001</span></li>
+            <li><span class="pill p-optional">Optional</span><a href="https://www.cogconfluence.com/wp-content/uploads/2017/09/Pritchard_stabilization.pdf">Stabilized images on the retina</a><span class="src">Roy M. Pritchard, Scientific American, 1961</span></li>
+            <li><span class="pill p-optional">Optional</span><a href="https://visionbook.mit.edu/simplesystem.html">Ch. 2, A Simple Vision System</a><span class="src">The system we build in the lab</span></li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="day" style="--c:var(--cyan)">
+        <div class="d-num"><small>Day</small>3</div>
+        <div>
+          <p class="d-title">Image formation, processing and representations</p>
+          <ul class="reads">
+            <li><span class="pill p-assigned">Assigned</span><a href="https://visionbook.mit.edu/imaging.html">Ch. 5, Imaging</a><span class="src">Torralba, Isola &amp; Freeman, Foundations of Computer Vision</span></li>
+            <li><span class="pill p-assigned">Assigned</span><a href="https://visionbook.mit.edu/lenses.html">Ch. 6, Lenses</a><span class="src">Torralba, Isola &amp; Freeman, Foundations of Computer Vision</span></li>
+            <li><span class="pill p-assigned">Assigned</span><a href="https://visionbook.mit.edu/camera_as_linsys.html">Ch. 7, Cameras as Linear Systems</a><span class="src">Torralba, Isola &amp; Freeman, Foundations of Computer Vision</span></li>
+            <li><span class="pill p-bank">Bank</span><a href="https://doi.org/10.1038/nn.2889">Metamers of the ventral stream</a><span class="src">Jeremy Freeman &amp; Eero Simoncelli, Nature Neuroscience, 2011</span></li>
+            <li><span class="pill p-bank">Bank</span><a href="https://doi.org/10.1023/A:1026553619983">A parametric texture model based on joint statistics of complex wavelet coefficients</a><span class="src">Javier Portilla &amp; Eero Simoncelli, International Journal of Computer Vision, 2000</span></li>
+            <li><span class="pill p-bank">Bank</span><a href="https://doi.org/10.1113/jphysiol.1962.sp006837">Receptive fields, binocular interaction and functional architecture in the cat's visual cortex</a><span class="src">David Hubel &amp; Torsten Wiesel, Journal of Physiology, 1962</span></li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="day" style="--c:var(--cyan)">
+        <div class="d-num"><small>Day</small>4</div>
+        <div>
+          <p class="d-title">Neural networks</p>
+          <ul class="reads">
+            <li><span class="pill p-bank">Bank</span><a href="https://visionbook.mit.edu/intro_to_learning.html">Ch. 9, Introduction to Learning</a><span class="src">Torralba, Isola &amp; Freeman, Foundations of Computer Vision</span></li>
+            <li><span class="pill p-bank">Bank</span><a href="https://visionbook.mit.edu/gradient_descent.html">Ch. 10, Gradient-Based Learning Algorithms</a><span class="src">Torralba, Isola &amp; Freeman, Foundations of Computer Vision</span></li>
+            <li><span class="pill p-bank">Bank</span><a href="https://visionbook.mit.edu/neural_nets.html">Ch. 12, Neural Networks</a><span class="src">Torralba, Isola &amp; Freeman, Foundations of Computer Vision</span></li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="day" style="--c:var(--cyan)">
+        <div class="d-num"><small>Day</small>5</div>
+        <div>
+          <p class="d-title">CNNs, evaluation and object recognition</p>
+          <ul class="reads">
+            <li><span class="pill p-bank">Bank</span><a href="https://visionbook.mit.edu/convolutional_neural_nets.html">Ch. 24, Convolutional Neural Nets</a><span class="src">Torralba, Isola &amp; Freeman, Foundations of Computer Vision</span></li>
+            <li><span class="pill p-bank">Bank</span><a href="https://arxiv.org/abs/1811.12231">ImageNet-trained CNNs are biased towards texture; increasing shape bias improves accuracy and robustness</a><span class="src">Robert Geirhos et al., ICLR 2019</span></li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="day" style="--c:var(--violet)">
+        <div class="d-num"><small>Day</small>6</div>
+        <div>
+          <p class="d-title">Transformers and visual representation</p>
+          <ul class="reads">
+            <li><span class="pill p-assigned">Assigned</span><a href="https://visionbook.mit.edu/representation_learning.html">Ch. 30, Representation Learning</a><span class="src">Torralba, Isola &amp; Freeman, Foundations of Computer Vision</span></li>
+            <li><span class="pill p-bank">Bank</span><a href="https://visionbook.mit.edu/transformers.html">Ch. 26, Transformers</a><span class="src">Torralba, Isola &amp; Freeman, Foundations of Computer Vision</span></li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="day" style="--c:var(--violet)">
+        <div class="d-num"><small>Day</small>8</div>
+        <div>
+          <p class="d-title">Generative models</p>
+          <ul class="reads">
+            <li><span class="pill p-assigned">Assigned</span><a href="https://visionbook.mit.edu/generative_models.html">Ch. 32, Generative Models</a><span class="src">Torralba, Isola &amp; Freeman, Foundations of Computer Vision</span></li>
+            <li><span class="pill p-assigned">Assigned</span><a href="https://mlg.eng.cam.ac.uk/blog/2024/01/20/flow-matching.html">An introduction to flow matching</a><span class="src">Cambridge Machine Learning Group blog, 2024</span></li>
+            <li><span class="pill p-assigned">Assigned</span><a href="https://huggingface.co/docs/diffusers">Diffusers documentation</a><span class="src">Hugging Face</span></li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="day" style="--c:var(--pink)">
+        <div class="d-num"><small>Days</small>7, 9–15</div>
+        <div>
+          <p class="d-title">3D and motion, robotics, multimodal models, AI and society</p>
+          <p class="later">Readings to come. Suggestions welcome.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section id="students" style="--c:var(--pink)">
+    <h2>Suggested by students</h2>
+    <div class="empty">Suggestions we add to the bank will appear here, credited to the student who suggested them, if they want.</div>
+  </section>
+
+  <section id="resources" style="--c:var(--sky)">
+    <h2>To explore</h2>
+    <div class="res">
+      <a href="https://michaelbach.de/ot/"><b>Optical illusions</b><span>Michael Bach's collection, with explanations</span></a>
+      <a href="https://persci.mit.edu/gallery"><b>Illusion gallery</b><span>Edward Adelson, MIT</span></a>
+      <a href="https://www.biomotionlab.ca/html5-bml-walker/"><b>Point-light walker</b><span>BioMotionLab</span></a>
+      <a href="https://github.com/bethgelab/model-vs-human"><b>model-vs-human</b><span>Benchmark comparing models with human observers</span></a>
+      <a href="https://www.gapminder.org/dollar-street"><b>Dollar Street</b><span>Photos of homes around the world, by income</span></a>
+      <a href="https://rsatoolbox.readthedocs.io/"><b>rsatoolbox</b><span>Representational similarity analysis in Python</span></a>
+    </div>
+  </section>
+
+</main>
+</div>
+<script>
+  // No form link yet: show the button as unavailable instead of a dead link.
+  const b = document.getElementById('suggest-btn');
+  if(!b.getAttribute('href')){ b.setAttribute('aria-disabled', 'true'); b.textContent = 'Form coming soon'; b.removeAttribute('target'); }
+</script>
+</body>
+</html>

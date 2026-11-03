@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Project Templates · Visual Perception</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Same look as syllabus.html. */
+  :root{
+    --bg:#0a0d16; --surface:#121827; --surface2:#171f33; --line:#25304a;
+    --text:#e9edf6; --mute:#9aa5bd;
+    --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{ margin:0; background:var(--bg); color:var(--text);
+    font:16.5px/1.6 Inter, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif; }
+  a{ color:var(--cyan); }
+  b, strong{ font-weight:600; }
+
+  .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
+  .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;
+    font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
+  .spine b{ color:var(--text); font-weight:500; }
+  .page{ margin-left:44px; }
+
+  .hero{ position:relative; overflow:hidden; border-bottom:1px solid var(--line);
+    background:radial-gradient(120% 90% at 75% 40%, #1a1438 0%, var(--bg) 60%); }
+  .hero-in{ position:relative; max-width:64rem; margin:0 auto; padding:8vh 24px 4vh; }
+  .back{ margin:0 0 2.2em; font-size:.95rem; }
+  .back a{ color:var(--mute); text-decoration:none; margin-right:1.2em; }
+  .back a:hover{ color:var(--text); }
+  .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--violet); }
+  h1{ margin:0 0 .35em; font:700 clamp(2.3rem, 7vw, 4.2rem)/.95 'Space Grotesk', sans-serif; text-transform:uppercase;
+    background:linear-gradient(90deg, #fff 0%, #e4d8ff 50%, #c7fff4 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lead{ max-width:44rem; color:#d3d9e6; font-size:1.05rem; margin:0 0 .7em; }
+
+  /* the four steps */
+  .steps{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin:2em 0 0; padding:0; list-style:none; }
+  .steps a{ display:block; height:100%; padding:12px 14px; border:1px solid var(--line); border-radius:14px; background:rgba(18,24,39,.85);
+    color:var(--text); text-decoration:none; transition:all .2s; }
+  .steps a:hover{ border-color:var(--c); box-shadow:0 0 18px color-mix(in srgb, var(--c) 40%, transparent); }
+  .steps small{ display:block; font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--c); font-weight:700; }
+  .steps b{ display:block; font-family:'Space Grotesk', sans-serif; font-size:1.05rem; margin:.15em 0; }
+  .steps span{ color:var(--mute); font-size:.85rem; }
+
+  /* track switch */
+  .switch{ position:sticky; top:0; z-index:3; background:rgba(10,13,22,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  .switch-in{ max-width:64rem; margin:0 auto; padding:10px 24px; display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; }
+  .switch-in > span{ color:var(--mute); font-size:.85rem; }
+  .seg{ display:inline-flex; padding:3px; border:1px solid var(--line); border-radius:999px; background:var(--surface); }
+  .seg button{ border:0; background:none; color:var(--mute); font:600 .9rem/1 Inter, sans-serif; padding:.55em 1em; border-radius:999px; cursor:pointer; }
+  .seg button[aria-pressed="true"]{ color:var(--bg); background:var(--t); box-shadow:0 0 16px var(--t); }
+  .seg button[data-track="build"]{ --t:var(--cyan); }
+  .seg button[data-track="experiment"]{ --t:var(--amber); }
+  body.t-build .only-experiment, body.t-experiment .only-build{ display:none; }
+
+  main{ max-width:64rem; margin:0 auto; padding:0 24px 12vh; }
+  section{ padding-top:3.2em; scroll-margin-top:3.5em; }
+  h2{ margin:0 0 .3em; font:700 1.6rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; flex-wrap:wrap; }
+  h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
+  .meta{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 1.2em; padding:0; list-style:none; }
+  .meta li{ margin:0; padding:.2em .7em; border-radius:6px; font-size:.82rem; font-weight:600; border:1px solid var(--line); background:var(--surface); color:#d3d9e6; }
+  .meta li.due{ color:var(--amber); background:rgba(251,191,36,.12); border-color:rgba(251,191,36,.35); }
+  h3{ margin:1.6em 0 .5em; font:700 1.1rem/1.3 'Space Grotesk', sans-serif; }
+  p, li{ margin:0 0 .55em; }
+  ul, ol{ padding-left:1.25em; }
+  li::marker{ color:var(--c); }
+
+  /* a fill-in template */
+  .tpl{ position:relative; border:1px solid var(--line); border-radius:16px; background:var(--surface); padding:18px 20px 8px; margin:0 0 1em; }
+  .tpl::before{ content:''; position:absolute; left:0; top:16px; bottom:16px; width:3px; border-radius:3px; background:var(--k, var(--c)); box-shadow:0 0 12px var(--k, var(--c)); }
+  .tpl-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin:0 0 .8em; }
+  .tpl-head b{ font-family:'Space Grotesk', sans-serif; font-size:1.05rem; }
+  .tag{ display:inline-block; padding:.1em .55em; margin-left:.4em; border-radius:999px; font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--bg); background:var(--k); vertical-align:2px; }
+  .copy{ flex:none; border:1px solid var(--line); background:var(--surface2); color:var(--text); font:600 .82rem/1 Inter, sans-serif;
+    padding:.55em .9em; border-radius:999px; cursor:pointer; }
+  .copy:hover{ border-color:var(--k, var(--c)); }
+  .tpl ol > li{ margin-bottom:.9em; }
+  .tpl ol > li > b{ display:block; }
+  .w{ font:700 .85rem/1 'Space Grotesk', sans-serif; color:var(--k, var(--c)); margin-left:.35em; }
+  .hint{ display:block; color:var(--mute); font-size:.93rem; }
+  .k-build{ --k:var(--cyan); } .k-experiment{ --k:var(--amber); }
+
+  .note{ border:1px dashed var(--line); border-radius:12px; padding:12px 16px; color:#d3d9e6; font-size:.95rem; margin:0 0 1em; }
+  .credits li{ font-size:.95rem; }
+  .credits span{ color:var(--mute); }
+
+  @media (max-width:640px){
+    .spine{ display:none; } .page{ margin-left:0; }
+    .hero-in{ padding:5vh 16px 3vh; }
+    .switch-in, main{ padding-left:16px; padding-right:16px; }
+    .tpl{ padding:16px 14px 6px 18px; }
+    .tpl-head{ align-items:flex-start; }
+  }
+  @media print{
+    .switch, .copy, .spine{ display:none; } .page{ margin-left:0; }
+    body{ background:#fff; color:#000; }
+  }
+</style>
+</head>
+<body class="t-build">
+<div class="spine" aria-hidden="true"><span><b>Visual Perception</b> &nbsp;/&nbsp; Project templates</span></div>
+<div class="page">
+
+<header class="hero">
+  <div class="hero-in">
+    <p class="back"><a href="index.html">← Home</a><a href="syllabus.html#grading">Syllabus: grading</a></p>
+    <p class="kicker">Final project</p>
+    <h1>Project<br>templates</h1>
+    <p class="lead">One template for each step of the final project. Each step comes in two versions. Pick the one that fits your project.</p>
+    <p class="lead"><b style="color:var(--cyan)">Build a demo:</b> make a working application of computer vision that someone can try. <b style="color:var(--amber)">Run an experiment:</b> explore a limitation of a vision model, or try to overcome one, and answer with a measurement.</p>
+    <p class="lead">The experiment track is a small rehearsal for your research project at the end of the year: a question, a written scientific report, and a presentation where you answer questions.</p>
+    <ul class="steps">
+      <li><a href="#idea" style="--c:var(--cyan)"><small>Step 1 · 2%</small><b>General idea</b><span>Google Form · Friday</span></a></li>
+      <li><a href="#proposal" style="--c:var(--violet)"><small>Step 2 · 5%</small><b>Detailed proposal</b><span>1–2 pages · Monday</span></a></li>
+      <li><a href="#meeting" style="--c:var(--sky)"><small>Step 3 · 3%</small><b>Meeting</b><span>Calendly · Wed, week 2</span></a></li>
+      <li><a href="#presentation" style="--c:var(--pink)"><small>15%</small><b>Presentation</b><span>Last day</span></a></li>
+      <li><a href="#writeup" style="--c:var(--amber)"><small>20%</small><b>Write-up</b><span>End of course</span></a></li>
+    </ul>
+  </div>
+</header>
+
+<div class="switch">
+  <div class="switch-in">
+    <span>Show the templates for:</span>
+    <div class="seg" role="group" aria-label="Project track">
+      <button type="button" data-track="build" aria-pressed="true">Build a demo</button>
+      <button type="button" data-track="experiment" aria-pressed="false">Run an experiment</button>
+    </div>
+  </div>
+</div>
+
+<main>
+
+  <!-- STEP 1 -->
+  <section id="idea" style="--c:var(--cyan)">
+    <h2>Step 1 · General idea</h2>
+    <ul class="meta"><li>2%</li><li class="due">Due Friday</li><li>Google Form</li><li>Shared with the class</li></ul>
+    <p>A few sentences, not a plan. We share every idea with the class so you can find teammates. Full credit for a complete, on-time answer.</p>
+
+    <div class="tpl" data-copy>
+      <div class="tpl-head"><b>Google Form questions</b><button class="copy" type="button">Copy</button></div>
+      <ol>
+        <li><b>Working title</b></li>
+        <li><b>In one sentence, with no jargon: what do you want to make or find out?</b></li>
+        <li><b>Track</b><span class="hint">Build a demo / Run an experiment (explore or overcome a limitation) / Not sure yet</span></li>
+        <li><b>Who would care, and why?</b><span class="hint">A person who would use it, or a reason the answer matters.</span></li>
+        <li><b>What images or video would you use, and where would they come from?</b><span class="hint">Your phone, a public dataset, a website, or images from a science you care about (cells, crops, the sky). Name it if you know it.</span></li>
+        <li><b>Is there a link to human vision?</b><span class="hint">Optional. An illusion, a thing people do easily that models get wrong, or the other way round.</span></li>
+        <li><b>Are you looking for teammates? What do you bring?</b><span class="hint">For example: coding, design, a dataset, a domain you know.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section id="proposal" style="--c:var(--violet)">
+    <h2>Step 2 · Detailed proposal</h2>
+    <ul class="meta"><li>5%</li><li class="due">Due Monday</li><li>1–2 pages</li></ul>
+    <p>Four sections, each worth a quarter of the grade. Answer every question in the template; short is fine.</p>
+
+    <div class="tpl k-build only-build" data-copy>
+      <div class="tpl-head"><b>Proposal <span class="tag">Build a demo</span></b><button class="copy" type="button">Copy</button></div>
+      <ol>
+        <li><b>Problem and motivation <span class="w">25%</span></b>
+          <span class="hint">What will your demo do, in plain words? Who is it for, and what do they do today without it? What is hard about it for a computer?</span></li>
+        <li><b>Approach <span class="w">25%</span></b>
+          <span class="hint">Input → steps → output: draw the pipeline as boxes. Which pretrained models will you use, and why those? What data will you test it on? What will someone see and do when they try it (a Colab notebook, a Gradio app, a phone photo)?</span></li>
+        <li><b>Evaluation <span class="w">25%</span></b>
+          <span class="hint">How will you know it works? Name a test set you will collect (how many images, from where), what counts as a success on one example, and one number you will report. Which cases do you expect to fail?</span></li>
+        <li><b>A realistic plan <span class="w">25%</span></b>
+          <span class="hint">The smallest version that works end to end, and the day you will have it. Then what you will add if there is time. The biggest risk, and your plan B if it happens. Who does what, if you are a team.</span></li>
+      </ol>
+    </div>
+
+    <div class="tpl k-experiment only-experiment" data-copy>
+      <div class="tpl-head"><b>Proposal <span class="tag">Run an experiment</span></b><button class="copy" type="button">Copy</button></div>
+      <ol>
+        <li><b>Problem and motivation <span class="w">25%</span></b>
+          <span class="hint">Your question, in one sentence. Say which kind it is: <i>explore</i> a limitation (where and why does a model fail?) or <i>overcome</i> one (does a change you make fix it?). What is already known (a paper, a demo, something we saw in class)? Why would the answer matter for how we build or trust vision models, or for what we know about human vision?</span></li>
+        <li><b>Approach <span class="w">25%</span></b>
+          <span class="hint">Your prediction, written before you run anything, and the reason for it. What you will change (the conditions: for example, normal images vs. images with texture swapped). Which models you will compare. If you are trying to overcome a limitation: your fix (more data, augmentation, a different model, an idea from human vision) and the baseline you will compare it with. If people will judge images too, how (keep it anonymous, and talk to us first).</span></li>
+        <li><b>Evaluation <span class="w">25%</span></b>
+          <span class="hint">What you will measure (accuracy, a similarity score, how often the model agrees with people). How many images per condition. Which result would support your prediction, and which would go against it.</span></li>
+        <li><b>A realistic plan <span class="w">25%</span></b>
+          <span class="hint">The smallest version of the experiment (one model, two conditions) and the day you will have it. What you will add if there is time. The biggest risk, and your plan B. Who does what, if you are a team.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section id="meeting" style="--c:var(--sky)">
+    <h2>Step 3 · Meeting with a teacher</h2>
+    <ul class="meta"><li>3%</li><li class="due">By Wednesday, week 2</li><li>Sign up on Calendly</li></ul>
+    <p>Full credit for coming prepared. The meeting is for getting unstuck, not for presenting.</p>
+
+    <div class="tpl" data-copy>
+      <div class="tpl-head"><b>Bring</b><button class="copy" type="button">Copy</button></div>
+      <ol>
+        <li><b>Your detailed proposal</b>, open on your laptop.</li>
+        <li><b>The one part you are least sure about.</b><span class="hint">For example, whether a model can do it, or whether your data is enough.</span></li>
+        <li><b>Three questions for us.</b></li>
+        <li class="only-build"><b>Something running</b>, if you have it: a pretrained model working on one of your images.</li>
+        <li class="only-experiment"><b>Two or three example images</b> from each condition, if you have them.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- PRESENTATION -->
+  <section id="presentation" style="--c:var(--pink)">
+    <h2>Final presentation</h2>
+    <ul class="meta"><li>15%</li><li class="due">Last day</li><li>Time limit: announced in class</li></ul>
+    <p>One slide per idea, in this order. The parts match the grading.</p>
+
+    <div class="tpl k-build only-build" data-copy>
+      <div class="tpl-head"><b>Slide outline <span class="tag">Build a demo</span></b><button class="copy" type="button">Copy</button></div>
+      <ol>
+        <li><b>The idea <span class="w">20%</span></b><span class="hint">Who it is for and what it does, so the room gets it in the first minute. One picture of the problem.</span></li>
+        <li><b>Demo <span class="w">35%</span></b><span class="hint">Show it working, live, on an example the audience has not seen. Have a screen recording ready in case the live demo fails.</span></li>
+        <li><b>How it works</b><span class="hint">The pipeline as boxes: input, models, output. One slide.</span></li>
+        <li><b>Results</b><span class="hint">Your one number on your test set, and two or three examples that work.</span></li>
+        <li><b>Where it fails <span class="w">20%</span></b><span class="hint">Two or three failures, and your best guess at why.</span></li>
+        <li><b>Next</b><span class="hint">What you would build with another week.</span></li>
+      </ol>
+      <p class="hint">Also graded: delivery, clear slides within time (15%), and answers to questions from the class (10%).</p>
+    </div>
+
+    <div class="tpl k-experiment only-experiment" data-copy>
+      <div class="tpl-head"><b>Slide outline <span class="tag">Run an experiment</span></b><button class="copy" type="button">Copy</button></div>
+      <ol>
+        <li><b>The idea <span class="w">20%</span></b><span class="hint">Your question, and why the room should care, in the first minute. One example image.</span></li>
+        <li><b>Prediction</b><span class="hint">What you expected, and why, before you ran it.</span></li>
+        <li><b>Setup</b><span class="hint">The conditions side by side, the models, and what you measured.</span></li>
+        <li><b>Results <span class="w">35%</span></b><span class="hint">One figure with the main comparison. Say what it shows in one sentence. Then two or three examples.</span></li>
+        <li><b>Limits <span class="w">20%</span></b><span class="hint">What your experiment cannot tell you: too few images, one model, a confound.</span></li>
+        <li><b>What it means</b><span class="hint">For how models see, and for how people see.</span></li>
+      </ol>
+      <p class="hint">Also graded: delivery, clear slides within time (15%), and answers to questions from the class (10%). Treat the questions as a short rehearsal for the defence of your research project.</p>
+    </div>
+  </section>
+
+  <!-- WRITE-UP -->
+  <section id="writeup" style="--c:var(--amber)">
+    <h2>Final write-up</h2>
+    <ul class="meta"><li>20%</li><li class="only-build">3–4 pages + a link to the demo</li><li class="only-experiment">3–4 pages, like a short paper</li></ul>
+    <p>Same five criteria for both tracks. What counts as evidence differs.</p>
+
+    <div class="tpl k-build only-build" data-copy>
+      <div class="tpl-head"><b>Write-up <span class="tag">Build a demo</span></b><button class="copy" type="button">Copy</button></div>
+      <ol>
+        <li><b>Problem and motivation <span class="w">15%</span></b><span class="hint">Who it is for, what it does, and why it is hard for a computer.</span></li>
+        <li><b>Method <span class="w">25%</span></b><span class="hint">A figure of the pipeline. The models and data, and why you chose them over the alternatives you tried. A link to your code and your demo, or a short video.</span></li>
+        <li><b>Results and evaluation <span class="w">25%</span></b><span class="hint">Your test set (how many images, from where), your number, and a grid of examples that work. If you changed something along the way, a before-and-after.</span></li>
+        <li><b>Limitations and failure cases <span class="w">20%</span></b><span class="hint">A grid of failures with your explanation of each. Then three short lists: what it is meant for, what it should not be used for, and who it might work worse for.</span></li>
+        <li><b>Clarity <span class="w">15%</span></b><span class="hint">Readable writing, labeled figures, and credit for every model, dataset, and image you did not make.</span></li>
+      </ol>
+    </div>
+
+    <div class="tpl k-experiment only-experiment" data-copy>
+      <div class="tpl-head"><b>Write-up <span class="tag">Run an experiment</span></b><button class="copy" type="button">Copy</button></div>
+      <ol>
+        <li><b>Problem and motivation <span class="w">15%</span></b><span class="hint">The question, what was known before, and your prediction.</span></li>
+        <li><b>Method <span class="w">25%</span></b><span class="hint">Your images and conditions, the models, what you measured, and how. Enough detail that a classmate could run it again.</span></li>
+        <li><b>Results and evaluation <span class="w">25%</span></b><span class="hint">The main figure, with the numbers. Did the result match your prediction? If you tried a fix, how much better than the baseline, and on which cases? One control or comparison that rules out a boring explanation.</span></li>
+        <li><b>Limitations and failure cases <span class="w">20%</span></b><span class="hint">What your experiment cannot show. Examples where the pattern breaks. What you would run next.</span></li>
+        <li><b>Clarity <span class="w">15%</span></b><span class="hint">Readable writing, labeled figures, and credit for every model, dataset, image, and paper.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- CREDITS -->
+  <section id="built-on" style="--c:var(--sky)">
+    <h2>What these templates build on</h2>
+    <p>We adapted these for a three-week course: shorter, plainer, and with a choice of track.</p>
+    <ul class="credits">
+      <li><a href="https://www.darpa.mil/about/heilmeier-catechism">The Heilmeier Catechism</a> <span>(DARPA): the proposal questions. What are you trying to do, in plain words? Who cares? What are the risks? How will you check for success?</span></li>
+      <li><a href="https://aspredicted.org/">AsPredicted</a> <span>preregistration: the experiment proposal. Write the prediction, the conditions, the measure, and the sample size before running anything.</span></li>
+      <li><a href="https://arxiv.org/abs/1810.03993">Model Cards for Model Reporting</a> <span>(Mitchell et al., 2019): the limitations section of the demo write-up. What it is meant for, what it is not, and who it may work worse for.</span></li>
+      <li><a href="https://cs231n.stanford.edu/project.html">Stanford CS231n project</a> <span>guidelines: the sequence from proposal to final report and presentation.</span></li>
+      <li><a href="https://github.com/cvpr-org/author-kit">CVPR author kit</a><span>: an optional format for the experiment write-up, if you want it to look like a paper.</span></li>
+    </ul>
+  </section>
+
+</main>
+</div>
+
+<script>
+  const btns = document.querySelectorAll('.seg button');
+  function setTrack(t){
+    document.body.className = 't-' + t;
+    btns.forEach(b => b.setAttribute('aria-pressed', b.dataset.track === t));
+    try{ localStorage.setItem('track', t); }catch(e){}
+  }
+  btns.forEach(b => b.addEventListener('click', () => setTrack(b.dataset.track)));
+  try{ const t = localStorage.getItem('track'); if(t === 'build' || t === 'experiment') setTrack(t); }catch(e){}
+
+  // Copy a template as plain text, to paste into a Google Doc.
+  document.querySelectorAll('[data-copy]').forEach(box => {
+    const btn = box.querySelector('.copy');
+    btn.addEventListener('click', async () => {
+      const lines = [box.querySelector('.tpl-head b').innerText.replace(/\s+/g, ' ').trim(), ''];
+      box.querySelectorAll('ol > li').forEach((li, i) => {
+        if(li.offsetParent === null) return;               // hidden by the track switch
+        const head = li.querySelector('b') ? li.querySelector('b').innerText.replace(/\s+/g, ' ').trim() : li.innerText.trim();
+        const hint = li.querySelector('.hint');
+        lines.push(`${lines.filter(l => /^\d+\./.test(l)).length + 1}. ${head}`);
+        if(hint) lines.push('   ' + hint.innerText.trim());
+        lines.push('');
+      });
+      try{ await navigator.clipboard.writeText(lines.join('\n')); btn.textContent = 'Copied'; }
+      catch(e){ btn.textContent = 'Select and copy'; }
+      setTimeout(() => btn.textContent = 'Copy', 1600);
+    });
+  });
+</script>
+</body>
+</html>
