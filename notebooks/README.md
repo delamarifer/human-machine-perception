@@ -46,6 +46,10 @@ errors and no edits:
    outputs or metadata. The **teacher copy** has every solution right below its exercise under a
    "Solution" heading, for going over them in class. It is built into `notebooks/teacher/`, which is
    git-ignored: never commit it. Upload it to your own Google Drive and open it from Colab there.
+   Every exercise cell has the fixed id `turn-N` and, in the teacher copy, its solution `solution-N`,
+   so a slide can open it directly: `<notebook url>#scrollTo=turn-3` (the Day 2 deck does this).
+   Under each exercise, `resources(...)` adds a **Helpful resources** line: the matching section of the
+   book and the official docs of the functions it needs. Point to concepts, never to the answer.
 6. "What you learned" and the homework, to close.
 
 **Honest content.** Never invent data, figures or citations. Credit every image and dataset. Any

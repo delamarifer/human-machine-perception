@@ -12,6 +12,7 @@ Without private_solutions (older notebooks), the student notebook shows each sol
 "Show a solution" block, and --teacher is not available.
 """
 import os
+import re
 import sys
 import nbformat as nbf
 
@@ -44,24 +45,45 @@ def turn(s, solution):
     cells.append(('code', s.strip(), solution.strip(), False))
 
 
+def resources(*links):
+    """A "Helpful resources" line under an exercise: (label, url) pairs. Concepts and docs, never the answer."""
+    md('**Helpful resources:** ' + ' · '.join(f'[{label}]({url})' for label, url in links))
+
+
 def answer(s):
     """The answer to a talk-it-over "Your turn" (markdown). Only the teacher copy shows it."""
     cells.append(('answer', s.strip(), None, False))
 
 
+TURN = re.compile(r'your turn (\d+)', re.I)
+
+
+def _id(cell, name):
+    """A fixed cell id, so a slide can link straight to it: Colab opens <notebook url>#scrollTo=<id>."""
+    cell.id = name
+    cell.metadata['id'] = name
+    return cell
+
+
 def build(mode='student', private_solutions=False):
-    """mode: 'student' (no solutions), 'teacher' (solutions below each exercise), 'solved' (for testing)."""
+    """mode: 'student' (no solutions), 'teacher' (solutions below each exercise), 'solved' (for testing).
+    Exercise N gets the cell id turn-N in every copy; its solution gets solution-N in the teacher copy."""
     nb = nbf.v4.new_notebook()
+    last = None   # the number of the most recent "Your turn"
     if mode == 'teacher':
         nb.cells.append(nbf.v4.new_markdown_cell(
             '**Teacher copy, with solutions. Do not share it with students or commit it to the course '
             'repository.**'))
     for kind, src, sol, hide in cells:
+        m = TURN.search(src) if kind in ('md', 'code') else None
         if kind == 'md':
-            nb.cells.append(nbf.v4.new_markdown_cell(src))
+            cell = nbf.v4.new_markdown_cell(src)
+            if m and src.lstrip().startswith('#'):          # a talk-it-over "Your turn" heading
+                last = m.group(1); _id(cell, f'turn-{last}')
+            nb.cells.append(cell)
         elif kind == 'answer':
             if mode == 'teacher':
-                nb.cells.append(nbf.v4.new_markdown_cell('#### Solution\n\n' + src))
+                nb.cells.append(_id(nbf.v4.new_markdown_cell('#### Solution\n\n' + src), f'solution-{last}'))
             elif not private_solutions:
                 nb.cells.append(nbf.v4.new_markdown_cell(
                     '<details><summary><b>Show an answer</b> (try it yourself first)</summary>\n\n'
@@ -70,9 +92,11 @@ def build(mode='student', private_solutions=False):
             cell = nbf.v4.new_code_cell(sol if (mode == 'solved' and sol) else src)
             if hide:
                 cell.metadata['cellView'] = 'form'
+            if sol and m:
+                last = m.group(1); _id(cell, f'turn-{last}')
             nb.cells.append(cell)
             if sol and mode == 'teacher':
-                nb.cells.append(nbf.v4.new_markdown_cell('#### Solution'))
+                nb.cells.append(_id(nbf.v4.new_markdown_cell('#### Solution'), f'solution-{last}'))
                 nb.cells.append(nbf.v4.new_code_cell(sol))
             elif sol and mode == 'student' and not private_solutions:
                 nb.cells.append(nbf.v4.new_markdown_cell(

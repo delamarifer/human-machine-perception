@@ -4,7 +4,7 @@ Vision (https://visionbook.mit.edu/simplesystem.html). The scenes are rendered b
 (day01_lab_helpers.py), so the notebook needs no downloads and knows the true 3D answer.
 See nbtools.py for how to build and check it."""
 import os
-from nbtools import md, code, hidden, turn, answer, badge, main
+from nbtools import md, code, hidden, turn, answer, resources, badge, main
 
 FILE = 'day01-lab-simple-vision-system.ipynb'
 HELPERS = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'day01_lab_helpers.py')).read()
@@ -130,6 +130,7 @@ point2 = project(10, 30, 10 * np.cos(theta) / np.sin(theta))
 print(f"point 1 lands at x = {point1[0]}, y = {point1[1]:.2f}")
 print(f"point 2 lands at x = {point2[0]}, y = {point2[1]:.2f}")
 """)
+resources(('Book: a simple image formation model', 'https://visionbook.mit.edu/simplesystem.html#a-simple-image-formation-model'), ('np.cos / np.sin', 'https://numpy.org/doc/stable/reference/generated/numpy.cos.html'), ('np.deg2rad', 'https://numpy.org/doc/stable/reference/generated/numpy.deg2rad.html'))
 md("""
 Both points give the same `(x, y)`. From the image alone, there is no way to tell which one is out
 there. This is what we meant in lecture by **perception is ill-posed**: the image does not contain
@@ -203,6 +204,7 @@ plt.show()
 # Red: brightness goes down to the right. Blue: it goes up. White: no change.
 # Notice that edges that run left to right are nearly invisible here: they need the vertical derivative.
 """)
+resources(('Book: extracting edges', 'https://visionbook.mit.edu/simplesystem.html#extracting-edges-from-images'), ('NumPy slicing', 'https://numpy.org/doc/stable/user/basics.indexing.html#slicing-and-striding'), ('plt.imshow', 'https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html'))
 md("""
 A slightly better version averages over the neighboring rows too (the **Sobel** filter, in the helper
 `sobel`). It gives both derivatives: `dx` (left to right) and `dy` (bottom to top). From them:
@@ -242,6 +244,7 @@ plt.title("Edge pixels")
 plt.show()
 # The faintest edges are between two faces of one box, where the two shades are close.
 """)
+resources(('Book: extracting edges', 'https://visionbook.mit.edu/simplesystem.html#extracting-edges-from-images'), ('Boolean masks in NumPy', 'https://numpy.org/doc/stable/user/basics.indexing.html#boolean-array-indexing'), ('np.hypot', 'https://numpy.org/doc/stable/reference/generated/numpy.hypot.html'))
 
 # ---------------------------------------------------------------------------------------------
 md("""
@@ -273,6 +276,7 @@ plt.imshow(figure, cmap="gray")
 plt.title("Figure (white) and ground (black)")
 plt.show()
 """)
+resources(('Book: figure/ground segmentation', 'https://visionbook.mit.edu/simplesystem.html#figureground-segmentation'), ('np.max (axis)', 'https://numpy.org/doc/stable/reference/generated/numpy.max.html'), ('np.min (axis)', 'https://numpy.org/doc/stable/reference/generated/numpy.min.html'), ('Broadcasting', 'https://numpy.org/doc/stable/user/basics.broadcasting.html'))
 md("""
 **Two kinds of object boundary.** Scan any column of the image from top to bottom:
 
@@ -344,6 +348,7 @@ plt.imshow(show)
 plt.title("Vertical (red) and horizontal (blue) 3D edges")
 plt.show()
 """)
+resources(('Book: generic view', 'https://visionbook.mit.edu/simplesystem.html#generic-view-and-nonaccidental-scene-properties'), ('np.arctan2', 'https://numpy.org/doc/stable/reference/generated/numpy.arctan2.html'), ('Boolean masks in NumPy', 'https://numpy.org/doc/stable/user/basics.indexing.html#boolean-array-indexing'))
 
 # ---------------------------------------------------------------------------------------------
 md("""
@@ -408,6 +413,7 @@ md("""
 Turn the reconstruction so you look at it from behind. Name two things that are missing, and say
 why the system could not have recovered them.
 """)
+resources(('Book: occlusion edges', 'https://visionbook.mit.edu/simplesystem.html#occlusion-edges'), ('Book: from constraints to 3D', 'https://visionbook.mit.edu/simplesystem.html#sec-constraint'), ('Plotly 3D scatter', 'https://plotly.com/python/3d-scatter-plots/'))
 answer("""
 - Each box is only a **shell**: its back faces are missing. The camera never saw them, and each pixel
   gives us exactly one surface point, the nearest one.
@@ -462,6 +468,7 @@ run_system(my_world, "my world: a stack")
 # below its true height). Our equations were written for boxes standing on the floor; a box
 # resting on another box is a case the system was never designed for.
 """)
+resources(('Book: generalization', 'https://visionbook.mit.edu/simplesystem.html#generalization'), ('Book: a simple inference scheme', 'https://visionbook.mit.edu/simplesystem.html#a-simple-inference-scheme'))
 
 # ---------------------------------------------------------------------------------------------
 md("""
