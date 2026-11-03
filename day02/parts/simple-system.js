@@ -22,7 +22,7 @@ const go = (s) => `<div class="simple-system-go b" data-step="99"><span class="l
 const turnLink = n => `${NB}#scrollTo=turn-${n}`;
 /* The teacher copy (with solutions) lives privately in Fernanda's Google Drive; paste its Colab URL here and the
    link appears on the first lab slide. Students who follow it can't open it (access restricted). */
-const TEACHER_NB = '';
+const TEACHER_NB = 'https://colab.research.google.com/drive/1UI41oHAQrER-dd3BN5q7tpJACjjuC5Eh';
 const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const SOLUTION = {
   1: {code: `theta = np.deg2rad(35)
@@ -92,7 +92,6 @@ st(`
       </div>
     </div>
   </div>
-  <div class="todo b" data-step="3" style="position:absolute;right:6vw;bottom:6vh;max-width:34vw">Minutes for Your turn 1 and 2, and the wrap-up (50-60 in total).</div>
   ${cite('After Chapter 2, A Simple Vision System, in Torralba, Isola &amp; Freeman, Foundations of Computer Vision')}
   <style>
 .simple-system-outcome{ color:var(--mute); } .simple-system-outcome b{ color:var(--ink); }
@@ -111,8 +110,7 @@ st(`
 `, { notes: [
   "(draft) Now we build something: a simple vision system, from Chapter 2 of the book. In this lab, you will recover the 3D shape of a simple scene from one image, by writing its assumptions as equations.",
   "(draft) Here is our world, as the camera sees it: a white floor, and colored boxes standing on it.",
-  "(draft) The question: from this one image, can we recover the 3D shape of the scene? Open the notebook in Colab and run the setup. We go back and forth: an idea here, then you run it there.",
-  "(to write) Timing."
+  "(draft) The question: from this one image, can we recover the 3D shape of the scene? Open the notebook in Colab and run the setup. We go back and forth: an idea here, then you run it there."
 ]});
 
 // Our assumptions, as a list that grows on screen as each one is used, and gets struck when one breaks.
