@@ -134,6 +134,34 @@ def show_3d_interactive(Y, Z, image, title="Drag to turn it around"):
                                  camera=dict(eye=dict(x=0.2, y=-1.6, z=1.0))))
     fig.show()
 
+# The course's version of each pipeline step, used when a "Your turn" cell is left blank.
+def course_edges(gray):
+    gx, gy = sobel(gray)
+    return np.hypot(gx, gy) > 0.03
+
+def course_figure(img):
+    return np.ptp(img, axis=2) > 0.15
+
+def course_vertical(edge_mask, gx, gy):
+    return edge_mask & (np.abs(gy) < np.tan(np.deg2rad(15)) * np.abs(gx))
+
+def run_system(world, title):
+    """Render a world, run every step of this lab on its image, and compare with the truth."""
+    img, Yt, Zt = render(world)
+    g = img.mean(axis=2)
+    gx, gy = sobel(g)
+    e = course_edges(g)
+    fig_mask = course_figure(img)
+    cont = fig_mask.copy(); cont[:-1] &= ~fig_mask[1:]
+    Yr, Zr = reconstruct(fig_mask, e, course_vertical(e, gx, gy), cont, gx, gy)
+    fig, axes = plt.subplots(1, 3, figsize=(16, 4))
+    axes[0].imshow(img); axes[0].set_title(title)
+    axes[1].imshow(Yr, cmap="viridis", vmin=0, vmax=Yt.max()); axes[1].set_title("recovered height Y")
+    axes[2].imshow(Yt, cmap="viridis", vmin=0, vmax=Yt.max()); axes[2].set_title("true height Y")
+    for ax in axes: ax.axis("off")
+    plt.show()
+    show_3d(Yr, Zr, img, fig_mask, title="recovered 3D")
+
 RED, GREEN, BLUE = (0.85, 0.2, 0.2), (0.2, 0.65, 0.3), (0.2, 0.35, 0.85)
 WORLD = [make_box(-55, 25, 40, 45, 40, 30, RED),
          make_box(25, 0, 30, 70, 30, -25, GREEN),
