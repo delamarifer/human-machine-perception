@@ -64,7 +64,8 @@ aggregates go out on a public site.
 - [ ] Demos: these seven, or swap some? For each, which clip to play (TO DO box on each slide)?
       Live demos need internet in class.
 - [ ] Why look to humans (slide 19): your framing (TO DO box). The three cues are drafts.
-- [ ] Project templates and examples (slide 26): the form and template links, and which of our projects to show.
+- [x] Project templates: the slide embeds templates.html (added to main 2026-11-02).
+- [ ] Example projects: which of our projects to show, one per track (TO DO slide).
 - [ ] Simple system: minutes for Phase 1 vs Phase 2 (50-60 in total).
 
 ### Simple system lab (Fernanda, 2026-11-02): condensed, full circle, Phase 2

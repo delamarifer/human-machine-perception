@@ -130,13 +130,25 @@ st(`
   "(draft) And on the last day: a short write-up, and a presentation to the class. Show it working, and show honestly where it fails."
 ]});
 
+/* The course's project templates page, live (Fernanda, 2026-11-02). Same-origin, so the right and left
+   arrows still change slides after a click inside it; scroll with the trackpad or up and down. */
+const keys = `try{ this.contentWindow.addEventListener('keydown', e => {
+  if(e.key === 'ArrowRight' || e.key === 'PageDown'){ e.preventDefault(); deck.fwd(); }
+  if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); deck.bwd(); } }); }catch(e){}`;
 st(`
-  <h1 class="t">Templates and examples</h1>
-  <div class="todo b">Links to the idea form and the proposal template.</div>
-  <div class="todo b">Two or three example projects (our own, as in the Day 1 plan), each as one build sentence and one question sentence.</div>
+  <h1 class="t">Project templates</h1>
+  <iframe class="projects-site b" src="../templates.html" title="Project templates" onload="${keys.replace(/"/g, '&quot;')}"></iframe>
+  <style>.projects-site{ flex:1 1 auto; min-height:0; width:100%; border:1px solid var(--line); border-radius:12px; }</style>
 `, { notes: [
-  "(draft) To help you start, templates and examples.",
-  "(to write) The templates.",
+  "(draft) Every step has a template, on the course website.",
+  "(draft) (Scroll through.) Two tracks, pick the one that fits. Build a demo: a working computer vision application someone can try. Or run an experiment: explore a limitation of a vision model, or try to overcome one, and answer with a measurement. Then one template per step: the general idea by Friday, the detailed proposal by Monday, the meeting with us in week two, the presentation on the last day, and the write-up."
+]});
+
+st(`
+  <h1 class="t">Example projects</h1>
+  <div class="todo b">Two or three example projects (our own, as in the Day 1 plan): one for each track, build a demo and run an experiment.</div>
+`, { notes: [
+  "(draft) A few examples to get you started.",
   "(to write) The examples."
 ]});
 }
