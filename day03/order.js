@@ -12,11 +12,11 @@ const ORDER = [
   ['lab',               'Lab: 2D convolution from scratch in NumPy (45 min)'],
   ['filters',           'Edge detection, sharpening, blur; homework (15 min)'],
   ['representation',    'What a representation is: decoding from a network or the brain; pixels to objects (Fernanda)'],
-  ['metamers',          'Metamers: color, textures, the periphery, model metamers, invariance (Fernanda)'],
+  ['metamers',          'Metamers: color knobs, textures, drive and suppress, model metamers, into the lab (Fernanda)'],
 ];
 const PARTS = ORDER.map(r => r[0]);
 
 /* Minutes per section (the progress bar), from plan/course-plan.md, Day 3. */
 const SEC_MINUTES = {'Homework review': 10, 'Image formation': 20, 'Convolution': 20, 'Human vision': 10,
   'Lab': 45, 'Edges and blur': 15,
-  'Representation': 8, 'Metamers': 15, 'Activity': 15, 'Beyond texture': 16, 'Invariance': 5};   // Fernanda's outline, 2026-11-03
+  'Representation': 10, 'Metamers': 10, 'Textures': 12, 'Networks': 15, 'Your turn': 5};   // Fernanda's storyline, 2026-11-03 (minutes are a first guess)

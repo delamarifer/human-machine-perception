@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Ported from Fernanda's defense deck (defense-present-2026-10-16/scenes/metamer-boxes.html) into the Day 3 course deck,
+     2026-11-03: course stylesheet (no licensed fonts), assets in day03/assets/defense/, driven by the deck. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Another discrepancy</title>
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="defense-type.css">
+<style>
+  /* The model-matched-stimuli half of "Neural networks are known to show discrepancies with humans"
+     (outline/parts/ch1-adv-vulnerability.js). Rev. 2026-10-16 (Fer: "could we have organized this vertically as we do
+     for the other diagrams?"): back in the vertical box layout of slide 9 (scenes/mms-logic.html,
+     outline/contracts/box-layout.md), no box outlines. Mirrors deck.css .stage / h1.t. The engine moves .cite above
+     the progress bar at the bottom of the screen. */
+  :root{ --ink:#0f172a; --border:#e2e8f0; }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ height:100%; overflow:hidden; background:#fff; color:var(--ink);
+             font-family:'Deck Calibri', Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif;
+             font-size:16px; line-height:1.45; -webkit-font-smoothing:antialiased;
+             cursor:pointer; user-select:none; -webkit-user-select:none; }
+  .stage{ position:absolute; inset:0; padding:9vh 6vw 7vh; display:flex; flex-direction:column; }
+  h1.t{ font-family:'Deck Calibri', Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif; font-weight:700; color:var(--ink);
+        font-size:clamp(1.8rem, 3.5vw, 3rem); line-height:1.08; letter-spacing:0; margin-bottom:1.2rem; }
+  h1.t{ position:relative; z-index:3; }   /* above the pop-up glow */
+  #cite{ position:absolute; left:6vw; bottom:2.4vh; }
+  #figwrap{ flex:1 1 auto; min-height:0; position:relative; }
+  #cv{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  /* pop-up statements over the dimmed figure (.popquote, outline/type.css) */
+  .pq{ position:absolute; left:50%; top:var(--top, 38%); transform:translate(-50%, 12px); width:min(26em, 92%);
+       text-align:center; opacity:0; transition:opacity .9s ease, transform .9s ease; pointer-events:none;
+       text-shadow:0 0 6px #fff, 0 0 14px #fff, 0 0 24px #fff; }
+  .pq.on{ opacity:1; transform:translate(-50%, 0); }
+  .pq.now{ transition:none; }
+  /* play buttons for the two sounds; they play their clip and do not advance the slide */
+  .play{ position:absolute; width:34px; height:34px; border-radius:50%; border:0; background:rgba(15,23,42,.85);
+         display:none; cursor:pointer; }
+  .play::after{ content:''; position:absolute; left:13px; top:9px; border-left:13px solid #fff;
+                border-top:8px solid transparent; border-bottom:8px solid transparent; }
+  footer{ position:absolute; right:2rem; bottom:1.1rem; }
+  #dots{ display:flex; gap:.45rem; }
+  .dot{ width:8px; height:8px; border-radius:50%; background:#fff; border:1.5px solid #cbd5e1; }
+  .dot.on{ background:var(--ink); border-color:var(--ink); }
+  #notes{ position:absolute; left:0; right:0; bottom:0; background:rgba(255,255,255,.965);
+          border-top:1px solid var(--border); padding:16px 4% 18px; display:none;
+          font-size:clamp(13px,1.15vw,16px); line-height:1.6; pointer-events:none; }
+  #notes.on{ display:block; }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <h1 class="t">Another discrepancy:<br>stimuli that produce very similar activations in a model</h1>
+    <div id="figwrap">
+      <canvas id="cv"></canvas>
+      <div class="pq popquote" id="pq-img">Yet to humans, they look completely different</div>
+      <div class="pq popquote" id="pq-snd">Yet to humans, they sound completely different</div>
+      <button class="play" id="play0" aria-label="Play the natural sound"></button>
+      <button class="play" id="play1" aria-label="Play the model-matched sound"></button>
+    </div>
+  </div>
+  <div class="cite" id="cite">Feather et al. (2023)</div>
+  <footer><div id="dots"></div></footer>
+  <div id="notes"></div>
+  <audio preload="none" id="aud0" src="../assets/defense/metamer-examples/feather2023-audio-ex0-original.wav"></audio>
+  <audio preload="none" id="aud1" src="../assets/defense/metamer-examples/feather2023-audio-ex0-standard-layer4.wav"></audio>
+<script>
+// ═══ ANOTHER DISCREPANCY: STIMULI MATCHED IN A MODEL (box layout of slide 9) ═════════════════
+// Rev. 2026-10-16 (Fer: "could we have organized this vertically as we do for the other diagrams?"): back from Josh's
+// horizontal flow (e544c02) to slide 9's vertical box layout (scenes/mms-logic.html): natural image -> Input stimuli ->
+// Model -> its activations (Responses); the synthesis is an arrow on the top row, from the natural image to the
+// model-matched image, through a small rounded process box "Synthesized to be the same / to the model stage" (Fer,
+// 2026-10-16, as on slide 9) -> the same activations ("Same") -> the same answer, out of the Model's right side.
+// No box outlines on Model / Responses (2026-10-16); the clock runs 2.6x. No "metamer" on screen (Josh); the notes keep one optional line.
+// Rev. 2026-10-16 (Fer): the top row builds first (natural, synthesis, model-matched), then both stimuli run through the
+// model together (blue and plum lights, as on slide 9); the time-series beats and the closing question are gone.
+//
+//  0 title                                   4 "Same" activations, then the whole model: "Same answer", "dog"
+//  1 the natural image                       5 cue: to humans they look completely different (figure dimmed)
+//  2 synthesis: natural -> box -> model-     6 sound: the natural sound and its model-matched sound swipe in
+//    matched image (the top row)             7 cue: to humans they sound completely different
+//  3 the synthesis grays; both images -> Input stimuli -> model -> one stage -> their own activations
+//
+// Every motion runs once, on its click; steps back and deck jumps land on the finished state. Words are
+// black; colour in marks (ochre = the lit stage / the cue) and per stimulus: natural = the deck's blue, model-matched =
+// plum (headings, frames, lights, activation ramps), as on slide 9.
+// Real stimuli: Feather et al. (2023) Fig. 2e (ResNet50 dog and its layer4 metamer) and experiment 7,
+// example 0 (CochResNet50 word and its standard layer4 metamer). The ACTIVATION PATTERNS ARE A SCHEMATIC
+// (seeded values), said so in the notes.
+
+const SLIDE_NAME = 'metamerBoxes';
+const A = '../assets/defense/';
+
+const SCRIPT = [   // presenter transcript, one passage per click
+  'Another discrepancy comes when you generate a stimulus that produces the same activations in a model as some natural stimulus.',
+  'We start from a natural image, which the network recognizes correctly.',
+  'A synthesis procedure then generates a new image, made to produce the same activations in the model as the natural image. For now, think of it as a black box; I will go through how this kind of synthesis works later, in the Methods. Out comes a model-matched image.',
+  'Both images go into the model, and we look at the model’s response to each: its activations at one stage. This pattern is a schematic of the activations, not measured values.',
+  'When the new image goes through the same model, it produces the same activations. So, by definition, to the model these two are indistinguishable, since they produce the same activations. And the model gives the same answer for both: "dog". (In the literature these stimuli are called model metamers.)',
+  'Yet to humans they look completely different: the synthesized image is usually unrecognizable; it looks like noise.',
+  'The same is done for sound. Here is the original, a spoken word, and a sound synthesized in the same way for a network that recognizes words. Again, the model gives the same answer for both.',
+  'Yet to humans, the two sound completely different: the synthesized sound is like noise. Indistinguishable to the model, very different to us. (Feather et al., 2023)',
+];
+const N = SCRIPT.length;
+
+// ── the state of the figure at each click (all 0…1) ──
+const ST = [];
+{
+  let s = {nat:0, model:0, flowN:0, respN:0, syn:0, mm:0, flowM:0, respM:0, same:0,
+           outA:0, hum:0, dim:0, snd:0, humS:0,
+           // the per-click spotlight (as on scenes/nn-intro-boxes.html): 1 = full strength, 0 = grayed (G); popquote beats
+           // keep everything at 1 under their own dimming
+           fNat:1, fMM:1, fFlow:1, fResp:1, fSyn:1, fSame:1, fAns:1};
+  const ALL = {fNat:1, fMM:1, fFlow:1, fResp:1, fSyn:1, fSame:1, fAns:1};
+  const at = o => { s = {...s, ...o}; ST.push(s); };
+  at({});                                         //  0 title
+  at({nat:1});                                    //  1 the natural image
+  at({syn:1, mm:1});                              //  2 synthesis: the top row, natural -> box -> model-matched image
+  at({model:1, flowN:1, respN:1, flowM:1, respM:1, fSyn:0});   //  3 the synthesis grays; both images through the model together
+                                                  //                                   focus: the images, the flow, their activations
+  at({same:1, outA:1, fNat:0, fMM:0});            //  4 the same activations, the same answer  focus: the flow, activations, Same, answer
+  at({hum:1, dim:1, ...ALL});                     //  5 to humans: completely different (popquote: its own dimming)
+  at({hum:0, dim:0, snd:1, fFlow:0, fSyn:0});     //  6 sound                          focus: the sounds, activations, Same, answer
+  at({humS:1, dim:1, ...ALL});                    //  7 to humans: completely different (figure dims)
+}
+// the two flows start once the synthesis has grayed (fSyn, 0.9), and run side by side
+const TIMING = {nat:[.3, .9], model:[2.4, .8], flowN:[.9, 3.8], respN:[4.5, .9],
+                syn:[0, 3.4], mm:[3.2, .9], flowM:[.9, 3.8], respM:[4.5, .9], same:[.2, .8],
+                outA:[.8, 1.4], hum:[0, .9], dim:[0, .9], snd:[0, 1.6], humS:[0, .9],
+                fNat:[0, .9], fMM:[0, .9], fFlow:[0, .9], fResp:[0, .9], fSyn:[0, .9], fSame:[0, .9], fAns:[0, .9]};
+const TIMING_AT = {5:{hum:[0, .5], dim:[0, .6]}};
+const DUR = [0, 1.0];
+
+// ── layout, in figure units (FW × FH, letterboxed into #figwrap) ──
+// Slide 9's geometry exactly (outline/contracts/box-layout.md, Fer 2026-10-15): box names on the LEFT, the model's
+// answer out to the RIGHT of the system box at MID_Y, the ochre loop up the far right.
+const FW = 1400, FH = 822;
+const CX = 700, COLX = [380, 1020];
+const SND_Y = 84, IMG_S = 100, COCH = [180, 100];          // inputs centred at y 84, labels at y 16
+const INBOX = [CX, 186, 224, 40];                          // as on slide 9; the label shrinks to fit (20px floor)
+const SYSB = [276, 236, 1124, 392];                        // the system box (the model)
+const RB = [276, 422, 1124, 550];                          // the "Responses" box
+const NAME_R = SYSB[0] - 18;                               // box names: right-aligned at x 258
+const ANS_X = SYSB[2] + 16;                                // the model's answer, just right of the box (x 1140)
+const MID_Y = 316, ROW_Y = 492, PY = ROW_Y - 10, SPLIT_Y = RB[1] + 12, CMP_Y = RB[3] + 18;
+const SYN_X = [496, 904], SYN_ARROW_Y = 124, SYN_TXT_Y = 74, SYN_BOX_Y = 100;   // the synthesis arrow between the two stimuli, its text above it (slide 9)
+const D3 = 10, GAP = 3;
+const NET = [{x:462, n:1, w:16, h:100}, {x:504, n:3, w:12, h:88}, {x:584, n:4, w:16, h:74},
+             {x:694, n:5, w:18, h:58}, {x:834, n:3, w:22, h:44}];
+const MATCH = 3, MS = 2;
+const gEnd = g => g.x + g.n*(g.w + GAP) - GAP + D3;
+const MATCH_X = NET[MATCH].x + MS*(NET[MATCH].w + GAP) + NET[MATCH].w/2;
+const IN_X = NET[0].x - 6;
+const NET_END = gEnd(NET[NET.length - 1]);
+
+const NATC = [48, 104, 196], MMC = [138, 92, 204];          // natural = the deck's blue, model-matched = plum (as on slide 9)
+const OCHRE = [226, 138, 18], SLATE = [71, 85, 105];
+
+// the activation patterns (schematic): rows = units, columns = positions (image) or moments (sound)
+let seed = 7; const rnd = () => (seed = (seed*1103515245 + 12345) % 2147483648)/2147483648;
+const PR = 6, PC = 12, CW = 14, CH = 9;
+const ORIG_I = Array.from({length:PR}, (_, r) => Array.from({length:PC}, (_, c) => (Math.sin(r*1.3 + c*.9) + Math.sin(r*.5 - c*1.7) + 2)/4));
+const NOISE_I = Array.from({length:PR}, () => Array.from({length:PC}, () => rnd()));
+const ORIG_S = Array.from({length:PR}, (_, r) => Array.from({length:PC}, (_, c) =>
+  clamp01(.5 + .32*Math.sin(c*.75 + r*1.9) + .18*Math.sin(c*1.9 - r*.7))));
+
+// ── canvas, sizing ──
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const wrap = document.getElementById('figwrap');
+let W = 0, H = 0, K = 1, OX = 0, OY = 0;
+function resize(){
+  const dpr = window.devicePixelRatio || 1;
+  W = wrap.clientWidth; H = wrap.clientHeight;
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  K = Math.min(W/FW, H/FH); OX = (W - FW*K)/2; OY = (H - FH*K)/2;
+}
+addEventListener('resize', resize);
+resize();
+const X = x => OX + x*K, Y = y => OY + y*K, S = v => v*K;
+
+const IM = {};
+let loaded = 0;
+const SRCS = {nat:'feather2023-met-img-natural.png', met:'feather2023-met-img-layer4.png',
+              cochN:'metamer-examples/feather2023-audio-ex0-original-coch.png', cochM:'metamer-examples/feather2023-audio-ex0-standard-layer4-coch.png'};
+Object.entries(SRCS).forEach(([k, src]) => { const im = new Image(); im.onload = () => loaded++; im.src = A + src; IM[k] = im; });
+const ready = () => loaded === Object.keys(SRCS).length;
+
+// ── state ──
+let beat = 0, beatT0 = performance.now(), jumped = true;
+const dotsEl = document.getElementById('dots'), notesEl = document.getElementById('notes');
+for(let i = 0; i < N; i++){ const d = document.createElement('div'); d.className = 'dot'; dotsEl.appendChild(d); }
+const PQ = [['pq-img', 'hum'], ['pq-snd', 'humS']].map(([id, k]) => [document.getElementById(id), k]);
+function render(jump){
+  jumped = jump; beatT0 = performance.now();
+  [...dotsEl.children].forEach((d, i) => d.classList.toggle('on', i <= beat));
+  notesEl.innerHTML = SCRIPT[beat];
+  PQ.forEach(([el, k]) => { el.classList.toggle('now', jump); el.classList.toggle('on', ST[beat][k] === 1); });
+  if(jump){ PQ.forEach(([el]) => void el.offsetWidth); requestAnimationFrame(() => PQ.forEach(([el]) => el.classList.remove('now'))); }   // land, no fade
+  [aud0, aud1].forEach(a => { try{ a.pause(); }catch(e){} });
+}
+const aud0 = document.getElementById('aud0'), aud1 = document.getElementById('aud1');
+function advance(){ if(beat < N-1){ beat++; render(false); } }
+function back(){ if(beat > 0){ beat--; render(true); } }
+function jump(i){ beat = Math.max(0, Math.min(N-1, i)); render(true); }
+window[SLIDE_NAME] = { advance, back, atStart:() => beat === 0, atEnd:() => beat === N-1,
+                       reset:() => jump(0), resetToEnd:() => jump(N-1),
+                       getBeat:() => beat, notes: SCRIPT, count:() => N, setBeat:jump };
+if(window.parent === window) addEventListener('click', advance);
+if(window.parent === window) addEventListener('keydown', e => {
+  if(['ArrowRight',' ','Enter'].includes(e.key)){ e.preventDefault(); advance(); }
+  else if(e.key === 'ArrowLeft'){ e.preventDefault(); back(); }
+  else if(e.key === 'n' || e.key === 'N') notesEl.classList.toggle('on');
+  else if(e.key === 'r' || e.key === 'R') jump(0);
+});
+const playBtn = [document.getElementById('play0'), document.getElementById('play1')];
+playBtn.forEach((b, r) => b.addEventListener('click', e => {
+  e.stopPropagation();
+  const a = r ? aud1 : aud0, o = r ? aud0 : aud1;
+  try{ o.pause(); }catch(err){}
+  a.currentTime = 0; const p = a.play(); if(p && p.catch) p.catch(() => {});
+}));
+render(true);
+{ const q = new URLSearchParams(location.search), b0 = +q.get('beat'), t0 = q.get('t');   // ?beat=N (thumbnails)
+  if(b0 && t0 !== null){ jump(b0 - 1); advance(); beatT0 -= 1000*+t0; }                  // ?beat=N&t=s: N's animation, s seconds in (checks)
+  else if(b0) jump(b0); }
+
+// ── helpers (as in scenes/mms-logic.html) ──
+function clamp01(v){ return Math.max(0, Math.min(1, v)); }
+const sstep = t => t*t*(3 - 2*t);
+const lerp = (a, b, u) => a + (b - a)*u;
+const rgba = (c, a) => `rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+let T = 0;
+function v(k){
+  const cur = ST[beat][k], prev = beat > 0 ? ST[beat - 1][k] : cur;
+  if(jumped || prev === cur) return cur;
+  const [d0, d] = (TIMING_AT[beat] || {})[k] || TIMING[k] || DUR;
+  return lerp(prev, cur, sstep(clamp01((T - d0)/d)));
+}
+const animating = k => !jumped && beat > 0 && ST[beat][k] === 1 && ST[beat - 1][k] === 0;
+const LABEL_PX = () => Math.min(25.6, Math.max(20, innerWidth*.017));   // .label, clamp(1.25rem, 1.7vw, 1.6rem)
+function label(text, x, y, a, {head = false, align = 'center', bold = false, color = '#0f172a', max = 0} = {}){
+  if(a <= .01) return;
+  let px = LABEL_PX()*(head ? 1.25 : 1); const lines = text.split('\n');
+  ctx.save(); ctx.globalAlpha *= a; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = 'middle';
+  ctx.font = `${bold ? 700 : 400} ${px}px "Deck Calibri", Calibri, Carlito, sans-serif`;
+  if(max){ const w = Math.max(...lines.map(l => ctx.measureText(l).width));   // fit to the width, never under 20px
+    if(w > S(max)){ px = Math.max(20, px*S(max)/w); ctx.font = `${bold ? 700 : 400} ${px}px "Deck Calibri", Calibri, Carlito, sans-serif`; } }
+  lines.forEach((l, i) => ctx.fillText(l, X(x), Y(y) + (i - (lines.length - 1)/2)*px*1.15));
+  ctx.restore();
+}
+function glow(x, y, r, c, a){
+  if(a <= .01) return;
+  const g = ctx.createRadialGradient(X(x), Y(y), 0, X(x), Y(y), S(r));
+  g.addColorStop(0, rgba(c, a)); g.addColorStop(.4, rgba(c, a*.55)); g.addColorStop(1, rgba(c, 0));
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X(x), Y(y), S(r), 0, 7); ctx.fill();
+}
+function arrow(x0, y0, x1, y1, a, c = SLATE, w = 2.6){
+  if(a <= .01) return;
+  const ang = Math.atan2(y1 - y0, x1 - x0), hl = 12;
+  ctx.save(); ctx.globalAlpha *= a; ctx.strokeStyle = rgba(c, 1); ctx.fillStyle = rgba(c, 1); ctx.lineWidth = Math.max(1.5, S(w));
+  ctx.beginPath(); ctx.moveTo(X(x0), Y(y0)); ctx.lineTo(X(x1 - Math.cos(ang)*hl*.8), Y(y1 - Math.sin(ang)*hl*.8)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(X(x1), Y(y1));
+  ctx.lineTo(X(x1 - hl*Math.cos(ang - .45)), Y(y1 - hl*Math.sin(ang - .45)));
+  ctx.lineTo(X(x1 - hl*Math.cos(ang + .45)), Y(y1 - hl*Math.sin(ang + .45))); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+function rrect(x0, y0, x1, y1, r){ ctx.beginPath(); ctx.roundRect(X(x0), Y(y0), S(x1 - x0), S(y1 - y0), S(r)); }
+// the synthesis procedure as a small rounded process box on the arrow (Fer, 2026-10-16, like Josh's "Synthesis
+// Procedure" box): natural -> arrow -> box -> arrow -> model-matched. The box is sized from the label's fitted text.
+const SYN_TXT = 'Synthesized to be the same\nto the model stage', SYN_MAX = 300;
+const SYN_PADX = () => Math.max(8, S(17)), SYN_PADY = () => Math.max(5, S(11));   // pads in px: tighter on small screens (20px text floor)
+// (2026-10-16) at small sizes the box must still fit between the two inputs (SYN_EDGE, their inner edges) with an
+// arrow stub on each side, and its text cannot go under 20px: so the words re-break into more lines and the box grows
+// taller instead of wider (tighter line spacing if it would reach the headers above or "Input stimuli" below).
+// Measured every frame, so it follows resizes.
+const SYN_EDGE = [486, 914];
+const SYN_STUB = () => Math.max(14, S(26));                     // px: the shortest arrow stub on each side
+const SYN_FONT = p => `400 ${p}px "Deck Calibri", Calibri, Carlito, sans-serif`;
+function synMeasure(){
+  ctx.save();
+  const wOf = ls => Math.max(...ls.map(l => ctx.measureText(l).width));
+  let lines = SYN_TXT.split('\n'), px = LABEL_PX(); ctx.font = SYN_FONT(px);
+  let w = wOf(lines);
+  if(w > S(SYN_MAX)){ px = Math.max(20, px*S(SYN_MAX)/w); ctx.font = SYN_FONT(px); w = wOf(lines); }
+  const padx = SYN_PADX(); let pady = SYN_PADY(), lh = 1.15;
+  const maxW = S(SYN_EDGE[1] - SYN_EDGE[0]) - 2*SYN_STUB() - 2*padx;   // px the text may take
+  if(w > maxW){                                    // too wide: the fewest lines that fit, most balanced
+    const words = SYN_TXT.split(/\s+/), g = words.length - 1; let best = null;
+    for(let n = 2; n <= words.length && !best; n++)
+      for(let m = 0; m < 1 << g; m++){
+        let c = 0; for(let k = 0; k < g; k++) c += (m >> k) & 1;
+        if(c !== n - 1) continue;
+        const ls = []; let cur = words[0];
+        for(let k = 0; k < g; k++){ if((m >> k) & 1){ ls.push(cur); cur = words[k + 1]; } else cur += ' ' + words[k + 1]; }
+        ls.push(cur); const lw = wOf(ls);
+        if(lw <= maxW && (!best || lw < best.w)) best = {ls, w:lw};
+      }
+    if(!best) best = {ls:words, w:wOf(words)};
+    lines = best.ls; w = best.w;
+  }
+  ctx.restore();
+  // the vertical room: under the inputs' headers, above the "Input stimuli" box
+  const top = SND_Y - 68 + (.36*LABEL_PX()*1.25 + 4)/K, bot = INBOX[1] - INBOX[3]/2 - 4/K;
+  const hOf = () => ((lines.length - 1)*px*lh + px + 2*pady)/K;
+  if(hOf() > bot - top){ lh = 1.05; pady = Math.min(pady, 4); }
+  const hh = hOf()/2, y = bot - top >= 2*hh ? Math.min(Math.max(SYN_BOX_Y, top + hh), bot - hh) : (top + bot)/2;
+  return {lines, px, lh, y, hw:(w/2 + padx)/K, hh};
+}
+function synArrowBox(prog, a){                     // prog: how far the arrow has drawn; a: the box and its text
+  const {lines, px, lh, y, hw, hh} = synMeasure(), b0 = CX - hw, b1 = CX + hw, st = SYN_STUB()/K;
+  const x0 = Math.max(SYN_EDGE[0], Math.min(SYN_X[0], b0 - st)), x1 = Math.min(SYN_EDGE[1], Math.max(SYN_X[1], b1 + st));
+  const d = prog*(x1 - x0);
+  polyArrow([[x0, y], [b0 - 2, y]], 1, SLATE, 2.6, clamp01(d/(b0 - 2 - x0)));
+  if(d > b1 - x0) polyArrow([[b1 + 1, y], [x1, y]], 1, SLATE, 2.6, clamp01((d - (b1 - x0))/(x1 - b1)));
+  rise(a, () => { if(a <= .01) return; ctx.save(); ctx.globalAlpha *= a; rrect(b0, y - hh, b1, y + hh, 12);
+    ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = rgba(SLATE, 1); ctx.lineWidth = Math.max(1.5, S(2.4)); ctx.stroke();
+    ctx.fillStyle = '#0f172a'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = SYN_FONT(px);
+    lines.forEach((l, i) => ctx.fillText(l, X(CX), Y(y) + (i - (lines.length - 1)/2)*px*lh)); ctx.restore(); });
+}
+function halo(box, c, a, p = 10){
+  if(a <= .01) return;
+  const [x0, y0, x1, y1] = box;
+  ctx.save(); ctx.strokeStyle = rgba(c, a); ctx.lineWidth = Math.max(2, S(4));
+  ctx.shadowColor = rgba(c, a); ctx.shadowBlur = S(14);
+  rrect(x0 - p, y0 - p, x1 + p, y1 + p, 12); ctx.stroke(); ctx.restore();
+}
+const pathLen = P => P.slice(1).reduce((s, p, i) => s + Math.hypot(p[0] - P[i][0], p[1] - P[i][1]), 0);
+function rise(a, f){ if(a <= .01) return; ctx.save(); ctx.translate(0, S(12*(1 - a))); f(); ctx.restore(); }
+function polyArrow(P, a, c = SLATE, w = 2.6, prog = 1){
+  if(a <= .01 || prog <= .005) return;
+  const end = P.length - 1, L = pathLen(P); let left = prog*L;
+  ctx.save(); ctx.globalAlpha *= a; ctx.strokeStyle = rgba(c, 1); ctx.lineWidth = Math.max(1.5, S(w)); ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(X(P[0][0]), Y(P[0][1]));
+  for(let i = 1; i <= end && left > 0; i++){
+    const sl = Math.hypot(P[i][0] - P[i-1][0], P[i][1] - P[i-1][1]) || 1;
+    const g = Math.min(Math.min(1, left/sl), i === end ? 1 - 10/sl : 1);
+    ctx.lineTo(X(lerp(P[i-1][0], P[i][0], g)), Y(lerp(P[i-1][1], P[i][1], g))); left -= sl;
+  }
+  ctx.stroke(); ctx.restore();
+  if(prog > .97) arrow(lerp(P[end-1][0], P[end][0], .5), lerp(P[end-1][1], P[end][1], .5), P[end][0], P[end][1],
+                       a*clamp01((prog - .97)/.03), c, w);
+}
+function along(P, u){
+  const L = [0]; for(let i = 1; i < P.length; i++) L.push(L[i - 1] + Math.hypot(P[i][0] - P[i-1][0], P[i][1] - P[i-1][1]));
+  let d = u*L[L.length - 1], i = 1; while(i < P.length - 1 && d > L[i]) i++;
+  const f = (d - L[i - 1])/(L[i] - L[i - 1] || 1);
+  return [lerp(P[i-1][0], P[i][0], f), lerp(P[i-1][1], P[i][1], f)];
+}
+const withA = (a, f) => { if(a <= .01) return; ctx.save(); ctx.globalAlpha *= a; f(); ctx.restore(); };
+const GRAY_G = .3;                                         // the spotlight's gray level (G on scenes/nn-intro-boxes.html)
+const F = k => GRAY_G + (1 - GRAY_G)*v(k);                 // an element's opacity: full when in focus, grayed otherwise
+function spark(x, y, c){ glow(x, y, 26, c, .55); ctx.fillStyle = rgba(c, .95); ctx.beginPath(); ctx.arc(X(x), Y(y), Math.max(2.5, S(6)), 0, 7); ctx.fill(); }
+
+// the network, as on slide 9: 3D boxes in groups of stages, one sub-stage lit; the stages after it are
+// faint until the model's answer is shown (aft 0 → 1)
+function box3d(x, y, w, h, fill, side, stroke){
+  const P = pts => { ctx.beginPath(); pts.forEach(([px, py], i) => i ? ctx.lineTo(X(px), Y(py)) : ctx.moveTo(X(px), Y(py))); ctx.closePath(); };
+  ctx.lineWidth = Math.max(1.2, S(2)); ctx.strokeStyle = stroke;
+  P([[x, y], [x + D3, y - D3], [x + w + D3, y - D3], [x + w, y]]); ctx.fillStyle = side; ctx.fill(); ctx.stroke();
+  P([[x + w, y], [x + w + D3, y - D3], [x + w + D3, y + h - D3], [x + w, y + h]]); ctx.fillStyle = side; ctx.fill(); ctx.stroke();
+  ctx.fillStyle = fill; ctx.fillRect(X(x), Y(y), S(w), S(h)); ctx.strokeRect(X(x), Y(y), S(w), S(h));
+}
+function network(ga, aft){
+  const fa = .35 + .65*aft;
+  NET.forEach((g, i) => {
+    const a = ga(i); if(a <= .01) return;
+    ctx.save(); ctx.globalAlpha *= a; ctx.translate(0, S(10*(1 - a)));
+    for(let k = 0; k < g.n; k++){
+      const lit = i === MATCH && k === MS, after = i > MATCH || (i === MATCH && k > MS);
+      ctx.save(); if(after) ctx.globalAlpha *= fa;
+      box3d(g.x + k*(g.w + GAP), MID_Y - g.h/2 + D3/2, g.w, g.h,
+            lit ? '#f6c98a' : '#f8fafc', lit ? '#e9a94d' : '#e2e8f0', lit ? '#b45309' : '#94a3b8');
+      ctx.restore();
+    }
+    if(i < NET.length - 1){ ctx.save(); if(i >= MATCH) ctx.globalAlpha *= fa;
+      arrow(gEnd(g) + 4, MID_Y, NET[i + 1].x - 5, MID_Y, 1, [100, 116, 139], 2.2); ctx.restore(); }
+    ctx.restore();
+  });
+}
+function boxOut(b, a, r = 14){ if(a <= .01 || true) return;   /* Fer 2026-10-16: no box outlines (Model / Responses / metric) */
+  rise(a, () => { ctx.save(); ctx.globalAlpha *= a; ctx.strokeStyle = rgba(SLATE, 1); ctx.lineWidth = Math.max(1.5, S(3));
+    rrect(...b, r); ctx.stroke(); ctx.restore(); }); }
+
+// ── the route, in pieces (as on slide 9) ──
+const IN_L = INBOX[0] - INBOX[2]/2, IN_R = INBOX[0] + INBOX[2]/2, IN_B = INBOX[1] + INBOX[3]/2;
+const FEED = r => [[COLX[r], SND_Y + IMG_S/2 + 6], [COLX[r], INBOX[1]], [r ? IN_R + 2 : IN_L - 2, INBOX[1]]];
+const P_ON = [[CX, IN_B], [CX, SYSB[1] - 1]];
+const TOP_Y = SYSB[1] + 18;
+const P_IN = [[CX, SYSB[1] + 1], [CX, TOP_Y], [430, TOP_Y], [430, MID_Y], [IN_X, MID_Y]];
+const P_NET = [[IN_X, MID_Y], [MATCH_X, MID_Y]];
+const MATCH_BOT = MID_Y + NET[MATCH].h/2 + D3/2 + 2, LOW_Y = SYSB[3] - 16;
+const P_READ = [[MATCH_X, MATCH_BOT], [MATCH_X, LOW_Y], [CX, LOW_Y], [CX, SYSB[3] - 1]];
+const P_OUT = [[CX, SYSB[3] + 1], [CX, RB[1] - 1]];
+const P_SPLIT = r => [[CX, RB[1] + 1], [CX, SPLIT_Y], [COLX[r], SPLIT_Y], [COLX[r], PY - PR*CH/2 - 4]];
+const PIECES = r => [FEED(r), P_ON, P_IN, P_NET, P_READ, P_OUT, P_SPLIT(r)];
+const FLOW = r => PIECES(r).flat();
+const START = r => { const ps = PIECES(r), s = []; let acc = [];
+  ps.forEach(p => { s.push(pathLen([...acc, p[0]])); acc = [...acc, ...p]; }); return s; };
+const STARTS = [START(0), START(1)];
+const seg = (d, r, k) => clamp01((d - STARTS[r][k])/pathLen(PIECES(r)[k]));
+
+// one stimulus's activations at the lit stage (schematic): a grid, rows = units, columns = positions /
+// moments, in its stimulus's colour ramp (r: 0 natural, 1 model-matched)
+function pattern(cx, M, a, r){
+  if(a <= .01) return;
+  const x0 = cx - PC*CW/2, y0 = PY - PR*CH/2;
+  ctx.save(); ctx.globalAlpha *= a;
+  M.forEach((row, i) => row.forEach((t, c) => {
+    ctx.fillStyle = rgba(actCol(t, r), 1); ctx.fillRect(X(x0 + c*CW), Y(y0 + i*CH), S(CW) + .5, S(CH) + .5); }));
+  ctx.strokeStyle = '#0f172a'; ctx.lineWidth = Math.max(1, S(1.4)); ctx.strokeRect(X(x0), Y(y0), S(PC*CW), S(PR*CH));
+  ctx.restore();
+}
+// the activations' colour (Fer, 2026-10-16): each stimulus in its own single-hue ramp, light → its colour → dark,
+// so the "Same" pairing reads at a glance (natural = blue, model-matched = plum)
+const ACT_RAMP = [[[238, 244, 252], NATC, [14, 36, 84]], [[246, 241, 252], MMC, [52, 28, 88]]];
+const actCol = (t, r) => { const R = ACT_RAMP[r], x = clamp01(t)*2, i = Math.min(1, Math.floor(x)), f = x - i;
+  return R[i].map((c, k) => lerp(c, R[i + 1][k], f)); };
+const mixM = (A0, B0, u) => A0.map((row, r) => row.map((t, c) => lerp(t, B0[r][c], u)));
+// a picture centred on (cx, cy), w × h, in a frame of its stimulus's colour c
+function pic(im, cx, cy, w, h, a, c){ if(a <= .01) return; ctx.save(); ctx.globalAlpha *= a;
+  ctx.drawImage(im, X(cx - w/2), Y(cy - h/2), S(w), S(h)); ctx.strokeStyle = rgba(c, 1); ctx.lineWidth = Math.max(2, S(3));
+  ctx.strokeRect(X(cx - w/2), Y(cy - h/2), S(w), S(h)); ctx.restore(); }
+
+// ── frame ──
+function frame(now){
+  requestAnimationFrame(frame);
+  T = (now - beatT0)/1000*2.6;   /* Fer 2026-10-16: faster flow through the boxes (all timings x2.6) */
+  if(wrap.clientWidth !== W || wrap.clientHeight !== H) resize();
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+  if(!ready()) return;
+  const nat = v('nat'), mm = v('mm'), snd = v('snd');
+  const hum = v('hum'), humS = v('humS'), dimA = 1 - .85*v('dim');
+  const SWX = 70;                                   // the swipe: images out to the left, sounds in from the right
+
+  // ── the two stimuli, on top ──
+  ctx.save();
+  ctx.save(); ctx.translate(-S(SWX*snd), 0); ctx.globalAlpha *= 1 - snd;
+  withA(F('fNat'), () => rise(nat, () => { label('Natural image', COLX[0], SND_Y - 68, nat, {head:true, color:rgba(NATC, 1)}); pic(IM.nat, COLX[0], SND_Y, IMG_S, IMG_S, nat, NATC); }));
+  withA(F('fMM'), () => rise(mm, () => { label('Model-matched image', COLX[1], SND_Y - 68, mm, {head:true, color:rgba(MMC, 1)}); pic(IM.met, COLX[1], SND_Y, IMG_S, IMG_S, mm, MMC); }));
+  ctx.restore();
+  ctx.save(); ctx.translate(S(SWX*(1 - snd)), 0); ctx.globalAlpha *= snd;
+  withA(F('fNat'), () => { label('Natural sound', COLX[0], SND_Y - 68, 1, {head:true, color:rgba(NATC, 1)}); pic(IM.cochN, COLX[0], SND_Y, ...COCH, 1, NATC); });
+  withA(F('fMM'), () => { label('Model-matched sound', COLX[1], SND_Y - 68, 1, {head:true, color:rgba(MMC, 1)}); pic(IM.cochM, COLX[1], SND_Y, ...COCH, 1, MMC); });
+  ctx.restore();
+  // the synthesis (Fer, 2026-10-16, as on slide 9): an arrow from the natural stimulus to the model-matched one, through a process box;
+  // it stays through the sound beats (the model-matched sound comes in by the same arrow)
+  const syn = v('syn'), synT = clamp01((syn - .2)/.3);
+  withA(F('fSyn'), () => {
+    synArrowBox(clamp01(syn/.4), synT);   // the arrow draws through the process box, which fades in with its text
+  });
+  // the cue: both stimuli outlined while the statement is up
+  [0, 1].forEach(r => { halo([COLX[r] - IMG_S/2, SND_Y - IMG_S/2, COLX[r] + IMG_S/2, SND_Y + IMG_S/2], OCHRE, .7*hum, 6);
+    halo([COLX[r] - COCH[0]/2, SND_Y - COCH[1]/2, COLX[r] + COCH[0]/2, SND_Y + COCH[1]/2], OCHRE, .7*humS, 6); });
+  // play buttons on the sounds (HTML, over the canvas)
+  ctx.restore();
+  playBtn.forEach((b, r) => { const on = snd > .5;
+    b.style.display = on ? 'block' : 'none';
+    if(on){ b.style.left = (X(COLX[r] + COCH[0]/2) - 40) + 'px'; b.style.top = (Y(SND_Y + COCH[1]/2) - 40) + 'px'; b.style.opacity = (dimA < .6 ? .35 : 1)*F(r ? 'fMM' : 'fNat'); } });
+
+  ctx.save(); ctx.globalAlpha = dimA;
+  const model = v('model'), outA = v('outA');
+  const U = [v('flowN'), v('flowM')], DIST = U.map((u, r) => u*pathLen(FLOW(r)));
+  // ── the fixed arrows and boxes ──
+  withA(F('fFlow'), () => {
+  [0, 1].forEach(r => polyArrow(FEED(r), 1, SLATE, 2.6, seg(DIST[r], r, 0)));
+  const inA = clamp01((DIST[0] - pathLen(FEED(0))*.8)/(pathLen(FEED(0))*.2));
+  if(inA > .01) rise(inA, () => { ctx.save(); ctx.globalAlpha *= inA;
+    rrect(IN_L, INBOX[1] - INBOX[3]/2, IN_R, IN_B, 8);
+    ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = rgba(SLATE, 1); ctx.lineWidth = Math.max(1.5, S(2.4)); ctx.stroke(); ctx.restore();
+    label('Input stimuli', INBOX[0], INBOX[1] + 1, inA, {max:INBOX[2] - 20}); });
+  polyArrow(P_ON, 1, SLATE, 2.6, seg(DIST[0], 0, 1));
+  boxOut(SYSB, seg(DIST[0], 0, 1));
+  polyArrow(P_IN, 1, [100, 116, 139], 2.2, seg(DIST[0], 0, 2));
+  polyArrow(P_READ, 1, SLATE, 2.6, seg(DIST[0], 0, 4));
+  polyArrow(P_OUT, 1, SLATE, 2.6, seg(DIST[0], 0, 5));
+  boxOut(RB, seg(DIST[0], 0, 5));
+  [0, 1].forEach(r => polyArrow(P_SPLIT(r), 1, SLATE, 2.6, seg(DIST[r], r, 6)));
+  network(i => clamp01((DIST[0] - STARTS[0][3] - (i > MATCH ? MATCH_X - IN_X + (i - MATCH)*40 : NET[i].x - IN_X))/50), outA);
+  rise(model, () => label('one stage', MATCH_X + 60, MID_Y - NET[MATCH].h/2 - 26, model));
+  // the box names, on the left
+  rise(model, () => label('Model', NAME_R, MID_Y, model, {head:true, align:'right'}));
+  });
+  withA(F('fResp'), () => rise(v('respN'), () => label('Responses', NAME_R, ROW_Y, v('respN'), {head:true, align:'right'})));
+
+  // ── the activations at the lit stage: image patterns, then (swiped) sound patterns ──
+  ctx.save(); ctx.globalAlpha *= F('fResp'); ctx.beginPath(); ctx.rect(X(RB[0] + 3), Y(SPLIT_Y + 1), S(RB[2] - RB[0] - 6), S(RB[3] - SPLIT_Y - 4)); ctx.clip();
+  ctx.save(); ctx.translate(-S(SWX*snd), 0); ctx.globalAlpha *= 1 - snd;
+  rise(v('respN'), () => pattern(COLX[0], ORIG_I, v('respN'), 0));
+  rise(v('respM'), () => pattern(COLX[1], ORIG_I, v('respM'), 1));
+  ctx.restore();
+  ctx.save(); ctx.translate(S(SWX*(1 - snd)), 0); ctx.globalAlpha *= snd;
+  [0, 1].forEach(r => pattern(COLX[r], ORIG_S, 1, r));
+  ctx.restore();
+  ctx.restore();
+
+  // the two lights, side by side (as on slide 9): each image along its own route to its own activations, each offset
+  // a little to its side so the two stay distinct on the shared stretch
+  const lightOff = (P, u, off, c) => { if(u <= .002 || u >= .998) return;
+    const [x, y] = along(P, u), [x2, y2] = along(P, Math.min(1, u + .003)), d = Math.hypot(x2 - x, y2 - y) || 1;
+    spark(x - off*(y2 - y)/d, y + off*(x2 - x)/d, c); };
+  withA(F('fFlow'), () => [[0, NATC], [1, MMC]].forEach(([r, c]) => {
+    if(animating(r ? 'flowM' : 'flowN')) lightOff(FLOW(r), U[r], r ? 7 : -7, c); }));
+
+  withA(F('fSame'), () => rise(v('same'), () => label('Same', CX, PY, v('same'), {head:true})));
+
+  // ── the model's answer: the whole network, out to its answer ──
+  if(outA > .01) withA(F('fAns'), () => {
+    polyArrow([[NET_END + 4, MID_Y], [ANS_X - 10, MID_Y]], 1, [100, 116, 139], 2.2, outA);   // out through the box's right edge
+    rise(outA, () => { label('Same answer', ANS_X, MID_Y - 24, outA, {align:'left'});
+      label('“dog”', ANS_X, MID_Y + 20, outA*(1 - snd), {head:true, align:'left'}); });
+  });
+  ctx.restore();   // dim
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

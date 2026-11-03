@@ -1,18 +1,18 @@
-/* PART: metamers (Day 3). Owner: Fernanda.
-   Plan: "Pixels -> features -> textures -> objects", "Metamers activity", "Representation + invariance",
-   "Discussion". Organized as Fernanda's outline (2026-11-03); students read the metamers primer before class.
-     1. (the representation part, parts/representation.js, comes just before this one)
-     2. Metamers, formally: f(x1) = f(x2); color (Fernanda's defense scene); the screen; relative to a system
-     3. Texture: Julesz textons; phase scramble; Portilla-Simoncelli
-     4. Activity: make or test a metamer (format to decide)
-     5. The periphery: crowding; pooling windows; Freeman & Simoncelli, Rosenholtz
-     6. Metamers as a test of models: Feather et al. 2023 (vision, then hearing); sound textures
-     7. Invariance; discussion
-   Scenes in steps 3 and 7 are copied from day04/ (built there before metamers moved to Day 3). */
+/* PART: metamers (Day 3). Owner: Fernanda. Storyline from Fernanda, 2026-11-03:
+     1. Definition, then color (the knobs we can turn; metamers show the edges of the cones' representation)
+     2. Beyond color it is hard: what are the knobs?
+     3. Textures: statistics as knobs (McDermott & Simoncelli; Julesz; phase scramble; Portilla-Simoncelli),
+        and the periphery (what human metamers are sensitive to)
+     4. No knobs at all: drive and suppress stimuli (visual system, language)
+     5. Neural networks: gradient descent as the knobs, the model's representation and behavior as the cones
+        and the percept. From the defense: adversarial vulnerability, model metamers, adversarial training
+        and robust metamers (scenes defense-*.html, Fernanda's wording kept). Feather et al. across stages.
+     6. Discussion, then "now you try" into the lab
+   Scenes julesz-textons and metamers-scramble are copied from day04/. */
 {
+/* ---------- 1. Definition, then color ---------- */
 section('Metamers');
 
-/* ---------- 2. Metamers, formally, with color as the solved case ---------- */
 st(`
   <h1 class="t">Metamers</h1>
   <div style="margin:auto 0;display:flex;flex-direction:column;gap:4vh;align-items:center">
@@ -30,6 +30,36 @@ st(`
 sc('colorMetamers', 'scenes/color-metamers.html');
 
 st(`
+  <h1 class="t">In color, we have knobs</h1>
+  <div class="flow" style="margin:auto 0">
+    <div class="step b" data-step="1"><b>Knobs</b><span class="label">three lights we can turn</span></div>
+    <div class="arrow b" data-step="2">→</div>
+    <div class="step b" data-step="2"><b>Sensors</b><span class="label">three cone types</span></div>
+    <div class="arrow b" data-step="3">→</div>
+    <div class="step b" data-step="3"><b>What is encoded</b><span class="label">three numbers</span></div>
+  </div>
+`, { notes: [
+  "(draft) Why is color the easy case?",
+  "(draft) Because we have knobs. Three lights whose intensities we can turn, one at a time, as precisely as we like.",
+  "(draft) With them we can probe the sensors directly: three types of cone, each summing the light through its own sensitivity curve.",
+  "(draft) And so we can find out exactly what is represented, or encoded, in those cells: three numbers per patch of retina, and nothing else."
+]});
+
+st(`
+  <h1 class="t">Metamers show the edges of a representation</h1>
+  <ul class="frag" style="margin:auto 0">
+    <li class="b">Some differences between spectra are not captured by the cones</li>
+    <li class="b">Those differences are thrown away</li>
+    <li class="b">There is no sensory machinery to make sense of them</li>
+  </ul>
+`, { notes: [
+  "(draft) So what do metamers tell us?",
+  "(draft) They show us the edges of the representation. Some differences in the real wavelengths, like the lamp's smooth spectrum against three narrow spikes, are simply not captured by those three cell types.",
+  "(draft) Which means the visual system throws those differences away, right at the first step.",
+  "(draft) Or, more precisely: there is no sensory machinery to make sense of them. No amount of attention or training will let you see the difference between the two halves of that field."
+]});
+
+st(`
   <h1 class="t">Every screen is a metamer machine</h1>
   <div class="flow" style="margin:auto 0">
     <div class="step b" data-step="1"><b>Camera</b><span class="label">red, green, blue filters</span></div>
@@ -40,9 +70,9 @@ st(`
   </div>
   <div class="statement center b" data-step="4">Three numbers in, three numbers out</div>
 `, { notes: [
-  "(draft) This is why color photography works at all.",
+  "(draft) We exploit this edge every day.",
   "(draft) Remember Shreya's Bayer mosaic: the camera records only three numbers per pixel, through red, green and blue filters.",
-  "(draft) The screen never reproduces the spectrum of the scene. It lights three primaries, red, green and blue subpixels, in the amounts those numbers say.",
+  "(draft) The screen never reproduces the spectrum of the scene. It lights three primaries, red, green and blue subpixels, in the amounts those numbers say: three knobs per pixel.",
   "(draft) And your three cone types compare that light with what the real scene would have sent. If the three cone responses agree, you see the same color.",
   "(draft) Three numbers in, three numbers out. A banana on your screen is a metamer of the real banana, for you."
 ]});
@@ -55,13 +85,53 @@ st(`
     <li class="b"><b>For a task:</b> a glance in the periphery, or a careful look</li>
   </ul>
 `, { notes: [
-  "(draft) One point the primer only touched: metamers are always relative.",
+  "(draft) One more point: metamers are always relative.",
   "(draft) Relative to a system. A camera's color filters are not the same as your cones, so two lights that match for you can look different in a photo, and the other way around.",
   "(draft) Relative to the conditions. Two paints can match under the store's light and not under daylight, because the light reaching your eye from each one changes differently when the illuminant changes.",
-  "(draft) And relative to how you look. Two images can be metamers in a brief glance in your periphery and obviously different when you look straight at them. We will see exactly that in a few minutes. So when we say looks the same, we always mean: to this system, under these conditions."
+  "(draft) And relative to how you look. Two images can be metamers in a brief glance in your periphery and obviously different when you look straight at them. So when we say looks the same, we always mean: to this system, under these conditions."
 ]});
 
-/* ---------- 3. Texture: which statistics are enough? ---------- */
+/* ---------- 2. Beyond color ---------- */
+st(`
+  <h1 class="t">Beyond color, it is hard</h1>
+  <div class="tiles" style="grid-template-columns:repeat(4,1fr);flex:0 0 auto;margin-top:4vh">
+    <div class="tile b" data-step="1"><div class="lead center">lighting</div></div>
+    <div class="tile b" data-step="1"><div class="lead center">texture</div></div>
+    <div class="tile b" data-step="1"><div class="lead center">shape</div></div>
+    <div class="tile b" data-step="1"><div class="lead center">position, size, viewpoint</div></div>
+  </div>
+  <div class="question center b" data-step="2" style="margin:auto">What are the knobs?</div>
+`, { notes: [
+  "(draft) Beyond color, this gets hard.",
+  "(draft) Images vary in so many ways at once: the lighting, the textures, the shapes of things, where they are, how big, from which viewpoint. And we do not know the sensors: after the cones, the representations are many stages deep.",
+  "(draft) So what are the knobs? What could we turn, carefully and one at a time, to find the edges of those representations?"
+]});
+
+/* ---------- 3. Textures: statistics as knobs ---------- */
+section('Textures');
+
+st(`
+  <h1 class="t">Textures: statistics as knobs</h1>
+  <div class="flow" style="margin:auto 0">
+    <div class="step b" data-step="1"><b>A sound texture</b><span class="label">rain, wind, fire</span></div>
+    <div class="arrow b" data-step="2">→</div>
+    <div class="step b" data-step="2"><b>A model of the ear</b><span class="label">frequency channels</span></div>
+    <div class="arrow b" data-step="3">→</div>
+    <div class="step b" data-step="3"><b>Statistics</b><span class="label">the knobs</span></div>
+    <div class="arrow b" data-step="4">→</div>
+    <div class="step b" data-step="4"><b>Synthesis</b><span class="label">noise, adjusted to match</span></div>
+  </div>
+  <div class="todo b" data-step="5">Sound examples: an original texture and its synthetic version, to play in class. Source: to add</div>
+  ${cite('McDermott &amp; Simoncelli, 2011')}
+`, { notes: [
+  "(draft) For textures, there is a beautiful answer.",
+  "(draft) Take a sound texture, like rain, wind or fire.",
+  "(draft) Pass it through a model of the ear, the cochlea: a bank of filters, each picking out one band of frequencies.",
+  "(draft) Then measure a set of statistics of those channels over time: how loud each band is on average, how much it varies, how the bands move together. Those statistics are the knobs.",
+  "(draft) Start from noise and adjust it until its statistics match the original's. McDermott and Simoncelli did exactly this.",
+  "(to write) Listen to the original and the synthetic version. For many textures, listeners hear them as the same kind of sound, even though the waveform is completely different: a metamer, for us. And when a synthetic sound does not sound right, it tells us which statistic we were missing: turning the knobs shows the edges of our hearing."
+]});
+
 sc('juleszTextons', 'scenes/julesz-textons.html');
 
 sc('metamerScramble', 'scenes/metamers-scramble.html');
@@ -78,26 +148,12 @@ st(`
   <div class="todo b" data-step="4">Original and synthesized texture, side by side; then the same synthesis with groups of statistics dropped. Generate with plenoptic (the lab session can make these).</div>
   ${cite('Portilla &amp; Simoncelli, 2000')}
 `, { notes: [
-  "(draft) Portilla and Simoncelli asked: which statistics are enough?",
+  "(draft) For images, Portilla and Simoncelli asked the same question: which statistics are enough?",
   "(draft) Start from a photograph of a texture.",
   "(draft) Pass it through a bank of oriented filters at several scales, like the Gabor bank from earlier today, and measure statistics of the outputs: not just the power spectrum, but correlations between responses at neighboring positions, orientations and scales.",
   "(draft) Then start from random noise and adjust its pixels, step by step with gradient descent, until its statistics match the ones measured on the photo.",
-  "(to write) The result, next to the original. Then the deeper question: drop one group of statistics at a time, and see which part of the texture falls apart."
+  "(to write) The result, next to the original. Then turn the knobs one group at a time: drop a group of statistics, and see which part of the texture falls apart."
 ]});
-
-/* ---------- 4. Activity ---------- */
-section('Activity');
-
-st(`
-  <h1 class="t">Your turn: make a metamer</h1>
-  <div class="todo b" style="margin:auto 0">Activity format: to decide. Proposal: in pairs, one person makes an image with different pixels (scramble the phases, shuffle patches, or resynthesize a texture), the other tries to tell which one is real.</div>
-`, { notes: [
-  "(to write) Activity: create and compare images that differ in pixels but look perceptually similar.",
-  "(to write) Instructions for the activity, once the format is decided."
-]});
-
-/* ---------- 5. Where vision pools: the periphery ---------- */
-section('Beyond texture');
 
 /* Crowding: the target letter sits at the same distance from the cross in both rows. */
 st(`
@@ -112,7 +168,7 @@ st(`
   </div>
   ${cite('Bouma, 1970')}
 `, { notes: [
-  "(draft) A quick experiment on yourselves. Keep your eyes on the cross; do not look to the right.",
+  "(draft) Texture statistics turn out to matter far beyond textures. A quick experiment on yourselves. Keep your eyes on the cross; do not look to the right.",
   "(draft) Without moving your eyes, can you read the letter on the right? Most people can.",
   "(draft) Now the same letter, at the same distance from the cross, with a neighbor on each side. Keep looking at the cross. It is much harder to say what the middle letter is. This is called crowding; Bouma measured it for letters in 1970. The letters are all there, but the periphery seems to keep a summary of the region rather than every detail."
 ]});
@@ -138,43 +194,73 @@ st(`
 `, { notes: [
   "(draft) Why is the periphery like that?",
   "(draft) One account: the visual system computes texture-like statistics over pooling regions, and these regions grow with the distance from where you are looking. This picture is a schematic, not measured data: each circle is a pooling region.",
-  "(to write) Freeman and Simoncelli built a model like this, generated images that match its statistics in every region, and asked people to compare them with the original while keeping their eyes on the center. When the regions grow at about the rate of receptive fields in V2, people cannot tell the images apart: they are metamers, even though the periphery of the synthetic image is scrambled.",
+  "(to write) Freeman and Simoncelli built a model like this, generated images that match its statistics in every region, and asked people to compare them with the original while keeping their eyes on the center. When the regions grow at about the rate of receptive fields in V2, people cannot tell the images apart: they are metamers, even though the periphery of the synthetic image is scrambled. So human metamers tell us what we are sensitive to: in the periphery, summary statistics, not exact positions.",
   "(to write) Ruth Rosenholtz and colleagues made a similar point with what they call mongrels: images synthesized to match local summary statistics. They used them to explain crowding, the effect you just tried."
 ]});
 
-/* ---------- 6. Metamers as a test of models (figures: CC BY 4.0, see assets/metamers/SOURCES.md) ---------- */
-const FEATHER = 'Feather, Leclerc, Mądry &amp; McDermott (2023), Nature Neuroscience · CC BY 4.0';
+/* ---------- 4. No knobs: drive and suppress ---------- */
+section('Networks');
+
 st(`
-  <h1 class="t">Model metamers: does a network throw away what we do?</h1>
-  <div class="flow b" data-step="1" style="margin:0">
-    <div class="step"><b>An image</b></div><div class="arrow">→</div>
-    <div class="step"><b>Network stage</b><span class="label">its activations</span></div><div class="arrow">→</div>
-    <div class="step"><b>Noise, adjusted</b><span class="label">until they match</span></div><div class="arrow">→</div>
-    <div class="step"><b>Ask people</b><span class="label">same or not?</span></div>
+  <h1 class="t">And where we have no knobs?</h1>
+  <div class="cols" style="grid-template-columns:1fr 1fr">
+    <div class="b" data-step="1" style="display:flex;flex-direction:column;gap:2vh">
+      <div class="lead"><b>Visual cortex</b></div>
+      <div class="label">images made to drive, or silence, single neurons</div>
+      <div class="todo">Figure: synthesized images that drive or suppress V4 sites. Source: to add</div>
+      <div class="label">Bashivan, Kar &amp; DiCarlo, 2019 (to check)</div>
+    </div>
+    <div class="b" data-step="2" style="display:flex;flex-direction:column;gap:2vh">
+      <div class="lead"><b>Language</b></div>
+      <div class="label">sentences chosen to drive, or suppress, the language network</div>
+      <div class="todo">Figure: drive and suppress sentences, and the brain responses. Source: to add</div>
+      <div class="label">Tuckute et al., 2024 (to check)</div>
+    </div>
   </div>
-  <div class="b" data-step="2" style="flex:1 1 auto;min-height:0;display:flex;margin-bottom:5vh">${fig('../assets/metamers/feather2023-fig4d.jpg')}</div>
-  ${cite(FEATHER)}
+  <div class="statement center b" data-step="3">A model chooses the stimulus</div>
 `, { notes: [
-  "(draft) Now turn the tool around and use it on our models.",
-  "(draft) The recipe is the same as for textures. Take an image, run it through a trained network, and record the activations at one stage. Start from noise and adjust it until the network's activations match. The result is a model metamer: an image the network treats as identical to the original. Then show it to people.",
-  "(draft) Here is what Jenelle Feather and colleagues found for image classifiers. Each row is a network, each column a deeper stage. For a standard network, the early-stage metamers still look like the bear, but from the later stages they look like colored noise to people, even though the network calls them all bear. The adversarially trained network in the middle row keeps much more of the bear. So these standard networks throw away information that people use: their invariances are not ours."
+  "(draft) And beyond textures, where we have no hand-made knobs at all?",
+  "(draft) One answer from the visual system: use a model of the neurons to design the stimulus. Bashivan, Kar and DiCarlo built a model of neurons in area V4 of the monkey, then synthesized images that the model predicted would drive a site as hard as possible, or silence it, and showed them to the monkey. (check the details before class)",
+  "(draft) The same idea works for language. Tuckute and colleagues used a language model to choose sentences predicted to drive, or to suppress, the human language network, and measured the brain's responses with fMRI. (check the details before class)",
+  "(draft) In both cases, a model chooses the stimulus. And that is where neural networks come in."
 ]});
 
 st(`
-  <h1 class="t">The same test, for hearing</h1>
-  <div class="b" data-step="1" style="flex:1 1 auto;min-height:0;display:flex;margin-bottom:5vh">${fig('../assets/metamers/feather2023-fig5d.jpg')}</div>
-  <div class="todo b" data-step="2">Sound examples: original and model metamers, to play in class. Source: to add (from the paper's materials, or generated in the lab)</div>
-  ${cite(FEATHER)}
+  <h1 class="t">Neural networks: gradient descent as the knobs</h1>
+  <div style="margin:auto 0;display:grid;grid-template-columns:auto 1fr 1fr;gap:2.4vh 3vw;align-items:center">
+    <div></div><div class="lead b" data-step="1"><b>Color</b></div><div class="lead b" data-step="1"><b>A network</b></div>
+    <div class="label b" data-step="2">the knobs</div><div class="lead b" data-step="2">three lights</div><div class="lead b" data-step="2">gradient descent on the pixels</div>
+    <div class="label b" data-step="3">the sensors</div><div class="lead b" data-step="3">the cones</div><div class="lead b" data-step="3">a stage's activations</div>
+    <div class="label b" data-step="4">the percept</div><div class="lead b" data-step="4">the color you see</div><div class="lead b" data-step="4">the model's behavior</div>
+  </div>
+  <div class="statement center b" data-step="5">What does the model encode, and what does it throw away?</div>
 `, { notes: [
-  "(draft) The same test works in hearing.",
-  "(draft) These are cochleagrams: frequency going up, time going across, like a spectrogram shaped by the ear. For speech networks with standard training, late-stage metamers turn into texture, and people can no longer make out the word. Adversarial training helps here too, though less than for images.",
-  "(to write) Listen to an original and its metamers."
+  "(draft) Neural networks give us knobs for any representation we can compute.",
+  "(draft) Compare with color.",
+  "(draft) In color, the knobs are three lights. In a network, the knob is gradient descent: we can change every pixel of an image, a little at a time, in whatever direction moves the network where we want.",
+  "(draft) In color, the sensors are the cones. In a network, they are the activations at one stage: the model's representation.",
+  "(draft) And in color, the output is the color you see. In a network, it is the model's behavior, for example its label.",
+  "(draft) So networks let us ask exactly the question we asked of the cones: what does this model encode, and what does it throw away? Here are some answers."
 ]});
 
-/* ---------- 7. Invariance, then discussion ---------- */
-section('Invariance');
+sc('adversarialBoxes', 'scenes/defense-adversarial.html');
 
-sc('invariance', 'scenes/invariance.html');
+sc('metamerBoxes', 'scenes/defense-metamers.html');
+
+sc('advTrainingBoxes', 'scenes/defense-adv-training.html');
+
+/* Feather et al. (2023) Fig. 4d: CC BY 4.0 (see assets/metamers/SOURCES.md) */
+st(`
+  <h1 class="t">Model metamers at every stage</h1>
+  <div class="b" data-step="1" style="flex:1 1 auto;min-height:0;display:flex;margin-bottom:5vh">${fig('../assets/metamers/feather2023-fig4d.jpg')}</div>
+  ${cite('Feather, Leclerc, Mądry &amp; McDermott (2023), Nature Neuroscience · CC BY 4.0')}
+`, { notes: [
+  "(draft) The same comparison, across every stage of the network.",
+  "(draft) Each row is a network, each column a deeper stage. For the standard network, the early-stage metamers still look like the bear, but from the later stages they look like colored noise to people, even though the network calls them all bear. The adversarially trained network in the middle row keeps much more of the bear. Training with random noise instead, in the bottom row, does not help. So metamers tell us not only that a model's invariances differ from ours, but where, stage by stage, and which training choices close the gap."
+]});
+
+/* ---------- 5. Discussion, then the lab ---------- */
+section('Your turn');
 
 st(`
   <div class="question center">What information can be removed while preserving perception?</div>
@@ -184,9 +270,29 @@ st(`
     <li class="b">For a machine?</li>
   </ul>
 `, { notes: [
-  "(draft) To finish, a question for all of you: what information can be removed from an image while keeping what we perceive?",
+  "(draft) Before you try it yourselves, a question for all of you: what information can be removed from an image while keeping what we perceive?",
   "(draft) Think about textures: what did the scrambling and the synthesis throw away?",
   "(draft) Think about the periphery: what is lost outside the center of gaze, and why don't we notice?",
-  "(draft) And for a machine: would a classifier be fooled by the same changes, or by different ones? That is the question we take into Day 4, on CNNs."
+  "(draft) And for a machine: would a classifier be fooled by the same changes, or by different ones?"
+]});
+
+st(`
+  <h1 class="t">Now you try: make a metamer</h1>
+  <div class="flow" style="margin:auto 0">
+    <div class="step b" data-step="1"><b>A texture</b><span class="label">match its statistics</span></div>
+    <div class="arrow b" data-step="2">→</div>
+    <div class="step b" data-step="2"><b>A vision network</b><span class="label">match one stage</span></div>
+    <div class="arrow b" data-step="3">→</div>
+    <div class="step b" data-step="3"><b>A sound</b><span class="label">match an audio model</span></div>
+  </div>
+  <div class="lead center b" data-step="4">Then test a partner: which one is real?</div>
+  <div class="todo b" data-step="5">Colab link: notebooks/day03-lab-metamers.ipynb (being built with plenoptic)</div>
+`, { notes: [
+  "(draft) Now you try. In the lab you make metamers yourselves, with a library called plenoptic.",
+  "(draft) First a texture: pick a photo, and synthesize a new image that matches its statistics.",
+  "(draft) Then a vision network: match the activations at one stage, early or late, and see what survives.",
+  "(draft) Then a sound: the same idea with an audio model, and you can listen to the result.",
+  "(draft) And then test a partner: play or show them your original and your metamer, and see whether they can tell which one is real.",
+  "(to write) Where to find the notebook."
 ]});
 }

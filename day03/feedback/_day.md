@@ -64,3 +64,25 @@ are drawn in code, so there are no third-party images yet.
 - Model parameters (center/surround sizes, Gabor sizes) are chosen for illustration and say so in the notes.
 - Slate-blue (`--early`) is used for the retina/V1 receptive fields and the center-surround model curve,
   matching Day 1's "eye to V1". R/G/B tints appear only as data (filter and channel colors).
+
+## Round 2 · 2026-11-03 · Fernanda's metamers storyline (slides 18-41)
+
+Order: representation (decoding, ladder, invariance) → metamers definition → color (2° field, knobs,
+edges of a representation, screens, relativity) → beyond color: what are the knobs? → textures (McDermott
+& Simoncelli as knobs, Julesz, phase scramble, Portilla-Simoncelli, crowding, pooling) → no knobs: drive and
+suppress → networks: gradient descent as the knobs → defense scenes (adversarial, model metamers,
+adversarial training + robust metamers) → Feather across stages → discussion → now you try (lab).
+
+- [ ] Defense scenes keep Fernanda's wording verbatim. Lines that only make sense in the defense:
+      "I will go through how this kind of synthesis works later, in the Methods" (metamers scene, click 2);
+      "Previous work from our lab" (adversarial training, click 8). Edit in the presenter (E) if wanted.
+      The defense's last click (the brain-alignment question) is left out of the course copy.
+- [ ] Rights for the public site: the panda / gibbon images come from Goodfellow et al. (2015), arXiv;
+      the Feather et al. stimuli come from the lab's stimulus server. Check before merging to main.
+- [ ] Citations to check: Bashivan, Kar & DiCarlo (2019, Science); Tuckute et al. (2024, Nature Human
+      Behaviour); the Wright and Guild 2° field (title note of the color slide).
+- [ ] Figures to add: drive/suppress (V4, language), sound-texture examples, Portilla-Simoncelli and
+      Freeman-Simoncelli images (the plenoptic lab session can generate the last two).
+- [ ] Minutes per section are a first guess (Representation 10, Metamers 10, Textures 12, Networks 15,
+      Your turn 5). Day 3 is now long: decide what to trim.
+- [ ] Two homework slides: Shreya's (slide 17) and none at the end of the metamers half. Merge into one at the end.

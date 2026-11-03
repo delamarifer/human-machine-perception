@@ -1,0 +1,33 @@
+/* The deck's type scale for scene iframes (same values as outline/deck.css). Link with ../vendor/calibri.css. */
+.statement{font-family:'Deck Calibri',Calibri,Carlito,'Helvetica Neue',Arial,sans-serif; font-size:clamp(1.8rem, 3vw, 2.8rem); line-height:1.3; font-weight:400; color:#0f172a; max-width:30em;}
+.body-text{font-family:'Deck Calibri',Calibri,Carlito,'Helvetica Neue',Arial,sans-serif; font-size:clamp(1.5rem, 2.5vw, 2.3rem); line-height:1.4; color:#0f172a;}
+.label{font-family:'Deck Calibri',Calibri,Carlito,'Helvetica Neue',Arial,sans-serif; font-size:clamp(1.25rem, 1.7vw, 1.6rem); line-height:1.3; color:#0f172a;}
+.cite, .deck-cite{font-family:'Deck Calibri',Calibri,Carlito,'Helvetica Neue',Arial,sans-serif; font-size:clamp(1.15rem, 1.55vw, 1.6rem); line-height:1.3; color:#0f172a;}
+/* round 14 (Fer, 2026-10-14): pop-up quotes over a dimmed slide are larger and bold */
+.popquote{font-family:'Deck Calibri',Calibri,Carlito,'Helvetica Neue',Arial,sans-serif; font-size:clamp(2.2rem, 3.6vw, 3.3rem) !important; font-weight:700 !important; line-height:1.25; color:#0f172a; max-width:26em;}
+/* Fer 2026-10-15: white backing with glowing edges behind pop-up text */
+.popquote{background:rgba(255,255,255,.94) !important; border-radius:28px; padding:.25em .55em !important;
+  box-shadow:0 0 28px 22px rgba(255,255,255,.94), 0 0 70px 40px rgba(255,255,255,.7) !important;
+  text-shadow:0 0 10px #fff, 0 0 18px #fff;}
+
+/* Fer 2026-10-15 (late): "make the glow area larger" for all pop-out quotes */
+.popquote{padding:.4em .85em !important; border-radius:40px;
+  box-shadow:0 0 50px 44px rgba(255,255,255,.95), 0 0 130px 90px rgba(255,255,255,.75), 0 0 220px 120px rgba(255,255,255,.4) !important;}
+
+/* Research-question cards, one style deck-wide (Fer 2026-10-16: "Format the box of research question across each part
+   the same, so it's recognizable, and so that we answer them at the end"). Same rules in outline/deck.css (static slides)
+   and outline/type.css (scene iframes). Markup:
+     <div class="rq-eyebrow">Our research questions</div>
+     <div class="rq-card"><div class="rq-mark">?</div><div class="rq-q"><span class="rq-n">1</span>Question?
+       <div class="rq-a">→ <b>Yes:</b> answer.</div></div></div>   (.rq-a only on the answer slides) */
+.rq-eyebrow{font-family:'Deck Calibri',Calibri,Carlito,'Helvetica Neue',Arial,sans-serif; font-size:clamp(1.25rem, 1.7vw, 1.6rem);
+  line-height:1.3; text-transform:uppercase; letter-spacing:.1em; font-weight:700; color:#1d4ed8; margin:0;}
+.rq-card{display:flex; align-items:flex-start; gap:1.4vw; background:#eff6ff; border:1px solid #bfdbfe; border-left:6px solid #1d4ed8;
+  border-radius:12px; padding:1.6vh 1.8vw; box-sizing:border-box; text-align:left;}
+.rq-mark{font-family:'Deck Calibri',Calibri,Carlito,'Helvetica Neue',Arial,sans-serif; font-size:clamp(2.6rem, 4.4vw, 4rem);
+  font-weight:300; line-height:.9; color:#1d4ed8; flex:none;}
+.rq-q{font-family:'Deck Calibri',Calibri,Carlito,'Helvetica Neue',Arial,sans-serif; font-size:clamp(1.5rem, 2.5vw, 2.3rem);
+  line-height:1.25; font-style:italic; font-weight:400; color:#1e3a8a; margin:0;}
+.rq-n{font-style:normal; font-weight:700; margin-right:.35em;}
+.rq-a{font-style:normal; font-weight:400; color:#0f172a; margin-top:.8vh; font-size:clamp(1.35rem, 2.1vw, 1.9rem); line-height:1.3;}
+.rq-a b{font-weight:700;}
