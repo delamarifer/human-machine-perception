@@ -6,6 +6,13 @@ See nbtools.py for how to build and check it."""
 import os
 from nbtools import md, code, hidden, turn, answer, resources, badge, main
 
+# The solutions live in a git-ignored file, private/day01_lab_solutions.py (the repository is public).
+# Without it, this script still builds the student notebook; --teacher and --solved need it.
+try:
+    from private.day01_lab_solutions import SOL, ANSWERS
+except ImportError:
+    SOL, ANSWERS = {}, {}
+
 FILE = 'day01-lab-simple-vision-system.ipynb'
 HELPERS = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'day01_lab_helpers.py')).read()
 CHAPTER = 'https://visionbook.mit.edu/simplesystem.html'
@@ -115,21 +122,7 @@ if point1[1] is None:
 else:
     print(f"point 1 lands at x = {point1[0]}, y = {point1[1]:.2f}")
     print(f"point 2 lands at x = {point2[0]}, y = {point2[1]:.2f}")
-""", """
-theta = np.deg2rad(35)
-
-def project(X, Y, Z):
-    x = X
-    y = np.cos(theta) * Y - np.sin(theta) * Z
-    return x, y
-
-point1 = project(10, 20, 0)
-# Raise Y by 10. To keep y the same, Z must grow by 10 * cos(theta) / sin(theta).
-point2 = project(10, 30, 10 * np.cos(theta) / np.sin(theta))
-
-print(f"point 1 lands at x = {point1[0]}, y = {point1[1]:.2f}")
-print(f"point 2 lands at x = {point2[0]}, y = {point2[1]:.2f}")
-""")
+""", SOL.get(1, ""))
 resources(('Book: a simple image formation model', 'https://visionbook.mit.edu/simplesystem.html#a-simple-image-formation-model'), ('np.cos / np.sin', 'https://numpy.org/doc/stable/reference/generated/numpy.cos.html'), ('np.deg2rad', 'https://numpy.org/doc/stable/reference/generated/numpy.deg2rad.html'))
 md("""
 Both points give the same `(x, y)`. From the image alone, there is no way to tell which one is out
@@ -192,18 +185,7 @@ if dx_simple is not None:
     plt.colorbar(label="change in brightness, left to right")
     plt.title("Horizontal derivative")
     plt.show()
-""", """
-dx_simple = gray[:, 1:] - gray[:, :-1]
-
-print("shape:", dx_simple.shape, "(one column fewer than the image)")
-plt.figure(figsize=(8, 5.5))
-plt.imshow(dx_simple, cmap="RdBu", vmin=-0.3, vmax=0.3)
-plt.colorbar(label="change in brightness, left to right")
-plt.title("Horizontal derivative")
-plt.show()
-# Red: brightness goes down to the right. Blue: it goes up. White: no change.
-# Notice that edges that run left to right are nearly invisible here: they need the vertical derivative.
-""")
+""", SOL.get(2, ""))
 resources(('Book: extracting edges', 'https://visionbook.mit.edu/simplesystem.html#extracting-edges-from-images'), ('NumPy slicing', 'https://numpy.org/doc/stable/user/basics.indexing.html#slicing-and-striding'), ('plt.imshow', 'https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.imshow.html'))
 md("""
 A slightly better version averages over the neighboring rows too (the **Sobel** filter, in the helper
@@ -235,15 +217,7 @@ plt.figure(figsize=(8, 5.5))
 plt.imshow(edges, cmap="gray")
 plt.title("Edge pixels")
 plt.show()
-""", """
-edges = strength > 0.03
-
-plt.figure(figsize=(8, 5.5))
-plt.imshow(edges, cmap="gray")
-plt.title("Edge pixels")
-plt.show()
-# The faintest edges are between two faces of one box, where the two shades are close.
-""")
+""", SOL.get(3, ""))
 resources(('Book: extracting edges', 'https://visionbook.mit.edu/simplesystem.html#extracting-edges-from-images'), ('Boolean masks in NumPy', 'https://numpy.org/doc/stable/user/basics.indexing.html#boolean-array-indexing'), ('np.hypot', 'https://numpy.org/doc/stable/reference/generated/numpy.hypot.html'))
 
 # ---------------------------------------------------------------------------------------------
@@ -267,15 +241,7 @@ plt.figure(figsize=(8, 5.5))
 plt.imshow(figure, cmap="gray")
 plt.title("Figure (white) and ground (black)")
 plt.show()
-""", """
-saturation = image.max(axis=2) - image.min(axis=2)
-figure = saturation > 0.15
-
-plt.figure(figsize=(8, 5.5))
-plt.imshow(figure, cmap="gray")
-plt.title("Figure (white) and ground (black)")
-plt.show()
-""")
+""", SOL.get(4, ""))
 resources(('Book: figure/ground segmentation', 'https://visionbook.mit.edu/simplesystem.html#figureground-segmentation'), ('np.max (axis)', 'https://numpy.org/doc/stable/reference/generated/numpy.max.html'), ('np.min (axis)', 'https://numpy.org/doc/stable/reference/generated/numpy.min.html'), ('Broadcasting', 'https://numpy.org/doc/stable/user/basics.broadcasting.html'))
 md("""
 **Two kinds of object boundary.** Scan any column of the image from top to bottom:
@@ -336,18 +302,7 @@ plt.figure(figsize=(8, 5.5))
 plt.imshow(show)
 plt.title("Vertical (red) and horizontal (blue) 3D edges")
 plt.show()
-""", """
-angle = np.arctan2(dy, dx)                      # in radians
-vertical = edges & (np.abs(np.sin(angle)) < np.sin(np.deg2rad(15)))
-
-show = np.ones(image.shape)
-show[edges] = (0.2, 0.3, 0.9)
-show[vertical] = (0.9, 0.2, 0.2)
-plt.figure(figsize=(8, 5.5))
-plt.imshow(show)
-plt.title("Vertical (red) and horizontal (blue) 3D edges")
-plt.show()
-""")
+""", SOL.get(5, ""))
 resources(('Book: generic view', 'https://visionbook.mit.edu/simplesystem.html#generic-view-and-nonaccidental-scene-properties'), ('np.arctan2', 'https://numpy.org/doc/stable/reference/generated/numpy.arctan2.html'), ('Boolean masks in NumPy', 'https://numpy.org/doc/stable/user/basics.indexing.html#boolean-array-indexing'))
 
 # ---------------------------------------------------------------------------------------------
@@ -414,14 +369,7 @@ Turn the reconstruction so you look at it from behind. Name two things that are 
 why the system could not have recovered them.
 """)
 resources(('Book: occlusion edges', 'https://visionbook.mit.edu/simplesystem.html#occlusion-edges'), ('Book: from constraints to 3D', 'https://visionbook.mit.edu/simplesystem.html#sec-constraint'), ('Plotly 3D scatter', 'https://plotly.com/python/3d-scatter-plots/'))
-answer("""
-- Each box is only a **shell**: its back faces are missing. The camera never saw them, and each pixel
-  gives us exactly one surface point, the nearest one.
-- The **floor behind each box** has a hole in it: the box blocked the camera's view of that floor.
-
-The system recovers only the surfaces it can see. To fill in the rest it would need more knowledge
-about the world, for example that boxes are closed solids, or that floors continue behind objects.
-""")
+answer(ANSWERS.get(6, ""))
 md("""
 **Think about it.** The answer is close, but not perfect, even though the image is clean and
 computer-generated. Where could the error come from? (Hints: how wide is an edge, in pixels? On which
@@ -459,15 +407,7 @@ my_world = None       # replace None with a list of boxes, like floating_world a
 
 if my_world is not None:
     run_system(my_world, "my world")
-""", """
-my_world = [make_box(-30, 10, 50, 30, 50, 30, BLUE),
-            make_box(-30, 10, 25, 25, 25, 30, RED, base=30)]     # a red box sitting on the blue one
-
-run_system(my_world, "my world: a stack")
-# Compare the two height images: the stack comes out too short (the red top is recovered well
-# below its true height). Our equations were written for boxes standing on the floor; a box
-# resting on another box is a case the system was never designed for.
-""")
+""", SOL.get(7, ""))
 resources(('Book: generalization', 'https://visionbook.mit.edu/simplesystem.html#generalization'), ('Book: a simple inference scheme', 'https://visionbook.mit.edu/simplesystem.html#a-simple-inference-scheme'))
 
 # ---------------------------------------------------------------------------------------------

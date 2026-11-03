@@ -82,6 +82,8 @@ def build(mode='student', private_solutions=False):
                 last = m.group(1); _id(cell, f'turn-{last}')
             nb.cells.append(cell)
         elif kind == 'answer':
+            if not src:
+                continue
             if mode == 'teacher':
                 nb.cells.append(_id(nbf.v4.new_markdown_cell('#### Solution\n\n' + src), f'solution-{last}'))
             elif not private_solutions:
@@ -92,7 +94,7 @@ def build(mode='student', private_solutions=False):
             cell = nbf.v4.new_code_cell(sol if (mode == 'solved' and sol) else src)
             if hide:
                 cell.metadata['cellView'] = 'form'
-            if sol and m:
+            if m and not hide:
                 last = m.group(1); _id(cell, f'turn-{last}')
             nb.cells.append(cell)
             if sol and mode == 'teacher':
@@ -112,6 +114,9 @@ def build(mode='student', private_solutions=False):
 
 def main(file, private_solutions=False):
     args = sys.argv[1:]
+    if args and private_solutions and not any(c[2] for c in cells):
+        sys.exit('no solutions loaded: --teacher and --solved need notebooks/build/private/ (git-ignored, on '
+                 "Fernanda's machine). The student notebook builds without it.")
     if len(args) == 2 and args[0] == '--solved':
         nbf.write(build('solved', private_solutions), args[1])
     elif args == ['--teacher']:
