@@ -185,6 +185,10 @@ embed('What vision models are still “blind” to', 'https://vlmsareblind.githu
   "Models that combine images and language can describe a photo in detail. But here is a paper titled: vision language models are blind. (Rahmanzadehgervi et al., ACCV 2024.)",
   "(Scroll through the examples.) The authors asked questions a child can answer: do two circles overlap, how many times do these lines cross, which letter is circled. Four of the best models of 2024 got 58 percent right on average; the best one, 78 percent. A person is expected to get all of them. Whether today's models still fail, and why, is exactly the kind of question you could study."], { blank: true })
 
+/* Adversarial vulnerability, from Fernanda's thesis defense (scenes/adversarial.html: panda + perturbation -> "gibbon",
+   Goodfellow et al. 2015; her own speech attack, "director" -> "center"). Her wording in the notes. */
+sc('adversarialBoxes', 'scenes/adversarial.html');
+
 /* Texture or shape: the paper's finding, then the same idea tested on our two photos with our ResNet-18. Shuffling
    the patches destroys the shape and keeps the texture. Real outputs: day02/assets/shuffle/(coffee, elephant)/result.json, made by
    day02/assets/shuffle.py from the same crops as the earlier slides (so "intact" matches them). Two photos, one

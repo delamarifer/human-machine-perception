@@ -75,3 +75,10 @@ Two photos, one seed: a probe for class, not a measurement.
 - The Pizlo slide's "many 3D scenes fit it" and the Keshav slide's paper page are schematics drawn in SVG/HTML
   in `parts/papers.js`, not data. The research slide reuses `shuffle/coffee/` and the VLMs-are-blind numbers
   exactly as the motivation slides show them.
+
+## adversarial/ (adversarial vulnerability scene)
+Copied from Fernanda's thesis defense (thesis-defense/assets/outline/, used by
+scenes/adversarial-boxes.final-ch1-adv-vulnerability.html, 2026-10-16):
+- adv-panda.png, adv-panda-delta.png, adv-panda-gibbon.png: Goodfellow, Shlens & Szegedy, Explaining and harnessing
+  adversarial examples, ICLR 2015 (images from the arXiv source, panda_577 / nematode_082 / gibbon_993).
+- adv-std2-coch-clean.png, -delta.png, -adv.png: Fernanda's own speech attack (June 2024), "director" -> "center".
