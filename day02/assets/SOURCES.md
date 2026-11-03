@@ -28,3 +28,15 @@ It does exactly what the Day 2 scene shows: OpenCV load, BGR to RGB, center squa
   cuirass 2.6%. The elephant classes rank 9th (Indian elephant, 1.3%), 11th (African elephant, 1.2%)
   and 25th (tusker, 0.4%).
   Chosen from eight Commons photos as one this model gets wrong (selection, not a random sample).
+
+## simple-system/
+Made by running the code cells of `notebooks/day01-lab-simple-vision-system.ipynb` (its solved build,
+`python notebooks/build/day01_lab.py --solved`) on 2026-11-02, NumPy 2.5.4, SciPy 1.18.1:
+- `world.png`: section 1, the rendered box world.
+- `recovered-front.png`, `recovered-behind.png`: section 6, the recovered heights Y and depths Z, every pixel
+  drawn at its 3D position in its own color (the notebook's `show_3d`, but with every floor pixel and no axes),
+  seen from near the camera (azim 100, elev 28) and from the far side (azim -90, elev 35). The white regions in
+  the far-side view are floor the boxes hid from the camera; nothing was recovered there. Printed by the same run:
+  "tallest box: true height 70.0, recovered 68.6"; "typical error on the boxes: 2.9 units"; 45046 equations,
+  33000 unknowns.
+- `floating-box.png`: section 7, a box 35 units in the air: input, recovered height, true height.

@@ -54,7 +54,21 @@ aggregates go out on a public site.
       Live demos need internet in class.
 - [ ] Why look to humans (slide 19): your framing (TO DO box). The three cues are drafts.
 - [ ] Project templates and examples (slide 26): the form and template links, and which of our projects to show.
-- [ ] Simple system: minutes per section, and does the Day 1 deck already cover sections 1-2?
+- [ ] Simple system: minutes for Phase 1 vs Phase 2 (50-60 in total).
+
+### Simple system lab (Fernanda, 2026-11-02): condensed, full circle, Phase 2
+- Phase 1 has 3 board/notebook steps (sections 1-3, 4-5, 6). Then the reconstruction from near the camera (30A),
+  then from behind (30B): "the back is missing", with a link to the book's interactive demo
+  (visionbook.mit.edu/simplesystem.html). Both views come from our own run of the notebook code
+  (assets/simple-system, SOURCES.md).
+- Then the pause: "What do you think would give these systems a better world model?" (pairs).
+- Phase 2: four kinds of answer, each testable in the box world, where the true heights are known:
+  better assumptions (boxes are closed, so fill in the back; stacking), more data (a second view), learned
+  (many rendered worlds), borrowed (a pretrained depth model on the box image). The floating box (section 7) is
+  the first test.
+- [ ] Phase 2 notebook cells don't exist yet. Which ideas do we test in class? My pick: "boxes are closed"
+      (fills in the back; a few lines on top of `reconstruct`), plus the pretrained depth model on the box image
+      (both are quick). A second view and learning could be homework extensions.
 - [ ] Paper review: are the three Pizlo questions OK? Pairs or whole class?
 - [ ] Homework: which metamers paper? (The Day 3 plan lists Freeman & Simoncelli 2011 and Portilla-Simoncelli.)
 - [ ] Response paper for today: is the Pizlo question the one on the response paper, or tomorrow's paper?
