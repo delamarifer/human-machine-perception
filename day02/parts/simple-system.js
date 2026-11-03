@@ -316,6 +316,83 @@ st(`
   "(draft) Now turn it yourself: in section 6 of the notebook, drag the 3D view around to the back (the book's chapter has an interactive version too). Then answer the talk-it-over question: what is missing, and why?"
 ]});
 
+// Priors and the world simulator, back at Fernanda's request (2026-11-03), as they were before b1b9d92.
+{ // Priors, after Helmholtz: the light-from-above classic. The distributions are drawn for illustration.
+  const X = e => 150 + (e + 90) / 180 * 400;                  // light direction: −90 (from below) … +90 (from above)
+  const prior = e => Math.exp(-0.5 * ((e - 60) / 35) ** 2);
+  const curve = (base, amp) => Array.from({length: 91}, (_, i) => { const e = -90 + 2 * i;
+    return `${i ? 'L' : 'M'}${X(e).toFixed(1)},${(base - prior(e) * amp).toFixed(1)}`; }).join('');
+  const pa = prior(60), pb = prior(-60), post = [pa / (pa + pb), pb / (pa + pb)];
+  const spike = (e, base, h) => `<rect x="${X(e) - 9}" y="${base - h}" width="18" height="${h}"/>`;
+  const row = (y, name) => `<line x1="150" y1="${y}" x2="550" y2="${y}" class="simple-system-base"/>
+    <text x="138" y="${y - 30}" text-anchor="end" class="simple-system-rowname">${name}</text>`;
+  const hyp = (y, a, b) => `<text x="${X(60)}" y="${y}" text-anchor="middle">${a}</text><text x="${X(-60)}" y="${y}" text-anchor="middle">${b}</text>`;
+  const disks = [0, 1, 2].flatMap(c => [0, 1].map(r => `<circle cx="${70 + c * 90}" cy="${70 + r * 100}" r="34" fill="url(#simple-system-shade)"/>`)).join('');
+  st(`
+  <h1 class="t">Priors: how the brain fills the gap</h1>
+  <div class="simple-system-priors">
+    <div class="simple-system-left">
+      <svg class="simple-system-disks b" data-step="1" viewBox="0 0 320 240">
+        <defs><linearGradient id="simple-system-shade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#f8fafc"/><stop offset="1" stop-color="#334155"/></linearGradient></defs>
+        <rect width="320" height="240" rx="12" fill="#94a3b8"/><g class="simple-system-flipme">${disks}</g>
+      </svg>
+      <ul class="frag">
+        <li class="b" data-step="1">Bumps or dents?</li>
+        <li class="b" data-step="2">The image alone: both fit equally</li>
+        <li class="b" data-step="3">Prior: light usually comes from above</li>
+        <li class="b" data-step="4">Likelihood × prior: you see bumps</li>
+        <li class="b simple-system-flip" data-step="5">Turn the picture over: dents</li>
+        <li class="b" data-step="6">Our box assumptions are priors too</li>
+      </ul>
+    </div>
+    <div class="simple-system-chartbox">
+      <svg class="simple-system-chart" viewBox="0 0 570 420">
+        <g class="b" data-step="2">${row(110, 'Image alone')}${spike(60, 110, 70)}${spike(-60, 110, 70)}
+          <g class="simple-system-up">${hyp(28, 'bump', 'dent')}</g><g class="simple-system-down">${hyp(28, 'dent', 'bump')}</g></g>
+        <g class="b simple-system-prior" data-step="3">${row(240, 'Prior')}<path d="${curve(240, 90)}"/></g>
+        <g class="b simple-system-post" data-step="4">${row(370, 'What you see')}${spike(60, 370, post[0] * 72)}${spike(-60, 370, Math.max(post[1] * 72, 2))}
+          <g class="simple-system-up">${hyp(284, 'bump', 'dent')}</g><g class="simple-system-down">${hyp(284, 'dent', 'bump')}</g></g>
+        <g class="b" data-step="2"><text x="${X(-60)}" y="405" text-anchor="middle">light from below</text>
+          <text x="${X(60)}" y="405" text-anchor="middle">light from above</text></g>
+      </svg>
+      <div class="label simple-system-note b" data-step="2">Distributions drawn for illustration, not measured</div>
+    </div>
+  </div>
+  ${cite('Helmholtz, unconscious inference (Handbuch der physiologischen Optik, 1867) · Ramachandran, Perception of shape from shading, Nature (1988)')}
+  <style>
+    .simple-system-priors{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1.3fr; gap:3vw; align-items:start; margin-top:1vh; }
+    .simple-system-priors ul.frag li{ font-size:clamp(1.1rem, 1.8vw, 1.7rem); }
+    .simple-system-priors ul.frag{ gap:.8vh; }
+    .simple-system-disks{ width:70%; }
+    .simple-system-flipme{ transform-box:view-box; transform-origin:160px 120px; transition:transform 1.4s ease; }
+    .slide:has(.simple-system-flip.shown) .simple-system-flipme{ transform:rotate(180deg); }
+    .simple-system-chartbox{ display:flex; flex-direction:column; gap:.5vh; height:100%; min-height:0; }
+    .simple-system-chart{ width:100%; flex:1 1 auto; min-height:0; }
+    .simple-system-chart text{ font-size:17px; fill:var(--ink); font-family:var(--font); }
+    .simple-system-chart .simple-system-rowname{ font-weight:700; }
+    .simple-system-chart .simple-system-base{ stroke:var(--ink); stroke-width:1.5; }
+    .simple-system-chart rect{ fill:var(--ink); }
+    .simple-system-prior path{ fill:none; stroke:var(--ink); stroke-width:3; stroke-dasharray:900; stroke-dashoffset:900; transition:stroke-dashoffset 1.6s ease; }
+    .simple-system-prior.shown path{ stroke-dashoffset:0; }
+    .simple-system-post rect{ transform-box:fill-box; transform-origin:bottom; transform:scaleY(0); transition:transform 1.2s ease .3s; }
+    .simple-system-post.shown rect{ transform:scaleY(1); }
+    .simple-system-down{ opacity:0; } .simple-system-up, .simple-system-down{ transition:opacity .6s ease .6s; }
+    .slide:has(.simple-system-flip.shown) .simple-system-up{ opacity:0; }
+    .slide:has(.simple-system-flip.shown) .simple-system-down{ opacity:1; }
+    .simple-system-note{ color:var(--mute); font-size:clamp(.85rem, 1.1vw, 1.05rem); text-align:right; }
+  </style>
+`, { notes: [
+  "(draft) Our system filled the gap with assumptions. Your brain does the same, all the time. Helmholtz, in the 1860s, called it unconscious inference.",
+  "(draft) Look at these disks. Do you see bumps or dents? Most people see bumps.",
+  "(draft) The image alone can't decide. A bump lit from above and a dent lit from below make exactly the same picture. On their own, the two explanations fit the image equally well: that's the likelihood.",
+  "(draft) But your brain knows something about the world: light usually comes from above, from the sun and from ceiling lights. That is a prior: before you even look, light from above is much more likely than light from below.",
+  "(draft) Multiply the two, likelihood times prior, and one explanation wins by far: bumps, lit from above. That's what you see, without ever deciding to.",
+  "(draft) Now let's turn the same picture upside down. The bright side is now at the bottom. The same prior, light from above, now says: dents. Nothing changed but the image; the prior did the rest.",
+  "(draft) Our box system works the same way. A white floor, boxes resting on it, a generic view, flat faces: those are its priors, written by hand, and they let it pick one 3D world out of all the ones that fit the image. And like any prior, they can be wrong."
+]});
+}
+
 st(`
   <div class="center">
     <div class="question" style="font-size:clamp(2.4rem,4.2vw,3.8rem)">What do you think would give these systems a better world model?</div>
@@ -325,6 +402,70 @@ st(`
   "(draft) Let's pause here. This little system works because we wrote its world model by hand: a flat floor, boxes resting on it, flat faces, a generic view. And still the back is missing: you knew the back of each box was there; the system did not. So: what do you think would give these systems a better world model?",
   "(draft) Take a few minutes in pairs, then we collect your ideas on the board. (Collect them; Phase 2 tests a few.)"
 ]});
+
+{ // A world simulator: sample many towers you might be seeing, run each forward, count the ones that fall.
+  // A toy we compute here (static stability of a stack), in the spirit of Battaglia, Hamrick & Tenenbaum (2013).
+  let seed = 7; const rnd = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const gauss = () => Math.sqrt(-2 * Math.log(1 - rnd())) * Math.cos(2 * Math.PI * rnd());
+  const W = 90, H = 30, SEEN = [0, 24, 44, 60], N = 24, SD = 6;
+  // the lowest level where the blocks above stick out past their support, or -1 if the tower stands
+  const falls = xs => { for(let k = 1; k < xs.length; k++){ const above = xs.slice(k), com = above.reduce((a, b) => a + b) / above.length;
+    if(Math.abs(com - xs[k - 1]) > W / 2) return {k, dir: Math.sign(com - xs[k - 1])}; } return null; };
+  const tower = (xs, cls = '') => { const f = falls(xs), blocks = (a, b) => xs.slice(a, b).map((x, j) =>
+      `<rect x="${x - W / 2}" y="${-(a + j + 1) * H}" width="${W}" height="${H}" rx="3"/>`).join('');
+    if(!f) return `<g class="${cls}">${blocks(0, xs.length)}</g>`;
+    const px = xs[f.k - 1] + f.dir * W / 2, py = -f.k * H;
+    return `<g class="${cls}">${blocks(0, f.k)}<g class="simple-system-topple" style="transform-origin:${px}px ${py}px; --rot:${f.dir * 75}deg">${blocks(f.k, xs.length)}</g></g>`; };
+  const samples = Array.from({length: N}, () => SEEN.map(x => x + SD * gauss()));
+  const nFall = samples.filter(falls).length;
+  const grid = samples.map((xs, i) => `<g transform="translate(${70 + (i % 6) * 125},${110 + Math.floor(i / 6) * 125}) scale(.6)">
+      <line x1="-80" y1="0" x2="160" y2="0" class="simple-system-ground"/>${tower(xs)}</g>`).join('');
+  st(`
+  <h1 class="t">A world simulator in the brain?</h1>
+  <div class="simple-system-sim">
+    <div class="simple-system-left">
+      <svg viewBox="-120 -170 320 200" class="simple-system-seen b" data-step="1">
+        <line x1="-110" y1="0" x2="190" y2="0" class="simple-system-ground"/>${tower(SEEN)}</svg>
+      <ul class="frag">
+        <li class="b" data-step="1">Will it fall?</li>
+        <li class="b" data-step="2">What you see is a little uncertain: ${N} possible towers</li>
+        <li class="b simple-system-run" data-step="3">Run each one forward in your head</li>
+        <li class="b" data-step="4">${nFall} of ${N} fall: a probability, not a yes or no</li>
+        <li class="b" data-step="5">People's judgments follow a simulator like this</li>
+      </ul>
+    </div>
+    <svg viewBox="0 0 760 640" class="simple-system-grid b" data-step="2">${grid}
+      <g class="b" data-step="4"><rect x="40" y="580" width="${680 * nFall / N}" height="26" class="simple-system-fallbar"/>
+        <rect x="${40 + 680 * nFall / N}" y="580" width="${680 * (N - nFall) / N}" height="26" class="simple-system-standbar"/>
+        <text x="46" y="630">fall: ${nFall}</text><text x="714" y="630" text-anchor="end">stand: ${N - nFall}</text></g>
+    </svg>
+  </div>
+  ${cite('Battaglia, Hamrick &amp; Tenenbaum, Simulation as an engine of physical scene understanding, PNAS (2013) · towers here: our own toy simulation')}
+  <style>
+    .simple-system-sim{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1.5fr; gap:2vw; align-items:center; }
+    .simple-system-sim ul.frag li{ font-size:clamp(1.1rem, 1.8vw, 1.7rem); }
+    .simple-system-sim ul.frag{ gap:.8vh; }
+    .simple-system-seen{ width:70%; }
+    .simple-system-grid{ width:100%; height:100%; min-height:0; }
+    .simple-system-sim rect{ fill:#cbd5e1; stroke:var(--ink); stroke-width:2; }
+    .simple-system-seen rect{ fill:#94a3b8; }
+    .simple-system-sim .simple-system-ground{ stroke:var(--ink); stroke-width:3; }
+    .simple-system-sim text{ font-size:20px; fill:var(--ink); font-family:var(--font); }
+    .simple-system-sim .simple-system-fallbar{ fill:var(--ink); }
+    .simple-system-sim .simple-system-standbar{ fill:var(--line); }
+    .simple-system-grid .simple-system-topple{ transform-box:view-box; transition:transform 1.4s cubic-bezier(.5,0,.9,.6); }
+    .slide:has(.simple-system-run.shown) .simple-system-grid .simple-system-topple{ transform:rotate(var(--rot)); }
+  </style>
+`, { notes: [
+  "(draft) Here is one idea from the brain about a better world model.",
+  "(draft) Look at this tower of blocks. Will it fall? You can answer in a fraction of a second.",
+  "(draft) One proposal: your eyes give you a slightly uncertain picture, so your brain considers many towers that could be out there, each a little different from the others.",
+  "(draft) And it runs each one forward, like a physics engine in a video game: which of these towers stays up, and which tips over?",
+  `(draft) Here, ${nFall} of our ${N} towers fall. So the answer is a probability, not a yes or no. This is our own small simulation, just to show the idea.`,
+  "(draft) Battaglia, Hamrick and Tenenbaum proposed exactly this kind of intuitive physics engine in 2013: people's judgments about towers like these followed a simulator with noisy perception. A world model like that knows that boxes are solid and need support, which our box system never knew."
+]});
+}
 
 /* What you built: one visual per point. 1 = Day 1's ill-posed scene (Fernanda's scenes/ill-posed-shapes.html),
    shown live at its "infinitely many 3D shapes" beat, title and caption hidden; 2 and 3 = our own lab results

@@ -205,8 +205,8 @@ const stepT = (id, when, what, w, step) => `<a class="projects-step b" data-step
 const stepUs = (when, what, step) => `<div class="projects-step projects-us b" data-step="${step}" style="--pc:${PC.feedback}"><span class="projects-dot"></span>
   <span class="label projects-when">${when}</span><span class="label projects-what">${what}</span></div>`;
 st(`
-  <h1 class="t">Two kinds of projects</h1>
-  <div class="label projects-outcome"><b>By the end, you can</b> · know the two project tracks</div>
+  <h1 class="t">What could your project be?</h1>
+  <div class="label projects-outcome"><b>By the end, you can</b> · know what a project can look like, and its steps</div>
   <div class="projects-tracks">
     ${track('demo', 'Build a demo', 'A working application someone can try',
       ['Visual search, an image memory', 'A creative image generation tool', 'A multimodal assistant', 'Detection or segmentation', 'An app for your own field'], 1)}
@@ -214,8 +214,9 @@ st(`
     ${track('experiment', 'Run an experiment', 'Explore or overcome a limitation, and answer with a measurement',
       ['Human perception and vision models', 'Ambiguity or hallucination', 'Normal images vs. texture swapped'], 2)}
   </div>
+  <div class="label projects-other b" data-step="2">Two examples, not the only options: another kind of project is welcome</div>
   <div class="projects-time">
-    <div class="label projects-same b" data-step="3">Same steps for both · each has a template</div>
+    <div class="label projects-same b" data-step="3">Same steps for every project · each has a template</div>
     <div class="projects-line">
       <div class="projects-rail b" data-step="3"></div>
       ${stepT('idea', 'Thursday, midnight', 'General idea', '2%', 3)}${stepUs('Friday night', 'Our high-level feedback', 3)}
@@ -242,6 +243,7 @@ st(`
     .projects-egchip{ background:#fff; border:1px solid color-mix(in srgb, var(--pc) 55%, #fff); border-radius:999px; padding:.3vh .8vw;
       font-size:clamp(.85rem, 1.15vw, 1.1rem) !important; }
     .projects-tag{ font-size:clamp(.75rem, .95vw, .9rem) !important; text-transform:uppercase; letter-spacing:.06em; color:var(--mute); }
+    .projects-other{ color:var(--mute); text-align:center; margin-top:1vh; }
     .projects-or{ align-self:center; color:var(--mute); }
     .projects-time{ margin:auto 0; display:flex; flex-direction:column; gap:1.4vh; }
     .projects-same{ color:var(--mute); }
@@ -262,10 +264,10 @@ st(`
     .projects-total b{ font-size:clamp(1.4rem, 2.3vw, 2.1rem); }
   </style>
 `, { notes: [
-  "(draft) There are two kinds of projects. By the end of this part, you know both.",
-  "(draft) Build a demo: a working computer vision application that someone can try. For example, from the syllabus: visual search or an image memory, a creative image generation tool, a multimodal assistant, detection or segmentation, or an application for your own field.",
-  "(draft) Or run an experiment: explore a limitation of a vision model, or try to overcome one, and answer with a measurement. It is a small rehearsal for a research project. For example, from the syllabus: human perception and vision models, ambiguity, or hallucination; or, from the proposal template, the same model on normal images and on images with their texture swapped.",
-  "(draft) The steps are the same for both, and each one has a template on the course website. By Thursday at midnight, your general idea, through a short Google form; we share them so you can find teammates. By Friday night, we send you high-level feedback on it. Then by Monday, a detailed proposal.",
+  "(draft) What could your project be? By the end of this part, you know what a project can look like, and the steps to get there.",
+  "(draft) One example: build a demo: a working computer vision application that someone can try. For example, from the syllabus: visual search or an image memory, a creative image generation tool, a multimodal assistant, detection or segmentation, or an application for your own field.",
+  "(draft) Another example: run an experiment: explore a limitation of a vision model, or try to overcome one, and answer with a measurement. It is a small rehearsal for a research project. For example, from the syllabus: human perception and vision models, ambiguity, or hallucination; or, from the proposal template, the same model on normal images and on images with their texture swapped.",
+  "(draft) These are two examples, not the only options: if your idea is another kind of project, that is welcome. The steps are the same for every project, and each one has a template on the course website. By Thursday at midnight, your general idea, through a short Google form; we share them so you can find teammates. By Friday night, we send you high-level feedback on it. Then by Monday, a detailed proposal.",
   "(draft) Between Monday and Wednesday, you must meet with one of us to get feedback on your detailed proposal. We will share a Calendly to book a time.",
   "(draft) And on the last day, both: a presentation to the class, and a short write-up. Show it working, and show honestly where it fails.",
   "(draft) Altogether, the project is 45 percent of your grade: two percent for the idea, five for the proposal, three for the meeting, fifteen for the presentation and twenty for the write-up."
