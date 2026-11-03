@@ -41,35 +41,52 @@ st(`
   "(to write) Timing."
 ]});
 
+// Board ↔ notebook: one cue per click on the left, and the notebook's own figure for it on the right
+// (each new figure covers the one before; going back uncovers it).
+const steps = (items) => `
+  <div class="simple-system-steps">
+    <ul class="frag">${items.map(([cue], k) => `<li class="b" data-step="${k + 1}">${cue}</li>`).join('')}</ul>
+    <div class="simple-system-stage">${items.map(([, img], k) =>
+      `<div class="simple-system-shot b" data-step="${k + 1}"><img src="assets/simple-system/${img}" alt=""></div>`).join('')}</div>
+  </div>`;
+
 st(`
   <h1 class="t">From world to image to edges</h1>
-  <ul class="frag">
-    <li class="b" data-step="1">Parallel projection: height and depth mix into one image row</li>
-    <li class="b" data-step="2">The image is an array: rows × columns × 3</li>
-    <li class="b" data-step="3">Edges: differences between neighboring pixels</li>
-  </ul>
+  ${steps([
+    ['Parallel projection: height and depth mix into one image row', 'world.png'],
+    ['The image is an array: rows × columns × 3', 'gray.png'],
+    ['Edges: differences between neighboring pixels', 'dx.png'],
+    ['Strong differences become edge pixels', 'edge-pixels.png'],
+  ])}
   ${go('Sections 1–3')}
+  <style>
+    .simple-system-steps{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1.35fr; gap:3vw; align-items:center; margin-top:2vh; }
+    .simple-system-stage{ position:relative; height:100%; min-height:0; }
+    .simple-system-shot{ position:absolute; inset:0; background:var(--bg, #fff); display:flex; align-items:center; justify-content:center; }
+    .simple-system-shot img{ max-width:100%; max-height:100%; object-fit:contain; background:#fff; }
+  </style>
 `, { notes: [
   "(draft) Step one: from the world to an image, and from the image to edges.",
   "(draft) Our camera uses parallel projection, tilted down by an angle theta. A point's image row depends on both its height and its depth: y equals cos theta times Y, minus sin theta times Z. Raise a point and push it back by the right amount, and it lands on the same pixel. That is why one image is not enough.",
-  "(draft) To the computer the image is an array: rows, columns, and three color values. We average the colors to get brightness.",
-  "(draft) An edge is where brightness changes fast, and with pixels a derivative is just the difference between neighbors: one subtraction of two shifted copies of the image.",
+  "(draft) To the computer the image is an array: rows, columns, and three color values. We average the colors to get brightness. This is the grayscale image you get in section 2.",
+  "(draft) An edge is where brightness changes fast, and with pixels a derivative is just the difference between neighbors: one subtraction of two shifted copies of the image. Red, brightness goes down to the right; blue, it goes up; white, no change. Edges that run left to right nearly vanish here: they need the vertical derivative.",
+  "(draft) Combine both derivatives into an edge strength, keep the pixels above a threshold you choose, and you get the edge pixels. Too low and you get noise; too high and you lose the faint edges between two faces of the same box.",
   "(draft) Run sections 1 to 3."
 ]});
 
 st(`
   <h1 class="t">What each edge means</h1>
-  <ul class="frag">
-    <li class="b" data-step="1">Figure and ground: boxes are colored, the floor is not</li>
-    <li class="b" data-step="2">Contact or occlusion: touching the floor, or hiding it</li>
-    <li class="b" data-step="3">Generic view: vertical in the image means vertical in the world</li>
-  </ul>
+  ${steps([
+    ['Figure and ground: boxes are colored, the floor is not', 'figure-ground.png'],
+    ['Contact or occlusion: touching the floor, or hiding it', 'contact-occlusion.png'],
+    ['Generic view: vertical in the image means vertical in the world', 'vertical-horizontal.png'],
+  ])}
   ${go('Sections 4–5')}
 `, { notes: [
   "(draft) Step two: what does each edge mean?",
-  "(draft) Figure and ground. The floor is white, so its three color channels are about equal; the boxes are colored. Saturation, the largest channel minus the smallest, separates them.",
-  "(draft) Where a box meets the floor, the edge is either a contact edge, the box touching the floor, or an occlusion edge, the box hiding the floor behind it. They look alike, and mean very different things in 3D.",
-  "(draft) And the generic view assumption: unless the camera sits at an accidental viewpoint, edges that look vertical in the image are vertical in the world.",
+  "(draft) Figure and ground. The floor is white, so its three color channels are about equal; the boxes are colored. Saturation, the largest channel minus the smallest, separates them: boxes in white, floor in black.",
+  "(draft) Where a box meets the floor, the edge is either a contact edge, the box touching the floor, or an occlusion edge, the box hiding the floor behind it. They look alike, and mean very different things in 3D. In the notebook's figure, occlusion edges are orange, on the upper outline of each box, and contact edges are teal, on the lower outline.",
+  "(draft) And the generic view assumption: unless the camera sits at an accidental viewpoint, edges that look vertical in the image are vertical in the world. The notebook draws them in red, and every other box edge, horizontal in 3D, in blue.",
   "(draft) Run sections 4 and 5."
 ]});
 
