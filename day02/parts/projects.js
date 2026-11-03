@@ -3,7 +3,7 @@
    multiple-choice questions are shown; no names, no quotes. Interests are grouped by us from the free-text
    answers and paired with tools from the motivation demos. Expectations: syllabus.html (Final project, Grading). */
 {
-section('Projects');
+section('Project');
 
 /* familiarity: [comfortable, some experience, heard of it, never encountered], n = 14 */
 const FAM = [
@@ -113,21 +113,25 @@ st(`
 ]});
 
 st(`
-  <h1 class="t">The final project</h1>
+  <h1 class="t">Two project tracks</h1>
+  <div class="label projects-outcome"><b>By the end, you can</b> · know the two project tracks</div>
   <ul class="frag">
-    <li class="b">An original vision application, 45%</li>
-    <li class="b">Friday: general ideas (form)</li>
-    <li class="b">Monday: detailed proposal</li>
+    <li class="b"><b>Build a demo</b>: a working application someone can try</li>
+    <li class="b"><b>Run an experiment</b>: explore or overcome a limitation, and answer with a measurement</li>
+    <li class="b">Friday: general idea · Monday: detailed proposal</li>
     <li class="b">Week 2, Wednesday: meet with us</li>
-    <li class="b">Last day: write-up and presentation</li>
+    <li class="b">Last day: presentation · end of course: write-up</li>
+    <li class="b">45% of the grade</li>
   </ul>
+  <style>.projects-outcome{ color:var(--mute); } .projects-outcome b{ color:var(--ink); }</style>
 `, { notes: [
-  "(draft) What we expect from the project.",
-  "(draft) You design and build an original computer vision application, using what we cover. It is 45 percent of the grade.",
-  "(draft) By Friday: your general ideas, through a short Google form. We share them with the class so you can find teammates.",
-  "(draft) By Monday: a detailed proposal. The problem and why it matters, the models and data you will use, how you will know it works, and a realistic plan.",
-  "(draft) By Wednesday of week two: a meeting with one of us about your proposal.",
-  "(draft) And on the last day: a short write-up, and a presentation to the class. Show it working, and show honestly where it fails."
+  "(draft) The final project comes in two tracks. By the end of this part, you know both.",
+  "(draft) Build a demo: a working computer vision application that someone can try.",
+  "(draft) Or run an experiment: explore a limitation of a vision model, or try to overcome one, and answer with a measurement. It is a small rehearsal for a research project.",
+  "(draft) The steps are the same for both. By Friday, your general idea, through a short Google form; we share them so you can find teammates. By Monday, a detailed proposal.",
+  "(draft) By Wednesday of week two, a meeting with one of us about your proposal.",
+  "(draft) On the last day, a presentation to the class; and at the end of the course, a short write-up. Show it working, and show honestly where it fails.",
+  "(draft) Altogether, the project is 45 percent of your grade."
 ]});
 
 /* The course's project templates page, live (Fernanda, 2026-11-02). Same-origin, so the right and left

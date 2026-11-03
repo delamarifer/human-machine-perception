@@ -54,6 +54,13 @@ aggregates go out on a public site.
 - [ ] VGGT's live demo (facebook-vggt.hf.space) allows embedding, but it showed a 500 error today. Re-check before
       class; the line to embed it again is in motivation.js.
 
+### Named by the syllabus outcomes (Fernanda, 2026-11-02)
+- Sections follow the Today slide: Syllabus, Motivation, Project, Lab, Research and papers, Homework.
+- Each slide that teaches a Day 2 outcome shows it under its title, in the syllabus wording ("By the end, you
+  can …" / "In the lab, you will …"): 6 (do well, fail), 20 "Why we look to human vision", 27 "Two project
+  tracks", 30 (the lab), 38 "A research question, or a building project?", 39 "Read a paper efficiently", 40 (Pizlo).
+- [ ] If the syllabus wording changes, these lines don't update by themselves (they are text on the slides).
+
 ### Questions for Fernanda
 - [x] Survey on the public site: grouped data only, never individual answers, except the project ideas (Fernanda, 2026-11-02). Slides: two aggregate charts, an anonymous paraphrased list of the project ideas, and the grouped cards.
 - [ ] Order: your outline today puts project expectations before the lab. The plan's "opening order" from

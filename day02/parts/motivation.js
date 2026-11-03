@@ -37,10 +37,12 @@ const embed = (title, url, say) => st(`
 
 st(`
   <div class="center">
-    <div class="question" style="font-size:clamp(2.4rem,4.2vw,3.8rem)">Why take this course?</div>
+    <div class="label motivation-outcome"><b>By the end, you can</b> · say what today&#39;s vision systems do well and where they fail</div>
+    <div class="question" style="font-size:clamp(2.4rem,4.2vw,3.8rem);margin-top:4vh">Why take this course?</div>
     <div class="lead b" style="margin-top:5vh">What vision can do now, and where it still fails</div>
   </div>
   <style>
+    .motivation-outcome{ color:var(--mute); } .motivation-outcome b{ color:var(--ink); }
     .motivation-demo{ margin:auto 0; max-width:62vw; display:flex; flex-direction:column; gap:1.4vh; }
     .motivation-name{ font-size:clamp(2rem, 3.4vw, 3.2rem); font-weight:700; }
     .motivation-demo ul.frag li{ margin:.4vh 0; }
@@ -50,7 +52,7 @@ st(`
     .motivation-week b{ font-size:clamp(1.5rem, 2.4vw, 2.2rem); }
   </style>
 `, { notes: [
-  "(draft) So why should you take this course?",
+  "(draft) So why should you take this course? By the end of this part, you can say what today's vision systems do well and where they fail.",
   "(draft) Let me show you what computer vision can do right now, and then where it still fails. Everything I show you, we will cover."
 ]});
 
@@ -227,7 +229,8 @@ st(`
 ]});
 
 st(`
-  <h1 class="t">Why look to humans?</h1>
+  <h1 class="t">Why we look to human vision</h1>
+  <div class="label motivation-outcome"><b>By the end, you can</b> · explain why we look to human vision to get past those limits</div>
   <ul class="frag">
     <li class="b">You all saw the elephant</li>
     <li class="b">People go by shape</li>
@@ -235,7 +238,7 @@ st(`
   </ul>
   <div class="todo b">Your own reasons, in your words: why human perception is a source for overcoming these limitations.</div>
 `, { notes: [
-  "(draft) So why look to humans?",
+  "(draft) So why do we look to human vision? By the end of this part, you can explain why we look to human vision to get past the limits we just saw.",
   "(draft) Because every one of you saw the elephant, instantly, and you have never seen this statue before.",
   "(draft) Because people go by shape where these networks go by texture.",
   "(draft) And because human perception is a working answer to the same problems these systems still struggle with: an image is ambiguous, and we see the world anyway. Studying how we do it gives us ideas, and tests, for machines.",

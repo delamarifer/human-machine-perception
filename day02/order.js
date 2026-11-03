@@ -19,5 +19,5 @@ const ORDER = [
 const PARTS = ORDER.map(r => r[0]);
 
 /* Minutes per section (the progress bar widths). */
-const SEC_MINUTES = {'Syllabus': 5, 'Motivation': 30, 'Projects': 10, 'Simple system lab': 55,
-  'Research vs building': 5, 'Papers': 15, 'Homework': 2};
+const SEC_MINUTES = {'Syllabus': 5, 'Motivation': 30, 'Project': 10, 'Lab': 55,
+  'Research and papers': 20, 'Homework': 2};

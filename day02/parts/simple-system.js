@@ -8,13 +8,14 @@
    Figures: day02/assets/simple-system/ (made by the notebook's own code; see day02/assets/SOURCES.md).
    After Ch. 2 of Torralba, Isola & Freeman, Foundations of Computer Vision. */
 {
-section('Simple system lab');
+section('Lab');
 
 const NB = 'https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-lab-simple-vision-system.ipynb';
 const go = (s) => `<div class="simple-system-go b" data-step="99"><span class="label">Notebook</span><b>${s}</b></div>`;
 
 st(`
   <h1 class="t">A simple vision system</h1>
+  <div class="label simple-system-outcome"><b>In the lab, you will</b> · recover the 3D shape of a simple scene from one image, by writing its assumptions as equations</div>
   <div class="simple-system-split">
     <div class="tile b" data-step="1"><div class="im"><img src="assets/simple-system/world.png" alt=""></div></div>
     <div class="b" data-step="2">
@@ -25,6 +26,7 @@ st(`
   <div class="todo b" data-step="3" style="position:absolute;right:6vw;bottom:6vh;max-width:34vw">Minutes for Phase 1 and Phase 2 (50-60 in total).</div>
   ${cite('After Chapter 2, A Simple Vision System, in Torralba, Isola &amp; Freeman, Foundations of Computer Vision')}
   <style>
+.simple-system-outcome{ color:var(--mute); } .simple-system-outcome b{ color:var(--ink); }
     .simple-system-split{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1.2fr 1fr; gap:4vw; align-items:center; }
     .simple-system-split .im{ background:#fff; }
     .simple-system-split .im img{ object-fit:contain; }
@@ -33,7 +35,7 @@ st(`
     .simple-system-go b{ font-size:clamp(1.3rem, 2vw, 1.9rem); }
   </style>
 `, { notes: [
-  "(draft) Now we build something: a simple vision system, from Chapter 2 of the book.",
+  "(draft) Now we build something: a simple vision system, from Chapter 2 of the book. In this lab, you will recover the 3D shape of a simple scene from one image, by writing its assumptions as equations.",
   "(draft) Here is our world, as the camera sees it: a white floor, and colored boxes standing on it.",
   "(draft) The question: from this one image, can we recover the 3D shape of the scene? Open the notebook in Colab and run the setup. We go back and forth: an idea here, then you run it there.",
   "(to write) Timing."
