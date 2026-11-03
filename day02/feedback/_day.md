@@ -3,6 +3,62 @@
 Plan: `plan/course-plan.md`, Day 2. Images and model outputs: `day02/assets/SOURCES.md`.
 Every notes passage Claude wrote is marked `(draft)`; `(to write)` is yours to fill.
 
+## Round 2 · 2026-11-02 · rebuilt as "Motivation and limitations" (Claude, day02 session)
+
+New order from Fernanda's outline of today: syllabus (5) → motivation (30) → projects (10) → simple system lab
+(50-60) → research vs building (5) → how to read a paper (5) → paper review (10, moved to the end) → homework (2).
+That adds up to 117-127 minutes. The Round 1 one-photo app parts are in git history (commit 0192428). The scene
+and the elephant are reused here.
+
+### Demos researched (all links answered on 2026-11-02)
+Each one sits under the syllabus week that covers it (syllabus.html "Three weeks"):
+- Week 1 · VGGT, Meta AI + Oxford, CVPR 2025: photos → cameras, depth, 3D points, "typically under a second"
+  (repo README). Live demo: https://huggingface.co/spaces/facebook/vggt
+- Week 2 · DINOv3 → Canopy Height Maps v2, Meta + World Resources Institute (blog 2026-03-10): DINOv3 pretrained
+  on satellite images; open tree-height maps worldwide. https://ai.meta.com/blog/world-resources-institute-dino-canopy-height-maps-v2/
+- Week 2 · AlphaEarth Foundations, Google DeepMind 2025: optical, radar, 3D laser and climate data → 64 numbers
+  per 10 m of land, annual 2017-2024, in Earth Engine. https://deepmind.google/discover/blog/alphaearth-foundations-helps-map-our-planet-in-unprecedented-detail/
+- Week 3 · SAM 3, Meta, Nov 2025: text prompt → detect, segment, track in images and video; open; Playground.
+  https://aidemos.meta.com/segment-anything
+- Week 3 · MedGemma 1.5, Google, Jan 2026: open; CT/MRI volumes, whole-slide pathology, plus text.
+  https://developers.google.com/health-ai-developer-foundations/medgemma
+- Week 3 · Gemini Robotics 1.5, Google DeepMind, Sep 2025: plans in steps, then acts. The laundry and recycling
+  clips come from news coverage; check them in the blog videos before class.
+  https://deepmind.google/discover/blog/gemini-robotics-15-brings-ai-agents-into-the-physical-world/
+- Week 3 · Genie 4, Google DeepMind: interactive world model, research preview (waitlist).
+  https://deepmind.google/models/genie/
+- Also current, not on slides: video generation (Sora's app closed in April 2026; Kling 4.0, Oct 2026; Veo 3.1),
+  Physical Intelligence π0.7 (Apr 2026), Depth Anything 3, YOLO26, RF-DETR.
+
+### Limitations: numbers come only from the papers
+- Our ResNet-18 run on the elephant: `assets/human-vs-machine/result.json`.
+- Vision language models are blind (ACCV 2024; arXiv 2407.06581 v6): four VLMs average 58.07%; the best,
+  Claude 3.5 Sonnet, gets 77.84%; the human expectation is 100%. These are 2024 models; the notes say so.
+- DeVries et al., CVPR Workshops 2019 (Dollar Street): six systems do worse on household items common in
+  low-income countries. The abstract gives no single number, so the slide shows none.
+- Geirhos et al., ICLR 2019: texture bias in ImageNet CNNs, shape bias in people; Stylized-ImageNet helps.
+
+### Survey (14 responses)
+Only aggregate counts are on the slides (familiarity, focus). The interest cards are our grouping of the
+free-text answers, with no names and no quotes. The raw CSV is not in the repo, because it has names. Even
+aggregates go out on a public site.
+
+### Questions for Fernanda
+- [ ] OK to show survey aggregates on the public site? If not, we can keep the projects slides out of `main`.
+- [ ] Order: your outline today puts project expectations before the lab. The plan's "opening order" from
+      earlier today puts the paper discussion at minute 5-15 and the project plan after the lab. I followed
+      today's outline.
+- [ ] Syllabus: syllabus.html (3 weeks) and the brainstorm PDF's day table (3D + motion, robotics + RL,
+      AI + society days) differ. The slides follow syllabus.html. Which one is current?
+- [ ] Demos: these seven, or swap some? For each, which clip to play (TO DO box on each slide)?
+      Live demos need internet in class.
+- [ ] Why look to humans (slide 19): your framing (TO DO box). The three cues are drafts.
+- [ ] Project templates and examples (slide 26): the form and template links, and which of our projects to show.
+- [ ] Simple system: minutes per section, and does the Day 1 deck already cover sections 1-2?
+- [ ] Paper review: are the three Pizlo questions OK? Pairs or whole class?
+- [ ] Homework: which metamers paper? (The Day 3 plan lists Freeman & Simoncelli 2011 and Portilla-Simoncelli.)
+- [ ] Response paper for today: is the Pizlo question the one on the response paper, or tomorrow's paper?
+
 ## Round 1 · 2026-10-28 · first build (Claude, day02 session)
 
 ### Questions for Fernanda

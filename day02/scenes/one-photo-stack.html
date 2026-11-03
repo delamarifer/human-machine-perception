@@ -80,13 +80,13 @@ const R = {photo: [853, 1280, 3], crop: [213, 0, 853, 853], cropShape: [224, 224
 
 const NOTES = [
   "(draft) Title only. Today we follow one photo through the whole stack, from a file on your phone to an app anyone can use.",
-  "(draft) Here is our photo: a cup of coffee on a cafe table. In the lab, this will be your own photo.",
+  "(draft) Here is our photo: a cup of coffee on a cafe table. In your project, it could be your own photo.",
   "(draft) Step one, OpenCV. We load the file, and to the computer it is now an array of numbers: 853 rows, 1280 columns, and 3 color channels. (OpenCV loads colors in blue-green-red order, so we convert to red-green-blue.)",
   "(draft) The model we will use expects a square image, so we crop a square from the center. Everything outside the square is thrown away.",
   "(draft) And we resize it to 224 by 224 pixels. That small square is all the model will ever see of this photo.",
   "(draft) Step two, torchvision. We run a classifier someone else already trained: ResNet-18, trained on ImageNet's 1000 categories. It returns a probability for every category; here are the top five. Espresso, 86 percent. Then cup, coffee mug, eggnog, soup bowl.",
   "(draft) Step three, Hugging Face. Same photo, a different question: how far away is each pixel? The depth-estimation pipeline, here with a small Depth Anything model, answers from this one image. Brighter means nearer: the front of the table, then the cup and the hand, then the background.",
-  "(draft) Step four, Gradio. A few lines wrap all of this in a small web app: anyone can drop in a photo and get the labels and the depth map back. That is the app you will build in the lab."
+  "(draft) Step four, Gradio. A few lines wrap all of this in a small web app: anyone can drop in a photo and get the labels and the depth map back. Four tools, a few lines each: that is what harnessing these tools for a project looks like, and we build this one together in a later lab."
 ];
 const N = NOTES.length - 1;
 const $ = id => document.getElementById(id);
