@@ -93,6 +93,7 @@ text{ font-family:var(--font); }
   <g id="lamp" class="fade" opacity="0"></g>
   <g id="knobs" class="fade" opacity="0"></g>
   <g id="readouts"></g>
+  <g id="spectra" class="fade" opacity="0"></g>
 </svg>
 </div>
 </div>
@@ -421,7 +422,8 @@ const NOTES = [
   "(defense) The experiment. The right half gets a different light: three single wavelengths, 700, 546 and 436 nm, the primaries of the original color-matching experiments, each with its own knob, all at zero.",
   "(defense) Turn the red knob. 700 nm drives mostly the L cones, some M, almost no S. The right half turns red.",
   "(defense) Add green. 546 nm drives M and L. L and M on the right now match the left; the color is close, but S is still off.",
-  "(defense) Add blue. 436 nm supplies the S cones. At R 1.000, G 0.397, B 0.232 the three cone numbers agree, and the boundary disappears: two physically different lights, one color. That is a metamer."
+  "(defense) Add blue. 436 nm supplies the S cones. At R 1.000, G 0.397, B 0.232 the three cone numbers agree, and the boundary disappears: two physically different lights, one color. That is a metamer.",
+  "(draft) Now look at what is physically coming out of each half. On the left, the lamp: energy at every wavelength, rising toward the red. On the right, three narrow spikes, and nothing in between. The scale is logarithmic: the red spike carries hundreds of times more energy than the other two, because your cones are so insensitive at 700 nm. Almost no wavelength has the same energy on both sides. A spectrometer would call these two lights completely different. Your cones report the same three numbers, so you see one color."
 ];
 const N = NOTES.length;
 const settle = b => {                                       // the state a beat lands on
@@ -447,7 +449,7 @@ function enter(prev, jumped){
         lampOn = ease(Math.min(1, p/0.3));
         coneGainL = [0,1,2].map(i => ease(Math.max(0, Math.min(1, (p - 0.3 - i*0.22)/0.2))));
       });
-    } else if(beat >= 4){                                    // one knob turns
+    } else if(beat >= 4 && beat <= 6){                       // one knob turns
       const k = beat - 4; dials[k] = 0;
       animate(2200, p => { dials[k] = TARGET[k]*ease(p); });
     }
@@ -455,9 +457,30 @@ function enter(prev, jumped){
   render();
 }
 
+// ── the last beat: each half's spectrum, drawn on that half. Log scale, 4 decades below each curve's peak:
+//    the 700 nm primary carries ~600x the energy of the other two, so a linear axis would hide them ──
+{ const g = $('#spectra'), pad = 18, w = SCR.w/2 - 2*pad, h = SCR.h - 2*pad - 40;
+  const X = (x0, l) => x0 + (l - LAM0)/(LAM1 - LAM0)*w, DEC = 4;
+  const Y = (v, mx) => SCR.y + pad + h - Math.max(0, DEC + Math.log10(Math.max(v, 1e-12)/mx))/DEC*h;
+  const right = lam.map((_, i) => dialsAtMatch().reduce((s, d, k) => s + d*P[k][i], 0));
+  [[SCR.x + pad, TEST, 'the lamp'], [MID + pad, right, 'three primaries']].forEach(([x0, sp, name]) => {
+    mk('rect', {x:x0 - 8, y:SCR.y + 8, width:w + 16, height:SCR.h - 16, rx:6, fill:'#fff', 'fill-opacity':.88}, g);
+    const mx = Math.max(...sp);
+    let d = ''; sp.forEach((v, i) => { d += (i ? 'L' : 'M') + X(x0, lam[i]).toFixed(1) + ',' + Y(v, mx).toFixed(1); });
+    mk('path', {d: d + `L${X(x0, LAM1)},${Y(0, mx)}L${X(x0, LAM0)},${Y(0, mx)}Z`, fill:'#0f172a', 'fill-opacity':.12}, g);
+    mk('path', {d, fill:'none', stroke:'#0f172a', 'stroke-width':2.2}, g);
+    mk('line', {x1:x0, y1:Y(0, mx), x2:x0 + w, y2:Y(0, mx), stroke:'#64748b', 'stroke-width':1}, g);
+    [400, 500, 600, 700].forEach(l => mk('text', {x:X(x0, l), y:Y(0, mx) + 16, 'text-anchor':'middle', class:'nm'}, g).textContent = l);
+    mk('text', {x:x0 + w/2, y:SCR.y + pad + 4, 'text-anchor':'middle', class:'lbl'}, g).textContent = name;
+  });
+  [SCR.x + SCR.w/4, MID + SCR.w/4].forEach(x => mk('text', {x, y:SCR.y + SCR.h - 14, 'text-anchor':'middle', class:'nm'}, g).textContent = 'wavelength (nm), log energy');
+}
+function dialsAtMatch(){ return TARGET; }
+
 function render(){
   $('#dots').innerHTML = [...Array(N - 1)].map((_, k) => `<i class="${k < beat ? 'on' : ''}"></i>`).join('');
   svg.classList.toggle('off', beat === 0);
+  $('#spectra').setAttribute('opacity', beat >= 7 ? 1 : 0);
   paint();
 }
 

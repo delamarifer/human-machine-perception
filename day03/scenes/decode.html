@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>What is a representation?</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: metamers part (Day 3, Fernanda). Works alone too: open day03/scenes/decode.html and click. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; transition:opacity .9s ease, filter .9s ease; }
+  canvas.dim{ opacity:.22; filter:blur(2px); }
+  .cap{ position:absolute; left:0; bottom:-1vh; }
+  .pop{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(.96); opacity:0;
+    transition:opacity .9s ease, transform .9s ease; white-space:nowrap; }
+  .pop.on{ opacity:1; transform:translate(-50%,-50%); }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">What is a representation?</h1>
+  <div class="stagebox">
+    <canvas id="cv"></canvas>
+    <div class="label cap" id="cap"></div>
+    <div class="popquote pop" id="pop">What you can decode is what it keeps</div>
+  </div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE      (0):    the title alone
+   ACT 1  THE MODEL  (1):    an image -> f (a stack of stages) -> a behavior
+   ACT 2  RESPONSES  (2):    an arrow down from f: its responses, a list of numbers
+   ACT 3  DECODE     (3):    two questions asked of the responses: where is the ball? what color is it?
+   ACT 4  THREE f's  (4-6):  f = the pixels; f = a blurry gray version; f = a color histogram.
+                             For each: the responses to this image, and how much of each answer we recover
+   ACT 5  POINT      (7):    the statement, figure dimmed
+
+   Everything is computed here, at load. 400 pictures are drawn from a fixed seed: a ball on grass under a
+   sky. Three things vary: the ball's position (left-right), its color (red to green, at the SAME
+   brightness: luma is constant along the mix) and the sky's brightness (a nuisance). Each f turns a
+   picture into numbers; a linear decoder (ridge regression) is trained on 300 pictures and tested on the
+   other 100. The bars show R^2 on those 100 new pictures (0 = nothing recovered, 1 = everything).
+   The color histogram ignores where pixels are, and the ball always lies fully inside the picture on a
+   uniform grass band, so its histogram does not change at all when the ball moves. */
+const IW = 40, IH = 30, R = 4, NTR = 300, NTE = 100, LAMBDA = 1;
+const RED = [200, 60, 60], GRN = [40, 140, 60];        // luma 101.8 and 101.0: the same brightness
+const GRASS = [86, 140, 70], INK = '#0f172a', MUTE = '#94a3b8';
+const CAPS = ['', 'A model: an image in, a behavior out', 'Its responses: a list of numbers', 'Decode: what can we recover from them?',
+  'f = the pixels', 'f = a blurry gray version', 'f = a color histogram', ''];
+const NOTES = [
+  "(draft) Title only. Everything Shreya showed you today turns an image into new numbers. Let's make precise what that buys us.",
+  "(draft) Here is the picture we use for models in this course: an image goes in, a function f, and a behavior comes out, like the label ball. f can be a neural network with many stages. It can also be the brain: your visual system is the f we are trying to understand.",
+  "(draft) But we can also stop inside f and take its responses at some stage: a long list of numbers. For a network, the activations of one layer. For a brain, the responses of neurons in one area, or the voxels of an fMRI scan. That list is a representation of the image.",
+  "(draft) How do we find out what a representation contains? We measure from it. We train a simple decoder on the responses to answer a question, and test it on new images. Neuroscientists do exactly this with brain recordings. If we can recover the answer, the representation kept that information. If we cannot, it was thrown away. Here two questions: where is the ball, and what color is it?",
+  "(draft) To make this concrete, three simple f's that we can compute right here, on 400 pictures I generated. First, f is the pixels themselves. From the pixels we recover both the color and the position: the bars show how much, on 100 pictures the decoder never saw.",
+  "(draft) Second, a blurry gray version: 48 numbers per picture. The position survives. The color does not, because I made the red and the green balls exactly equally bright. The blurry gray picture throws the color away.",
+  "(draft) Third, a color histogram: how many pixels of each color, no matter where they are. Now it is the other way around: the color is all there, and the position is gone completely. Move the ball, and the histogram does not change at all.",
+  "(draft) So a representation is defined by what it keeps, and what you can decode from it tells you what it keeps. Two pictures it maps to the same numbers are, for it, the same picture. That is a metamer, and it is where we go next."
+];
+const N = NOTES.length - 1;
+
+/* ---- the pictures (fixed seed) ---- */
+let seed = 3; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+function picture(x, t, sky){
+  const im = new Float32Array(IW * IH * 3), ball = RED.map((r, k) => r + (GRN[k] - r) * t);
+  for(let r = 0; r < IH; r++) for(let c = 0; c < IW; c++){
+    let px = r < 18 ? [120 * sky, 170 * sky, 235 * sky] : GRASS;
+    if((c - x) ** 2 + (r - 21) ** 2 <= R * R) px = ball;
+    px.forEach((v, k) => im[(r * IW + c) * 3 + k] = v / 255);
+  }
+  return im;
+}
+const DATA = [...Array(NTR + NTE)].map(() => {
+  const x = R + 1 + Math.floor(rnd() * (IW - 2 * R - 2)), t = rnd(), sky = .6 + .4 * rnd();
+  return {x, t, sky, im: picture(x, t, sky)};
+});
+
+/* ---- three representations ---- */
+const luma = (im, i) => .299 * im[i * 3] + .587 * im[i * 3 + 1] + .114 * im[i * 3 + 2];
+const F = {
+  pixels: im => Array.from(im),
+  blur: im => { const out = [];                         // 5 x 5 block averages of brightness: 8 x 6 = 48 numbers
+    for(let br = 0; br < IH / 5; br++) for(let bc = 0; bc < IW / 5; bc++){ let s = 0;
+      for(let r = 0; r < 5; r++) for(let c = 0; c < 5; c++) s += luma(im, (br * 5 + r) * IW + bc * 5 + c); out.push(s / 25); }
+    return out; },
+  hist: im => { const out = new Array(24).fill(0);       // 8 bins per channel, counts of pixels
+    for(let i = 0; i < IW * IH; i++) for(let k = 0; k < 3; k++) out[k * 8 + Math.min(7, Math.floor(im[i * 3 + k] * 8))]++;
+    return out; },
+};
+/* ridge regression in the dual (300 x 300 system), features standardized on the training set */
+function solve(A, b){ const n = b.length, M = A.map((row, i) => [...row, b[i]]);
+  for(let c = 0; c < n; c++){ let p = c; for(let r = c + 1; r < n; r++) if(Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+    [M[c], M[p]] = [M[p], M[c]];
+    for(let r = c + 1; r < n; r++){ const f = M[r][c] / M[c][c]; if(f) for(let k = c; k <= n; k++) M[r][k] -= f * M[c][k]; } }
+  const x = new Array(n).fill(0);
+  for(let r = n - 1; r >= 0; r--){ let s = M[r][n]; for(let k = r + 1; k < n; k++) s -= M[r][k] * x[k]; x[r] = s / M[r][r]; }
+  return x; }
+function decodeR2(name, target){
+  const X = DATA.map(d => F[name](d.im)), D = X[0].length, tr = X.slice(0, NTR), te = X.slice(NTR);
+  const mu = [...Array(D)].map((_, j) => tr.reduce((s, v) => s + v[j], 0) / NTR);
+  const sd = [...Array(D)].map((_, j) => Math.sqrt(tr.reduce((s, v) => s + (v[j] - mu[j]) ** 2, 0) / NTR) || 1);
+  const z = v => v.map((a, j) => (a - mu[j]) / sd[j]), Ztr = tr.map(z), Zte = te.map(z);
+  const y = DATA.map(target), ytr = y.slice(0, NTR), yte = y.slice(NTR), ym = ytr.reduce((a, b) => a + b, 0) / NTR;
+  const dot = (a, b) => { let s = 0; for(let j = 0; j < D; j++) s += a[j] * b[j]; return s; };
+  const K = Ztr.map((a, i) => Ztr.map((b, j) => dot(a, b) + (i === j ? LAMBDA * D : 0)));
+  const alpha = solve(K, ytr.map(v => v - ym));
+  const pred = Zte.map(a => ym + Ztr.reduce((s, b, i) => s + alpha[i] * dot(a, b), 0));
+  const tm = yte.reduce((a, b) => a + b, 0) / NTE;
+  const ssr = yte.reduce((s, v, i) => s + (v - pred[i]) ** 2, 0), sst = yte.reduce((s, v) => s + (v - tm) ** 2, 0);
+  return 1 - ssr / sst;
+}
+const REPS = ['pixels', 'blur', 'hist'];
+const SCORE = Object.fromEntries(REPS.map(n => [n, {where: decodeR2(n, d => d.x), color: decodeR2(n, d => d.t)}]));
+window.decodeScores = SCORE;                            // for checking from the console
+
+/* the example shown: one picture, its three representations */
+const EX = DATA[NTR + 3];
+const exCanvas = (() => { const c = document.createElement('canvas'); c.width = IW; c.height = IH; const g = c.getContext('2d'), d = g.createImageData(IW, IH);
+  for(let i = 0; i < IW * IH; i++) d.data.set([...[0, 1, 2].map(k => Math.round(EX.im[i * 3 + k] * 255)), 255], i * 4);
+  g.putImageData(d, 0, 0); return c; })();
+const blurCanvas = (() => { const v = F.blur(EX.im), c = document.createElement('canvas'); c.width = 8; c.height = 6; const g = c.getContext('2d'), d = g.createImageData(8, 6);
+  v.forEach((a, i) => { const q = Math.round(a * 255); d.data.set([q, q, q, 255], i * 4); }); g.putImageData(d, 0, 0); return c; })();
+const HIST = F.hist(EX.im);
+
+/* ---- state ---- */
+const LEVEL = b => ({model: b >= 1 ? 1 : 0, resp: b >= 2 ? 1 : 0, dec: b >= 3 ? 1 : 0, rep: b >= 4 ? 1 : 0});
+const REP_OF = b => b >= 6 ? 'hist' : b === 5 ? 'blur' : b === 4 ? 'pixels' : null;
+let beat = 0, cur = LEVEL(0), from = LEVEL(0), t0 = 0, prog = 1, prevRep = null;
+const DUR = 1300, ease = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+function go(b, jump){
+  prevRep = REP_OF(beat); beat = b; from = {...cur}; t0 = performance.now() - (jump ? DUR : 0);
+  document.getElementById('cap').textContent = CAPS[b];
+  document.getElementById('pop').classList.toggle('on', b === N);
+  cv.classList.toggle('dim', b === N);
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+function step(now){ const T = LEVEL(beat); prog = ease(Math.min(1, (now - t0) / DUR)); for(const k in T) cur[k] = from[k] + (T[k] - from[k]) * prog; }
+
+/* ---- drawing ---- */
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const d = devicePixelRatio || 1;
+  W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+addEventListener('resize', size);
+const font = (px, w) => `${w || 400} ${px}px Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif`;
+function text(t, x, y, px, al, o = {}){ ctx.save(); ctx.globalAlpha = al; ctx.fillStyle = INK; ctx.font = font(px, o.w || 700);
+  ctx.textAlign = o.align || 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, x, y); ctx.restore(); }
+function arrow(x1, y1, x2, y2, al){ ctx.save(); ctx.globalAlpha = al; ctx.strokeStyle = INK; ctx.fillStyle = INK; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  const a = Math.atan2(y2 - y1, x2 - x1); ctx.beginPath(); ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - 13 * Math.cos(a - .4), y2 - 13 * Math.sin(a - .4)); ctx.lineTo(x2 - 13 * Math.cos(a + .4), y2 - 13 * Math.sin(a + .4)); ctx.fill(); ctx.restore(); }
+function box(x, y, w, h, al, label, sub){ ctx.save(); ctx.globalAlpha = al; ctx.strokeStyle = INK; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.roundRect(x, y, w, h, 14); ctx.stroke(); ctx.restore();
+  if(label) text(label, x + w / 2, y + h / 2 - (sub ? 12 : 0), Math.max(18, H * .045), al);
+  if(sub) text(sub, x + w / 2, y + h / 2 + 18, Math.max(15, H * .032), al, {w: 400}); }
+
+function repView(name, x, y, w, h, al){
+  if(!name || al < .01) return;
+  ctx.save(); ctx.globalAlpha = al; ctx.imageSmoothingEnabled = false;
+  if(name === 'pixels'){ const s = Math.min(w / IW, h / IH); ctx.drawImage(exCanvas, x + (w - IW * s) / 2, y + (h - IH * s) / 2, IW * s, IH * s); }
+  else if(name === 'blur'){ const s = Math.min(w / 8, h / 6); ctx.drawImage(blurCanvas, x + (w - 8 * s) / 2, y + (h - 6 * s) / 2, 8 * s, 6 * s); }
+  else { const mx = Math.max(...HIST), bw = w / 27, cols = ['#d64545', '#4c9a4c', '#4a6fd0'];
+    HIST.forEach((v, i) => { const k = Math.floor(i / 8), bh = v / mx * h * .9;
+      ctx.fillStyle = cols[k]; ctx.fillRect(x + (i + k) * bw, y + h - bh, bw * .8, bh); });
+    ctx.strokeStyle = MUTE; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y + h); ctx.lineTo(x + w, y + h); ctx.stroke(); }
+  ctx.restore();
+}
+function meter(label, val, x, y, w, al){
+  const h = Math.max(22, H * .055), v = Math.max(0, Math.min(1, val));
+  text(label, x, y - h * .9, Math.max(17, H * .042), al, {align: 'left'});
+  ctx.save(); ctx.globalAlpha = al; ctx.fillStyle = '#f1f5f9'; ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = INK; ctx.fillRect(x, y, w * v, h); ctx.restore();
+  text(val === null ? '' : `R² = ${Math.max(0, val).toFixed(2)}`, x + w + 12, y + h / 2, Math.max(16, H * .04), al, {align: 'left'});
+}
+function draw(){
+  ctx.clearRect(0, 0, W, H);
+  const iw = W * .2, ih = iw * IH / IW, iy = H * .1;
+  // image -> f -> behavior
+  if(cur.model > .01){
+    ctx.save(); ctx.globalAlpha = cur.model; ctx.imageSmoothingEnabled = false; ctx.drawImage(exCanvas, 0, iy, iw, ih); ctx.restore();
+    const fx = W * .27, fw = W * .2, fh = ih;
+    arrow(iw + 10, iy + ih / 2, fx - 8, iy + ih / 2, cur.model);
+    box(fx, iy, fw, fh, cur.model);
+    for(let k = 0; k < 5; k++){ ctx.save(); ctx.globalAlpha = cur.model * .8; ctx.fillStyle = '#e2e8f0';   // stages
+      ctx.fillRect(fx + fw * (.1 + k * .17), iy + fh * (.18 + k * .04), fw * .1, fh * (.64 - k * .08)); ctx.restore(); }
+    text('f', fx + fw / 2, iy - H * .035, Math.max(20, H * .05), cur.model);
+    text('a network, or the brain', fx + fw / 2, iy + ih + H * .025, Math.max(15, H * .034), cur.model * (1 - cur.resp), {w: 400});
+    arrow(fx + fw + 8, iy + ih / 2, fx + fw + W * .06, iy + ih / 2, cur.model);
+    text('“ball”', fx + fw + W * .1, iy + ih / 2, Math.max(18, H * .045), cur.model, {w: 400});
+    // down from a stage: the responses
+    const sx = fx + fw * .62, ry = iy + ih + H * .07, rh = H * .3;
+    if(cur.resp > .01){
+      arrow(sx, iy + fh * .85, sx, ry - 6, cur.resp);
+      text('responses', fx - W * .015, ry - H * .03, Math.max(16, H * .038), cur.resp, {align: 'right', w: 400});
+      ctx.save(); ctx.globalAlpha = cur.resp; ctx.strokeStyle = MUTE; ctx.setLineDash([5, 5]); ctx.lineWidth = 1.5;
+      ctx.strokeRect(fx, ry, fw, rh); ctx.restore();
+      if(cur.rep < .99){ ctx.save(); ctx.globalAlpha = cur.resp * (1 - cur.rep); ctx.fillStyle = INK; ctx.font = font(Math.max(15, H * .036));
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ['0.12  0.87  0.03', '0.55  0.41  0.98', '0.20  0.66  …'].forEach((t, k) => ctx.fillText(t, fx + fw / 2, ry + rh * (.3 + k * .2)));
+        ctx.restore(); }
+      const nr = REP_OF(beat), pr = prevRep;
+      if(pr && pr !== nr) repView(pr, fx + 10, ry + 10, fw - 20, rh - 20, cur.resp * (1 - prog));
+      repView(nr, fx + 10, ry + 10, fw - 20, rh - 20, cur.resp * (pr === nr ? 1 : prog) * cur.rep);
+    }
+    // decoders
+    if(cur.dec > .01){
+      const dx = W * .58, dw = W * .26, nr = REP_OF(beat);
+      arrow(fx + fw + 8, ry + rh / 2, dx - 20, ry + rh / 2, cur.dec);
+      const sc = nr ? SCORE[nr] : null;
+      meter('Where is the ball?', sc ? sc.where : null, dx, ry + rh * .12, dw, cur.dec);
+      meter('What color is the ball?', sc ? sc.color : null, dx, ry + rh * .72, dw, cur.dec);
+      if(nr) text(`f = ${({pixels: 'the pixels', blur: 'blurry gray', hist: 'color histogram'})[nr]}`, fx + fw / 2, ry + rh + H * .05, Math.max(17, H * .04), cur.rep);
+    }
+  }
+}
+function frame(now){ if(cv.clientWidth !== W || cv.clientHeight !== H) size();   // the deck preloads scenes hidden (size 0)
+  step(now); draw(); requestAnimationFrame(frame); }
+
+window.decode = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ cur = LEVEL(0); go(0, true); },
+  resetToEnd(){ cur = LEVEL(N); go(N, true); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) decode.advance(); if(e.key === 'ArrowLeft') decode.back(); });
+  addEventListener('click', () => decode.advance());
+}
+size(); go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

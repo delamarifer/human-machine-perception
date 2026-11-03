@@ -11,11 +11,12 @@ const ORDER = [
   ['receptive-fields',  'Human vision: Mach bands, Hermann grid, V1 and Gabor filters (10 min)'],
   ['lab',               'Lab: 2D convolution from scratch in NumPy (45 min)'],
   ['filters',           'Edge detection, sharpening, blur; homework (15 min)'],
-  ['metamers',          'Metamers: color, textures, representation and invariance (Fernanda)'],
+  ['representation',    'What a representation is: decoding from a network or the brain; pixels to objects (Fernanda)'],
+  ['metamers',          'Metamers: color, textures, the periphery, model metamers, invariance (Fernanda)'],
 ];
 const PARTS = ORDER.map(r => r[0]);
 
 /* Minutes per section (the progress bar), from plan/course-plan.md, Day 3. */
 const SEC_MINUTES = {'Homework review': 10, 'Image formation': 20, 'Convolution': 20, 'Human vision': 10,
   'Lab': 45, 'Edges and blur': 15,
-  'Metamers': 20, 'Activity': 15, 'Beyond texture': 16, 'Invariance': 5};   // Fernanda's outline, 2026-11-03
+  'Representation': 8, 'Metamers': 15, 'Activity': 15, 'Beyond texture': 16, 'Invariance': 5};   // Fernanda's outline, 2026-11-03

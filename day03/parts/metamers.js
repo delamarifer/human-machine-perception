@@ -1,35 +1,16 @@
 /* PART: metamers (Day 3). Owner: Fernanda.
    Plan: "Pixels -> features -> textures -> objects", "Metamers activity", "Representation + invariance",
    "Discussion". Organized as Fernanda's outline (2026-11-03); students read the metamers primer before class.
-     1. Bridge: what a representation is; the ladder from pixels to objects
+     1. (the representation part, parts/representation.js, comes just before this one)
      2. Metamers, formally: f(x1) = f(x2); color (Fernanda's defense scene); the screen; relative to a system
      3. Texture: Julesz textons; phase scramble; Portilla-Simoncelli
      4. Activity: make or test a metamer (format to decide)
      5. The periphery: crowding; pooling windows; Freeman & Simoncelli, Rosenholtz
      6. Metamers as a test of models: Feather et al. 2023 (vision, then hearing); sound textures
      7. Invariance; discussion
-   Scenes 1, 3 and 7 are copied from day04/ (built there before metamers moved to Day 3). */
+   Scenes in steps 3 and 7 are copied from day04/ (built there before metamers moved to Day 3). */
 {
-/* ---------- 1. Bridge ---------- */
 section('Metamers');
-
-st(`
-  <h1 class="t">What is a representation?</h1>
-  <div class="flow" style="margin:auto 10vw">
-    <div class="step b" data-step="1"><b>Image</b></div>
-    <div class="arrow b" data-step="1">→</div>
-    <div class="step b" data-step="1"><b>f</b></div>
-    <div class="arrow b" data-step="1">→</div>
-    <div class="step b" data-step="1"><b>Numbers</b></div>
-  </div>
-  <div class="statement center b" data-step="2">Keeps some information, discards the rest</div>
-`, { notes: [
-  "(draft) Everything Shreya showed you today turns an image into new numbers. Let's give that a name.",
-  "(draft) A representation is a function f: it takes an image and returns a list of numbers. The pixels themselves are one representation; the outputs of a bank of Gabor filters are another; a label like cat is another.",
-  "(draft) Every representation except the pixels keeps some of the information in the image and discards the rest. The interesting question is what it keeps, and what it throws away."
-]});
-
-sc('pixelsToObjects', 'scenes/pixels-to-objects.html');
 
 /* ---------- 2. Metamers, formally, with color as the solved case ---------- */
 st(`
