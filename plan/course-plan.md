@@ -20,7 +20,7 @@ Known gaps and glitches in the source doc are marked **[check]**:
 - Day 9 and Day 11 have a title only. Day 10 has an objective only.
 
 **Day order on the public syllabus (Fernanda, 2026-11-02).** This supersedes the day labels below:
-1 Introduction · 2 Motivation and limitations · 3 Image representation and processing · 4 CNNs and object
+1 Introduction · 2 Computer Vision: Promise, Pitfalls, and Your Place in It · 3 Image representation and processing · 4 CNNs and object
 recognition · 5 Transformers and visual representations (Days 3–5 are Shreya's draft, still being decided) ·
 6 3D and motion · 7 Generative models · 8 Robotics and RL · 9 Robotics and multimodal · 10 Extra day ·
 11 AI and society · 12 topic to be added · 13–14 project work · 15 presentations. There is no separate neural
@@ -55,7 +55,9 @@ brainstorm notes for each day) is kept at the bottom under "Earlier revision".
 
 The built Day 1 deck (`deck.html`) follows the earlier, more detailed timing below.
 
-## Day 2 · Motivation and limitations
+## Day 2 · Computer Vision: Promise, Pitfalls, and Your Place in It
+
+Renamed from "Motivation and limitations" (Fernanda, 2026-11-02).
 
 | Min | Segment |
 |---|---|
