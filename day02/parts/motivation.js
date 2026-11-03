@@ -6,23 +6,33 @@
    ACT 2 LIMITATIONS: our own ResNet-18 run on the elephant statue (real output), VLMs are blind, Dollar Street,
          texture bias. Numbers only from the papers' abstracts.
    ACT 3 WHY HUMANS, WHY PROJECTS, then the one-photo scene as a taste of the tools.
-   Demos were checked on 2026-11-02 (links answer); pick the exact clip to play in class (feedback/_day.md).
+   Demos were checked on 2026-11-02 (links answer). VGGT, Gemini Robotics and Genie carry the maker's own video.
    Links open in a new tab and do not advance the deck. */
 {
 section('Motivation');
 
 const link = (url, text) => `<a class="motivation-link" href="${url}" target="_blank" rel="noopener"
   onclick="event.stopPropagation()">${text} ↗</a>`;
+/* A demo slide: the card (name, who, cues, link, the week that covers it) and, where the maker publishes one
+   that can be embedded, their own video next to it (checked 2026-11-02; needs internet in class).
+   o.video = a video file from the maker's site; o.youtube = the id of the maker's own YouTube video. */
+const media = (o) => o.video
+  ? `<video class="motivation-video" src="${o.video}" controls muted loop playsinline preload="metadata" onclick="event.stopPropagation()"></video>`
+  : o.youtube
+  ? `<iframe class="motivation-video" src="https://www.youtube-nocookie.com/embed/${o.youtube}?rel=0" title="${o.name} video" allow="fullscreen; encrypted-media; picture-in-picture"></iframe>`
+  : '';
 const demo = (o) => st(`
   <h1 class="t">${o.title}</h1>
-  <div class="motivation-demo b" data-step="1">
-    <div class="motivation-name">${o.name}</div>
-    <div class="label">${o.who}</div>
-    <ul class="frag">${o.cues.map(c => `<li>${c}</li>`).join('')}</ul>
-    <div>${link(o.url, o.urlText)}</div>
+  <div class="motivation-row ${media(o) ? '' : 'motivation-solo'}">
+    <div class="motivation-demo b" data-step="1">
+      <div class="motivation-name">${o.name}</div>
+      <div class="label">${o.who}</div>
+      <ul class="frag">${o.cues.map(c => `<li>${c}</li>`).join('')}</ul>
+      <div>${link(o.url, o.urlText)}</div>
+      <div class="motivation-week b" data-step="2"><span class="label">In the course</span><b>Week ${o.week}</b><span class="label">${o.topic}</span></div>
+    </div>
+    ${media(o) ? `<div class="motivation-media b" data-step="1">${media(o)}<div class="label">Video: ${o.credit}</div></div>` : ''}
   </div>
-  <div class="motivation-week b" data-step="2"><span class="label">In the course</span><b>Week ${o.week}</b><span class="label">${o.topic}</span></div>
-  <div class="todo b" data-step="1" style="position:absolute;right:6vw;bottom:6vh;max-width:30vw">Pick the clip to play: ${o.clip}</div>
 `, { notes: [`(draft) ${o.say[0]}`, `(draft) ${o.say[1]}`, `(draft) ${o.say[2]}`] });
 
 /* A live website on a slide, to scroll through in class (Fernanda, 2026-11-02). Only sites that allow
@@ -38,30 +48,34 @@ const embed = (title, url, say) => st(`
 st(`
   <div class="center">
     <div class="label motivation-outcome"><b>By the end, you can</b> · say what today&#39;s vision systems do well and where they fail</div>
-    <div class="question" style="font-size:clamp(2.4rem,4.2vw,3.8rem);margin-top:4vh">Why take this course?</div>
-    <div class="lead b" style="margin-top:5vh">What vision can do now, and where it still fails</div>
+    <div class="question" style="font-size:clamp(2.4rem,4.2vw,3.8rem);margin-top:4vh">What can this course give you?</div>
+    <div class="lead b" style="margin-top:5vh">Where computer vision can take you, and where it can&#39;t yet</div>
   </div>
   <style>
     .motivation-outcome{ color:var(--mute); } .motivation-outcome b{ color:var(--ink); }
-    .motivation-demo{ margin:auto 0; max-width:62vw; display:flex; flex-direction:column; gap:1.4vh; }
-    .motivation-name{ font-size:clamp(2rem, 3.4vw, 3.2rem); font-weight:700; }
+    .motivation-row{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1.35fr); gap:3vw; align-items:center; }
+    .motivation-row.motivation-solo{ grid-template-columns:minmax(0, 1fr); max-width:62vw; }
+    .motivation-demo{ display:flex; flex-direction:column; gap:1.2vh; }
+    .motivation-media{ display:flex; flex-direction:column; gap:.8vh; min-height:0; }
+    .motivation-video{ width:100%; aspect-ratio:16/9; border:0; border-radius:10px; background:#0f172a; }
+    .motivation-name{ font-size:clamp(1.8rem, 3vw, 2.8rem); font-weight:700; }
     .motivation-demo ul.frag li{ margin:.4vh 0; }
     .motivation-link{ color:var(--ink); font-size:clamp(1.1rem, 1.6vw, 1.5rem); }
-    .motivation-week{ position:absolute; right:6vw; top:22vh; border:2px solid var(--ink); border-radius:14px; padding:2vh 1.6vw;
-      display:flex; flex-direction:column; gap:.6vh; min-width:18vw; }
+    .motivation-week{ margin-top:1.4vh; align-self:flex-start; border:2px solid var(--ink); border-radius:14px; padding:1.4vh 1.4vw;
+      display:flex; flex-direction:column; gap:.4vh; }
     .motivation-week b{ font-size:clamp(1.5rem, 2.4vw, 2.2rem); }
   </style>
 `, { notes: [
-  "(draft) So why should you take this course? By the end of this part, you can say what today's vision systems do well and where they fail.",
-  "(draft) Let me show you what computer vision can do right now, and then where it still fails. Everything I show you, we will cover."
+  "(draft) So what can this course give you? By the end of this part, you can say what today's vision systems do well and where they fail.",
+  "(draft) Where computer vision can take you, and where it can't yet. First what it can do right now; then where it still fails. Everything I show you, we will cover, and the failures are open problems you could work on."
 ]});
 
-demo({ title: 'From photos to 3D', name: 'VGGT', who: 'Meta AI and Oxford · CVPR 2025',
+demo({ title: 'From photos to 3D', name: 'VGGT', video: 'https://vgg-t.github.io/resources/teaser_video_v3_compressed_short.mp4', credit: 'VGGT project page (vgg-t.github.io)', who: 'Meta AI and Oxford · CVPR 2025',
   cues: ['A few photos in', 'Cameras, depth and 3D points out', 'Typically under a second'],
   url: 'https://huggingface.co/spaces/facebook/vggt', urlText: 'Try it: Hugging Face demo',
-  week: 1, topic: 'Image geometry, feature matching', clip: 'run the demo live on a few classroom photos, or a saved result.',
+  week: 1, topic: 'Image geometry, feature matching',
   say: ['From a handful of photos to a 3D scene.',
-    'This is VGGT, from Meta AI and Oxford. You give it a few photos of a scene; it returns where each camera was, the depth of every pixel, and a cloud of 3D points, typically in under a second. You can try it in your browser.',
+    'This is VGGT, from Meta AI and Oxford. You give it a few photos of a scene; it returns where each camera was, the depth of every pixel, and a cloud of 3D points, typically in under a second. Here is their video; you can also try it in your browser.',
     'The ideas underneath, image geometry and matching points across images, are week one.'] });
 
 /* VGGT's live demo (https://facebook-vggt.hf.space/) allows embedding, but it returned a 500 error on 2026-11-02;
@@ -69,7 +83,7 @@ demo({ title: 'From photos to 3D', name: 'VGGT', who: 'Meta AI and Oxford · CVP
 demo({ title: 'Learning to see without labels', name: 'DINOv3 → Canopy Height Maps v2', who: 'Meta and World Resources Institute · 2025–2026',
   cues: ['Features learned from images, no labels', 'Trained on satellite images', 'Tree height, mapped worldwide'],
   url: 'https://ai.meta.com/blog/world-resources-institute-dino-canopy-height-maps-v2/', urlText: 'Canopy Height Maps v2',
-  week: 2, topic: 'Learned representations, transfer learning', clip: 'the map on Google Earth Engine (linked from the blog), zoomed on a forest near AIMS.',
+  week: 2, topic: 'Learned representations, transfer learning',
   say: ['Learning to see without labels.',
     'DINOv3 is a model from Meta that learns visual features from images alone, without anyone labeling them. A version trained on satellite images is the backbone of Canopy Height Maps version 2, built with the World Resources Institute: the height of trees, mapped across the world, and released openly.',
     'Learned representations, and reusing them for a new task, which is transfer learning, are week two.'] });
@@ -77,7 +91,7 @@ demo({ title: 'Learning to see without labels', name: 'DINOv3 → Canopy Height 
 demo({ title: 'An embedding of the planet', name: 'AlphaEarth Foundations', who: 'Google DeepMind · 2025',
   cues: ['Optical, radar, 3D laser and climate data, combined', '64 numbers for every 10 m of land', 'Each year, 2017–2024'],
   url: 'https://deepmind.google/discover/blog/alphaearth-foundations-helps-map-our-planet-in-unprecedented-detail/', urlText: 'AlphaEarth Foundations',
-  week: 2, topic: 'Embeddings and similarity', clip: 'the video on the DeepMind blog post.',
+  week: 2, topic: 'Embeddings and similarity',
   say: ['An embedding of the whole planet.',
     'AlphaEarth Foundations, from Google DeepMind, combines satellite images, radar, 3D laser scans and climate simulations into one summary: 64 numbers for every 10 meter square of land, for each year from 2017 to 2024. They are available in Google Earth Engine.',
     'What an embedding is, and how to compare things with it, is week two.'] });
@@ -85,7 +99,7 @@ demo({ title: 'An embedding of the planet', name: 'AlphaEarth Foundations', who:
 demo({ title: 'Segment anything you can name', name: 'SAM 3', who: 'Meta · 2025',
   cues: ['Type a short phrase', 'Finds, outlines and tracks every match', 'In images and video'],
   url: 'https://aidemos.meta.com/segment-anything', urlText: 'Try it: Segment Anything Playground',
-  week: 3, topic: 'Detection and segmentation', clip: 'run the Playground live on a classroom video.',
+  week: 3, topic: 'Detection and segmentation',
   say: ['Segment anything you can name.',
     'SAM 3, from Meta. You type a short phrase, and it finds every matching object, outlines it pixel by pixel, and tracks it through a video. The model is open, and there is a playground in the browser.',
     'Detection and segmentation are week three.'] });
@@ -93,23 +107,23 @@ demo({ title: 'Segment anything you can name', name: 'SAM 3', who: 'Meta · 2025
 demo({ title: 'Images and language, in medicine', name: 'MedGemma 1.5', who: 'Google · 2026 · open model',
   cues: ['CT and MRI volumes, pathology slides', 'Images and text together', 'A research model, not a doctor'],
   url: 'https://developers.google.com/health-ai-developer-foundations/medgemma', urlText: 'MedGemma',
-  week: 3, topic: 'Multimodal vision-language systems', clip: 'no public demo found; an example from the model page.',
+  week: 3, topic: 'Multimodal vision-language systems',
   say: ['Images and language together, in medicine.',
     'MedGemma 1.5 is an open model from Google that reads medical images, including 3D CT and MRI scans and pathology slides, together with text. It is meant for developers and researchers to build on, not to make clinical decisions on its own.',
     'Models that connect images and language are week three.'] });
 
-demo({ title: 'Robots that see, plan and act', name: 'Gemini Robotics 1.5', who: 'Google DeepMind · 2025',
-  cues: ['Sees the scene, plans in steps', 'Sorts laundry; sorts waste by local rules', 'Same skills on different robots'],
+demo({ title: 'Robots that see, plan and act', name: 'Gemini Robotics 1.5', youtube: 'AMRxbIO04kQ', credit: 'Google DeepMind, Gemini Robotics 1.5: Using agentic capabilities', who: 'Google DeepMind · 2025',
+  cues: ['Sees the scene', 'Plans a task in steps, then acts', 'Same skills on different robots'],
   url: 'https://deepmind.google/discover/blog/gemini-robotics-15-brings-ai-agents-into-the-physical-world/', urlText: 'Gemini Robotics 1.5',
-  week: 3, topic: 'Multimodal systems, vision for action', clip: 'one of the videos on the blog post (check the laundry and waste clips).',
+  week: 3, topic: 'Multimodal systems, vision for action',
   say: ['Robots that see, plan and act.',
-    'Gemini Robotics 1.5, from Google DeepMind: a robot looks at a scene, plans a task in steps, and acts. In their videos it sorts laundry by color, and sorts waste following a city\'s recycling rules. The same skills transfer across different robots.',
+    'Gemini Robotics 1.5, from Google DeepMind: a robot looks at a scene, plans a task in steps, and then acts. Here is one of their videos. The same skills transfer across different robots.',
     'Vision as one part of a larger system that acts in the world is week three.'] });
 
-demo({ title: 'Generating worlds', name: 'Genie 4', who: 'Google DeepMind · 2026 · research preview',
+demo({ title: 'Generating worlds', name: 'Genie 4', video: 'https://storage.googleapis.com/gdm-deepmind-com-prod-public/media/0XTXKGGiuw14X2EL/genie4_hero_tokyo-mirage__alt-3__16x9__261027.webm', credit: 'Google DeepMind, Genie page', who: 'Google DeepMind · 2026 · research preview',
   cues: ['A text prompt in', 'A world you can walk through', 'Generated as you move'],
   url: 'https://deepmind.google/models/genie/', urlText: 'Genie',
-  week: 3, topic: 'Image generation and diffusion models', clip: 'the video at the top of the Genie page.',
+  week: 3, topic: 'Image generation and diffusion models',
   say: ['Generating whole worlds.',
     'Genie 4, from Google DeepMind. You describe a world in text, and it generates one you can move through, frame by frame, as you move. It is a research preview: most of us can only watch the videos for now.',
     'How machines generate images is week three.'] });
@@ -213,19 +227,38 @@ embed('Does object recognition work for everyone?', 'https://www.gapminder.org/d
   'Dollar Street itself is online.',
   '(Scroll through: pick one object, a toothbrush or a stove, and compare homes across incomes and countries. This is the kind of variation the training data missed.)']);
 
+/* Texture or shape: the paper's finding, then the same idea tested on our two photos with our ResNet-18. Shuffling
+   the patches destroys the shape and keeps the texture. Real outputs: day02/assets/shuffle/(coffee, elephant)/result.json, made by
+   day02/assets/shuffle.py from the same crops as the earlier slides (so "intact" matches them). Two photos, one
+   seed: a probe, not a measurement; the notes say so. */
+const SHUF = {"coffee": [["espresso", "85.9%"], ["toilet tissue", "30.5%"], ["wardrobe", "14.2%"]], "elephant": [["triceratops", "28.7%"], ["sock", "40.7%"], ["wine bottle", "24.0%"]]};
+const shufRow = (name, step) => `<div class="label motivation-shuf-name b" data-step="${step}">${name === 'coffee' ? 'Coffee' : 'Elephant'}</div>` +
+  ['intact', 'shuffled-4', 'shuffled-8'].map((k, j) => `<div class="motivation-shuf-cell b" data-step="${step}">
+    <img src="assets/shuffle/${name}/${k}.png" alt=""><div class="label"><b>${SHUF[name][j][0]}</b> ${SHUF[name][j][1]}</div></div>`).join('');
 st(`
-  <h1 class="t">Texture, not shape</h1>
-  <ul class="frag">
-    <li class="b">ImageNet-trained networks: mostly texture</li>
-    <li class="b">People: mostly shape</li>
-    <li class="b">Train on shape: more accurate and more robust</li>
-  </ul>
-  ${cite('Geirhos, Rubisch, Michaelis, Bethge, Wichmann &amp; Brendel, ImageNet-trained CNNs are biased towards texture, ICLR 2019')}
+  <h1 class="t">Texture, not shape?</h1>
+  <div class="lead b" data-step="1">ImageNet-trained networks go mostly by texture; people by shape</div>
+  <div class="motivation-shuf">
+    <div></div><div class="label motivation-shuf-head b" data-step="2">Intact</div>
+    <div class="label motivation-shuf-head b" data-step="2">Shuffled 4 × 4</div><div class="label motivation-shuf-head b" data-step="2">Shuffled 8 × 8</div>
+    ${shufRow('coffee', 2)}${shufRow('elephant', 3)}
+  </div>
+  <div class="lead b" data-step="4" style="text-align:center">Shape gone, texture kept: the answers change</div>
+  ${cite('Geirhos, Rubisch, Michaelis, Bethge, Wichmann &amp; Brendel, ImageNet-trained CNNs are biased towards texture, ICLR 2019 · Our test: ResNet-18 · Photos (cropped, shuffled): Shixart1985, CC BY 2.0; Carlos Valenzuela, CC BY-SA 4.0')}
+  <style>
+    .motivation-shuf{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:auto repeat(3, 1fr); grid-template-rows:auto 1fr 1fr;
+      gap:1vh 1.6vw; align-items:center; justify-items:center; }
+    .motivation-shuf-head{ font-weight:700; }
+    .motivation-shuf-name{ font-weight:700; justify-self:end; }
+    .motivation-shuf-cell{ height:100%; min-height:0; display:flex; flex-direction:column; align-items:center; gap:.5vh; }
+    .motivation-shuf-cell img{ flex:1 1 auto; min-height:0; aspect-ratio:1; object-fit:cover; border-radius:6px; border:1px solid var(--line); }
+  </style>
 `, { notes: [
-  "(draft) One more, and it brings us back to people.",
-  "(draft) Geirhos and colleagues showed that networks trained on ImageNet recognize objects mostly by their texture.",
-  "(draft) People, tested on the same images, go mostly by shape.",
-  "(draft) And when they trained the same network on images where texture was no longer a reliable cue, it relied more on shape, and became more accurate and more robust. Maybe that is part of what happened to our decorated elephant. That is a hypothesis you could test."
+  "(draft) Texture, not shape? One more failure, and it brings us back to people.",
+  "(draft) Geirhos and colleagues showed that networks trained on ImageNet recognize objects mostly by their texture, while people, tested on the same images, go mostly by shape. Training the same network to rely on shape made it more accurate and more robust.",
+  "(draft) We tried a quick version on our own photo, with the same ResNet-18. Cut the image into pieces and shuffle them: the shape is gone, the texture is still there. Intact, it says espresso, 86 percent. Shuffled into 16 pieces, it says toilet tissue; into 64 pieces, wardrobe. Espresso drops out. So here, the arrangement mattered to the model too.",
+  "(draft) The elephant. Intact: triceratops. Shuffled into 16 pieces: sock, with cowboy boot still second, just as it was for the intact statue. Into 64: wine bottle, then barrel and quilt. The guesses follow the patterns on the surface, not the animal.",
+  "(draft) Shape gone, texture kept, and the answers change, but not always in the same way. This is two photos and one shuffle, not a measurement. Testing it properly, on many images, against people, is exactly the kind of question you could take on in a project."
 ]});
 
 st(`

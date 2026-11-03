@@ -40,3 +40,12 @@ Made by running the code cells of `notebooks/day01-lab-simple-vision-system.ipyn
   "tallest box: true height 70.0, recovered 68.6"; "typical error on the boxes: 2.9 units"; 45046 equations,
   33000 unknowns.
 - `floating-box.png`: section 7, a box 35 units in the air: input, recovered height, true height.
+
+## shuffle/ (texture or shape)
+Made by `shuffle.py` on 2026-11-02 (torch 2.15.0, torchvision 0.29.2, opencv 5.0.0) from the same two Commons photos
+(1280 px thumbnails, re-downloaded), with the same OpenCV crop as `pipeline.py`, so "intact" matches the slides.
+Shuffled = the 224 x 224 crop cut into a 4 x 4 or 8 x 8 grid, tiles permuted with seed 0. Changes to the photos:
+resized, cropped, tiles shuffled (credits as above: Shixart1985, CC BY 2.0; Carlos Valenzuela, CC BY-SA 4.0).
+- Coffee: intact espresso 85.9%; 4 x 4 toilet tissue 30.5% (espresso 4th, 7.5%); 8 x 8 wardrobe 14.2% (espresso 326th).
+- Elephant: intact triceratops 28.7%; 4 x 4 sock 40.7%, cowboy boot 24.1%; 8 x 8 wine bottle 24.0%, barrel, quilt.
+Two photos, one seed: a probe for class, not a measurement.
