@@ -322,72 +322,67 @@ st(`
 ]});
 
 /* Crowding: the target letter sits at the same distance from the cross in both rows. */
+/* Crowding, then (Fernanda, 2026-11-04) the pooling regions grow out from the same cross, instead of a separate slide.
+   Schematic (not data): regions whose size grows with distance from the cross; all sizes in vh so circles stay round. */
+const mvPool = (() => { const out = []; let ri = 0;
+  for(let e = 4; e < 120; e *= 1.45, ri++){ const r = e * .28, n = Math.max(6, Math.floor(2 * Math.PI * e / (r * 1.85)));
+    for(let k = 0; k < n; k++){ const a = (k + (ri % 2) * .5) / n * 2 * Math.PI;
+      out.push(`<i style="left:calc(14% + ${(e * Math.cos(a) - r).toFixed(2)}vh);top:${(24 + e * Math.sin(a) - r).toFixed(2)}vh;width:${(2 * r).toFixed(2)}vh;height:${(2 * r).toFixed(2)}vh;transition-delay:${(ri * .22).toFixed(2)}s"></i>`); } }
+  return out.join(''); })();
 st(`
   <style>
     .metamers-row{ position:relative; height:16vh; }
     .metamers-row span{ position:absolute; top:50%; transform:translate(-50%, -50%); font-size:clamp(2.6rem, 4.4vw, 4.2rem); font-weight:700; }
   </style>
+  <style>
+    .metamers-crowd{ position:relative; margin:auto 0; }
+    .metamers-pool{ position:absolute; left:0; right:0; top:-14vh; height:66vh; overflow:hidden; pointer-events:none; }
+    .metamers-pool > div{ position:absolute; left:0; right:0; top:14vh; height:0; }
+    .metamers-pool i{ position:absolute; border:2px solid #94a3b8; border-radius:50%; opacity:0; transform:scale(.4); transition:opacity .5s ease, transform .5s ease; }
+    .metamers-pool.shown i{ opacity:.9; transform:none; }
+  </style>
   <h1 class="t">Try it: keep your eyes on the cross</h1>
-  <div style="margin:auto 0">
-    <div class="metamers-row b"><span style="left:14%">+</span><span style="left:76%">R</span></div>
-    <div class="metamers-row b"><span style="left:14%">+</span><span style="left:76%;letter-spacing:.04em">SRH</span></div>
+  <div class="metamers-crowd">
+    <div class="b metamers-pool" data-step="3"><div>${mvPool}</div></div>
+    <div class="metamers-row b" data-step="1"><span style="left:14%">+</span><span style="left:76%">R</span></div>
+    <div class="metamers-row b" data-step="2"><span style="left:14%">+</span><span style="left:76%;letter-spacing:.04em">SRH</span></div>
   </div>
-  ${cite('Bouma, 1970')}
+  <div class="label b" data-step="3" style="text-align:center">Pooling regions grow with distance from where you look</div>
+  ${cite('Bouma, 1970 · Freeman &amp; Simoncelli, 2011 · Balas, Nakano &amp; Rosenholtz, 2009')}
 `, { notes: [
   "(draft) Texture statistics turn out to matter far beyond textures. A quick experiment on yourselves. Keep your eyes on the cross; do not look to the right.",
   "(draft) Without moving your eyes, can you read the letter on the right? Most people can.",
-  "(draft) Now the same letter, at the same distance from the cross, with a neighbor on each side. Keep looking at the cross. It is much harder to say what the middle letter is. This is called crowding; Bouma measured it for letters in 1970. The letters are all there, but the periphery seems to keep a summary of the region rather than every detail."
-]});
-
-/* Schematic (not data): pooling windows whose size grows with distance from the fixation point. */
-const ring = (() => {
-  const cx = 800, cy = 330, out = [];
-  for(let e = 60, ri = 0; e < 900; e *= 1.5, ri++){
-    const r = e * .2, n = Math.floor(2 * Math.PI * e / (r * 1.9));
-    for(let k = 0; k < n; k++){ const a = (k + (ri % 2) * .5) / n * 2 * Math.PI, x = cx + e * Math.cos(a), y = cy + e * Math.sin(a);
-      if(x > -r && x < 1600 + r && y > -r && y < 660 + r) out.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"/>`); }
-  }
-  return `<svg viewBox="0 0 1600 660" style="width:100%;height:100%" preserveAspectRatio="xMidYMid meet">
-    <g fill="none" stroke="#94a3b8" stroke-width="3">${out.join('')}</g>
-    <g stroke="#0f172a" stroke-width="7"><line x1="782" y1="330" x2="818" y2="330"/><line x1="800" y1="312" x2="800" y2="348"/></g></svg>`;
-})();
-st(`
-  <h1 class="t">Pooling grows with distance from the center of gaze</h1>
-  <div class="b" style="flex:1 1 auto;min-height:0">${ring}</div>
-  <div class="todo b">Freeman &amp; Simoncelli metamer: original and synthesized image, viewed with fixation at the center. Source: to add (or generate with plenoptic)</div>
-  <div class="todo b">Rosenholtz mongrel of a scene. Source: to add</div>
-  ${cite('Freeman &amp; Simoncelli, 2011 · Balas, Nakano &amp; Rosenholtz, 2009')}
-`, { notes: [
-  "(draft) Why is the periphery like that?",
-  "(draft) One account: the visual system computes texture-like statistics over pooling regions, and these regions grow with the distance from where you are looking. This picture is a schematic, not measured data: each circle is a pooling region.",
-  "(to write) Freeman and Simoncelli built a model like this, generated images that match its statistics in every region, and asked people to compare them with the original while keeping their eyes on the center. When the regions grow at about the rate of receptive fields in V2, people cannot tell the images apart: they are metamers, even though the periphery of the synthetic image is scrambled. So human metamers tell us what we are sensitive to: in the periphery, summary statistics, not exact positions.",
-  "(to write) Ruth Rosenholtz and colleagues made a similar point with what they call mongrels: images synthesized to match local summary statistics. They used them to explain crowding, the effect you just tried."
+  "(draft) Now the same letter, at the same distance from the cross, with a neighbor on each side. Keep looking at the cross. It is much harder to say what the middle letter is. This is called crowding; Bouma measured it for letters in 1970. The letters are all there, but the periphery seems to keep a summary of the region rather than every detail.",
+  "(draft) Why? One account: the visual system computes texture-like statistics over pooling regions, and these regions grow with the distance from where you are looking. This picture is a schematic, not measured data. Near the cross the regions are small; out where the letters are, one region covers all three letters, so it only keeps their statistics. Freeman and Simoncelli built a model like this, generated images that match its statistics in every region, and people could not tell them from the original while keeping their eyes on the center: metamers, even though the periphery was scrambled. Ruth Rosenholtz and colleagues used the same idea to explain crowding. (to add: the work on a model with a fovea; which paper?)"
 ]});
 
 /* ---------- 4. No knobs: drive and suppress ---------- */
 section('Networks');
 
 st(`
-  <h1 class="t">And where we have no knobs?</h1>
+  <h1 class="t">What do we do while we find good models (or “knobs”) for the rest of perception?</h1>
   <div class="cols" style="grid-template-columns:1fr 1fr">
     <div class="b" data-step="1" style="display:flex;flex-direction:column;gap:2vh">
       <div class="lead"><b>Visual cortex</b></div>
-      <div class="label">images made to drive, or silence, single neurons</div>
-      <div class="todo">Figure: synthesized images that drive or suppress V4 sites. Source: to add</div>
-      <div class="label">Bashivan, Kar &amp; DiCarlo, 2019 (to check)</div>
+      <div class="label">images synthesized to drive one V4 site beyond any natural image</div>
+      <div style="display:flex;gap:.6vw;align-items:flex-end">
+        ${[1, 2, 3, 4, 5].map(k => `<img src="assets/papers/bashivan2019/stretch-site04-synth-${k}.png" alt="" style="width:6.4vw;border-radius:4px">`).join('')}
+        <div style="margin-left:1vw;text-align:center"><img src="assets/papers/bashivan2019/stretch-site04-natural-best.png" alt="" style="width:6.4vw;border-radius:4px"><div class="label" style="font-size:clamp(.8rem,1vw,1rem)">best of 640 natural</div></div>
+      </div>
+      <div class="label">site 4 responds 5.4 to 7.6 to these, at most 2.1 to any natural image</div>
+      <div class="label" style="font-size:clamp(.85rem,1.05vw,1.05rem)">Bashivan, Kar &amp; DiCarlo, 2019, Science · images and responses: github.com/dicarlolab/npc (MIT License)</div>
     </div>
     <div class="b" data-step="2" style="display:flex;flex-direction:column;gap:2vh">
       <div class="lead"><b>Language</b></div>
-      <div class="label">sentences chosen to drive, or suppress, the language network</div>
-      <div class="todo">Figure: drive and suppress sentences, and the brain responses. Source: to add</div>
-      <div class="label">Tuckute et al., 2024 (to check)</div>
+      <div class="label">sentences chosen by a model to drive, or suppress, the human language network</div>
+      <div class="label" style="font-size:clamp(.85rem,1.05vw,1.05rem)">Tuckute, Sathe, Srikant, Taliaferro, Wang, Schrimpf, Kay &amp; Fedorenko, 2024, Nature Human Behaviour</div>
     </div>
   </div>
   <div class="statement center b" data-step="3">A model chooses the stimulus</div>
 `, { notes: [
   "(draft) And beyond textures, where we have no hand-made knobs at all?",
-  "(draft) One answer from the visual system: use a model of the neurons to design the stimulus. Bashivan, Kar and DiCarlo built a model of neurons in area V4 of the monkey, then synthesized images that the model predicted would drive a site as hard as possible, or silence it, and showed them to the monkey. (check the details before class)",
-  "(draft) The same idea works for language. Tuckute and colleagues used a language model to choose sentences predicted to drive, or to suppress, the human language network, and measured the brain's responses with fMRI. (check the details before class)",
+  "(draft) One answer from the visual system: use a model of the neurons to design the stimulus. Bashivan, Kar and DiCarlo built a model of neurons in area V4 of the monkey, then synthesized images that the model predicted would drive one recording site as hard as possible, and showed them to the monkey. These are the real images from their data release, for one site: the site responded 5.4 to 7.6 to these five, and at most 2.1 to any of 640 natural images. They also made images that drive one site while keeping the others quiet.",
+  "(draft) The same idea works for language. Tuckute and colleagues used a language model to choose sentences predicted to drive, or to suppress, the human language network, and measured the brain's responses with fMRI: the drive sentences raised the response and the suppress sentences lowered it.",
   "(draft) In both cases, a model chooses the stimulus. And that is where neural networks come in."
 ]});
 
