@@ -56,8 +56,26 @@
   .mails a{ color:inherit; text-decoration:none; }
   .mails a:hover{ color:var(--cyan); }
 
-  main{ max-width:64rem; margin:0 auto; padding:0 24px 12vh; }
-  section{ padding-top:3em; }
+  .with-nav{ display:grid; grid-template-columns:13rem minmax(0, 1fr); gap:8px 28px;
+    max-width:72rem; margin:0 auto; padding:0 24px 12vh; align-items:start; }
+  .sidenav{ position:sticky; top:0; max-height:100vh; overflow:auto; display:flex; flex-direction:column;
+    gap:4px; padding:3em 4px 2rem 0; scrollbar-width:thin; }
+  .sidenav-label{ margin:.85em 0 .2em; padding-left:.7em; font:600 .68rem/1 Inter, sans-serif;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--mute); }
+  .sidenav a{ display:flex; align-items:center; gap:.55em; padding:.32em .65em; border-radius:999px;
+    color:var(--mute); text-decoration:none; font:500 .92rem/1.25 'Space Grotesk', sans-serif;
+    border:1px solid transparent; }
+  .sidenav a::before{ content:''; width:8px; height:8px; border-radius:50%; background:var(--k);
+    box-shadow:0 0 8px var(--k); flex:none; }
+  .sidenav a:hover{ color:var(--text); border-color:var(--line); }
+  .sidenav a[aria-current="true"]{ color:var(--text); border-color:var(--k);
+    background:color-mix(in srgb, var(--k) 14%, transparent); }
+  .sidenav a.sub{ margin-left:.9em; font-size:.84rem; padding:.22em .55em; }
+  .sidenav a.sub::before{ width:6px; height:6px; }
+  main{ margin:0; padding:0; min-width:0; }
+  section{ padding-top:3em; scroll-margin-top:1.25rem; }
+  .day{ padding-top:1.5em; scroll-margin-top:1.25rem; }
+  .day h3{ margin:0 0 .75em; font:700 1.15rem/1.2 'Space Grotesk', sans-serif; }
   h2{ margin:0 0 .9em; font:700 1.4rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
   h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
   .cards{ display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px; }
@@ -69,6 +87,11 @@
   a.card b{ display:block; font:700 1.2rem/1.3 'Space Grotesk', sans-serif; margin-bottom:.3em; }
   a.card span{ color:var(--mute); font-size:.95rem; }
   a.card .badge{ display:block; margin-top:12px; height:20px; }
+  a.card.past{ opacity:.68; border-style:dashed; }
+  a.card.past::before{ filter:grayscale(.7); }
+  a.card.past small{ color:var(--mute); }
+  .passed-label{ grid-column:1 / -1; margin:.6em 0 0; font:600 .72rem/1 Inter, sans-serif;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--mute); }
 
   .card.empty{ position:relative; display:block; padding:20px 20px 18px; border:1px dashed var(--line); border-radius:18px; background:rgba(18,24,39,.5); }
   .card.empty small{ display:block; font-size:.72rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--k); margin-bottom:.4em; }
@@ -77,7 +100,16 @@
     .spine{ display:none; } .page{ margin-left:0; }
     .hero-in{ padding:8vh 16px 6vh; min-height:0; }
     .iris{ width:260px; height:260px; right:-90px; top:70%; opacity:.55; }
-    main{ padding:0 16px 10vh; }
+  }
+  @media (max-width:900px){
+    .with-nav{ grid-template-columns:1fr; gap:0; padding:0 16px 10vh; }
+    .sidenav{ position:sticky; top:0; z-index:3; flex-direction:row; align-items:center; max-height:none;
+      overflow-x:auto; gap:8px; padding:.7rem 0; background:rgba(10,13,22,.92);
+      border-bottom:1px solid var(--line); backdrop-filter:blur(10px); }
+    .sidenav-label{ margin:0 .15em 0 .35em; padding:0; }
+    .sidenav a{ white-space:nowrap; }
+    .sidenav a.sub{ margin-left:0; }
+    section, .day{ scroll-margin-top:4.25rem; }
   }
 </style>
 </head>
@@ -95,55 +127,172 @@
   </div>
 </header>
 
+<div class="with-nav">
+<nav class="sidenav" aria-label="On this page"></nav>
 <main>
 
-  <section style="--c:var(--violet)">
+  <!-- Tabs are Course, Days, Homework submission, Project. Add the next day as another .day inside #days. -->
+  <section id="course" style="--c:var(--violet)">
     <h2>Course</h2>
     <div class="cards">
       <a class="card" href="syllabus.html" style="--k:var(--violet)"><small>Syllabus</small><b>Syllabus</b>
         <span>Three weeks. Lectures, labs, homework, and a final project.</span></a>
-      <a class="card" href="templates.html" style="--k:var(--pink)"><small>Final project</small><b>Project templates</b>
-        <span>Idea, proposal, presentation and write-up, for a built demo or an experiment.</span></a>
       <a class="card" href="readings.html" style="--k:var(--cyan)"><small>Readings</small><b>Readings</b>
         <span>Readings as we assign them, things to explore, and a place to suggest your own.</span></a>
-    </div>
-  </section>
-
-  <section style="--c:var(--pink)">
-    <h2>Feedback</h2>
-    <div class="cards">
       <a class="card" href="https://forms.gle/Js3vcF7hgkhXQELt5" style="--k:var(--pink)"><small>Feedback</small><b>How was class?</b>
         <span>We welcome anonymous feedback to help improve the course!</span></a>
     </div>
   </section>
 
-  <section style="--c:var(--cyan)">
-    <h2>Day 1</h2>
-    <div class="cards">
-      <a class="card" href="deck.html" style="--k:var(--cyan)"><small>Lecture slides</small><b>Introduction to Visual Systems</b>
-        <span>What does it mean to see?</span></a>
-      <a class="card" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-practice-numpy-images.ipynb" style="--k:var(--amber)"><small>In-class lab (continued at home)</small><b>Images as arrays</b>
-        <span>Checker-shadow image. NumPy slices and arithmetic.</span>
-        <img class="badge" src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"></a>
-      <a class="card" href="homework.html" style="--k:var(--sky)"><small>Homework / Readings</small><b>Homework</b>
-        <span>Day 1 survey, one reading, and finish Images as arrays. Pritchard and Chapter 2 are optional.</span></a>
+  <section id="days" style="--c:var(--cyan)">
+    <h2>Days</h2>
+    <section class="day" id="day-1" style="--c:var(--cyan)">
+      <h3>Day 1</h3>
+      <div class="cards">
+        <a class="card" href="deck.html" style="--k:var(--cyan)"><small>Lecture slides</small><b>Introduction to Visual Systems</b>
+          <span>What does it mean to see?</span></a>
+        <a class="card" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-practice-numpy-images.ipynb" style="--k:var(--amber)"><small>In-class lab (continued at home)</small><b>Images as arrays</b>
+          <span>Checker-shadow image. NumPy slices and arithmetic.</span>
+          <img class="badge" src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"></a>
+        <a class="card" href="homework.html" style="--k:var(--sky)"><small>Homework / Readings</small><b>Homework</b>
+          <span>Day 1 survey, one reading, and finish Images as arrays. Pritchard and Chapter 2 are optional.</span></a>
+      </div>
+    </section>
+    <section class="day" id="day-2" style="--c:var(--violet)">
+      <h3>Day 2</h3>
+      <div class="cards">
+        <a class="card" href="day02/deck.html" style="--k:var(--violet)"><small>Lecture slides</small><b>Computer Vision: Promise, Pitfalls, and Your Place in It</b>
+          <span>What computer vision can do, where it still fails, and your project.</span></a>
+        <a class="card" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-lab-simple-vision-system.ipynb" style="--k:var(--amber)"><small>In-class lab (continued at home)</small><b>A simple vision system</b>
+          <span>Recover 3D from one image of a blocks world.</span>
+          <img class="badge" src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"></a>
+        <a class="card" href="metamers.html" style="--k:var(--sky)"><small>Homework / Readings</small><b>Metamers primer</b>
+          <span>Read the primer. Also: finish the simple vision system lab, and send your project idea by Friday night.</span></a>
+      </div>
+    </section>
+  </section>
+
+  <section id="homework" style="--c:var(--amber)">
+    <h2>Homework submission</h2>
+    <div class="cards" id="submissions">
+      <a class="card" data-due="2026-11-04T14:00:00+02:00" href="https://forms.gle/hLbcz7Yy3YNtnBws6" style="--k:var(--amber)"><small>Due</small><b>Day 2 homework</b>
+        <span>A simple vision system · Due Wed, Nov 4, 2pm</span></a>
+      <a class="card" data-due="2026-11-05T14:00:00+02:00" href="https://forms.gle/urPSQVh27DA7rAC37" style="--k:var(--sky)"><small>Due</small><b>Day 3 homework</b>
+        <span>Filter banks and pyramids · Due Thu, Nov 5, 2pm</span></a>
     </div>
   </section>
 
-  <section style="--c:var(--violet)">
-    <h2>Day 2</h2>
+  <section id="project" style="--c:var(--pink)">
+    <h2>Project</h2>
     <div class="cards">
-      <a class="card" href="day02/deck.html" style="--k:var(--violet)"><small>Lecture slides</small><b>Computer Vision: Promise, Pitfalls, and Your Place in It</b>
-        <span>What computer vision can do, where it still fails, and your project.</span></a>
-      <a class="card" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-lab-simple-vision-system.ipynb" style="--k:var(--amber)"><small>In-class lab (continued at home)</small><b>A simple vision system</b>
-        <span>Recover 3D from one image of a blocks world.</span>
-        <img class="badge" src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"></a>
-      <a class="card" href="metamers.html" style="--k:var(--sky)"><small>Homework / Readings</small><b>Metamers primer</b>
-        <span>Read the primer. Also: finish the simple vision system lab, and send your project idea by Friday night.</span></a>
+      <a class="card" href="https://forms.gle/wBXHE6AFaHf8RR4T8" style="--k:var(--pink)"><small>Google Form</small><b>Project proposal</b>
+        <span>Upload your project proposal.</span></a>
+      <a class="card" href="templates.html" style="--k:var(--violet)"><small>Final project</small><b>Project templates</b>
+        <span>Idea, proposal, presentation and write-up, for a built demo or an experiment.</span></a>
     </div>
   </section>
 
 </main>
 </div>
+</div>
+<script>
+  const nav = document.querySelector('.sidenav');
+  const links = [];
+  const tabs = [['course', 'Course'], ['days', 'Days'], ['homework', 'Homework submission'], ['project', 'Project']];
+
+  function addLink(section, label, sub) {
+    const link = document.createElement('a');
+    link.href = '#' + section.id;
+    link.textContent = label;
+    if (sub) link.className = 'sub';
+    link.style.setProperty('--k', section.style.getPropertyValue('--c') || 'var(--cyan)');
+    nav.appendChild(link);
+    links.push([section, link]);
+  }
+
+  tabs.forEach(([id, label]) => {
+    const section = document.getElementById(id);
+    addLink(section, label, false);
+    if (id !== 'days') return;
+    section.querySelectorAll(':scope > .day').forEach(day => {
+      addLink(day, day.querySelector('h3').textContent.trim(), true);
+    });
+  });
+
+  function reveal(link) {
+    if (link.offsetTop < nav.scrollTop) nav.scrollTop = link.offsetTop;
+    else if (link.offsetTop + link.offsetHeight > nav.scrollTop + nav.clientHeight)
+      nav.scrollTop = link.offsetTop + link.offsetHeight - nav.clientHeight;
+    if (link.offsetLeft < nav.scrollLeft) nav.scrollLeft = link.offsetLeft;
+    else if (link.offsetLeft + link.offsetWidth > nav.scrollLeft + nav.clientWidth)
+      nav.scrollLeft = link.offsetLeft + link.offsetWidth - nav.clientWidth;
+  }
+
+  function mark(current) {
+    links.forEach(([section, link]) => {
+      const on = section === current;
+      if (on) link.setAttribute('aria-current', 'true');
+      else link.removeAttribute('aria-current');
+      if (on) reveal(link);
+    });
+  }
+
+  function currentFromScroll() {
+    const line = Math.min(160, window.innerHeight * 0.3);
+    let current = links[0][0];
+    for (const [section] of links) {
+      if (section.getBoundingClientRect().top - 8 <= line) current = section;
+    }
+    return current;
+  }
+
+  let ticking = false;
+  document.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      ticking = false;
+      mark(currentFromScroll());
+    });
+  }, { passive: true });
+
+  window.addEventListener('hashchange', () => {
+    const found = links.find(([section]) => section.id === location.hash.slice(1));
+    if (found) mark(found[0]);
+  });
+
+  const fromHash = links.find(([section]) => section.id === location.hash.slice(1));
+  mark(fromHash ? fromHash[0] : currentFromScroll());
+
+  function orderSubmissions(now) {
+    const board = document.getElementById('submissions');
+    if (!board) return;
+    const cards = [...board.querySelectorAll('a.card[data-due]')];
+    const stamp = now.getTime();
+    cards.forEach(card => {
+      const past = new Date(card.dataset.due).getTime() < stamp;
+      card.classList.toggle('past', past);
+      const label = card.querySelector('small');
+      if (label) label.textContent = past ? 'Passed' : 'Due';
+    });
+    const byDue = (a, b) => new Date(a.dataset.due) - new Date(b.dataset.due);
+    const pending = cards.filter(card => !card.classList.contains('past')).sort(byDue);
+    const passed = cards.filter(card => card.classList.contains('past')).sort(byDue);
+    pending.forEach(card => board.appendChild(card));
+    let marker = board.querySelector('.passed-label');
+    if (!passed.length) {
+      if (marker) marker.remove();
+      return;
+    }
+    if (!marker) {
+      marker = document.createElement('p');
+      marker.className = 'passed-label';
+      marker.textContent = 'Passed';
+    }
+    board.appendChild(marker);
+    passed.forEach(card => board.appendChild(card));
+  }
+  orderSubmissions(new Date());
+</script>
 </body>
 </html>
