@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cue-conflict stimuli: texture bias vs. shape bias</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: human-vs-machine part (Day 4). Geirhos et al. (2019) cue-conflict experiment + empirical bars. */
+  html, body{ background:#fff; }
+  body.jump *{ transition:none !important; }
+  .wrap{ position:absolute; inset:0; padding:7.5vh 5.5vw 10vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .toprow{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1.25fr 1fr; gap:2.5vw; align-items:center; }
+  .stim-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:1.2vw; align-items:center; text-align:center; }
+  .stim-card{ background:#f8fafc; border:1px solid var(--line); border-radius:10px; padding:1vh .8vw;
+    opacity:0; transform:translateY(8px); transition:opacity .6s ease, transform .6s ease; }
+  .stim-card.on{ opacity:1; transform:none; }
+  .stim-card canvas{ width:100%; aspect-ratio:1; border-radius:6px; border:1px solid #cbd5e1; background:#fff; }
+  .chart-card{ background:#f8fafc; border:1px solid var(--line); border-radius:12px; padding:1.6vh 1.4vw;
+    display:flex; flex-direction:column; gap:1.2vh; opacity:0; transform:translateY(8px); transition:opacity .6s ease, transform .6s ease; }
+  .chart-card.on{ opacity:1; transform:none; }
+  .bar-row{ display:grid; grid-template-columns:135px 1fr 56px; align-items:center; gap:.8vw; font-size:clamp(.75rem, 1.08vw, .98rem); }
+  .bar-track{ height:2.6vh; background:#cbd5e1; border-radius:6px; overflow:hidden; display:flex; }
+  .bar-shape{ background:#2563eb; height:100%; }
+  .bar-tex{ background:#d97706; height:100%; }
+  .explain{ background:#f1f5f9; border-left:4px solid #38506e; border-radius:8px; padding:.9vh 1.2vw;
+    font-size:clamp(.8rem, 1.15vw, 1.05rem); color:var(--ink); }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Cue-conflict stimuli: do models see shape or texture?</h1>
+  <div class="toprow">
+    <div class="stim-grid">
+      <div class="stim-card" id="sc1">
+        <canvas id="cc-tex" width="160" height="160"></canvas>
+        <div class="label" style="margin-top:.5vh"><b>1. Texture cue</b><br>Indian elephant skin<br>(wrinkled gray ridges)</div>
+      </div>
+      <div class="stim-card" id="sc2">
+        <canvas id="cc-shp" width="160" height="160"></canvas>
+        <div class="label" style="margin-top:.5vh"><b>2. Shape cue</b><br>Tabby cat silhouette<br>(pointed ears, tail)</div>
+      </div>
+      <div class="stim-card" id="sc3">
+        <canvas id="cc-hyb" width="160" height="160"></canvas>
+        <div class="label" style="margin-top:.5vh"><b>3. Cue-conflict stimulus</b><br>Cat shape + Elephant skin<br>(Geirhos et al., 2019)</div>
+      </div>
+    </div>
+
+    <div class="chart-card" id="sc4">
+      <div class="lead" style="font-size:clamp(.95rem,1.35vw,1.25rem)"><b>Share of shape vs. texture decisions on cue-conflict images (Geirhos et al., ICLR 2019)</b></div>
+      <div style="display:flex;gap:1.5vw;font-size:clamp(.74rem,1vw,.92rem)">
+        <span><b style="color:#2563eb">■ Shape bias (%)</b></span>
+        <span><b style="color:#d97706">■ Texture bias (%)</b></span>
+      </div>
+      <div class="bar-row">
+        <b>Human observers</b>
+        <div class="bar-track"><div class="bar-shape" style="width:95.9%"></div><div class="bar-tex" style="width:4.1%"></div></div>
+        <span style="font-family:monospace;font-weight:700">95.9%</span>
+      </div>
+      <div class="bar-row">
+        <b>ResNet-50 (ImageNet)</b>
+        <div class="bar-track"><div class="bar-shape" style="width:21.4%"></div><div class="bar-tex" style="width:78.6%"></div></div>
+        <span style="font-family:monospace;font-weight:700">21.4%</span>
+      </div>
+      <div class="bar-row">
+        <b>AlexNet (ImageNet)</b>
+        <div class="bar-track"><div class="bar-shape" style="width:42.9%"></div><div class="bar-tex" style="width:57.1%"></div></div>
+        <span style="font-family:monospace;font-weight:700">42.9%</span>
+      </div>
+      <div class="bar-row">
+        <b>VGG-16 (ImageNet)</b>
+        <div class="bar-track"><div class="bar-shape" style="width:17.2%"></div><div class="bar-tex" style="width:82.8%"></div></div>
+        <span style="font-family:monospace;font-weight:700">17.2%</span>
+      </div>
+      <div class="bar-row" id="sin-row" style="opacity:0;transition:opacity .6s ease">
+        <b>ResNet-50 (Stylized-IN)</b>
+        <div class="bar-track"><div class="bar-shape" style="width:81.0%"></div><div class="bar-tex" style="width:19.0%"></div></div>
+        <span style="font-family:monospace;font-weight:700">81.0%</span>
+      </div>
+    </div>
+  </div>
+  <div class="explain" id="exp">Geirhos et al. (ICLR 2019) — https://arxiv.org/abs/1811.12231</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+const EXPS = [
+  '<b>Geirhos et al. (2019) cue-conflict experiment:</b> Click to see how texture and shape are pitted against each other.',
+  '<b>Step 1 (Texture source):</b> Take a local surface texture patch—for example, wrinkled gray elephant skin (or clock numbers, fur, or bottle glass).',
+  '<b>Step 2 (Shape source):</b> Take the global silhouette and contour of a different category—here, a sitting cat with pointed ears and a curved tail.',
+  '<b>Step 3 (Cue-conflict image):</b> Combine the cat silhouette with the elephant skin texture using style transfer. <b>Ask the class:</b> What do you recognize? What will ResNet-50 predict?',
+  '<b>Result (Geirhos et al., 2019):</b> Humans choose the <b>shape</b> category on <b>95.9%</b> of cue-conflict trials ("cat"), whereas standard ImageNet-trained ResNet-50 chooses the <b>texture</b> category on <b>78.6%</b> of trials ("Indian elephant" /only 21.4% shape)!',
+  '<b>Can we change what CNNs learn?</b> When Geirhos et al. replaced local textures in ImageNet using style transfer (<b>Stylized-ImageNet</b>) so local texture was no longer predictive of class, ResNet-50 shifted to <b>81.0% shape bias</b>—and became more robust to noise and distortions!'
+];
+const NOTES = [
+  "The street slide just gave one ImageNet label for a whole scene. This slide asks which cue produced a label like that, when shape and texture disagree.",
+  "The texture source is a local surface, here wrinkled elephant skin.",
+  "The shape source is the silhouette of a different object, here a sitting cat.",
+  "Stop and ask the room: what do you see, and what would an ImageNet-trained CNN call it? The pictures are a sketch of the experiment, not the original stimuli.",
+  "People choose shape 95.9% of the time. ImageNet ResNet-50 chooses shape 21.4% of the time. This is a published ResNet-50 result, not the ResNet-18 we just ran on the street.",
+  "The same architecture, trained on Stylized-ImageNet so that texture no longer predicts the class, moves to 81% shape. The shortcut came from the training images."
+];
+const N = NOTES.length - 1;
+let beat = 0;
+
+function drawCatPath(ctx){
+  ctx.beginPath();
+  // Sitting cat silhouette (head, pointed ears, back, paws, curved tail)
+  ctx.moveTo(54, 48);
+  ctx.lineTo(48, 22); // left ear tip
+  ctx.lineTo(66, 36);
+  ctx.lineTo(82, 36);
+  ctx.lineTo(98, 22); // right ear tip
+  ctx.lineTo(94, 48);
+  ctx.quadraticCurveTo(106, 62, 92, 76); // right cheek
+  ctx.quadraticCurveTo(116, 98, 112, 138); // back
+  ctx.quadraticCurveTo(138, 134, 142, 102); // tail outer
+  ctx.quadraticCurveTo(145, 92, 136, 92);
+  ctx.quadraticCurveTo(130, 122, 108, 126); // tail inner
+  ctx.lineTo(52, 138); // bottom paws
+  ctx.quadraticCurveTo(44, 106, 56, 76); // chest
+  ctx.quadraticCurveTo(42, 62, 54, 48);
+  ctx.closePath();
+}
+
+function makeElephantTexture(W, H){
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d'), im = x.createImageData(W, H);
+  let seed = 19; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for(let r = 0; r < H; r++){
+    for(let col = 0; col < W; col++){
+      // Cross-hatched wrinkled elephant-skin ridges
+      const w1 = Math.sin(col * 0.45 + 1.8 * Math.sin(r * 0.16));
+      const w2 = Math.sin((r + col * 0.35) * 0.52 + 1.5 * Math.cos(col * 0.18));
+      const v = Math.round(118 + 34 * w1 + 28 * w2 + (rnd() - 0.5) * 22);
+      const idx = (r * W + col) * 4;
+      im.data[idx] = v; im.data[idx + 1] = v - 3; im.data[idx + 2] = v - 6; im.data[idx + 3] = 255;
+    }
+  }
+  x.putImageData(im, 0, 0);
+  return c;
+}
+
+function initCueConflict(){
+  const S = 160;
+  const texCan = makeElephantTexture(S, S);
+  // 1. Texture patch
+  const c1 = document.getElementById('cc-tex').getContext('2d');
+  c1.drawImage(texCan, 0, 0);
+
+  // 2. Shape silhouette
+  const c2 = document.getElementById('cc-shp').getContext('2d');
+  c2.fillStyle = '#f8fafc'; c2.fillRect(0, 0, S, S);
+  c2.fillStyle = '#0f172a'; drawCatPath(c2); c2.fill();
+
+  // 3. Cue-conflict (cat shape clipped with elephant wrinkled skin + subtle internal creases)
+  const c3 = document.getElementById('cc-hyb').getContext('2d');
+  c3.fillStyle = '#f1f5f9'; c3.fillRect(0, 0, S, S);
+  c3.save();
+  drawCatPath(c3); c3.clip();
+  c3.drawImage(texCan, 0, 0);
+  c3.strokeStyle = '#334155'; c3.lineWidth = 3; drawCatPath(c3); c3.stroke();
+  c3.restore();
+}
+initCueConflict();
+
+function go(b){
+  beat = b;
+  document.getElementById('sc1').classList.toggle('on', b >= 1);
+  document.getElementById('sc2').classList.toggle('on', b >= 2);
+  document.getElementById('sc3').classList.toggle('on', b >= 3);
+  document.getElementById('sc4').classList.toggle('on', b >= 4);
+  document.getElementById('sin-row').style.opacity = b >= 5 ? '1' : '0';
+  document.getElementById('exp').innerHTML = EXPS[b] || EXPS[0];
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+
+window.cueConflict = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ go(0); },
+  resetToEnd(){ go(N); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) cueConflict.advance(); if(e.key === 'ArrowLeft') cueConflict.back(); });
+  addEventListener('click', () => cueConflict.advance());
+}
+go(0);
+</script>
+</body>
+</html>
