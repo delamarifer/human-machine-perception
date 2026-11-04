@@ -427,7 +427,8 @@ st(`
   "(draft) So networks let us ask exactly the question we asked of the cones: what does this model encode, and what does it throw away? Here are some answers."
 ]});
 
-sc('adversarialBoxes', 'scenes/defense-adversarial.html');
+/* Fernanda, 2026-11-04: straight into model metamers; the adversarial-vulnerability slide is out of the running order
+   (scene kept: defense-adversarial.html) */
 
 sc('metamerBoxes', 'scenes/defense-metamers.html');
 
