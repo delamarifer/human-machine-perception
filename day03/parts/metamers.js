@@ -358,4 +358,96 @@ st(`
   "(draft) And then test a partner: play or show them your original and your metamer, and see whether they can tell which one is real.",
   "(to write) Where to find the notebook."
 ]});
+/* The lab loop, as on Day 2 (Fernanda, 2026-11-04: "screenshots of the solutions after the exercise of try it
+   yourself for at least 2 or 3 parts"): Your turn N, then its solution as a notebook cell with its real output.
+   Outputs: the instructor notebook's solution cells, run fresh by the lab session (day03/assets/lab-solutions/,
+   from claude/day03-metamer-lab-d865a4 64830d1). The deck is public, so these three solutions are visible on the site. */
+const LAB_NB = 'https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day03-lab-metamers.ipynb';
+const labEsc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const LAB_SOL = {
+  1: {code: `# Your turn 1: set block to 2, 4, 16 or 32 and write your prediction first.
+block = 32
+my_prediction = "Worse: 32 x 32 blocks keep only 64 numbers, so the metamer is mostly noise with a dark and a light region."
+
+if block is None:
+    print("Set block to a number, then run this cell again.")
+else:
+    model = lambda x: block_model(x, block)
+    mine = metamer_by_hand(photo, model)
+    show([photo, mine], ["target", f"metamer, {block} x {block} blocks"])
+    print("You predicted:", my_prediction)`,
+      out: `You predicted: Worse: 32 x 32 blocks keep only 64 numbers, so the metamer is mostly noise with a dark and a light region.`, img: 'assets/lab-solutions/solution-1.png'},
+  2: {code: `brick = load_gray("notebooks/data/day03/brick.jpg")
+# Your turn 2: set choice to brick or photo, and write your prediction first.
+choice = brick
+my_prediction = "Brick-like at a glance, but the long straight rows of mortar may bend: the statistics are local."
+
+if choice is None:
+    print("Set choice to brick or photo, then run this cell again.")
+else:
+    met_choice = texture_metamer(choice)
+    show([choice, met_choice.metamer], ["target", "texture metamer"], size=4)
+    print("You predicted:", my_prediction)`,
+      out: `30 steps in 23.7 s; loss 8.25 -> 0.0625
+You predicted: Brick-like at a glance, but the long straight rows of mortar may bend: the statistics are local.`, img: 'assets/lab-solutions/solution-2.png'},
+  3: {code: `# Your turn 3: set stage to "layer2" or "layer3", and write your prediction first.
+stage = "layer3"
+my_prediction = "Between the two: some color and blobs of the cup, mostly texture-like; the network still says espresso or cup."
+
+if stage is None:
+    print('Set stage to "layer2" or "layer3", then run this cell again.')
+else:
+    model = po.models.DeepNetFeatures(net, stage, normalize)
+    stage_metamers[stage] = synthesize(photo_rgb, model, steps=300).metamer
+    show([photo_rgb, stage_metamers[stage]], ["target", f"metamer from {stage}"], size=3.6)
+    print(f"The network sees the {stage} metamer as:", top3(stage_metamers[stage]))
+    print("You predicted:", my_prediction)`,
+      out: `300 steps in 7.3 s; loss 0.0577 -> 0.00315
+The network sees the layer3 metamer as: espresso 62%, cup 17%, coffee mug 9%
+You predicted: Between the two: some color and blobs of the cup, mostly texture-like; the network still says espresso or cup.`, img: 'assets/lab-solutions/solution-3.png'},
+};
+const LAB_CSS = `<style>
+  .metamers-turn{ margin:auto 0; display:flex; flex-direction:column; gap:3vh; }
+  .metamers-open{ align-self:flex-start; border:3px solid var(--ink); border-radius:999px; padding:1.4vh 2vw;
+    font-weight:700; font-size:clamp(1.2rem, 2vw, 1.8rem); color:var(--ink); text-decoration:none; }
+  .metamers-sol{ margin:auto 0; display:flex; gap:1.6vw; align-items:center; min-height:0; }
+  .metamers-sol > div{ flex:0 1 36%; min-width:0; }
+  .metamers-sol-img{ flex:1 1 auto; min-width:0; max-height:64vh; max-width:56vw; object-fit:contain; }
+  .metamers-code, .metamers-out{ margin:0; font-family:Menlo, Consolas, monospace; font-size:clamp(.62rem, .92vw, .95rem); line-height:1.4; white-space:pre-wrap; }
+  .metamers-code{ background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding:1vh 1vw; }
+  .metamers-out{ padding:.8vh 1vw; color:var(--ink); border-left:3px solid var(--line); margin-top:1vh; }
+</style>`;
+const labTurn = (n, title, cues, say) => st(`
+  <h1 class="t">Your turn ${n}</h1>
+  <div class="metamers-turn">
+    <div class="question b" data-step="1">${title}</div>
+    <ul class="frag">${cues.map(c => `<li class="b" data-step="2">${c}</li>`).join('')}</ul>
+    <a class="metamers-open b" data-step="3" href="${LAB_NB}#scrollTo=turn-${n}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open Your turn ${n} in Colab ↗</a>
+  </div>${LAB_CSS}
+`, { notes: [`(draft) Your turn ${n}.`, `(draft) ${say[0]}`, `(draft) ${say[1]}`, `(draft) ${say[2]}`] });
+const labSolution = (n, say) => { const o = LAB_SOL[n]; return st(`
+  <h1 class="t">Solution · Your turn ${n}</h1>
+  <div class="metamers-sol b" data-step="1">
+    <div><pre class="metamers-code">${labEsc(o.code)}</pre><pre class="metamers-out">${labEsc(o.out)}</pre></div>
+    <img class="metamers-sol-img" src="${o.img}" alt="">
+  </div>${LAB_CSS}
+`, { notes: [`(draft) Let us look at one solution for Your turn ${n}.`, `(draft) ${say}`] }); };
+
+labTurn(1, 'Bigger or smaller blocks', ['Pick a block size: 2, 4, 16 or 32', 'Predict first: more or less like the photo than with 8?'], [
+  'The metamer by hand: the model keeps only the average of each block. What happens when the blocks change size?',
+  'Pick a block size, 2, 4, 16 or 32, and before you run it, predict: will the metamer look more or less like the photo than with 8? At which block size could you no longer tell what the photo shows?',
+  'Open Your turn 1 in Colab and take a few minutes. Then we come back together.']);
+labSolution(1, 'With 32 by 32 blocks the model keeps only 64 numbers. The metamer matches all of them, and it is mostly noise over a pattern of dark and light blocks: everything inside a block is thrown away.');
+
+labTurn(2, 'A texture that is not so easy', ['A brick wall, or the café photo (a scene, not a texture)', 'Predict first: will it pass at a glance? What will be lost?'], [
+  'Now the texture model, on something harder than pebbles.',
+  'Choose the brick wall or the café photo, which is a scene, not a texture. Predict first: will its texture metamer pass for the original at a glance? What will be lost?',
+  'Open Your turn 2 in Colab. It takes about half a minute to run.']);
+labSolution(2, 'For the brick wall, at a glance it is brick: the right grays, the bricks, the mortar. But the long straight rows of mortar bend and break. The statistics are local, so nothing forces a row to stay straight across the whole image.');
+
+labTurn(3, 'The stages in between', ['Pick "layer2" or "layer3"', 'Predict first: will it look like the photo to you? What will the network call it?'], [
+  'Last, the network: we saw layer 1 and layer 4. What about the stages in between?',
+  'Pick layer 2 or layer 3. Predict first: will its metamer look like the photo to you? And what will the network call it?',
+  'Open Your turn 3 in Colab and take a few minutes.']);
+labSolution(3, 'From layer 3, the metamer looks mostly like colored noise to us, with a faint trace of the cup. The network still calls it espresso, 62 percent, then cup and coffee mug. What makes it a cup to you is already thrown away by layer 3.');
 }
