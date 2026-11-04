@@ -23,6 +23,11 @@
   .inv-cap{ min-height:1.4em; text-align:center; }
   .s{ opacity:0; transform:translateY(8px); transition:opacity .9s ease, transform .9s ease; }
   .s.on{ opacity:1; transform:none; }
+  .inv-table, .inv-cap{ transition:opacity .9s ease, filter .9s ease; }
+  .inv-table.dim, .inv-cap.dim{ opacity:.2; filter:blur(2px); }
+  .inv-pop{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(.96); opacity:0; width:min(80%, 24em);
+    pointer-events:none; transition:opacity .9s ease, transform .9s ease; }
+  .inv-pop.on{ opacity:1; transform:translate(-50%,-50%); }
   .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
   .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
   .dots i.on{ background:#64748b; }
@@ -52,6 +57,7 @@
   </div>
   <div class="lead inv-cap" id="cap"></div>
 </div>
+<div class="popquote inv-pop" id="pop">This is the meaning of <em>invariance</em> in vision: the things that vision treats as the same despite transformations to the objects or images</div>
 <div class="dots" id="dots"></div>
 <script>
 /* ACT 0  TITLE     (0):   the title alone
@@ -59,12 +65,14 @@
                            shifted copies are metamers of this representation
    ACT 2  ROTATION  (6-8): b and b turned 180 degrees (it reads as q); distances: pixels large, spectrum zero
                            again; the invariance has to match the task
+   ACT 3  POP-OUT   (9):   what invariance means in vision (Fernanda, 2026-11-04)
 
    Distances are computed here: d(x, y) = ||f(x) - f(y)|| / ||f(x)||, with f = the pixels or the 2D FFT
    amplitude. A shift that does not wrap, and a 180-degree turn, leave the amplitude spectrum exactly
    unchanged, so those two values are 0 up to rounding. The letter is drawn with the browser's font. */
 const CAPS = ['', '', '', '', '', 'Invariant to position: shifted copies are its metamers', '', '',
-  'Invariant to what does not matter, selective to what does'];
+  'Invariant to what does not matter, selective to what does',
+  'Invariant to what does not matter, selective to what does'];   // stays, dimmed, under the pop-out
 const NOTES = [
   "(draft) Title only. A representation keeps some information and throws away the rest. Which information should it throw away?",
   "(draft) Here is a letter b.",
@@ -74,7 +82,8 @@ const NOTES = [
   "(draft) Said the other way around: for this representation, every shifted copy is a metamer. An invariance and a set of metamers are the same thing.",
   "(draft) Now turn the b by 180 degrees. We read it as a different letter, a q.",
   "(draft) In pixels, again far apart. In the amplitude spectrum, the distance is zero again: turning an image by 180 degrees also leaves the amplitudes unchanged. So for this representation, b and q are metamers, even though for reading they are different letters.",
-  "(draft) This is the trade-off for the rest of the course. A good representation is invariant to what does not matter for the task, like position, and selective to what does, like the difference between b and q. Too little invariance, and every shifted copy is a new thing. Too much, and different things look the same."
+  "(draft) This is the trade-off for the rest of the course. A good representation is invariant to what does not matter for the task, like position, and selective to what does, like the difference between b and q. Too little invariance, and every shifted copy is a new thing. Too much, and different things look the same.",
+  "(Fernanda) This is the meaning of invariance in vision: the things that vision treats as the same despite transformations to the objects or images."
 ];
 const N = NOTES.length - 1;
 let beat = 0;
@@ -83,6 +92,8 @@ function go(b){
   document.querySelectorAll('.s').forEach(el => el.classList.toggle('on', b >= +el.dataset.b));
   document.querySelectorAll('.fill').forEach(el => el.style.width = b >= +el.dataset.b ? el.dataset.w : '0');
   document.getElementById('cap').textContent = CAPS[b];
+  document.getElementById('pop').classList.toggle('on', b === N);
+  document.querySelectorAll('.inv-table, .inv-cap').forEach(el => el.classList.toggle('dim', b === N));
   document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
 }
 
