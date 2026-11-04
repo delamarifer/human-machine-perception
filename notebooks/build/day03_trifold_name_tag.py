@@ -1,5 +1,5 @@
 """Builds notebooks/day03-lab2-image-filtering.ipynb: a 30-minute creative Day 3 lab. Students filter their
-own photograph at three levels (spatial filters, a Gabor filter bank, image pyramids), combine the results,
+own photograph at two levels (spatial filters and a Gabor filter bank), combine the results,
 and print a personalized A4 trifold desk name tag made entirely in Python.
 
 Everything that is not about filtering (display, upload, layout, text, the fold check) lives in one
@@ -31,7 +31,7 @@ By the end you will be able to:
 
 - explain how a spatial filter changes local image information;
 - describe how filters respond to different orientations and spatial frequencies;
-- explain what filter banks and multi-scale representations are for;
+- explain what a filter bank is for;
 - combine filtered versions of an image into a composition;
 - apply these techniques creatively to a real photograph.
 
@@ -40,8 +40,7 @@ By the end you will be able to:
 | 0–1 · Setup, your name and photo | 3 min |
 | 2 · Level 1: spatial filtering | 7 min |
 | 3 · Level 2: filter banks and orientation | 7 min |
-| 4 · Level 3: multi-scale pyramids | 5 min |
-| 5–6 · Design, check the fold, print | 8 min |
+| 4–5 · Design, check the fold, upload | 8 min |
 
 **How to use this notebook.** Run the cells in order with **Shift + Enter**. Change only the lines under
 `# EDIT`; after a change, re-run that cell and the ones below it (*Runtime → Run after*).
@@ -333,22 +332,18 @@ def recipe_orientation_glow(img):      # Level 2 orientation map over a dimmed p
     orient = orientation_color_map(apply_gabor_bank(img, design_bank), design_bank)
     return blend(blend(0.35 * gaussian_blur(img, 5), orient, "screen"), ink_lines(img, (3,)) * 0.6, "screen")
 
-def recipe_poster_edges(img):          # Level 1 blur + posterize, outlined with Level 3 DoG edges
+def recipe_poster_edges(img):          # Level 1 blur + posterize, outlined with difference-of-Gaussians edges
     dog = difference_of_gaussians(img, 1.5, 3.0)
     outline = np.clip(-dog / (np.percentile(np.abs(dog), 99) + 1e-8), 0, 1) ** 0.8
     return posterize(gaussian_blur(img, 11), 5) * (1 - 0.85 * outline[..., None])
 
-def recipe_detail_pop(img):            # Level 3 band weights + Level 1 sharpening
-    return sharpen(reweight_bands(img, design_band_weights), strength=0.5, kernel_size=5)
-
-def recipe_duotone_edges(img):         # Level 3 coarse bands as a duotone + Level 2 Gabor energy as glow
-    base = colorize(normalize01(to_gray(reweight_bands(img, [0.3, 0.6, 1, 1, 1])), 1, 99), *DUOTONE_COLORS)
+def recipe_duotone_edges(img):         # blurred photo as a duotone + Level 2 Gabor energy as glow
+    base = colorize(normalize01(to_gray(gaussian_blur(img, 21)), 1, 99), *DUOTONE_COLORS)
     energy = normalize01(apply_gabor_bank(img, design_bank).max(axis=0), 50, 99.7) ** 1.5
     return blend(base, energy, "screen", 0.8)
 
 RECIPES = {"ink_sketch": recipe_ink_sketch, "orientation_glow": recipe_orientation_glow,
-           "poster_edges": recipe_poster_edges, "detail_pop": recipe_detail_pop,
-           "duotone_edges": recipe_duotone_edges}
+           "poster_edges": recipe_poster_edges, "duotone_edges": recipe_duotone_edges}
 
 def run_recipe(name, img):
     if name == "mine" and "mine" not in RECIPES:
@@ -368,17 +363,13 @@ def _slices(images, gap_px=6):
 def base_composition(name, img):
     if name == "blank":
         return np.ones_like(img)
-    if name == "process_strip":          # original -> Level 1 -> Level 2 -> Level 3, left to right
+    if name == "process_strip":          # original -> Level 1 -> Level 2, left to right
         return _slices([img, np.dstack([1 - ink_lines(img, (3, 9))] * 3),
-                        orientation_color_map(apply_gabor_bank(img, design_bank), design_bank),
-                        reweight_bands(img, design_band_weights)])
+                        orientation_color_map(apply_gabor_bank(img, design_bank), design_bank)])
     if name == "filter_bank_mosaic":
         cmap = plt.get_cmap("inferno")
         return _slices([cmap(normalize01(r, 1, 99.5))[..., :3].astype(np.float32)
                         for r in apply_gabor_bank(img, design_bank)[:8]])
-    if name == "pyramid_bands":
-        bands = build_laplacian_pyramid(img, 5)
-        return _slices([band_image(b, img.shape[:2]) for b in bands[:-1]] + [upsample_to(bands[-1], img.shape[:2])])
     return run_recipe(name, img)
 
 # ---------------- the name ----------------
@@ -842,75 +833,20 @@ it detects? Where is the orientation map gray (no dominant orientation), and wha
 # ---------------------------------------------------------------------------------------------------
 md(r"""
 ---
-## 4 · LEVEL 3 (Advanced): Multi-scale decomposition (5 min)
+## 4 · Combine the levels into a design (3 min)
 
-**How can an image be split into structure at different scales, and put back together?** A **Gaussian
-pyramid** repeatedly blurs the image and keeps every second pixel, so each level is half the size and
-holds only coarser structure (the blur comes first to avoid aliasing). A **Laplacian pyramid** stores what
-each step *lost*: a level minus an enlarged copy of the next one. Each band holds about one octave of
-spatial frequencies, from fine texture to broad shapes, and adding the bands back up **reconstructs the
-image exactly** (Burt & Adelson, 1983). So you can change the bands and rebuild a modified image.
+Each filtered image is a **map** of one kind of information (edges, or orientation). A design layers such
+maps. Each ready-made recipe combines both levels, using your filter bank from above:
 
-Each band is close to a **difference of Gaussians** (narrow blur minus wide blur): a center-surround filter
-like the receptive fields of retinal ganglion cells and LGN neurons (Enroth-Cugell & Robson, 1966). Early
-vision already splits the image into frequency bands; V1 then adds orientation, as your Level 2 bank did.
-
-Edit `BAND_WEIGHTS`, one number per level from the finest band to the coarse remainder: `[1, 1, 1, 1, 1]`
-gives back the original, `[2.5, 2, 1.3, 1, 1]` makes fine detail pop, `[0, 0.3, 1, 1, 1]` looks dreamy.
-""")
-
-code(r"""
-def build_gaussian_pyramid(image, levels=5):
-    pyramid = [np.float32(image)]
-    for _ in range(levels - 1):
-        pyramid.append(cv2.pyrDown(pyramid[-1]))           # 5x5 Gaussian blur, then keep every 2nd pixel
-    return pyramid
-
-def build_laplacian_pyramid(image, levels=5):
-    g = build_gaussian_pyramid(image, levels)
-    bands = [fine - cv2.pyrUp(coarse, dstsize=(fine.shape[1], fine.shape[0])) for fine, coarse in zip(g[:-1], g[1:])]
-    return bands + [g[-1]]                                 # band-pass details + the coarse remainder
-
-def reconstruct_from_laplacian(bands):
-    image = bands[-1]
-    for band in reversed(bands[:-1]):
-        image = cv2.pyrUp(image, dstsize=(band.shape[1], band.shape[0])) + band
-    return image
-
-def reweight_bands(image, weights):
-    bands = build_laplacian_pyramid(image, len(weights))
-    return np.clip(reconstruct_from_laplacian([b * w for b, w in zip(bands, weights)]), 0, 1)
-
-# EDIT
-BAND_WEIGHTS = [2.2, 1.8, 1.3, 1.0, 1.0]
-
-design_band_weights = BAND_WEIGHTS  # used by the designs in Section 5
-lap = build_laplacian_pyramid(photo, 5)
-print(f"Reconstruction error: {np.abs(reconstruct_from_laplacian(lap) - photo).max():.1e} (the pyramid loses nothing)")
-visualize_pyramid(build_gaussian_pyramid(photo, 5), "Gaussian pyramid")
-visualize_pyramid(lap, "Laplacian pyramid: detail at each scale (gray = 0) + coarse remainder", signed=True)
-show_row([photo, reweight_bands(photo, BAND_WEIGHTS)], ["Original", f"reweight_bands({BAND_WEIGHTS})"], height=2.8)
-""")
-
-# ---------------------------------------------------------------------------------------------------
-md(r"""
----
-## 5 · Combine the levels into a design (3 min)
-
-Each filtered image is a **map** of one kind of information (edges, orientation, detail at one scale). A
-design layers such maps. Each ready-made recipe combines at least two levels, using your bank and band
-weights from above:
-
-- `ink_sketch`: Level 1 multi-scale edges as ink lines on a blurred color wash;
+- `ink_sketch`: Level 1 edges as ink lines on a blurred color wash;
 - `orientation_glow`: Level 2 orientation colors over a dimmed photo, with Level 1 edges;
-- `poster_edges`: Level 1 blur and posterized colors, outlined by Level 3 difference-of-Gaussians edges;
-- `detail_pop`: Level 3 band weights plus Level 1 sharpening;
-- `duotone_edges`: Level 3 coarse bands mapped to two colors, with Level 2 Gabor energy as glow.
+- `poster_edges`: Level 1 blur and posterized colors, outlined by difference-of-Gaussians edges;
+- `duotone_edges`: a blurred photo mapped to two colors, with Level 2 Gabor energy as glow.
 
 Pick the **front** face (left panel) and **back** face (right panel). The **base** (middle panel) faces
 the desk when the tent stands, so it is the hidden "floor" of your tag: `"process_strip"` shows your photo
-going from original to Level 1, 2 and 3; other options are `"filter_bank_mosaic"`, `"pyramid_bands"`,
-any recipe, or `"blank"` to save ink.
+going from original to Level 1 and Level 2; other options are `"filter_bank_mosaic"`, any recipe, or
+`"blank"` to save ink.
 """)
 
 code(r"""
@@ -921,12 +857,12 @@ show_row(gallery[3:], list(RECIPES)[2:], height=2.2)
 # EDIT
 FRONT_DESIGN = "orientation_glow"     # a recipe name, or "mine" (optional extra below)
 BACK_DESIGN = "same"                  # "same" or a recipe name
-BASE_DESIGN = "process_strip"         # "process_strip", "filter_bank_mosaic", "pyramid_bands", a recipe, "blank"
+BASE_DESIGN = "process_strip"         # "process_strip", "filter_bank_mosaic", a recipe, or "blank"
 """)
 
 md(r"""
 **Optional, if you have time (Exercise 2): your own recipe.** Write `my_design(img)` to combine at least
-two levels your own way, then set `FRONT_DESIGN = "mine"` above and re-run from there. Tools: the Level 1–3
+two levels your own way, then set `FRONT_DESIGN = "mine"` above and re-run from there. Tools: the Level 1 and 2
 functions plus `normalize01`, `posterize(img, levels)`, `colorize(gray, dark, light)`,
 `blend(base, layer, mode, opacity)` (modes `"normal"`, `"multiply"`, `"screen"`, `"overlay"`, `"add"`),
 `ink_lines(img)` and `orientation_color_map(responses, bank)`.
@@ -947,7 +883,7 @@ else:
 # ---------------------------------------------------------------------------------------------------
 md(r"""
 ---
-## 6 · Build the sheet, check the fold, print (5 min)
+## 5 · Build the sheet, check the fold, upload (5 min)
 
 The fold lines run down the 210 mm side of the landscape sheet, so on the standing tent each face is
 210 mm wide and 99 mm tall, and its top edge is the outer edge of the paper (the ridge). That is why the
