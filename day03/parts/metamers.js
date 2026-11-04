@@ -92,7 +92,7 @@ st(`
   <div class="statement center b" data-step="1">x₁ ≠ x₂ &nbsp;&nbsp;but&nbsp;&nbsp; f(x₁) = f(x₂)</div>
   <div class="mvdef-row">
     <div class="mvdef-stack">
-      ${mvPair('<img src="assets/ps-textures/pebbles-original.png" alt="">', '<img src="assets/ps-textures/pebbles-all.png" alt="">', 2, 'images')}
+      ${mvPair('<img src="assets/ps-textures/brick-original.png" alt="">', '<img src="assets/ps-textures/brick-all.png" alt="">', 2, 'images')}
       ${mvPair(mvWave(7), mvWave(4242), 3, 'sounds')}
       <div class="b mvdef-item" data-step="4"><div class="lead mvdef-any">any sensory input</div><div class="label mvdef-cap">touch, smell, …</div></div>
     </div>
@@ -119,11 +119,11 @@ st(`
     .mvdef-f{ border:2px solid ${MV_INK}; border-radius:14px; padding:3vh 1.2vw; text-align:center; }
     .mvdef-arrow{ font-size:clamp(1.6rem,2.6vw,2.4rem); color:#64748b; }
   </style>
-  <div class="cite b" data-step="2">Images: a pebble photo and its Portilla–Simoncelli texture metamer, made with plenoptic</div>
+  <div class="cite b" data-step="2">Images: a brick-wall photo and its Portilla–Simoncelli texture metamer, made with plenoptic</div>
 `, { notes: [
   "(draft) You read about metamers in the primer. Here is the short version, in the language we just set up.",
   "(draft) Two inputs, x one and x two, that are physically different, and a function f that maps them to exactly the same output.",
-  "(draft) The inputs can be images. Here, a photo of pebbles, and a new image synthesized to match its texture statistics: every pixel is different.",
+  "(draft) The inputs can be images. Here, a photo of a brick wall, and a new image synthesized to match its texture statistics: every pixel is different.",
   "(draft) They can be sounds: two different waveforms.",
   "(draft) Or any sensory input at all: touch, smell, anything a system takes in.",
   "(draft) And f can be the human visual system: two images that look the same to us.",

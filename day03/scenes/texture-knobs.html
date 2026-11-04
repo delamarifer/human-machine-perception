@@ -47,10 +47,10 @@
    illustration of the model's stages (center-surround and Gabor filters), not plenoptic's exact steerable pyramid. */
 const A = '../assets/ps-textures/';
 const KNOBS = [
-  {sym: 'M',  name: 'pixel + marginal statistics', short: 'pixel + marginal', img: 'pebbles-cumulative-1-pixel_marginal.png'},
-  {sym: 'AC', name: 'coefficient correlations', short: 'coefficient corr.',    img: 'pebbles-cumulative-2-pixel_marginal+coefficient_correlations.png'},
-  {sym: 'C1', name: 'magnitude correlations', short: 'magnitude corr.',      img: 'pebbles-without-cross_scale_phase.png'},
-  {sym: 'C2', name: 'cross-scale phase', short: 'cross-scale phase',           img: 'pebbles-all.png'},
+  {sym: 'M',  name: 'pixel + marginal statistics', short: 'pixel + marginal', img: 'brick-cumulative-1-pixel_marginal.png'},
+  {sym: 'AC', name: 'coefficient correlations', short: 'coefficient corr.',    img: 'brick-cumulative-2-pixel_marginal+coefficient_correlations.png'},
+  {sym: 'C1', name: 'magnitude correlations', short: 'magnitude corr.',      img: 'brick-without-cross_scale_phase.png'},
+  {sym: 'C2', name: 'cross-scale phase', short: 'cross-scale phase',           img: 'brick-all.png'},
 ];
 const INK = '#0f172a', MUTE = '#94a3b8', KNOB = '#b45309';
 const CAPS = ['', 'A texture', 'Center-surround filtering, as in the retina', 'Oriented filtering, as in V1',
@@ -59,17 +59,17 @@ const CAPS = ['', 'A texture', 'Center-surround filtering, as in the retina', 'O
   'Knob 3: + magnitude correlations', 'Knob 4: + cross-scale phase: all statistics', 'A different texture, all statistics', ''];
 const NOTES = [
   "(draft) Title only. For textures, the statistics are the knobs. Here is what that means, with a real model.",
-  "(draft) Start from a photo of a texture: pebbles.",
+  "(draft) Start from a photo of a texture: a brick wall.",
   "(draft) The model first does what the retina does: center-surround filtering, at two sizes. These panels are computed right now from the photo.",
   "(draft) Then what V1 does: oriented filters, like the Gabor filters from earlier today, at two orientations and two sizes.",
   "(draft) Then it takes the envelope of each oriented response: how strongly that filter responds, regardless of its sign.",
   "(draft) From all of these, the model measures statistics, averaged over the whole image, in four groups: the pixel and marginal statistics; correlations between filter responses; correlations between their envelopes; and phase relations across scales. Each group is a knob we can turn on or off.",
   "(draft) Now let's recreate the texture. Start from white noise, and adjust its pixels with gradient descent until the statistics we have turned on match the photo's. Every image from here on is a real synthesis.",
-  "(draft) With only the first knob, the pixel and marginal statistics, we get the right grays, in a cloudy mess. No pebbles.",
+  "(draft) With only the first knob, the pixel and marginal statistics, we get the right grays, in a cloudy mess. No bricks.",
   "(draft) Add the correlations between filter responses: the right sizes of blobs start to appear.",
-  "(draft) Add the correlations between envelopes: now we get edges and shapes. This knob does a lot of the work: the mismatch on all the statistics drops four to five times at this step.",
+  "(draft) Add the correlations between envelopes: now we get edges and shapes. This knob does a lot of the work: the mismatch on all the statistics drops more than five times at this step.",
   "(draft) Add the last knob, phase across scales, and we have all the statistics. Compare with the photo: no pixel was copied, and yet it reads as the same kind of stuff.",
-  "(draft) The same knobs on a brick wall. The rows and the mortar come back, though the bricks are not perfectly straight: a hint of what this set of knobs still misses.",
+  "(draft) The same knobs on a harder texture: pebbles. The grays and the grain come back, but the pebbles lose their smooth, closed outlines. Each pebble is a small object, and these statistics are local: a hint of what this set of knobs still misses.",
   "(draft) So a good model would have knobs that allow us to synthesize stimuli that people perceive as realistic. Where the synthesis fails, it tells us which knob is missing. That is how we find the edges of the representation."
 ];
 const N = NOTES.length - 1;
@@ -77,7 +77,7 @@ const N = NOTES.length - 1;
 /* ---- images ---- */
 const load = src => new Promise(ok => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src; });
 let IMG = {}, PAN = null;
-Promise.all([load(A + 'pebbles-original.png'), load(A + 'pebbles-noise.png'), load(A + 'brick-original.png'), load(A + 'brick-all.png'),
+Promise.all([load(A + 'brick-original.png'), load(A + 'brick-noise.png'), load(A + 'pebbles-original.png'), load(A + 'pebbles-all.png'),   /* Fernanda 2026-11-04: brick first; pebbles, a harder texture, at the end (in the brick/brickAll slots) */
   ...KNOBS.map(k => load(A + k.img))]).then(([orig, noise, brick, brickAll, ...ks]) => {
   IMG = {orig, noise, brick, brickAll, ks}; PAN = panels(orig);
 });
