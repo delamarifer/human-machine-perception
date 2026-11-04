@@ -344,7 +344,8 @@ function vecSet(cx, a){ if(a <= .01) return;
   ctx.save(); ctx.translate(0, S(12*(1 - a))); ctx.globalAlpha *= a;
   ACT.forEach((col, k) => {
     const x = cx - (nk - 1)*11 + k*22 - cw/2, y0 = ROW_Y - col.length*ch/2 + 14 - k*7;
-    col.forEach((t, i) => { const g = Math.round(235 - 190*t); ctx.fillStyle = `rgb(${g},${g},${g + 4})`;
+    col.forEach((t, i) => { const m = c => Math.round(238 + (c - 238)*(.15 + .85*t));   // white to --accent (data color, deck.css)
+      ctx.fillStyle = `rgb(${m(79)},${m(109)},${m(154)})`;
       ctx.fillRect(X(x), Y(y0 + i*ch), S(cw), S(ch) + .5); });
     ctx.strokeStyle = '#0f172a'; ctx.lineWidth = Math.max(1, S(1.4)); ctx.strokeRect(X(x), Y(y0), S(cw), S(col.length*ch));
   });
