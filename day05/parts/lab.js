@@ -1,9 +1,8 @@
-/* PART: lab (Day 5). Owner: to decide (see README.md). Plan: 30 min, PyTorch lab; then homework.
-   1. the training loop from the last slide, as PyTorch code, one line per click
-   2. the lab: train a small classifier, plot loss and accuracy
-   3. homework */
+/* PART: lab (Day 5). Owner: to decide (see README.md). Plan: 40 min, ViT + representation analysis lab.
+   1. getting an embedding from a trained ViT, in code
+   2. the lab, step by step */
 {
-section('PyTorch lab');
+section('Lab');
 
 const labCss = `<style>
   .lab-code{ font:clamp(1.05rem,1.55vw,1.45rem)/1.6 Menlo, Consolas, monospace; background:#f8fafc; border:1px solid var(--line);
@@ -13,49 +12,33 @@ const labCss = `<style>
 </style>`;
 
 st(`${labCss}
-  <h1 class="t">The same loop in PyTorch</h1>
-  <div class="lab-code"><span class="b" data-step="1">model = nn.Sequential(nn.Flatten(), nn.Linear(784, 128), nn.ReLU(), nn.Linear(128, 10))</span><span class="b" data-step="2">loss_fn = nn.CrossEntropyLoss()</span><span class="b" data-step="3">opt = torch.optim.SGD(model.parameters(), lr=0.1)</span><span class="b" data-step="4">for x, y in train_loader:</span><span class="b" data-step="4">    logits = model(x)            <span class="lab-c"># forward</span></span><span class="b" data-step="5">    loss = loss_fn(logits, y)    <span class="lab-c"># loss</span></span><span class="b" data-step="6">    opt.zero_grad()
-    loss.backward()              <span class="lab-c"># backprop</span></span><span class="b" data-step="7">    opt.step()                   <span class="lab-c"># gradient step</span></span></div>
+  <h1 class="t">An embedding from a trained ViT</h1>
+  <div class="lab-code"><span class="b" data-step="1">weights = ViT_B_16_Weights.IMAGENET1K_V1
+model = vit_b_16(weights=weights).eval()</span><span class="b" data-step="2">model.heads = torch.nn.Identity()      <span class="lab-c"># drop the classifier</span></span><span class="b" data-step="3">x = weights.transforms()(image).unsqueeze(0)
+with torch.no_grad():
+    emb = model(x)                     <span class="lab-c"># 768 numbers: the CLS token</span></span></div>
 `, { notes: [
-  "(draft) Here is the whole day as PyTorch code.",
-  "(draft) The model: flatten a 28 by 28 image into 784 numbers, a linear layer to 128 hidden units, a ReLU, and a linear layer to 10 logits, one per class.",
-  "(draft) The loss: cross-entropy. PyTorch's version takes logits directly and does the softmax inside.",
-  "(draft) The optimizer: plain stochastic gradient descent with learning rate 0.1. Swapping in Adam is a one-line change.",
-  "(draft) The loop: for each batch of images x and labels y, the forward pass gives logits.",
-  "(draft) The loss compares them with the labels.",
-  "(draft) zero_grad clears the old gradients, and loss.backward runs backpropagation through the whole network.",
-  "(draft) And opt.step moves every weight against its gradient. Eight lines, and every one of them is something we drew today."
+  "(draft) Here is how little code it takes to get an embedding from a real Vision Transformer, with torchvision.",
+  "(draft) Load ViT-Base with 16 by 16 patches, trained on ImageNet, and put it in evaluation mode.",
+  "(draft) Replace its classification head with an identity, so the model returns what went into the classifier.",
+  "(draft) Preprocess an image the way the model expects, run it, and you get 768 numbers: the final CLS token, the image's embedding."
 ]});
 
 st(`
-  <h1 class="t">Lab: train a small classifier</h1>
+  <h1 class="t">Lab: probe a Vision Transformer</h1>
   <ul class="frag">
-    <li class="b">Build a small network (nn.Module)</li>
-    <li class="b">Train it with the loop</li>
-    <li class="b">Plot loss and accuracy, on training and test images</li>
-    <li class="b">Change one thing and watch the curves</li>
+    <li class="b">Embed a small set of images</li>
+    <li class="b">Nearest neighbors, K-means, t-SNE: what groups together?</li>
+    <li class="b">RDMs across layers, compared with RSA</li>
+    <li class="b">The Thatcher test: upright vs upside down</li>
   </ul>
   <div class="todo b">Colab link: notebooks/day05-lab-… (notebook to add)</div>
 `, { notes: [
-  "(draft) For the rest of the session, you train one yourself.",
-  "(draft) First, write the network as an nn.Module: the layers, and a forward function.",
-  "(draft) Then train it with exactly the loop we just read.",
-  "(draft) As it trains, plot the loss and the accuracy, both on the training images and on test images it has never seen. The gap between the two will matter on Day 6.",
-  "(draft) Then change one thing, the learning rate, the number of hidden units, or how long you train, and see what happens to the curves.",
+  "(draft) In the lab you do today's slides yourself, on a trained ViT.",
+  "(draft) Embed a small set of images, some given, some of your own.",
+  "(draft) Find each image's nearest neighbors, cluster the embeddings with K-means, and draw a t-SNE map. What groups together: objects, colors, textures, backgrounds?",
+  "(draft) Pull out the representation at several layers, compute an RDM for each, and compare them with RSA: where in the network does the structure appear?",
+  "(draft) And the Thatcher test: does the distance between a face and its Thatcherized version change when both are turned upside down, the way it does for people?",
   "(draft) (to write) Where to find the notebook."
-]});
-
-st(`
-  <h1 class="t">Homework</h1>
-  <ul class="frag">
-    <li class="b">Reading<div class="todo">chapters to add (blank in the plan)</div></li>
-    <li class="b">Finish the training-loop exercise</li>
-    <li class="b">Change one training variable; explain what happened, and why</li>
-  </ul>
-`, { notes: [
-  "(draft) Homework for next time.",
-  "(draft) (to write) The reading.",
-  "(draft) Finish the training-loop exercise from the lab.",
-  "(draft) And pick one training variable, run the experiment, and write a few sentences: what changed in the curves, and why you think it did."
 ]});
 }
