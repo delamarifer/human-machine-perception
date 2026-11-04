@@ -256,18 +256,30 @@ st(`
   "(draft) And relative to how you look. Two images can be metamers in a brief glance in your periphery and obviously different when you look straight at them. So when we say looks the same, we always mean: to this system, under these conditions."
 ]});
 
-/* ---------- 2. Beyond color ---------- */
+/* ---------- 2. Metamers reveal what is represented (Fernanda, 2026-11-04: replaces "Beyond color, it is hard") ---------- */
+/* the three knobs of the color animation, turning on their own (a loop, only on this slide; it never advances) */
+const mvKnobsLive = (() => {
+  const nm = ['700 nm', '546.1 nm', '435.8 nm'], dur = [5.2, 6.7, 8.1], amp = [70, 95, 60];
+  return `<svg viewBox="0 0 420 170" style="width:min(46vw, 70vh);height:auto">
+    <defs><radialGradient id="mvkl-g" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#f8fafc"/><stop offset=".6" stop-color="#cbd5e1"/><stop offset="1" stop-color="#64748b"/></radialGradient></defs>
+    ${[0, 1, 2].map(k => { const cx = 70 + k * 140, cy = 70;
+      return `<circle cx="${cx}" cy="${cy}" r="50" fill="#e2e8f0"/><circle cx="${cx}" cy="${cy}" r="42" fill="url(#mvkl-g)" stroke="#475569" stroke-width="2"/>
+        <g class="mvkl-turn" style="transform-origin:${cx}px ${cy}px;animation:mvkl-${k} ${dur[k]}s ease-in-out infinite alternate">
+          <path d="M${cx},${cy - 38} l7,12 h-14 z" fill="${MV_CONE[k]}" stroke="#fff" stroke-width="1"/></g>
+        <text x="${cx}" y="${cy + 78}" font-size="17" fill="${MV_INK}" text-anchor="middle">${nm[k]}</text>`; }).join('')}
+  </svg>
+  <style>${[0, 1, 2].map(k => `@keyframes mvkl-${k}{ from{ transform:rotate(${-amp[k]}deg); } to{ transform:rotate(${amp[k]}deg); } }`).join(' ')}
+    .mvkl-turn{ transform-box:view-box; }</style>`; })();
 st(`
-  <h1 class="t">Beyond color, it is hard</h1>
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3vw;margin-top:4vh">
-    ${mvCol(mvBall('light', 'mvb1'), 'lighting', 1)}${mvCol(mvBall('texture', 'mvb2'), 'texture', 1)}
-    ${mvCol(mvBall('shape', 'mvb3'), 'shape', 1)}${mvCol(mvBall('where', 'mvb4'), 'position, size, viewpoint', 1)}
-  </div>
-  <div class="question center b" data-step="2" style="margin:auto">What are the knobs?</div>
+  <h1 class="t">Metamers reveal what is represented</h1>
+  <div class="lead b" data-step="1" style="margin-top:4vh">RGB knobs allow us to probe those representations. But what about other types of perception?</div>
+  <div class="b center" data-step="2" style="margin:auto">${mvKnobsLive}</div>
+  <div class="question center b" data-step="3" style="margin-bottom:6vh">Are there knobs for other types of perception?</div>
 `, { notes: [
-  "(draft) Beyond color, this gets hard.",
-  "(draft) Images vary in so many ways at once: the lighting, the textures, the shapes of things, where they are, how big, from which viewpoint. And we do not know the sensors: after the cones, the representations are many stages deep.",
-  "(draft) So what are the knobs? What could we turn, carefully and one at a time, to find the edges of those representations?"
+  "(draft) Metamers reveal what is represented.",
+  "(draft) In color, three knobs, red, green and blue, let us probe that representation directly. But what about other types of perception?",
+  "(draft) Remember the knobs from the animation: we could turn each one, precisely, and watch the match appear and break.",
+  "(draft) So: are there knobs for other types of perception? For texture, for shape, for objects, for sounds? That is where textures come in."
 ]});
 
 /* ---------- 3. Textures: statistics as knobs ---------- */
