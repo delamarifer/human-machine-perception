@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Ported from Fernanda's defense deck (defense-present-2026-10-16/scenes/nn-intro-boxes.html) into the Day 3 course deck,
+     2026-11-04: course stylesheet (no licensed fonts), assets in day03/assets/defense/, driven by the deck. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neural networks are promising models</title>
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="defense-type.css">
+<style>
+  /* DRAFT (2026-10-15): the network figure of "Neural networks are promising models of sensory systems"
+     (outline/parts/intro.js, NN_DIAGRAM + NN_MAP_OVERLAY, clicks 0-5) re-drawn in the box layout of slide 9
+     (scenes/mms-logic.html) and scenes/adversarial-boxes.html. Not wired into the deck. Mirrors deck.css .stage / h1.t.
+     Shared layout rule (Fer, 2026-10-15): the behavior comes out of the model box's RIGHT edge, from the output stage;
+     box names on the LEFT; the bottom of the layout is kept for measured activations / error (unused here). */
+  :root{ --ink:#0f172a; --border:#e2e8f0; }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ height:100%; overflow:hidden; background:#fff; color:var(--ink);
+             font-family:'Deck Calibri', Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif;
+             font-size:16px; line-height:1.45; -webkit-font-smoothing:antialiased;
+             cursor:pointer; user-select:none; -webkit-user-select:none; }
+  .stage{ position:absolute; inset:0; padding:9vh 6vw 7vh; display:flex; flex-direction:column; }
+  h1.t{ font-family:'Deck Calibri', Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif; font-weight:700; color:var(--ink);
+        font-size:clamp(1.8rem, 3.5vw, 3rem); line-height:1.08; letter-spacing:0; margin-bottom:1.2rem; text-wrap:balance; }
+  #figwrap{ flex:1 1 auto; min-height:0; position:relative; }
+  #cv, #ov{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  #ov{ z-index:3; pointer-events:none; }            /* the closing map's arrows, drawn over the popquotes' white glow */
+  /* the closing map (Input → function → Behavior), each word a .popquote (outline/type.css) over the dimmed figure */
+  .map{ position:absolute; z-index:2; transform:translate(-50%, calc(-50% + 14px)); white-space:nowrap; opacity:0;
+        pointer-events:none; transition:opacity .9s ease, transform .9s ease; }
+  .map.on{ opacity:1; transform:translate(-50%, -50%); }
+  .map.fn{ font-weight:400 !important; font-style:italic; }
+  /* staged (2026-10-15): "function" alone (click 5); then Input and Behavior with their arrows (click 6).
+     Input and Behavior keep ink text with a colored frame (blue / pine); their arrows take the same colors */
+  #mapFn.on{ transition-delay:.6s; } #mapBh.on{ transition-delay:2.2s; }
+  #mapIn{ border:3px solid rgb(48,104,196); } #mapBh{ border:3px solid rgb(52,140,92); }
+  /* a tighter glow than .popquote's: the full one washed out the title above the input row */
+  .map.popquote{ box-shadow:0 0 16px 10px rgba(255,255,255,.92) !important; }
+  .map.jump{ transition:none !important; }
+  /* play button (onclick only; it never autoplays and never advances the slide) */
+  .play{ position:absolute; z-index:1; width:34px; height:34px; margin:-17px 0 0 -17px; border-radius:50%; border:0;
+         background:rgba(15,23,42,.85); cursor:pointer; opacity:0; pointer-events:none; }
+  .play::after{ content:''; position:absolute; left:13px; top:9px; border-style:solid; border-width:8px 0 8px 13px;
+                border-color:transparent transparent transparent #fff; }
+  footer{ position:absolute; right:2rem; bottom:1.1rem; }
+  #dots{ display:flex; gap:.45rem; }
+  .dot{ width:8px; height:8px; border-radius:50%; background:#fff; border:1.5px solid #cbd5e1; }
+  .dot.on{ background:var(--ink); border-color:var(--ink); }
+  #notes{ position:absolute; left:0; right:0; bottom:0; z-index:5; background:rgba(255,255,255,.965);
+          border-top:1px solid var(--border); padding:16px 4% 18px; display:none;
+          font-size:clamp(13px,1.15vw,16px); line-height:1.6; pointer-events:none; }
+  #notes.on{ display:block; }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <h1 class="t">Neural networks are promising models of sensory systems</h1>
+    <div id="figwrap">
+      <canvas id="cv"></canvas>
+      <button class="play" id="play" aria-label="Play the sound"></button>
+      <div class="map popquote" id="mapIn">Input</div>
+      <div class="map popquote fn" id="mapFn">function</div>
+      <div class="map popquote" id="mapBh">Behavior</div>
+      <canvas id="ov"></canvas>
+    </div>
+  </div>
+  <footer><div id="dots"></div></footer>
+  <div id="notes"></div>
+<script>
+// ═══ NEURAL NETWORKS ARE PROMISING MODELS: the network figure (draft, box layout of slide 9) ═══════════
+// Boxes, top to bottom: one input at a time (its name on the left) → "Input stimuli" → the model box ("Model",
+// on the left): the network's stages, read out at its output stage → the behavior, out of the box's RIGHT edge.
+//
+//  0 title
+//  1 the model box: the network builds stage by stage; "many stages, learned by training on a task"
+//  2 the panda image → Input stimuli → through the network → out to the right (empty: "…and produces a behavior")
+//  3 “panda”
+//  4 the image and “panda” swipe out, the cochleagram swipes in (play button), through the network → “Obama”
+//  5 the figure dims: "function" alone, over the model box (popquote)
+//  6 Input (blue frame, on the input) → function → Behavior (pine frame, on the behavior), with their arrows
+//  7 map of the talk: the figure gives way to the same boxes, small and grayed (Input / Model / Behavior)
+//  8 highlight: the input changes ("perturbed or model-derived stimuli")
+//  9 highlight: the model changes (its network swipes out, a different network swipes in; no label)
+// 10 highlight: the model's behavior ("the model's decisions")
+// 11 on the side: a person, "Human behavior", joined to the model's Behavior by a dashed compare line
+// 12 a new box under the model: "Model responses", then "a metric, or a mapping to brain responses"
+//
+// Words are black; marks in neutral grays (teal and purple are kept for the standard and robust networks later).
+
+const SLIDE_NAME = 'nnIntroBoxes';
+const A = '../assets/defense/';
+
+const SCRIPT = [   // presenter transcript, one passage per click (Fer's wording, from intro.js notes, clicks 0-5)
+  'In this work, I further explore the main current candidate class of computational models: neural network models.',
+  'A neural network is a set of computations, organized as many stages, and its parameters are learned by training the network on a task.',
+  'It takes in a stimulus, for instance an image… …and produces a behavior.',
+  'Here, for example, trained on object recognition, it learns to recognize the object as a panda.',
+  'You can do the same with sounds. Feed in a cochleagram (which is a simulation of the ear’s representation of a sound) and it can, for instance, recognize who spoke in the audio.',
+  'At a high level, you can think of these networks as functions…',
+  '…that learn a mapping from input stimuli to behavior.',
+  'Throughout the presentation I will be showing you different settings in which either',
+  'the input is changing,',
+  'the model itself,',
+  'the behavior of the model itself, for example its decisions when we perturb the input,',
+  'or compare it to human behavior,',
+  'or we add another box: something is being done on the model responses, some metric on those.',
+];
+const N = SCRIPT.length;
+
+// ── the state of the figure at each click (all 0…1) ──
+const ST = [];
+{
+  let s = {box:0, net:0, cap:0, img:0, fA:0, wA:0, swap:0, fB:0, wB:0, dim:0,
+           map:0, hA:0, hB:0, hC:0, hD:0, lA:0, nsw:0, lC:0, hH:0, lH:0, lD:0};
+  const at = o => { s = {...s, ...o}; ST.push(s); };
+  at({});                                   // 0 title
+  at({box:1, net:1, cap:1});                // 1 the model: many stages
+  at({img:1, fA:1});                        // 2 the image in → out to the right
+  at({wA:1});                               // 3 “panda”
+  at({swap:1, fB:1, wB:1});                 // 4 the sound → “Obama”
+  at({dim:1});                              // 5 "function" alone
+  at({});                                   // 6 Input → function → Behavior (popquotes + arrows: by class, below)
+  at({map:1});                              // 7 map of the talk: the boxes, grayed
+  at({hA:1, lA:1});                         // 8 the input
+  at({hA:0, hB:1, nsw:1});                  // 9 the model: its network swipes out, a different one swipes in
+  at({hB:0, hC:1, lC:1});                   // 10 the model's behavior
+  at({hH:1, lH:1});                         // 11 … or compared with human behavior (a person on the side)
+  at({hC:0, hH:0, hD:1, lD:1});             // 12 a new box under the model
+}
+const MAP_AT = 5, IO_AT = 6, TALK_AT = 7;
+// per-property timing on the click that changes it: [delay, duration] in s (slow)
+const TIMING = {box:[0, .9], net:[.6, 2.6], cap:[3.2, .9], img:[0, .9], fA:[1.2, 3.6], wA:[0, .9],
+                swap:[0, 1.6], fB:[1.9, 3.6], wB:[5.5, .9], dim:[0, .9],
+                map:[0, 1.2], hA:[0, .9], hB:[0, .9], hC:[0, .9], hD:[0, .9], lA:[.4, .8], nsw:[.3, 1.6], lC:[.4, .8], hH:[0, .9], lH:[0, 1.6], lD:[0, 2.4]};
+const DUR = [0, 1.0];
+
+// ── layout, in figure units (FW × FH, letterboxed into #figwrap) ──
+// Slide 9's frame and geometry exactly (outline/contracts/box-layout.md; Fer, 2026-10-15: "these intro slides should be
+// the same as the later ones… the MMS one is likely the ideal size"). Nothing rescales between beats: the talk map
+// (clicks 7-11) only changes grayness and highlights, and uses the responses box and the last spot below it.
+const FW = 1400, FH = 822;
+const CX = 700;                                           // the input column = the system box's centre
+const TILE_Y = 84, IMG_S = 112, COCH = [204, 91];         // the input (one at a time), on slide 9's inputs row
+const INBOX = [CX, 186, 168, 40];                         // "Input stimuli"
+const SYSB = [276, 236, 1124, 392];                       // the system box (the model)
+const RB = [276, 422, 1124, 550], ROW_Y = 492;            // the responses box (map, click 11: "Model responses")
+const LAST_Y = 660;                                       // the last spot (no box): the metric / the mapping
+const NAME_X = SYSB[0] - 18;                              // box names, on the LEFT (right-aligned)
+const MID_Y = 316;                                        // the network's centre line
+const CAP_Y = 420;                                        // "many stages, learned by training on a task" (clicks 1-6)
+const DEC_X = 1150;                                       // the behavior, right of the system box
+const D3 = 10, GAP = 3;
+const NET1 = [{x:462, n:1, w:16, h:100}, {x:504, n:3, w:12, h:88}, {x:584, n:4, w:16, h:74},
+              {x:694, n:5, w:18, h:58}, {x:834, n:3, w:22, h:44}];
+// click 9 (Fer, 2026-10-15): "a different model": a second network, other stages and proportions, same input and output
+const NET2 = [{x:462, n:2, w:10, h:96}, {x:518, n:2, w:20, h:80}, {x:602, n:6, w:12, h:66},
+              {x:732, n:2, w:30, h:52}, {x:832, n:4, w:16, h:40}];
+const NET = NET1;
+const OUTN = {x:956, w:22, h:30};                         // the output stage: the behavior is read out here
+const gEnd = g => g.x + g.n*(g.w + GAP) - GAP + D3;
+const IN_X = NET[0].x - 6;
+const OUT_CX = OUTN.x + OUTN.w/2, OUT_R = OUTN.x + OUTN.w + D3;
+
+const NATC = [30, 41, 59], SLATE = [71, 85, 105], INK = [15, 23, 42];
+const BLUE = [48, 104, 196], PINE = [52, 140, 92];        // Input and Behavior (not teal / purple / ochre)
+
+// ── canvas, sizing ──
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const ov = document.getElementById('ov'), octx = ov.getContext('2d');
+const wrap = document.getElementById('figwrap');
+let W = 0, H = 0, K = 1, OX = 0, OY = 0;
+function resize(){
+  const dpr = window.devicePixelRatio || 1;
+  W = wrap.clientWidth; H = wrap.clientHeight;
+  [[cv, ctx], [ov, octx]].forEach(([c, g]) => { c.width = Math.round(W*dpr); c.height = Math.round(H*dpr); g.setTransform(dpr, 0, 0, dpr, 0, 0); });
+  K = Math.min(W/FW, H/FH); OX = (W - FW*K)/2; OY = (H - FH*K)/2;
+}
+addEventListener('resize', resize);
+resize();
+const X = x => OX + x*K, Y = y => OY + y*K, S = v => v*K;
+
+const IM = {};
+let loaded = 0;
+const NAMES = {panda:'adv-panda.png', coch:'coch-obama-2009.png', cochGray:'coch-obama-2009-gray.png'};
+Object.entries(NAMES).forEach(([k, f]) => { const im = new Image(); im.onload = () => loaded++; im.src = A + f; IM[k] = im; });
+const ready = () => loaded === Object.keys(NAMES).length;
+
+// ── audio: the play button plays the 2 s clip the cochleagram was made from, onclick only ──
+const SND = A + 'obama-2009-clip.wav';
+function playClip(u){
+  const Wn = window, C = Wn.__nnAC || (Wn.__nnAC = new (Wn.AudioContext || Wn.webkitAudioContext)()); C.resume();
+  try{ Wn.__nnSrc && Wn.__nnSrc.stop(); }catch(e){}
+  const go = b => { const n = C.createBufferSource(); n.buffer = b; n.connect(C.destination); n.start(0); Wn.__nnSrc = n; };
+  if(Wn.__nnBuf) go(Wn.__nnBuf);
+  else fetch(u).then(r => r.arrayBuffer()).then(a => new Promise((ok, no) => C.decodeAudioData(a, ok, no))).then(b => { Wn.__nnBuf = b; go(b); });
+}
+const playEl = document.getElementById('play');
+playEl.onclick = e => { e.stopPropagation(); playClip(SND); };
+
+// ── state ──
+let beat = 0, beatT0 = performance.now(), jumped = true;
+const dotsEl = document.getElementById('dots'), notesEl = document.getElementById('notes');
+const mapEl = {in:document.getElementById('mapIn'), fn:document.getElementById('mapFn'), bh:document.getElementById('mapBh')};
+for(let i = 0; i < N; i++){ const d = document.createElement('div'); d.className = 'dot'; dotsEl.appendChild(d); }
+function render(jump){
+  jumped = jump; beatT0 = performance.now();
+  [...dotsEl.children].forEach((d, i) => d.classList.toggle('on', i <= beat));
+  notesEl.innerHTML = SCRIPT[beat];
+  Object.values(mapEl).forEach(el => el.classList.toggle('jump', jump));
+  mapEl.fn.classList.toggle('on', beat >= MAP_AT && beat < TALK_AT);
+  mapEl.in.classList.toggle('on', beat >= IO_AT && beat < TALK_AT);
+  mapEl.bh.classList.toggle('on', beat >= IO_AT && beat < TALK_AT);
+}
+function advance(){ if(beat < N-1){ beat++; render(false); } }
+function back(){ if(beat > 0){ beat--; render(true); } }
+function jump(i){ beat = Math.max(0, Math.min(N-1, i)); render(true); }
+window[SLIDE_NAME] = { advance, back, atStart:() => beat === 0, atEnd:() => beat === N-1,
+                       reset:() => jump(0), resetToEnd:() => jump(N-1),
+                       getBeat:() => beat, notes: SCRIPT, count:() => N, setBeat:jump };
+if(window.parent === window) addEventListener('click', advance);
+if(window.parent === window) addEventListener('keydown', e => {
+  if(['ArrowRight',' ','Enter'].includes(e.key)){ e.preventDefault(); advance(); }
+  else if(e.key === 'ArrowLeft'){ e.preventDefault(); back(); }
+  else if(e.key === 'n' || e.key === 'N') notesEl.classList.toggle('on');
+  else if(e.key === 'r' || e.key === 'R') jump(0);
+});
+render(true);
+{ const b0 = +new URLSearchParams(location.search).get('beat'); if(b0) jump(b0); }   // ?beat=N (thumbnails)
+
+// ── helpers (from scenes/mms-logic.html / adversarial-boxes.html) ──
+const clamp01 = v => Math.max(0, Math.min(1, v));
+const sstep = t => t*t*(3 - 2*t);
+const lerp = (a, b, u) => a + (b - a)*u;
+const rgba = (c, a) => `rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+let T = 0;
+function v(k){
+  const cur = ST[beat][k], prev = beat > 0 ? ST[beat - 1][k] : cur;
+  if(jumped || prev === cur) return cur;
+  const [d0, d] = TIMING[k] || DUR;
+  return lerp(prev, cur, sstep(clamp01((T - d0)/d)));
+}
+const startsNow = k => !jumped && beat > 0 && ST[beat][k] === 1 && ST[beat - 1][k] === 0;
+const LABEL_PX = () => Math.min(25.6, Math.max(20, innerWidth*.017));   // .label, clamp(1.25rem, 1.7vw, 1.6rem)
+function label(text, x, y, a, {head = false, align = 'center', bold = false, color = '#0f172a'} = {}){
+  if(a <= .01) return;
+  const px = LABEL_PX()*(head ? 1.25 : 1), lines = text.split('\n');
+  ctx.save(); ctx.globalAlpha *= a; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = 'middle';
+  ctx.font = `${bold ? 700 : 400} ${px}px "Deck Calibri", Calibri, Carlito, sans-serif`;
+  lines.forEach((l, i) => ctx.fillText(l, X(x), Y(y) + (i - (lines.length - 1)/2)*px*1.15));
+  ctx.restore();
+}
+function glow(x, y, r, c, a){
+  if(a <= .01) return;
+  const g = ctx.createRadialGradient(X(x), Y(y), 0, X(x), Y(y), S(r));
+  g.addColorStop(0, rgba(c, a)); g.addColorStop(.4, rgba(c, a*.55)); g.addColorStop(1, rgba(c, 0));
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X(x), Y(y), S(r), 0, 7); ctx.fill();
+}
+function arrow(x0, y0, x1, y1, a, c = SLATE, w = 2.6){
+  if(a <= .01) return;
+  const ang = Math.atan2(y1 - y0, x1 - x0), hl = 12;
+  ctx.save(); ctx.globalAlpha *= a; ctx.strokeStyle = rgba(c, 1); ctx.fillStyle = rgba(c, 1); ctx.lineWidth = Math.max(1.5, S(w));
+  ctx.beginPath(); ctx.moveTo(X(x0), Y(y0)); ctx.lineTo(X(x1 - Math.cos(ang)*hl*.8), Y(y1 - Math.sin(ang)*hl*.8)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(X(x1), Y(y1));
+  ctx.lineTo(X(x1 - hl*Math.cos(ang - .45)), Y(y1 - hl*Math.sin(ang - .45)));
+  ctx.lineTo(X(x1 - hl*Math.cos(ang + .45)), Y(y1 - hl*Math.sin(ang + .45))); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+function rrect(x0, y0, x1, y1, r){ ctx.beginPath(); ctx.roundRect(X(x0), Y(y0), S(x1 - x0), S(y1 - y0), S(r)); }
+const pathLen = P => P.slice(1).reduce((s, p, i) => s + Math.hypot(p[0] - P[i][0], p[1] - P[i][1]), 0);
+function rise(a, f){ if(a <= .01) return; ctx.save(); ctx.translate(0, S(12*(1 - a))); f(); ctx.restore(); }
+function polyArrow(P, a, c = SLATE, w = 2.6, prog = 1, head = true){
+  if(a <= .01 || prog <= .005) return;
+  const end = P.length - 1, L = pathLen(P); let left = prog*L;
+  ctx.save(); ctx.globalAlpha *= a; ctx.strokeStyle = rgba(c, 1); ctx.lineWidth = Math.max(1.5, S(w)); ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(X(P[0][0]), Y(P[0][1]));
+  for(let i = 1; i <= end && left > 0; i++){
+    const sl = Math.hypot(P[i][0] - P[i-1][0], P[i][1] - P[i-1][1]) || 1;
+    const g = Math.min(Math.min(1, left/sl), i === end && head ? 1 - 10/sl : 1);
+    ctx.lineTo(X(lerp(P[i-1][0], P[i][0], g)), Y(lerp(P[i-1][1], P[i][1], g))); left -= sl;
+  }
+  ctx.stroke(); ctx.restore();
+  if(head && prog > .97) arrow(lerp(P[end-1][0], P[end][0], .5), lerp(P[end-1][1], P[end][1], .5), P[end][0], P[end][1],
+                       a*clamp01((prog - .97)/.03), c, w);
+}
+function along(P, u){
+  const L = [0]; for(let i = 1; i < P.length; i++) L.push(L[i - 1] + Math.hypot(P[i][0] - P[i-1][0], P[i][1] - P[i-1][1]));
+  let d = u*L[L.length - 1], i = 1; while(i < P.length - 1 && d > L[i]) i++;
+  const f = (d - L[i - 1])/(L[i] - L[i - 1] || 1);
+  return [lerp(P[i-1][0], P[i][0], f), lerp(P[i-1][1], P[i][1], f)];
+}
+function spark(x, y, c){ glow(x, y, 26, c, .55); ctx.fillStyle = rgba(c, .95); ctx.beginPath(); ctx.arc(X(x), Y(y), Math.max(2.5, S(6)), 0, 7); ctx.fill(); }
+function box3d(x, y, w, h, fill, side, stroke){
+  const P = pts => { ctx.beginPath(); pts.forEach(([px, py], i) => i ? ctx.lineTo(X(px), Y(py)) : ctx.moveTo(X(px), Y(py))); ctx.closePath(); };
+  ctx.lineWidth = Math.max(1.2, S(2)); ctx.strokeStyle = stroke;
+  P([[x, y], [x + D3, y - D3], [x + w + D3, y - D3], [x + w, y]]); ctx.fillStyle = side; ctx.fill(); ctx.stroke();
+  P([[x + w, y], [x + w + D3, y - D3], [x + w + D3, y + h - D3], [x + w, y + h]]); ctx.fillStyle = side; ctx.fill(); ctx.stroke();
+  ctx.fillStyle = fill; ctx.fillRect(X(x), Y(y), S(w), S(h)); ctx.strokeRect(X(x), Y(y), S(w), S(h));
+}
+// the network, as on slide 9, read out at its output stage (the behavior)
+function network(ga, NET = NET1){                   // ga(i): block i's entrance (i = NET.length: the output stage)
+  NET.forEach((g, i) => {
+    const a = ga(i); if(a <= .01) return;
+    ctx.save(); ctx.globalAlpha *= a; ctx.translate(0, S(10*(1 - a)));
+    for(let k = 0; k < g.n; k++) box3d(g.x + k*(g.w + GAP), MID_Y - g.h/2 + D3/2, g.w, g.h, '#f8fafc', '#e2e8f0', '#94a3b8');
+    arrow(gEnd(g) + 4, MID_Y, (i < NET.length - 1 ? NET[i + 1].x : OUTN.x) - 5, MID_Y, 1, [100, 116, 139], 2.2);
+    ctx.restore();
+  });
+  const a = ga(NET.length); if(a <= .01) return;
+  ctx.save(); ctx.globalAlpha *= a; ctx.translate(0, S(10*(1 - a)));
+  box3d(OUTN.x, MID_Y - OUTN.h/2 + D3/2, OUTN.w, OUTN.h, '#e8eef6', '#cbd5e1', rgba(SLATE, 1));
+  ctx.restore();
+}
+function boxOut(b, a, r = 14){ if(a <= .01 || true) return;   /* Fer 2026-10-16: no box outlines (Model / Responses / metric); try it */
+  rise(a, () => { ctx.save(); ctx.globalAlpha *= a; ctx.strokeStyle = rgba(SLATE, 1); ctx.lineWidth = Math.max(1.5, S(3));
+    rrect(...b, r); ctx.stroke(); ctx.restore(); }); }
+function tile(im, cx, cy, w, h, a){                 // a stimulus, with a thin frame
+  if(a <= .01) return;
+  ctx.save(); ctx.globalAlpha *= a;
+  ctx.drawImage(im, X(cx - w/2), Y(cy - h/2), S(w), S(h));
+  ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = Math.max(1, S(1.4)); ctx.strokeRect(X(cx - w/2), Y(cy - h/2), S(w), S(h));
+  ctx.restore();
+}
+
+// ── the route, in pieces: input → Input stimuli → the model box → its input side → the output stage → out right ──
+const IN_L = INBOX[0] - INBOX[2]/2, IN_R = INBOX[0] + INBOX[2]/2, IN_T = INBOX[1] - INBOX[3]/2, IN_B = INBOX[1] + INBOX[3]/2;
+const FEED_Y0 = TILE_Y + IMG_S/2 + 4;                      // under the taller tile (the image)
+const FEED = [[CX, FEED_Y0], [CX, IN_T - 1]];
+const P_ON = [[CX, IN_B], [CX, SYSB[1] - 1]];
+const TOP_Y = SYSB[1] + 18;
+const P_IN = [[CX, SYSB[1] + 1], [CX, TOP_Y], [430, TOP_Y], [430, MID_Y], [IN_X, MID_Y]];
+const P_NET = [[IN_X, MID_Y], [OUT_CX, MID_Y]];
+const P_OUT = [[OUT_R + 4, MID_Y], [DEC_X - 12, MID_Y]];   // out of the box's right edge, to the behavior
+const PIECES = [FEED, P_ON, P_IN, P_NET, P_OUT];
+const FLOW = PIECES.flat();
+const STARTS = (() => { const s = []; let acc = []; PIECES.forEach(p => { s.push(pathLen([...acc, p[0]])); acc = [...acc, ...p]; }); return s; })();
+const seg = (d, k) => clamp01((d - STARTS[k])/pathLen(PIECES[k]));
+const RD_X = NET2[3].x + (NET2[3].w + GAP) + NET2[3].w/2;   // click 11: read out from one stage of the network then shown
+const P_MREAD = [[RD_X, MID_Y + NET2[3].h/2 + D3/2 + 2], [RD_X, SYSB[3] - 16], [CX, SYSB[3] - 16], [CX, SYSB[3] - 1]];
+// the model's responses at that stage (slide 9's activation set, in grays)
+const ACT = Array.from({length:5}, (_, k) => Array.from({length:7}, (_, i) => (Math.sin(k*2.1 + i*1.7) + Math.sin(k*.7 + i*2.9) + 2)/4));
+function vecSet(cx, a){ if(a <= .01) return;
+  const cw = 17, ch = 12, nk = ACT.length;
+  ctx.save(); ctx.translate(0, S(12*(1 - a))); ctx.globalAlpha *= a;
+  ACT.forEach((col, k) => {
+    const x = cx - (nk - 1)*11 + k*22 - cw/2, y0 = ROW_Y - col.length*ch/2 + 14 - k*7;
+    col.forEach((t, i) => { const g = Math.round(235 - 190*t); ctx.fillStyle = `rgb(${g},${g},${g + 4})`;
+      ctx.fillRect(X(x), Y(y0 + i*ch), S(cw), S(ch) + .5); });
+    ctx.strokeStyle = '#0f172a'; ctx.lineWidth = Math.max(1, S(1.4)); ctx.strokeRect(X(x), Y(y0), S(cw), S(col.length*ch));
+  });
+  ctx.restore(); }
+
+// ── the input (image or sound) and its behavior, drawn at horizontal offset dx ──
+function inputOf(kind, dx, a, gray, nameA){
+  if(a <= .01) return;
+  const img = kind === 'img', [w, h] = img ? [IMG_S, IMG_S] : COCH;
+  ctx.save(); ctx.translate(S(dx), 0);
+  rise(a, () => {
+    label(img ? 'Image' : 'Sound', CX - w/2 - 20, TILE_Y, a*nameA, {head:true, align:'right'});
+    if(img) tile(IM.panda, CX, TILE_Y, w, h, a);
+    else { tile(IM.coch, CX, TILE_Y, w, h, a*(1 - gray)); tile(IM.cochGray, CX, TILE_Y, w, h, a*gray); }
+  });
+  ctx.restore();
+}
+function behavior(text, dx, a){
+  ctx.save(); ctx.translate(S(dx), 0);
+  rise(a, () => label(text, DEC_X, MID_Y, a, {head:true, bold:true, align:'left'}));
+  ctx.restore();
+}
+function inkArrow(x0, y0, x1, y1, a, c = INK, op = 1){   // the overlay's arrows, on the overlay canvas, in screen px
+  if(a <= .01 || op <= .01) return;
+  const ang = Math.atan2(y1 - y0, x1 - x0), hl = 16, L = Math.hypot(x1 - x0, y1 - y0)*a;
+  const ex = x0 + Math.cos(ang)*L, ey = y0 + Math.sin(ang)*L;
+  octx.save(); octx.globalAlpha = op; octx.strokeStyle = rgba(c, 1); octx.fillStyle = rgba(c, 1); octx.lineWidth = 3; octx.lineCap = 'round';
+  octx.beginPath(); octx.moveTo(x0, y0); octx.lineTo(ex - Math.cos(ang)*hl*.7, ey - Math.sin(ang)*hl*.7); octx.stroke();
+  octx.beginPath(); octx.moveTo(ex, ey);
+  octx.lineTo(ex - hl*Math.cos(ang - .42), ey - hl*Math.sin(ang - .42));
+  octx.lineTo(ex - hl*Math.cos(ang + .42), ey - hl*Math.sin(ang + .42)); octx.closePath(); octx.fill();
+  octx.restore();
+}
+const GRAY = '#94a3b8', G = .3;                           // the talk map's grayed-out parts
+function halo(box, c, a, p = 10){                         // a glowing frame (from scenes/mms-logic.html)
+  if(a <= .01) return;
+  const [x0, y0, x1, y1] = box;
+  ctx.save(); ctx.strokeStyle = rgba(c, a); ctx.lineWidth = Math.max(2, S(4));
+  ctx.shadowColor = rgba(c, a); ctx.shadowBlur = S(14);
+  rrect(x0 - p, y0 - p, x1 + p, y1 + p, 12); ctx.stroke(); ctx.restore();
+}
+function smallBox(b, text, a){                            // a box with its text inside (cx, cy, w, h)
+  if(a <= .01) return;
+  const [cx, cy, w, h] = b;
+  ctx.save(); ctx.globalAlpha *= a; rrect(cx - w/2, cy - h/2, cx + w/2, cy + h/2, 8);
+  ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = rgba(SLATE, 1); ctx.lineWidth = Math.max(1.5, S(2.4)); ctx.stroke(); ctx.restore();
+  label(text, cx, cy + 1, a);
+}
+function textW(text, head, bold){                          // a label's width, in figure units
+  ctx.save(); ctx.font = `${bold ? 700 : 400} ${LABEL_PX()*(head ? 1.25 : 1)}px "Deck Calibri", Calibri, Carlito, sans-serif`;
+  const w = ctx.measureText(text).width/K; ctx.restore(); return w;
+}
+// (c2) the person glyph (head + shoulders, slate) and the dashed line joining it to the model's Behavior
+const HUM = [1190, 524];
+const HUM_LINE = [[HUM[0], MID_Y + 98], [HUM[0], HUM[1] - 34]];   // from under "the model's decisions" down to the head
+function person(x, y, a){
+  if(a <= .01) return;
+  ctx.save(); ctx.globalAlpha *= a; ctx.fillStyle = 'rgb(100,116,139)'; ctx.strokeStyle = rgba(SLATE, 1); ctx.lineWidth = Math.max(1.2, S(2));
+  ctx.beginPath(); ctx.arc(X(x), Y(y - 16), S(12), 0, 7); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(X(x - 24), Y(y + 26));
+  ctx.bezierCurveTo(X(x - 24), Y(y - 2), X(x + 24), Y(y - 2), X(x + 24), Y(y + 26)); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+const withA = (a, f) => { if(a <= .01) return; ctx.save(); ctx.globalAlpha *= a; f(); ctx.restore(); };
+
+// ── frame ──
+function frame(now){
+  requestAnimationFrame(frame);
+  T = (now - beatT0)/1000*2.6;   /* Fer 2026-10-16: faster flow through the boxes (all timings x2.6) */
+  if(wrap.clientWidth !== W || wrap.clientHeight !== H) resize();   // the deck shows the iframe late: re-measure
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+  octx.clearRect(0, 0, W, H);
+  if(!ready()) return;
+  const dimV = v('dim'), sw = v('swap'), SW = FW, mapV = v('map');
+  const hA = v('hA'), hB = v('hB'), hC = v('hC'), hD = v('hD');
+  // each part's opacity: full → dimmed under the overlay (clicks 5-6) → grayed in the talk map, full when highlighted
+  const dimA = 1 - .85*dimV, PA = h => lerp(dimA, G + (1 - G)*h, mapV);
+  const tc = h => h > .5 ? '#0f172a' : GRAY;              // the map's labels: grayed out, ink when highlighted
+  const story = 1 - mapV;                                 // what belongs to the examples only (fades as the map comes in)
+
+  // ── the model (click 1): the box, then the stages left to right, then the caption ──
+  const box = v('box'), net = v('net'), nb = i => clamp01(net*(NET.length + 1.5) - i);
+  const fA = v('fA'), fB = v('fB'), DIST = Math.max(fA, fB)*pathLen(FLOW);
+  withA(PA(hB), () => {
+    boxOut(SYSB, box);
+    const ns = v('nsw'), BWID = SYSB[2] - SYSB[0];     // click 9: one network swipes out, the other swipes in
+    ctx.save(); ctx.beginPath(); ctx.rect(X(SYSB[0] + 3), Y(SYSB[1] + 3), S(BWID - 6), S(SYSB[3] - SYSB[1] - 6)); ctx.clip();
+    if(ns < .999){ ctx.save(); ctx.translate(-S(BWID*ns), 0); network(nb, NET1); ctx.restore(); }
+    if(ns > .001){ ctx.save(); ctx.translate(S(BWID*(1 - ns)), 0); network(() => 1, NET2); ctx.restore(); }
+    ctx.restore();
+    polyArrow(P_IN, 1, [100, 116, 139], 2.2, seg(DIST, 2));
+    // (no 'output' label: the behavior now comes out of the box on the right; Fer, 2026-10-15)
+    rise(v('cap'), () => label('many stages, learned by training on a task', CX, CAP_Y, v('cap')*story));
+  });
+  rise(box, () => { label('Model', NAME_X, MID_Y, box*dimA*story, {head:true, align:'right'});
+                    label('Model', NAME_X, MID_Y, mapV, {head:true, align:'right', color:tc(hB)}); });
+
+  // ── the input side: drawn once by the image (click 2), and kept ──
+  withA(PA(hA), () => {
+    polyArrow(FEED, 1, SLATE, 2.6, seg(DIST, 0));
+    const inA = clamp01((seg(DIST, 0) - .6)/.4)*(1 - dimV*story);   // hidden under the overlay: the Input arrow runs through it
+    if(inA > .01) rise(inA, () => smallBox(INBOX, 'Input stimuli', inA));
+    polyArrow(P_ON, 1, SLATE, 2.6, seg(DIST, 1));
+  });
+  withA(PA(hC), () => polyArrow(P_OUT, 1, SLATE, 2.6, seg(DIST, 4)));
+
+  // ── what swipes: the input and its behavior (the image and “panda” out to the left, the sound in from the right) ──
+  ctx.save(); ctx.beginPath();
+  ctx.rect(X(0), Y(-40), S(FW), S(FEED_Y0 - 2 + 40));
+  ctx.rect(X(DEC_X - 8), Y(SYSB[1]), S(FW - DEC_X + 8), S(SYSB[3] - SYSB[1])); ctx.clip();
+  withA(PA(hA), () => {
+    if(sw < .999) inputOf('img', -SW*sw, v('img'), 0, 1);
+    if(sw > .001) inputOf('snd', SW*(1 - sw), 1, dimV, story*(1 - dimV));   // the cochleagram stays on as the map's input (in gray)
+  });
+  withA(dimA*story, () => {
+    if(sw < .999) behavior('“panda”', -SW*sw, v('wA'));
+    if(sw > .001) behavior('“Obama”', 0, v('wB'));
+  });
+  ctx.restore();
+
+  // the stimulus itself, travelling once on its click
+  [['fA', fA], ['fB', fB]].forEach(([k, u]) => {
+    if(startsNow(k) && u > .002 && u < .998){ const [x, y] = along(FLOW, u); spark(x, y, NATC); } });
+
+  // play button on the cochleagram (from the swap; hidden under the overlay and in the map)
+  const pa = sw*(1 - dimV);
+  playEl.style.left = X(CX + COCH[0]/2 - 22 + SW*(1 - sw)) + 'px'; playEl.style.top = Y(TILE_Y + COCH[1]/2 - 22) + 'px';
+  playEl.style.opacity = pa; playEl.style.pointerEvents = pa > .5 && beat < MAP_AT ? 'auto' : 'none';
+
+  // ── the overlay (clicks 5-6): function (on the model box); Input (on the input) ↓ and → Behavior (on the behavior) ──
+  const place = (el, x, y) => { el.style.left = X(x) + 'px'; el.style.top = Y(y) + 'px'; };
+  place(mapEl.in, CX, TILE_Y); place(mapEl.fn, CX, MID_Y); place(mapEl.bh, DEC_X + 150, MID_Y);
+  if(beat >= IO_AT && mapV < .999){
+    const o = wrap.getBoundingClientRect(), K0 = 12;
+    const r = el => { const b = el.getBoundingClientRect();
+      return {l:b.left - o.left, r:b.right - o.left, t:b.top - o.top, b:b.bottom - o.top, cx:(b.left + b.right)/2 - o.left, cy:(b.top + b.bottom)/2 - o.top}; };
+    const io = beat === IO_AT && !jumped, a1 = io ? clamp01((T - .5)/.9) : 1, a2 = io ? clamp01((T - 1.4)/.9) : 1;
+    const rT = el => { const rg = document.createRange(); rg.selectNodeContents(el); const b = rg.getBoundingClientRect();   /* Fer 2026-10-16: arrows meet the word "function" itself, not its padded glow box */
+      return {l:b.left - o.left, r:b.right - o.left, t:b.top - o.top, b:b.bottom - o.top, cx:(b.left + b.right)/2 - o.left, cy:(b.top + b.bottom)/2 - o.top}; };
+    const ri = r(mapEl.in), rf = rT(mapEl.fn), rb = r(mapEl.bh);
+    inkArrow(ri.cx, ri.b + K0, rf.cx, rf.t - K0, a1, BLUE, story);    // Input ↓ function
+    inkArrow(rf.r + K0, rf.cy, rb.l - K0, rb.cy, a2, PINE, story);    // function → Behavior
+  }
+
+  // ── the talk map (clicks 7-11): the same figure, grayed; one place at a time is highlighted ──
+  if(mapV > .01){
+    // (a) the input
+    label('Input', CX - COCH[0]/2 - 20, TILE_Y, mapV, {head:true, align:'right', color:tc(hA)});
+    halo([CX - COCH[0]/2, TILE_Y - COCH[1]/2, CX + COCH[0]/2, TILE_Y + COCH[1]/2], BLUE, .8*hA, 8);
+    if(false) rise(v('lA'), () => label('perturbed or model-derived stimuli',   /* Fer 2026-10-16: text removed */ CX + COCH[0]/2 + 26, TILE_Y, v('lA'), {align:'left', color:tc(hA)}));
+    // (b) the model
+    // Fer 2026-10-16: no glowing frame around the whole box
+    //halo(SYSB, SLATE, .6*hB, 8);
+    // (c) the behavior
+    label('Behavior', DEC_X, MID_Y, mapV, {head:true, bold:true, align:'left', color:tc(hC)});
+    const bw = textW('Behavior', true, true), bh = LABEL_PX()*1.25/K;
+    halo([DEC_X - 6, MID_Y - bh*.62, DEC_X + bw + 6, MID_Y + bh*.62], PINE, .8*hC, 6);
+    // Fer 2026-10-16: "the model's decisions" caption removed
+    // (c2) on the side: a person and "Human behavior", joined to the model's Behavior by a dashed compare line
+    const lH = v('lH'), hH = v('hH');
+    if(false && lH > .01){   /* Fer 2026-10-16: human behavior removed */
+      const pa = G + (1 - G)*hH;
+      ctx.save(); ctx.globalAlpha *= pa; ctx.setLineDash([S(7), S(6)]);
+      polyArrow(HUM_LINE, 1, SLATE, 2.4, clamp01(lH/.6), false); ctx.restore();
+      rise(clamp01((lH - .5)/.5), () => { const a = clamp01((lH - .5)/.5);
+        person(HUM[0], HUM[1], a*pa);
+        label('Human\nbehavior', HUM[0] + 34, HUM[1] - 2, a, {head:true, bold:true, align:'left', color:tc(hH)}); });
+    }
+    // (d) a new box under the model: its responses, then a metric or a mapping (it stays)
+    const lD = v('lD');
+    if(lD > .01){
+      const s4 = k => clamp01(lD*4 - k);                  // read-out arrows · the responses box · arrow · the last spot
+      withA(G + (1 - G)*hD, () => {
+        polyArrow(P_MREAD, 1, SLATE, 2.6, s4(0), false);
+        polyArrow([[CX, SYSB[3] + 1], [CX, RB[1] - 1]], 1, SLATE, 2.6, s4(0));
+        boxOut(RB, s4(1)); vecSet(CX, s4(1));
+        polyArrow([[CX, RB[3] + 1], [CX, LAST_Y - 28]], 1, SLATE, 2.6, s4(2));
+        rise(s4(3), () => label('a metric, or a mapping to brain responses', CX, LAST_Y, s4(3)));
+      });
+      rise(s4(1), () => label('Model\nresponses', NAME_X, (RB[1] + RB[3])/2, s4(1), {head:true, align:'right', color:tc(hD)}));
+    // Fer 2026-10-16: no glowing frame around the whole box
+    //halo([RB[0], RB[1], RB[2], LAST_Y + 26], SLATE, .55*hD*s4(3), 10);
+    }
+  }
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
