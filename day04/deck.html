@@ -2,11 +2,157 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Day 4 · Image Representations (working deck)</title>
+<title>Day 4 · CNNs and Visual Recognition</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>/* cache-bust while editing, so nobody presents a stale file */
 document.write(`<link rel="stylesheet" href="../deck/deck.css?v=${Date.now()}">`);
-document.write(`<script src="../deck/engine.js?v=${Date.now()}"><\/script><script src="order.js?v=${Date.now()}"><\/script>`);</script>
+document.write(`<script src="../deck/engine.js?v=${Date.now()}"><\/script><script src="order.js?v=${Date.now()}"><\/script>`);
+document.write(`<script src="assets/result.js?v=${Date.now()}"><\/script><script src="lib.js?v=${Date.now()}"><\/script>`);</script>
+<style>
+/* Day 4 layout. Same open type as Day 3: a left rule, not filled cards. Orange marks the one thing to look at. */
+:root{ --hi:#d97706; }
+.stage{ padding:8vh 5.5vw 10vh; gap:2vh; }
+/* First three slides only (they carry class="roomy" in parts/title.js).
+   Type scales with the shorter side of the frame so it stays large at a distance.
+   Text blocks cap near 62 characters and the group is centered, so an ultra-wide
+   monitor does not stretch a line across the full width. */
+.stage:has(.roomy){
+  align-items:center;
+  justify-content:center;
+  padding:clamp(2rem, 5vmin, 8vh) clamp(1.5rem, 3.5vmin, 5vw);
+  gap:clamp(1.1rem, 2.8vmin, 3.4vh);
+  font-size:clamp(1.45rem, 3.15vmin, 3.5rem);
+}
+.stage:has(.roomy),
+.stage:has(.roomy) *{
+  overflow-wrap:break-word;
+}
+.stage:has(.roomy) > h1.t{
+  width:auto;
+  max-width:min(20ch, 92vw);
+  margin-inline:auto;
+  text-align:center;
+  text-wrap:balance;
+  font-size:clamp(3.1rem, 7.6vmin, 9.5rem);
+  line-height:1.12;
+}
+.stage:has(.roomy) > .d4-cols,
+.stage:has(.roomy) > .flow{
+  width:fit-content;
+  max-width:min(100%, 172vh);
+  margin-inline:auto;
+  flex:0 1 auto;
+}
+.stage:has(.roomy) .d4-cols.wide-r{
+  font-size:clamp(1.9rem, 4.5vmin, 5.1rem);
+  grid-template-columns:minmax(0, 62ch) minmax(32vh, 74vh);
+  justify-content:center;
+}
+.stage:has(.roomy) .d4-cols.wide-l{
+  font-size:clamp(1.75rem, 4vmin, 4.6rem);
+  grid-template-columns:minmax(32vh, 74vh) minmax(0, 62ch);
+  justify-content:center;
+}
+.stage:has(.roomy) .copy{
+  max-width:62ch;
+  min-width:0;
+}
+.stage:has(.roomy) .copy .statement{
+  font-size:1.9em;
+  font-weight:700;
+  line-height:1.12;
+  max-width:13ch;
+  text-wrap:balance;
+}
+.stage:has(.roomy) .copy .lead{
+  font-size:1em;
+  line-height:1.28;
+  max-width:62ch;
+}
+.stage:has(.roomy) .copy .label,
+.stage:has(.roomy) .q4 .label{
+  font-size:.64em;
+  line-height:1.3;
+  max-width:62ch;
+}
+.stage:has(.roomy) .q4{
+  max-width:62ch;
+  min-width:0;
+  gap:clamp(.7rem, 1.8vmin, 2.2vh);
+}
+.stage:has(.roomy) .q4 .q{
+  font-size:1em;
+  max-width:62ch;
+  grid-template-columns:minmax(0, 13ch) minmax(0, 1fr);
+}
+.stage:has(.roomy) .pic{ min-width:0; max-width:74vh; }
+.stage:has(.roomy) .pic img{ width:100%; max-height:66vh; object-fit:contain; }
+.stage:has(.roomy) .pic .label{
+  font-size:clamp(1rem, 2vmin, 1.85rem);
+  max-width:62ch;
+}
+.stage:has(.roomy) .flow .step{
+  min-width:0;
+  padding:clamp(1rem, 2.6vmin, 3vh) clamp(.55rem, 1.1vmin, 1.2vw);
+}
+.stage:has(.roomy) .flow .step b{
+  font-size:clamp(1.8rem, 4vmin, 4.6rem);
+  overflow-wrap:break-word;
+}
+.stage:has(.roomy) .flow .step .label{
+  font-size:clamp(1.25rem, 2.7vmin, 2.8rem);
+  max-width:24ch;
+  margin-inline:auto;
+}
+.stage:has(.roomy) .flow .arrow{ font-size:clamp(1.8rem, 3.8vmin, 4.4rem); }
+.stage > .cite{ position:static; margin-top:auto; padding-top:.6vh; font-size:clamp(.8rem, 1.1vw, 1.1rem); color:var(--mute); }
+.stage > h1.t{ flex-shrink:0; }
+.sub{ font-size:clamp(1.15rem, 1.8vw, 1.6rem); color:var(--mute); margin-top:-1vh; flex-shrink:0; }
+.d4-cols{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:3vw; align-items:center; }
+.d4-cols.wide-l{ grid-template-columns:1.35fr 1fr; }
+.d4-cols.wide-r{ grid-template-columns:1fr 1.35fr; }
+.d4-grid3{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:2vw; align-items:start; }
+.d4-grid4{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(4, 1fr); gap:1.6vw; align-items:start; }
+.d4-card{ border-left:4px solid var(--line); padding:.4vh 0 .4vh 1.1vw; display:flex; flex-direction:column; gap:.7vh; }
+.d4-card.hi{ border-left-color:var(--hi); }
+.d4-card .label{ font-size:clamp(1.1rem, 1.7vw, 1.55rem); line-height:1.3; }
+.d4-card h3{ font-size:clamp(1.25rem, 2vw, 1.8rem); }
+.d4-eq{ background:#f1f5f9; border-left:4px solid var(--early); border-radius:8px; padding:1.2vh 1.3vw;
+  font-family:'Cambria Math','STIX Two Math',Georgia,serif; font-size:clamp(1.3rem, 2.2vw, 2rem); text-align:center; }
+.d4-eq i{ font-style:italic; }
+.d4-code{ background:#0f172a; color:#f8fafc; padding:1.6vh 1.5vw; border-radius:12px; white-space:pre;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:clamp(.85rem, 1.3vw, 1.3rem); line-height:1.45; overflow:hidden; }
+.d4-code .c{ color:#94a3b8; }
+code.m{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.9em; font-weight:600;
+  background:#f1f5f9; border:1px solid #cbd5e1; border-radius:5px; padding:.06em .34em; white-space:nowrap; }
+.big{ font-size:clamp(2.4rem, 5vw, 4.6rem); font-weight:700; line-height:1; font-variant-numeric:tabular-nums; }
+.hi-t{ color:var(--hi); }
+.pic{ min-height:0; display:flex; flex-direction:column; gap:.6vh; }
+.pic img{ width:100%; min-height:0; object-fit:contain; border-radius:8px; }
+.pic .label{ color:var(--mute); }
+.pics{ display:grid; gap:1.4vw; flex:1 1 auto; min-height:0; align-items:start; }
+.pics img{ width:100%; border-radius:8px; display:block; }
+.d4-bars{ display:flex; flex-direction:column; gap:1vh; width:100%; }
+.d4-bars .row{ display:grid; grid-template-columns:minmax(9em, auto) 1fr 4.2em; gap:1vw; align-items:center; font-size:clamp(1.05rem, 1.6vw, 1.5rem); }
+.d4-bars .bar{ height:2.6vh; background:#f1f5f9; border-radius:4px; overflow:hidden; }
+.d4-bars .bar i{ display:block; height:100%; background:var(--accent); }
+.d4-bars .row:first-child .bar i{ background:var(--hi); }
+.d4-bars .v{ text-align:right; font-variant-numeric:tabular-nums; }
+.d4-tbl{ border-collapse:collapse; width:100%; font-size:clamp(1rem, 1.45vw, 1.35rem); line-height:1.3; }
+.d4-tbl th{ text-align:left; font-size:.78em; letter-spacing:.05em; text-transform:uppercase; color:var(--mute); padding:.5vh .8vw; border-bottom:2px solid var(--line); }
+.d4-tbl td{ padding:.9vh .8vw; border-bottom:1px solid var(--line); vertical-align:top; }
+.d4-tbl td:first-child{ font-weight:700; }
+.d4-tbl.num td:not(:first-child){ font-variant-numeric:tabular-nums; }
+.flow .step.hi{ border-color:var(--hi); }
+.thumbs{ display:grid; grid-template-columns:repeat(5, 1fr); gap:1vw; }
+.thumbs figure{ display:flex; flex-direction:column; gap:.4vh; }
+.thumbs img{ width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:6px; }
+.thumbs figcaption{ font-size:clamp(.85rem, 1.15vw, 1.1rem); color:var(--mute); text-align:center; font-variant-numeric:tabular-nums; }
+.q4{ display:flex; flex-direction:column; gap:1.6vh; }
+.q4 .q{ display:grid; grid-template-columns:7.8em 1fr; gap:1vw; align-items:baseline; font-size:clamp(1.15rem, 1.9vw, 1.75rem); }
+.q4 .q b{ font-size:.8em; letter-spacing:.04em; text-transform:uppercase; color:var(--mute); }
+svg text{ font-family:var(--font); }
+</style>
 </head>
 <body>
 <div id="root"></div>
