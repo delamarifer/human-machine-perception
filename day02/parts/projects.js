@@ -219,8 +219,8 @@ st(`
     <div class="label projects-same b" data-step="3">Same steps for every project · each has a template</div>
     <div class="projects-line">
       <div class="projects-rail b" data-step="3"></div>
-      ${stepT('idea', 'Thursday night', 'General idea', '2%', 3)}${stepUs('Friday night', 'Our high-level feedback', 3)}
-      ${stepT('proposal', 'Monday', 'Detailed proposal', '5%', 3)}
+      ${stepT('idea', 'Friday night', 'General idea', '2%', 3)}${stepUs('Saturday night', 'Our high-level feedback', 3)}
+      ${stepT('proposal', 'Nov 6, midnight', 'Detailed proposal', '5%', 3)}
       ${stepT('meeting', 'Monday–Wednesday', 'Meet with us (Calendly)', '3%', 4)}
       <div class="projects-step b" data-step="5" style="--pc:${PC.presentation}"><span class="projects-dot"></span>
         <span class="label projects-when">Last day</span>
@@ -267,7 +267,7 @@ st(`
   "(draft) What could your project be? By the end of this part, you know what a project can look like, and the steps to get there.",
   "(draft) One example: build a demo: a working computer vision application that someone can try. For example, from the syllabus: visual search or an image memory, a creative image generation tool, a multimodal assistant, detection or segmentation, or an application for your own field.",
   "(draft) Another example: run an experiment: explore a limitation of a vision model, or try to overcome one, and answer with a measurement. It is a small rehearsal for a research project. For example, from the syllabus: human perception and vision models, ambiguity, or hallucination; or, from the proposal template, the same model on normal images and on images with their texture swapped.",
-  "(draft) These are two examples, not the only options: if your idea is another kind of project, that is welcome. The steps are the same for every project, and each one has a template on the course website. By Thursday night, your general idea, through a short Google form; we share them so you can find teammates. By Friday night, we send you high-level feedback on it. Then by Monday, a detailed proposal.",
+  "(draft) These are two examples, not the only options: if your idea is another kind of project, that is welcome. The steps are the same for every project, and each one has a template on the course website. By Friday night, your general idea, through a short Google form; we share them so you can find teammates. The detailed proposal is due Friday, November 6, at midnight. By Saturday night, we send you high-level feedback on the idea.",
   "(draft) Between Monday and Wednesday, you must meet with one of us to get feedback on your detailed proposal. We will share a Calendly to book a time.",
   "(draft) And on the last day, both: a presentation to the class, and a short write-up. Show it working, and show honestly where it fails.",
   "(draft) Altogether, the project is 45 percent of your grade: two percent for the idea, five for the proposal, three for the meeting, fifteen for the presentation and twenty for the write-up."
@@ -284,7 +284,7 @@ st(`
   <style>.projects-site{ flex:1 1 auto; min-height:0; width:100%; border:1px solid var(--line); border-radius:12px; }</style>
 `, { notes: [
   "(draft) Every step has a template, on the course website.",
-  "(draft) (Scroll through.) Two tracks, pick the one that fits. Build a demo: a working computer vision application someone can try. Or run an experiment: explore a limitation of a vision model, or try to overcome one, and answer with a measurement. Then one template per step: the general idea by Thursday night, our feedback by Friday night, the detailed proposal by Monday, a meeting with us between Monday and Wednesday, and on the last day the presentation and the write-up."
+  "(draft) (Scroll through.) Two tracks, pick the one that fits. Build a demo: a working computer vision application someone can try. Or run an experiment: explore a limitation of a vision model, or try to overcome one, and answer with a measurement. Then one template per step: the general idea by Friday night, the detailed proposal by Friday, November 6, at midnight, our feedback by Saturday night, a meeting with us between Monday and Wednesday, and on the last day the presentation and the write-up."
 ]});
 
 /* Example projects: real, public final projects from MIT 6.S898 Deep Learning, Fall 2023 (chosen by Fernanda via
