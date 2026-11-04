@@ -984,18 +984,11 @@ if IN_COLAB:
 """)
 
 md(r"""
-### How to fold
+## Overview
 
-1. **Print** the PDF on A4, single-sided, at **100 % / Actual size** (not "Fit to page"). The bar on the
-   base panel should measure exactly 50 mm.
-2. With the printed side up, fold each outer panel **backward** along its dashed line and crease firmly.
-3. Turn the sheet over so the middle panel lies on the desk, and lift the two sides: the design faces out.
-4. Bring the two outer edges together at the top and join them with a strip of clear tape (or a paper
-   clip). Three equal 99 mm panels form an equilateral triangle that stands firmly, even on 80 gsm paper.
-""")
+The PDF is one A4 page in landscape. The left panel is the front of the tent, the middle panel is the base, and the right panel is the back. The check above confirmed that both names will read the right way up when the tent stands.
 
-code(r"""
-show_folding_diagram()
+Upload the PDF on the [course website](https://delamarifer.github.io/human-machine-perception/).
 """)
 
 if __name__ == '__main__':
