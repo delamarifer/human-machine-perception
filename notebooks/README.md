@@ -11,6 +11,7 @@ page (`index.html`) with the "Open in Colab" badge; nothing to install.
 | [day03-lab.ipynb](day03-lab.ipynb) | Class day 4 | Day 3 lab: Part 1 metamers, then Part 2 image filtering. |
 | [day03-lab-metamers.ipynb](day03-lab-metamers.ipynb) | Class day 4 | Make metamers with plenoptic: a pooling model by hand, front-end and texture models, ResNet-18 early vs late, and sound (a cochleagram model, sound-texture statistics, wav2vec 2.0). Data in `data/day03/` |
 | [day03-lab2-image-filtering.ipynb](day03-lab2-image-filtering.ipynb) | Class day 4 | Lab 2, image filtering: filter your own photograph and make a printable trifold name tag. Student notebook; no solutions. |
+| [day04-lab-cnn-mnist.ipynb](day04-lab-cnn-mnist.ipynb) | Day 4 | MNIST digits: a fully connected baseline, then build a CNN; its learned filters and feature maps; the pixel-permutation test. Adapted from MIT 6.S191 Lab 2 Part 1 (© MIT Introduction to Deep Learning, http://introtodeeplearning.com, MIT License) |
 
 ## Conventions (every notebook)
 
