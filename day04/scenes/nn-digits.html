@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A network reads a digit</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: nn-scenes part (Day 4). Canvas, every number from ../assets/nn/digits.js (a real trained network).
+     In the spirit of 3Blue1Brown, Deep learning chapter 1; drawn from scratch here. Works alone too. */
+  html, body{ background:#fff; }
+  body.jump *{ transition:none !important; }
+  .wrap{ position:absolute; inset:0; padding:9vh 5vw 12vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .nn-cap{ min-height:1.4em; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">A network reads a digit</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+  <div class="lead nn-cap" id="cap"></div>
+  <div class="cite">Digits: UCI Optical Recognition of Handwritten Digits (via scikit-learn) · after 3Blue1Brown, Deep learning ch. 1</div>
+</div>
+<div class="dots" id="dots"></div>
+<script src="../assets/nn/digits.js"></script>
+<script>
+/* ACT 0  TITLE    (0):   the title alone
+   ACT 1  FORWARD  (1-5): an 8x8 test digit; its 64 pixels become 64 input neurons; hidden layer 1; hidden
+                          layer 2; the 10 outputs (softmax), with the test accuracy
+   ACT 2  INSIDE   (6-8): what one hidden neuron looks for (its 64 weights as an 8x8 image); how many
+                          numbers were learned; a test digit the network gets wrong
+
+   Network 64-16-16-10, ReLU, trained by ../assets/nn/train_digits.py. Activations are computed here
+   with those weights. Line opacity = |weight x input activation| (the contribution), one ink color. */
+const D = DIGITS, [W1, B1] = D.weights[0], [W2, B2] = D.weights[1], [W3, B3] = D.weights[2];
+const GOOD = D.digits.find(d => d.label === 3), BAD = D.digits.find(d => d.label !== d.predicted);
+const NPAR = D.sizes.slice(1).reduce((s, n, i) => s + D.sizes[i] * n + n, 0);
+const PEEK = 5;                                                  // which layer-1 neuron to open up (any one works; to choose with Fernanda)
+const CAPS = ['', '8 × 8 pixels of a handwritten digit the network never saw', '64 pixels → 64 input neurons',
+  'Hidden layer 1: 16 neurons', 'Hidden layer 2: 16 neurons',
+  `Output: one neuron per digit · test accuracy ${(D.testAccuracy * 100).toFixed(1)}% on ${D.ntest} digits`,
+  'One hidden neuron: its 64 weights, shown as an image', `${NPAR.toLocaleString('en')} weights and biases, all learned`,
+  ''];
+const NOTES = [
+  "(draft) Title only. Before convolutional networks, let us watch a plain network read a handwritten digit. The picture is in the spirit of the first 3Blue1Brown video on neural networks, but everything here is a real network I trained on real handwritten digits.",
+  "(draft) This is a handwritten digit from a test set the network never saw during training. It is tiny: 8 by 8 pixels, each a gray level.",
+  "(draft) The network does not see a picture. It sees 64 numbers: we flatten the grid into a column, and each pixel becomes the activation of one input neuron. Bright pixel, active neuron.",
+  "(draft) Every input neuron connects to every neuron in the first hidden layer. Each connection has a weight; the darker lines here are the connections that contribute most for this digit. Each hidden neuron sums its weighted inputs, adds a bias and applies ReLU.",
+  "(draft) The same happens again into the second hidden layer.",
+  "(draft) And into the output layer: one neuron per digit, turned into probabilities with softmax. The network says 3, with high confidence. On the 497 test digits it never saw, it is right about 98 percent of the time.",
+  "(draft) What does one hidden neuron look for? Its 64 incoming weights can be drawn back as an 8 by 8 image: dark where a bright pixel pushes the neuron up, light where it pushes it down. Nobody designed this pattern; training found it. Often these patterns are not the clean strokes or edges we might hope for.",
+  "(draft) In total this small network has this many numbers, every one of them set by gradient descent. A network for real photos has millions.",
+  "(draft) And it is not perfect: here is a test digit it gets wrong. Labeled 0, read as 4, and with more than 99.9 percent confidence: a network can be confidently wrong. Would you have read it correctly?"
+];
+const N = NOTES.length - 1;
+
+function forward(px){
+  const h1 = B1.map((b, j) => Math.max(0, px.reduce((s, x, i) => s + x * W1[i][j], b)));
+  const h2 = B2.map((b, j) => Math.max(0, h1.reduce((s, x, i) => s + x * W2[i][j], b)));
+  const z = B3.map((b, j) => h2.reduce((s, x, i) => s + x * W3[i][j], b));
+  const m = Math.max(...z), e = z.map(v => Math.exp(v - m)), t = e.reduce((a, b) => a + b);
+  return {px, h1, h2, p: e.map(v => v / t)};
+}
+const FG = forward(GOOD.pixels), FB = forward(BAD.pixels);
+
+let beat = 0, t0 = 0;
+const DUR = 1100;
+function go(b, jump){
+  beat = b; t0 = performance.now() - (jump ? DUR : 0);
+  document.getElementById('cap').textContent = b === 8 ? `Labeled ${BAD.label}, read as ${BAD.predicted}` : CAPS[b];
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+function jump(){ document.body.classList.add('jump'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('jump'))); }
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+const FONT = w => `${w}px Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif`;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+const g = v => { const c = Math.round(255 - 235 * Math.max(0, Math.min(1, v))); return `rgb(${c},${c},${c})`; };
+function frame(now){
+  const d = devicePixelRatio || 1;
+  if(cv.clientWidth !== W || cv.clientHeight !== H){ W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; }
+  ctx.setTransform(d, 0, 0, d, 0, 0); ctx.clearRect(0, 0, W, H);
+  const p = ease(Math.min(1, (now - t0) / DUR)), F = beat === 8 ? FB : FG, ink = '15,23,42';
+  const cell = Math.min(H / 8 * .62, W * .028), gx = W * .02, gy = (H - 8 * cell) / 2;
+  const X = [W * .30, W * .52, W * .70, W * .86], rIn = Math.min(H / 64 * .42, 6), rH = Math.min(H / 16 * .36, 14);
+  const ys = (n, k) => H * .03 + (k + .5) * (H * .94 / n);
+  const shown = k => beat > k ? 1 : beat === k ? p : 0;              // how far layer k is revealed
+
+  // the digit
+  if(beat >= 1){
+    ctx.globalAlpha = beat === 1 ? p : 1;
+    for(let i = 0; i < 64; i++){ ctx.fillStyle = g(F.px[i]); ctx.fillRect(gx + (i % 8) * cell, gy + Math.floor(i / 8) * cell, cell - 1, cell - 1); }
+    ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1; ctx.strokeRect(gx - .5, gy - .5, 8 * cell, 8 * cell);
+  }
+  // connections, drawn under the neurons
+  const layers = [[F.px, F.h1, W1, 0, 3], [F.h1, F.h2, W2, 1, 4], [F.h2, F.p, W3, 2, 5]];
+  for(const [a, b, Wm, li, k] of layers){
+    const s = shown(k); if(s <= 0) continue;
+    let mx = 0; a.forEach((x, i) => b.forEach((_, j) => mx = Math.max(mx, Math.abs(x * Wm[i][j]))));
+    ctx.strokeStyle = `rgb(${ink})`; ctx.lineWidth = 1;
+    a.forEach((x, i) => { if(x <= 0) return; b.forEach((_, j) => {
+      const c = Math.abs(x * Wm[i][j]) / mx; if(c < .08) return;
+      ctx.globalAlpha = s * c * (beat >= 6 && beat < 8 ? .25 : .55);
+      ctx.beginPath(); ctx.moveTo(X[li], ys(a.length, i)); ctx.lineTo(X[li + 1], ys(b.length, j)); ctx.stroke(); }); });
+  }
+  ctx.globalAlpha = 1;
+  // input neurons (morph from the grid at beat 2)
+  if(beat >= 2){
+    const m = beat === 2 ? p : 1;
+    for(let i = 0; i < 64; i++){
+      const x0 = gx + (i % 8 + .5) * cell, y0 = gy + (Math.floor(i / 8) + .5) * cell, x = x0 + (X[0] - x0) * m, y = y0 + (ys(64, i) - y0) * m;
+      ctx.fillStyle = g(F.px[i]); ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(x, y, rIn, 0, 7); ctx.fill(); ctx.stroke();
+    }
+  }
+  // hidden and output neurons
+  const neurons = (vals, li, k, r, norm) => { const s = shown(k); if(s <= 0) return;
+    ctx.globalAlpha = s; const mx = norm || Math.max(1e-9, ...vals);
+    vals.forEach((v, j) => { const y = ys(vals.length, j);
+      ctx.fillStyle = g(v / mx); ctx.strokeStyle = (beat === 6 || beat === 7) && li === 1 && j === PEEK ? '#b45309' : '#94a3b8';
+      ctx.lineWidth = (beat === 6 || beat === 7) && li === 1 && j === PEEK ? 4 : 1.5;
+      ctx.beginPath(); ctx.arc(X[li], y, r, 0, 7); ctx.fill(); ctx.stroke(); });
+    ctx.globalAlpha = 1; };
+  neurons(F.h1, 1, 3, rH); neurons(F.h2, 2, 4, rH); neurons(F.p, 3, 5, rH * 1.15, 1);
+  if(shown(5) > 0){
+    ctx.globalAlpha = shown(5); ctx.font = FONT(Math.max(14, rH * 1.4)); ctx.textBaseline = 'middle';
+    const best = F.p.indexOf(Math.max(...F.p));
+    F.p.forEach((v, j) => { const y = ys(10, j);
+      ctx.fillStyle = '#0f172a'; ctx.font = (j === best ? '700 ' : '') + FONT(Math.max(14, rH * 1.4));
+      ctx.fillText(j, X[3] + rH * 1.8, y);
+      if(j === best) ctx.fillText(v > .999 ? ">99.9%" : `${(v * 100).toFixed(1)}%`, X[3] + rH * 3.6, y); });
+    ctx.globalAlpha = 1;
+  }
+  // one hidden neuron opened up: its weights as an 8x8 image (beats 6-7)
+  if(beat === 6 || beat === 7){
+    const a = beat === 6 ? p : 1, w = W1.map(r => r[PEEK]), mx = Math.max(...w.map(Math.abs)), c2 = cell;
+    const ox = gx, oy = gy;                                          // over the digit, same size
+    ctx.globalAlpha = a; ctx.fillStyle = 'rgba(255,255,255,.95)'; ctx.fillRect(ox - 14, oy - 14, 8 * c2 + 28, 8 * c2 + 28);
+    w.forEach((v, i) => { ctx.fillStyle = g(.5 + .5 * v / mx); ctx.fillRect(ox + (i % 8) * c2, oy + Math.floor(i / 8) * c2, c2 - 1, c2 - 1); });
+    ctx.strokeStyle = '#b45309'; ctx.lineWidth = 3; ctx.strokeRect(ox - 3, oy - 3, 8 * c2 + 6, 8 * c2 + 6);
+    ctx.beginPath(); ctx.moveTo(ox + 8 * c2 + 3, oy + 4 * c2); ctx.lineTo(X[1] - rH, ys(16, PEEK)); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  requestAnimationFrame(frame);
+}
+
+window.nnDigits = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ jump(); go(0, true); },
+  resetToEnd(){ jump(); go(N, true); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) nnDigits.advance(); if(e.key === 'ArrowLeft') nnDigits.back(); });
+  addEventListener('click', () => nnDigits.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+if(location.hash === '#end') nnDigits.resetToEnd();
+</script>
+</body>
+</html>

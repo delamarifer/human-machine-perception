@@ -6,10 +6,13 @@
    Avoid apostrophes inside the strings. */
 const ORDER = [
   // part                 what
+  ['start',               'Added by Fernanda: quiz, recap, course site, what is due, how to submit the proposal'],
   ['title',               'Title, one image and four questions, the path through today'],
   ['networks',            'Section 1 (0:00-0:10, 10 min): neurons, layers, loss, backpropagation, learned representations'],
+  ['nn-scenes',           'Section 1, added by Fernanda: a real digit network and its training run, two 3Blue1Brown clips'],
   ['images',              'Section 2 (0:10-0:20, 10 min): flattening, parameter count, pixel permutation, locality, weight sharing'],
   ['convolution',         'Section 3 (0:20-0:28, 8 min): Day 3 convolution scene, hand-designed vs learned filters, output size'],
+  ['conv-clip',           'Section 3, added by Fernanda: a 3Blue1Brown clip on convolution in image processing'],
   ['architecture',        'Section 4 (0:28-0:45, 17 min): channels, conv-ReLU-pool, receptive fields, hierarchy, head, equivariance'],
   ['classification',      'Section 5 (0:45-1:00, 15 min): ImageNet, ResNet-18 on the street, softmax, embeddings, visual search'],
   ['detect-segment',      'Section 6 (1:00-1:25, 25 min): YOLO detection, thresholds and NMS, U-Net segmentation, CT example'],
@@ -21,6 +24,7 @@ const PARTS = ORDER.map(r => r[0]);
 
 /* Minutes per section (the progress bar): adds up to exactly 120 minutes. */
 const SEC_MINUTES = {
+  'Start': 15,   // added by Fernanda: quiz (5-10 min) and the opening slides, on top of the 120
   '1. Networks': 10,
   '2. Images': 10,
   '3. Convolution': 8,

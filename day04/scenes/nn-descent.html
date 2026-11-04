@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Learning is walking downhill</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: nn-scenes part (Day 4). Canvas, every number from ../assets/nn/digits.js (the real training run
+     of the digit network). In the spirit of 3Blue1Brown, Deep learning chapter 2; drawn from scratch here. */
+  html, body{ background:#fff; }
+  body.jump *{ transition:none !important; }
+  .wrap{ position:absolute; inset:0; padding:9vh 5vw 12vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .nd-cap{ min-height:1.4em; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Learning is walking downhill</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+  <div class="lead nd-cap" id="cap"></div>
+  <div class="cite">The digit network's real training run · after 3Blue1Brown, Deep learning ch. 2</div>
+</div>
+<div class="dots" id="dots"></div>
+<script src="../assets/nn/digits.js"></script>
+<script>
+/* ACT 0  TITLE    (0):   the title alone
+   ACT 1  SURFACE  (1):   the loss over a 2D slice of weight space (darker = lower loss)
+   ACT 2  DESCENT  (2-5): the random starting weights; the first step, straight downhill; the whole path;
+                          the loss against the step number
+   ACT 3  POINT    (6):   backpropagation gives the downhill direction for every weight at once
+
+   The slice: loss(theta0 + a*d1 + b*d2), d1 = final - start weights, d2 = a random direction orthogonal to
+   d1 of the same length (computed by train_digits.py on the 1300 training digits). The path is the real
+   sequence of weights, every 25 steps, projected onto that slice. The loss values are the real training loss. */
+const D = DIGITS, SF = D.surface, PA = D.path;
+const NPAR = D.sizes.slice(1).reduce((s, n, i) => s + D.sizes[i] * n + n, 0);
+const L0 = PA.loss[0], L1 = PA.loss[PA.loss.length - 1];
+const CAPS = ['', 'Training loss for weights along two directions in weight space', `Random starting weights · loss ${L0.toFixed(2)}`,
+  'One step: straight downhill, along minus the gradient', `${D.steps} steps later · loss ${L1.toFixed(3)}`,
+  'The loss, step by step', `Backpropagation gives the downhill direction for all ${NPAR.toLocaleString('en')} numbers at once`];
+const NOTES = [
+  "(draft) Title only. Where do those weights come from? Training is a walk downhill. This picture follows the second 3Blue1Brown video, but it is the real training run of the network we just saw.",
+  "(draft) The network has 1,482 numbers, so its loss lives in a 1,482-dimensional space we cannot draw. Here is a slice through it: two directions, and the training loss at each point. Darker means lower loss.",
+  "(draft) Training starts from random weights, here, where the loss is high. At the start the network is guessing.",
+  "(draft) The gradient points uphill, in the direction where the loss grows fastest. So we take a step the other way. This arrow is the actual first step of training.",
+  "(draft) Repeat, step after step. This is the real path the weights took over 1,500 steps, projected onto the slice. The loss ends close to zero on the training digits.",
+  "(draft) Here is the same story as a curve: the training loss against the step number. It drops fast at first, then slowly.",
+  "(draft) The hard part is computing the gradient: how the loss changes with each of the 1,482 numbers. Backpropagation does that, for all of them at once, with the chain rule. For a network on real photos, that is millions of numbers per step."
+];
+const N = NOTES.length - 1;
+
+let beat = 0, t0 = 0;
+const DUR = 1100, PATHDUR = 2600;
+function go(b, jump){
+  beat = b; t0 = performance.now() - (jump ? PATHDUR : 0);
+  document.getElementById('cap').textContent = CAPS[b];
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+function jump(){ document.body.classList.add('jump'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('jump'))); }
+
+/* the surface, drawn once: log loss, banded so it reads as contours */
+const NA = SF.alpha.length, NB = SF.beta.length, LOG = SF.loss.map(r => r.map(v => Math.log10(v)));
+const lmin = Math.min(...LOG.flat()), lmax = Math.max(...LOG.flat()), BANDS = 14;
+const surf = document.createElement('canvas'); surf.width = 480;   // same scale on both axes
+surf.height = Math.round(480 * (SF.beta[NB-1] - SF.beta[0]) / (SF.alpha[NA-1] - SF.alpha[0]));
+(function(){
+  const x = surf.getContext('2d'), im = x.createImageData(surf.width, surf.height);
+  const at = (u, v) => { const i = Math.min(NA - 1.001, u * (NA - 1)), j = Math.min(NB - 1.001, v * (NB - 1)), i0 = Math.floor(i), j0 = Math.floor(j), fi = i - i0, fj = j - j0;
+    return (LOG[j0][i0] * (1 - fi) + LOG[j0][i0 + 1] * fi) * (1 - fj) + (LOG[j0 + 1][i0] * (1 - fi) + LOG[j0 + 1][i0 + 1] * fi) * fj; };
+  const band = q => Math.floor((q - lmin) / (lmax - lmin) * BANDS);
+  for(let py = 0; py < surf.height; py++) for(let px = 0; px < surf.width; px++){
+    const u = px / (surf.width - 1), v = 1 - py / (surf.height - 1), q = at(u, v), k = band(q);
+    const edge = band(at(Math.min(1, u + 1 / surf.width), v)) !== k || band(at(u, Math.max(0, v - 1 / surf.height))) !== k;
+    const c = edge ? 120 : Math.round(70 + 180 * k / BANDS);
+    im.data.set([c, c, c, 255], (py * surf.width + px) * 4);
+  }
+  x.putImageData(im, 0, 0);
+})();
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+const FONT = w => `${w}px Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif`;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+function frame(now){
+  const d = devicePixelRatio || 1;
+  if(cv.clientWidth !== W || cv.clientHeight !== H){ W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; }
+  ctx.setTransform(d, 0, 0, d, 0, 0); ctx.clearRect(0, 0, W, H);
+  const p = Math.min(1, (now - t0) / DUR), pp = Math.min(1, (now - t0) / PATHDUR);
+  const sw = Math.min(W * (beat >= 5 ? .56 : .9), H * surf.width / surf.height), sh = sw * surf.height / surf.width;
+  const sx = beat >= 5 ? 0 : (W - sw) / 2, sy = (H - sh) / 2;
+  const P = ([a, b]) => [sx + (a - SF.alpha[0]) / (SF.alpha[NA-1] - SF.alpha[0]) * sw, sy + (1 - (b - SF.beta[0]) / (SF.beta[NB-1] - SF.beta[0])) * sh];
+  if(beat >= 1){
+    ctx.globalAlpha = beat === 1 ? ease(p) : 1; ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(surf, sx, sy, sw, sh); ctx.strokeStyle = '#cbd5e1'; ctx.strokeRect(sx, sy, sw, sh); ctx.globalAlpha = 1;
+  }
+  const dot = (q, r, fill) => { const [x, y] = P(q); ctx.fillStyle = fill; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.stroke(); };
+  const AB = PA.ab;
+  if(beat >= 4){                                                    // the whole path, drawn once
+    const n = beat === 4 ? Math.max(1, Math.round(ease(pp) * (AB.length - 1))) : AB.length - 1;
+    ctx.strokeStyle = '#b45309'; ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.beginPath();
+    AB.slice(0, n + 1).forEach((q, k) => { const [x, y] = P(q); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
+    AB.slice(1, n + 1).forEach(q => { const [x, y] = P(q); ctx.fillStyle = '#b45309'; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, 7); ctx.fill(); });
+    if(n === AB.length - 1) dot(AB[n], 10, '#b45309');
+  }
+  if(beat === 3){                                                   // the first step as an arrow
+    const [x0, y0] = P(AB[0]), [x1, y1] = P(AB[1]), e = ease(p), xe = x0 + (x1 - x0) * e, ye = y0 + (y1 - y0) * e, a = Math.atan2(ye - y0, xe - x0);
+    ctx.strokeStyle = '#b45309'; ctx.fillStyle = '#b45309'; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(xe, ye); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(xe, ye); ctx.lineTo(xe - 18 * Math.cos(a - .45), ye - 18 * Math.sin(a - .45)); ctx.lineTo(xe - 18 * Math.cos(a + .45), ye - 18 * Math.sin(a + .45)); ctx.fill();
+  }
+  if(beat >= 2){ ctx.globalAlpha = beat === 2 ? ease(p) : 1; dot(AB[0], 10, '#0f172a'); ctx.globalAlpha = 1;
+    const [x, y] = P(AB[0]); ctx.fillStyle = '#0f172a'; ctx.font = '700 ' + FONT(Math.max(16, H * .035)); ctx.textBaseline = 'bottom';
+    ctx.fillText('start', x - 20, y - 16); }
+  if(beat >= 4 && (beat > 4 || pp >= 1)){ const [x, y] = P(AB[AB.length - 1]); ctx.fillStyle = '#0f172a'; ctx.font = '700 ' + FONT(Math.max(16, H * .035));
+    ctx.textBaseline = 'bottom'; ctx.fillText('end', x - 14, y - 16); }
+  if(beat >= 5){                                                    // the loss curve
+    const cx = sw + W * .06, cw = W - cx - W * .02, ch = sh * .8, cy = sy + (sh - ch) / 2, a = beat === 5 ? ease(p) : 1;
+    const lx = k => cx + k / (PA.loss.length - 1) * cw, ly = v => cy + ch - Math.log10(v / L1) / Math.log10(L0 / L1) * ch;
+    ctx.globalAlpha = a; ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, cy + ch); ctx.lineTo(cx + cw, cy + ch); ctx.stroke();
+    ctx.strokeStyle = '#b45309'; ctx.lineWidth = 4; ctx.beginPath();
+    PA.loss.forEach((v, k) => k ? ctx.lineTo(lx(k), ly(v)) : ctx.moveTo(lx(k), ly(v))); ctx.stroke();
+    ctx.fillStyle = '#0f172a'; ctx.font = FONT(Math.max(15, H * .032)); ctx.textBaseline = 'top';
+    ctx.fillText(`step 0`, cx, cy + ch + 8); ctx.textAlign = 'right'; ctx.fillText(`${D.steps}`, cx + cw, cy + ch + 8);
+    ctx.textBaseline = 'middle'; ctx.fillText(L0.toFixed(2), cx - 8, cy); ctx.fillText(L1.toFixed(3), cx - 8, cy + ch);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText('training loss (log scale)', cx, cy - 10);
+    ctx.globalAlpha = 1;
+  }
+  requestAnimationFrame(frame);
+}
+
+window.nnDescent = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ jump(); go(0, true); },
+  resetToEnd(){ jump(); go(N, true); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) nnDescent.advance(); if(e.key === 'ArrowLeft') nnDescent.back(); });
+  addEventListener('click', () => nnDescent.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+if(location.hash === '#end') nnDescent.resetToEnd();
+</script>
+</body>
+</html>
