@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>From pixels to objects</title>
+<title>Different abstractions of representations</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="../../deck/deck.css">
 <style>
@@ -20,6 +20,9 @@
   .p2o-arrow{ grid-column:2 / span 4; display:flex; align-items:center; gap:1vw; }
   .p2o-arrow .line{ flex:1 1 auto; height:3px; background:var(--ink); position:relative; }
   .p2o-arrow .line::after{ content:''; position:absolute; right:-2px; top:-7px; border:8.5px solid transparent; border-left:14px solid var(--ink); border-right:0; }
+  .p2o-brainfig{ grid-column:1 / span 5; grid-row:4; justify-self:center; width:min(30vw, 44vh); margin-top:-1vh; }
+  .p2o-brainfig svg{ width:100%; height:auto; display:block; }
+  .p2o-grid{ margin-top:0 !important; }
   .p2o-brain{ display:flex; align-items:center; justify-content:center; gap:.5vw; }
   .p2o-brain i{ width:.9em; height:.9em; border-radius:50%; display:inline-block; }
   .s{ opacity:0; transform:translateY(8px); transition:opacity .9s ease, transform .9s ease; }
@@ -32,7 +35,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1 class="t deck-title">From pixels to objects</h1>
+  <h1 class="t deck-title">Different abstractions of “representations”</h1>
   <div class="p2o-grid">
     <div class="p2o-cell s" data-b="1"><div class="label">Image</div><canvas id="im" width="256" height="256"></canvas></div>
     <div class="p2o-cell s" data-b="2"><div class="label">Pixels</div><canvas id="px" width="512" height="512"></canvas></div>
@@ -40,6 +43,24 @@
     <div class="p2o-cell s" data-b="4"><div class="label">Textures</div><canvas id="tx" width="512" height="512"></canvas></div>
     <div class="p2o-cell s" data-b="5"><div class="label">Objects</div><canvas id="ob" width="512" height="512"></canvas></div>
 
+    <div class="p2o-brainfig s" data-b="8">
+      <!-- a schematic lateral view (front to the left), drawn here: eye -> V1 (occipital pole) -> V2 -> IT (inferior temporal) -->
+      <svg viewBox="0 0 300 200" aria-label="The ventral stream in a brain, from the retina to V1, V2 and IT">
+        <defs><marker id="p2o-head" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="var(--what)"/></marker></defs>
+        <path d="M188 146 L192 188 L206 188 L206 148" fill="#f8fafc" stroke="#475569" stroke-width="2.2"/>
+        <ellipse cx="226" cy="150" rx="31" ry="19" fill="#f8fafc" stroke="#475569" stroke-width="2.2"/>
+        <path d="M44 120 C28 70 72 24 142 21 C212 18 270 50 274 100 C277 128 258 142 236 138 C218 148 192 150 172 145 C150 160 112 161 92 152 C66 151 48 141 44 120 Z" fill="#f8fafc" stroke="#475569" stroke-width="2.4"/>
+        <path d="M86 116 C120 106 160 100 198 92" fill="none" stroke="#94a3b8" stroke-width="1.8"/>
+        <path d="M150 24 C146 50 140 75 134 104" fill="none" stroke="#94a3b8" stroke-width="1.8"/>
+        <path d="M34 128 C110 128 200 116 262 102" fill="none" stroke="var(--early)" stroke-width="2.4" stroke-dasharray="5 5"/>
+        <path d="M262 106 C256 114 252 118 246 122 C212 134 182 140 150 142" fill="none" stroke="var(--what)" stroke-width="3" marker-end="url(#p2o-head)"/>
+        <circle cx="22" cy="128" r="10" fill="#fff" stroke="#475569" stroke-width="2"/><circle cx="16" cy="128" r="4" fill="var(--early)"/>
+        <circle cx="264" cy="102" r="6" fill="var(--early)"/><circle cx="246" cy="122" r="6" fill="var(--what)"/><circle cx="142" cy="142" r="6" fill="var(--what)"/>
+        <g font-size="18" fill="#0f172a" font-family="var(--font)">
+          <text x="4" y="156">retina</text><text x="270" y="90">V1</text><text x="236" y="112" text-anchor="end">V2</text><text x="142" y="172" text-anchor="middle">IT</text>
+        </g>
+      </svg>
+    </div>
     <div></div>
     <div class="p2o-arrow s label" data-b="6"><span>Exact pixel values</span><div class="line"></div><span>What is there</span></div>
 
@@ -57,6 +78,7 @@
    ACT 1  LADDER    (1-5): the image; its pixels (real values of a marked 6x6 patch); features (gradient
                            magnitude, Sobel); textures (orientation energy pooled in 32x32 windows);
                            objects (the regions the generator drew, with their names)
+   ACT 3  BRAIN     (8):   the same path drawn in a brain (schematic, drawn here; Fernanda 2026-11-04)
    ACT 2  MEANING   (6-7): the axis from exact pixel values to what is there; a rough parallel along the
                            ventral stream (slate-blue = eye to V1, plum = ventral "what", as on Day 1)
 
@@ -70,7 +92,8 @@ const NOTES = [
   "(draft) Next: textures. I divide the image into windows and, in each window, I only keep how much edge energy there is in each orientation. The exact positions inside the window are gone; what kind of stuff is there is kept. The bricks have horizontal and vertical edges, the grass mostly vertical ones, the sky almost none.",
   "(draft) And at the top: objects. Sky, wall, grass, ball. This is the level where we name things.",
   "(draft) Each step to the right keeps less about the exact pixel values and more about what is there.",
-  "(draft) There is a rough parallel along the ventral stream we saw on Day 1: the retina samples the pixels, V1 cells respond to oriented edges, V2 responds to texture statistics, a result from Freeman and colleagues in 2013, and IT responds to objects. This is a simplification, not a one-to-one map."
+  "(draft) There is a rough parallel along the ventral stream we saw on Day 1: the retina samples the pixels, V1 cells respond to oriented edges, V2 responds to texture statistics, a result from Freeman and colleagues in 2013, and IT responds to objects. This is a simplification, not a one-to-one map.",
+  "(draft) In the brain, this path starts at the retina, goes to V1 at the very back of the head, then V2 right next to it, and then forward along the bottom of the temporal lobe to IT, where cells respond to objects."
 ];
 const N = NOTES.length - 1;
 let beat = 0;

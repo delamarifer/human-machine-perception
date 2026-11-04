@@ -55,7 +55,7 @@
 </head>
 <body>
   <div class="stage">
-    <h1 class="t">Neural networks are promising models of sensory systems</h1>
+    <h1 class="t">The meaning of “representations” in the models and the brain</h1>
     <div id="figwrap">
       <canvas id="cv"></canvas>
       <button class="play" id="play" aria-label="Play the sound"></button>
@@ -105,6 +105,7 @@ const SCRIPT = [   // presenter transcript, one passage per click (Fer's wording
   'the behavior of the model itself, for example its decisions when we perturb the input,',
   'or compare it to human behavior,',
   'or we add another box: something is being done on the model responses, some metric on those.',
+  '(draft) And the model is not the only place to find a representation. Swap the network for a brain, record neural responses from it, and the same box applies: we can ask what those responses keep and what they throw away.',
 ];
 const N = SCRIPT.length;
 
@@ -112,7 +113,7 @@ const N = SCRIPT.length;
 const ST = [];
 {
   let s = {box:0, net:0, cap:0, img:0, fA:0, wA:0, swap:0, fB:0, wB:0, dim:0,
-           map:0, hA:0, hB:0, hC:0, hD:0, lA:0, nsw:0, lC:0, hH:0, lH:0, lD:0};
+           map:0, hA:0, hB:0, hC:0, hD:0, lA:0, nsw:0, lC:0, hH:0, lH:0, lD:0, brn:0};
   const at = o => { s = {...s, ...o}; ST.push(s); };
   at({});                                   // 0 title
   at({box:1, net:1, cap:1});                // 1 the model: many stages
@@ -127,12 +128,13 @@ const ST = [];
   at({hB:0, hC:1, lC:1});                   // 10 the model's behavior
   at({hH:1, lH:1});                         // 11 … or compared with human behavior (a person on the side)
   at({hC:0, hH:0, hD:1, lD:1});             // 12 a new box under the model
+  at({hB:1, brn:1});                        // 13 Day 3 (Fernanda, 2026-11-04): the network swipes out, a brain swipes in; neural data read out
 }
 const MAP_AT = 5, IO_AT = 6, TALK_AT = 7;
 // per-property timing on the click that changes it: [delay, duration] in s (slow)
 const TIMING = {box:[0, .9], net:[.6, 2.6], cap:[3.2, .9], img:[0, .9], fA:[1.2, 3.6], wA:[0, .9],
                 swap:[0, 1.6], fB:[1.9, 3.6], wB:[5.5, .9], dim:[0, .9],
-                map:[0, 1.2], hA:[0, .9], hB:[0, .9], hC:[0, .9], hD:[0, .9], lA:[.4, .8], nsw:[.3, 1.6], lC:[.4, .8], hH:[0, .9], lH:[0, 1.6], lD:[0, 2.4]};
+                map:[0, 1.2], hA:[0, .9], hB:[0, .9], hC:[0, .9], hD:[0, .9], lA:[.4, .8], nsw:[.3, 1.6], lC:[.4, .8], hH:[0, .9], lH:[0, 1.6], lD:[0, 2.4], brn:[0, 1.8]};
 const DUR = [0, 1.0];
 
 // ── layout, in figure units (FW × FH, letterboxed into #figwrap) ──
@@ -337,6 +339,48 @@ const STARTS = (() => { const s = []; let acc = []; PIECES.forEach(p => { s.push
 const seg = (d, k) => clamp01((d - STARTS[k])/pathLen(PIECES[k]));
 const RD_X = NET2[3].x + (NET2[3].w + GAP) + NET2[3].w/2;   // click 11: read out from one stage of the network then shown
 const P_MREAD = [[RD_X, MID_Y + NET2[3].h/2 + D3/2 + 2], [RD_X, SYSB[3] - 16], [CX, SYSB[3] - 16], [CX, SYSB[3] - 1]];
+// click 13 (Day 3): a brain in the model's place (a schematic side view), and neural data read out of it
+const BR = {x:725, y:308, rx:112, ry:74};
+function brain(a){ if(a <= .01) return;
+  const P = (u, w) => [X(BR.x + u*BR.rx), Y(BR.y + w*BR.ry)];
+  const curve = (pts, close) => { ctx.beginPath(); let [x0, y0] = P(...pts[0]);
+    if(close){ const [xl, yl] = P(...pts[pts.length - 1]); x0 = (x0 + xl)/2; y0 = (y0 + yl)/2; }
+    ctx.moveTo(x0, y0);
+    const n = pts.length, last = close ? n : n - 1;
+    for(let i = close ? 0 : 1; i < last; i++){ const [cx, cy] = P(...pts[i]), [nx, ny] = P(...pts[(i + 1) % n]);
+      ctx.quadraticCurveTo(cx, cy, (cx + nx)/2, (cy + ny)/2); }
+    if(!close){ ctx.lineTo(...P(...pts[n - 1])); } else ctx.closePath(); };
+  ctx.save(); ctx.globalAlpha *= a; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  // links into and out of the brain, where the network's input and output were
+  ctx.strokeStyle = 'rgb(100,116,139)'; ctx.lineWidth = Math.max(1, S(2.2));
+  ctx.beginPath(); ctx.moveTo(X(IN_X + 6), Y(MID_Y)); ctx.lineTo(...P(-.97, 0)); ctx.moveTo(...P(.99, -.05)); ctx.lineTo(X(OUT_R), Y(MID_Y)); ctx.stroke();
+  ctx.fillStyle = '#f8fafc'; ctx.strokeStyle = 'rgb(71,85,105)'; ctx.lineWidth = Math.max(1, S(2.6));
+  curve([[.40, .62], [.36, 1.02], [.50, 1.02], [.52, .62]], false); ctx.fill(); ctx.stroke();             // brainstem
+  ctx.beginPath(); ctx.ellipse(...P(.66, .60), S(.30*BR.rx), S(.22*BR.ry), -.15, 0, 2*Math.PI); ctx.fill(); ctx.stroke();   // cerebellum
+  curve([[-.98, .20], [-.95, -.50], [-.55, -.98], [.10, -1.02], [.70, -.80], [1.02, -.20], [.95, .30], [.62, .42],
+         [.25, .55], [-.25, .62], [-.70, .55]], true); ctx.fill(); ctx.stroke();                                // cerebrum
+  ctx.lineWidth = Math.max(1, S(1.8)); ctx.strokeStyle = 'rgb(148,163,184)';
+  curve([[.08, -1.0], [.02, -.45], [-.08, .05]], false); ctx.stroke();                                       // central sulcus
+  curve([[-.62, .32], [-.15, .22], [.38, .02]], false); ctx.stroke();                                        // lateral fissure
+  curve([[-.55, -.75], [-.45, -.35], [-.60, -.05]], false); ctx.stroke();
+  curve([[.45, -.85], [.40, -.45], [.55, -.15]], false); ctx.stroke();
+  curve([[-.30, .38], [.10, .40], [.45, .25]], false); ctx.stroke();
+  // the recording site: where the read-out arrow leaves the brain
+  const [ex, ey] = [X(RD_X), Y(P_MREAD[0][1] - 4)];
+  ctx.fillStyle = '#4f6d9a'; ctx.beginPath(); ctx.arc(ex, ey, S(5), 0, 2*Math.PI); ctx.fill();
+  ctx.restore(); }
+// neural data: a spike raster, one row per recorded neuron (illustrative, not recorded data)
+const RASTER = Array.from({length:6}, (_, r) => Array.from({length:40}, (_, i) => i).filter(i => (Math.sin(r*12.9898 + i*78.233)*43758.5453 % 1 + 1) % 1 < .14 + .1*Math.sin(r*1.7 + i*.21)));
+function raster(cx, a){ if(a <= .01) return;
+  const w = 168, rh = 13, h0 = ROW_Y - RASTER.length*rh/2 + 2;
+  ctx.save(); ctx.translate(0, S(12*(1 - a))); ctx.globalAlpha *= a;
+  ctx.strokeStyle = 'rgb(226,232,240)'; ctx.lineWidth = Math.max(1, S(1));
+  ctx.strokeRect(X(cx - w/2 - 6), Y(h0 - 6), S(w + 12), S(RASTER.length*rh + 10));
+  ctx.strokeStyle = '#4f6d9a'; ctx.lineWidth = Math.max(1, S(2.2));
+  RASTER.forEach((row, r) => row.forEach(i => { const x = cx - w/2 + i*w/40;
+    ctx.beginPath(); ctx.moveTo(X(x), Y(h0 + r*rh)); ctx.lineTo(X(x), Y(h0 + r*rh + rh - 4)); ctx.stroke(); }));
+  ctx.restore(); }
+
 // the model's responses at that stage (slide 9's activation set, in grays)
 const ACT = Array.from({length:5}, (_, k) => Array.from({length:7}, (_, i) => (Math.sin(k*2.1 + i*1.7) + Math.sin(k*.7 + i*2.9) + 2)/4));
 function vecSet(cx, a){ if(a <= .01) return;
@@ -434,14 +478,19 @@ function frame(now){
     const ns = v('nsw'), BWID = SYSB[2] - SYSB[0];     // click 9: one network swipes out, the other swipes in
     ctx.save(); ctx.beginPath(); ctx.rect(X(SYSB[0] + 3), Y(SYSB[1] + 3), S(BWID - 6), S(SYSB[3] - SYSB[1] - 6)); ctx.clip();
     if(ns < .999){ ctx.save(); ctx.translate(-S(BWID*ns), 0); network(nb, NET1); ctx.restore(); }
-    if(ns > .001){ ctx.save(); ctx.translate(S(BWID*(1 - ns)), 0); network(() => 1, NET2); ctx.restore(); }
+    const bn = v('brn');                               // click 13: the network swipes out, the brain swipes in
+    if(bn < .999){ ctx.save(); ctx.translate(-S(BWID*bn), 0);
+      if(ns > .001){ ctx.save(); ctx.translate(S(BWID*(1 - ns)), 0); network(() => 1, NET2); ctx.restore(); }
+      ctx.restore(); }
+    if(bn > .001){ ctx.save(); ctx.translate(S(BWID*(1 - bn)), 0); brain(1); ctx.restore(); }
     ctx.restore();
-    polyArrow(P_IN, 1, [100, 116, 139], 2.2, seg(DIST, 2));
+    if(v('brn') < .5) polyArrow(P_IN, 1, [100, 116, 139], 2.2, seg(DIST, 2));
     // (no 'output' label: the behavior now comes out of the box on the right; Fer, 2026-10-15)
     rise(v('cap'), () => label('many stages, learned by training on a task', CX, CAP_Y, v('cap')*story));
   });
   rise(box, () => { label('Model', NAME_X, MID_Y, box*dimA*story, {head:true, align:'right'});
-                    label('Model', NAME_X, MID_Y, mapV, {head:true, align:'right', color:tc(hB)}); });
+                    label('Model', NAME_X, MID_Y, mapV*(1 - v('brn')), {head:true, align:'right', color:tc(hB)});
+                    label('Brain', NAME_X, MID_Y, v('brn'), {head:true, align:'right'}); });
 
   // ── the input side: drawn once by the image (click 2), and kept ──
   withA(PA(hA), () => {
@@ -521,11 +570,15 @@ function frame(now){
       withA(G + (1 - G)*hD, () => {
         polyArrow(P_MREAD, 1, SLATE, 2.6, s4(0), false);
         polyArrow([[CX, SYSB[3] + 1], [CX, RB[1] - 1]], 1, SLATE, 2.6, s4(0));
-        boxOut(RB, s4(1)); vecSet(CX, s4(1));
+        const bn = v('brn');
+        boxOut(RB, s4(1)); vecSet(CX, s4(1)*(1 - bn)); raster(CX, s4(1)*bn);
         polyArrow([[CX, RB[3] + 1], [CX, LAST_Y - 28]], 1, SLATE, 2.6, s4(2));
-        rise(s4(3), () => label('a metric, or a mapping to brain responses', CX, LAST_Y, s4(3)));
+        rise(s4(3), () => label('a metric, or a mapping to brain responses', CX, LAST_Y, s4(3)*(1 - bn)));
+        label('a metric, or a mapping to model responses', CX, LAST_Y, s4(3)*bn);
       });
-      rise(s4(1), () => label('Model\nresponses', NAME_X, (RB[1] + RB[3])/2, s4(1), {head:true, align:'right', color:tc(hD)}));
+      const bn2 = v('brn');
+      rise(s4(1), () => label('Model\nresponses', NAME_X, (RB[1] + RB[3])/2, s4(1)*(1 - bn2), {head:true, align:'right', color:tc(hD)}));
+      label('Neural\nresponses', NAME_X, (RB[1] + RB[3])/2, s4(1)*bn2, {head:true, align:'right', color:tc(hD)});
     // Fer 2026-10-16: no glowing frame around the whole box
     //halo([RB[0], RB[1], RB[2], LAST_Y + 26], SLATE, .55*hD*s4(3), 10);
     }
