@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Ported from Fernanda's defense deck (defense-present-2026-10-16/scenes/dimensionality-gap.html) into the Day 3 course deck,
+     2026-11-04: only its texture intro (beats 0-3: textures, stationarity, a few statistics). Course stylesheet, assets in
+     day03/assets/defense/ch2-gap/, driven by the deck. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dimensions for similarity</title>
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="defense-type.css">
+<style>.deck-title{ position:absolute; top:9vh; left:6vw; right:6vw; margin:0; padding:0; z-index:5; font-weight:700; font-size:clamp(1.8rem, 3.5vw, 3rem); line-height:1.08; color:#0f172a; text-align:left; }</style>
+<style>
+  /* Ch2 · Gap, rebuilt 2026-10-13 after the practice talk (contracts/ch2-requests/ch2-lead-restructure-2026-10-13.md).
+     Part 2 is similarity only: textures → the odd-one-out task → Hicks's graph (agreement vs. number of dimensions,
+     redrawn from his raw results) → "what if a network better aligned with humans were included?" + two questions.
+     Realism, Feather's synthesis, the 1,024 block, the ruler and "the dimensionality gap" are gone (previous version:
+     scenes/dimensionality-gap.pre-1013.html). Every motion is its own click (round 12); text 1.5x, motion ~1.5x
+     slower, figure dimmed under text, questions styled as questions (round 13). */
+  :root{
+    --bg:#ffffff; --ink:#0f172a; --slate:#38506e;
+    --std:#35978F;                 /* multi-task standard network: Part 1's teal (storyline "Colors") */
+    --tex:#C08497;                 /* classical texture model: the rose of ch2-similarity */
+    --sans:'Deck Calibri', Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{ background:var(--bg); color:var(--ink); font-family:var(--sans); overflow:hidden;
+        cursor:pointer; user-select:none; -webkit-user-select:none; }
+  #stage{ position:absolute; left:4vw; right:4vw; top:calc(9vh + clamp(1.8rem, 3.5vw, 3rem) + 5vh); bottom:12vh; }
+  .layer{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+          opacity:0; pointer-events:none; transition:opacity .9s ease; }
+  .layer.on{ opacity:1; pointer-events:auto; }
+  .layer svg{ width:100%; height:100%; overflow:visible; display:block; }
+  #L-intro svg{ height:auto; max-height:100%; }
+  /* round 13 (2026-10-14): Hicks's graph gets more of the slide (it is height-limited): its layer reaches 3vh closer to
+     the title and 4vh closer to the citation; text units unchanged, so labels grow with it (~25.5 px at 1280x720) */
+  #L-chart{ top:-3vh; bottom:-4vh; }
+  text{ font-family:var(--sans); fill:var(--ink); font-weight:400; }
+  /* intro band (viewBox 1500 wide, ≈0.94 px per unit at 1600 px): 30 ≈ the deck .label size */
+  #introSvg .box{ font-size:25px; }   /* Day 3: the course font is wider than Calibri */
+  #introSvg .it{ transition:opacity .75s ease; }
+  /* task (viewBox 1200 wide, ≈1.17 px per unit at 1600 px) */
+  #taskSvg .q{ font-size:32px; }
+  /* chart (viewBox 1200 × 540; ≈0.90 px per unit at 1280×720, ≈0.79 at 1024×768): 26 ≈ the deck .label size (round 13) */
+  #chartSvg .tick{ font-size:26px; }
+  #chartSvg .lab{ font-size:26px; }
+  #chartSvg .axt{ font-size:29px; }
+  #chartSvg .key{ font-size:27px; }
+  #chartSvg .few{ font-size:30px; }
+  #chartSvg .ax{ stroke:var(--ink); stroke-width:1.8; fill:none; }
+  #chartSvg .grid{ stroke:#eef2f7; stroke-width:1; }
+  .fade{ opacity:0; transition:opacity .9s ease; }
+  .fade.on{ opacity:1; }
+  .halo{ paint-order:stroke; stroke:#fff; stroke-width:7px; stroke-linejoin:round; }
+
+  footer{ position:absolute; left:0; right:0; bottom:0; padding:.4rem 4vw 1rem max(4vw, 112px); display:flex;
+          justify-content:space-between; align-items:flex-end; gap:2rem; }
+  #cap{ font-size:clamp(1.15rem, 1.55vw, 1.6rem); font-weight:400; color:var(--ink);
+        line-height:1.3; transition:opacity .3s ease;
+        /* stay left of the deck's centred "Part 2 · Textures" bar (Ch2 lead, 2026-10-13): long citations wrap */
+        max-width:calc(50vw - max(4vw, 112px) - 5.5rem); }
+  #cap.swap{ opacity:0; }
+  #dots{ display:flex; gap:.42rem; flex:0 0 auto; padding-bottom:.35em; }
+  .dot{ width:8px; height:8px; border-radius:50%; background:#fff;
+        border:1.5px solid #cbd5e1; transition:background .2s, border-color .2s; }
+  .dot.on{ background:var(--ink); border-color:var(--ink); }
+
+  /* Part 1's pop-out (.ds-pop in outline/parts/ch1-adv-vulnerability.js), prefixed gp-, with Part 2's question style
+     (ch2-bridge, round 13: questions look different from statements: slate color and a bar mark) */
+  .gp-pop{ position:absolute; inset:0; z-index:6; display:flex; flex-direction:column; align-items:center;
+           justify-content:center; padding:0 8vw; pointer-events:none;
+           background:rgba(255,255,255,.9); -webkit-backdrop-filter:grayscale(1); backdrop-filter:grayscale(1);
+           opacity:0; transition:opacity .7s ease; }
+  .gp-pop.shown{ opacity:1; }
+  .gp-qs{ display:flex; flex-direction:column; gap:5vh; width:fit-content; max-width:min(76vw, 1250px); }
+  .gp-q{ color:var(--slate); font-weight:400; line-height:1.2; position:relative; padding-left:.85em; text-wrap:balance; }
+  .gp-q::before{ content:''; position:absolute; left:0; top:.12em; bottom:.12em; width:.2em; border-radius:2px; background:var(--slate); }
+  .gp-q.s1{ max-width:none; transform:scale(.8); transform-origin:left center;
+            transition:transform 1s cubic-bezier(.34,1.56,.64,1); }
+  .gp-pop.shown .gp-q.s1{ transform:none; }
+  .gp-sub{ display:flex; flex-direction:column; gap:2.6vh; padding-left:1.6em; position:relative; z-index:1; }   /* above the question's white glow */
+  .gp-q2.s2{ opacity:0; transform:translateY(10px); transition:opacity .75s ease, transform .75s ease; }
+  .gp-q2.s2.shown{ opacity:1; transform:none; }
+  #gp-q1{ display:flex; flex-direction:column; gap:1.2vh; }
+  .gp-pop .rq-card{ background:#eff6ff; }   /* opaque over the gray-out (type.css .rq-card) */
+
+  /* play buttons (Josh: play sounds wherever sounds appear; never autoplay) */
+  .play circle{ fill:#fff; stroke:var(--ink); stroke-width:2; transition:fill .2s; }
+  .play path{ fill:var(--ink); }
+  .play.playing circle{ fill:var(--ink); }
+  .play.playing path{ fill:#fff; }
+  .play{ cursor:pointer; }
+  #notes{ position:fixed; inset:auto 0 0 0; max-height:52vh; overflow:auto; z-index:9;
+          background:#0f172a; color:#e2e8f0; padding:1.5rem 4vw 2rem;
+          font-size:15px; line-height:1.6; display:none; cursor:default; }
+  #notes.on{ display:block; }
+  body.jump *{ transition:none !important; }
+  /* x-axis kind tag (Fer 10-16: "make it clear when we are looking at layers vs PCs on the x axes"): same pill on every
+     Part 2 chart, at the chart's top-left; slate = network stage, amber = number of dimensions */
+  .xkind{ position:absolute; z-index:3; font-size:clamp(20px, 1.45vw, 24px); font-weight:700; line-height:1.25;
+          color:#fff; padding:.16em .75em .2em; border-radius:999px; white-space:nowrap; pointer-events:none;
+          opacity:0; transition:opacity .9s ease; }
+  .xkind.stage{ background:#334155; } .xkind.dims{ background:#b45309; }
+  .xkind.on{ opacity:1; }
+  #chartSvg .axt.xt{ font-weight:700; }
+</style>
+</head>
+<body>
+<h1 class="deck-title">What is a texture?</h1>
+<div id="stage">
+  <div class="layer" id="L-intro"><svg id="introSvg" viewBox="0 -10 1500 250" preserveAspectRatio="xMidYMid meet" role="img"
+    aria-label="Three sound textures; the stream's power profile in three one-second windows nearly coincides; a few time-averaged statistics describe it"></svg></div>
+  <div class="layer" id="L-task"><svg id="taskSvg" viewBox="0 0 1200 380" preserveAspectRatio="xMidYMid meet" role="img"
+    aria-label="Three texture excerpts from Hicks's odd-one-out experiment; which sound is least similar to the other two?"></svg></div>
+  <div class="layer" id="L-chart"><svg id="chartSvg" viewBox="0 0 1200 540" preserveAspectRatio="xMidYMid meet" role="img"
+    aria-label="Agreement with listeners against the number of dimensions of a fitted readout (Hicks 2025, Chapter 4): every model rises from 2 dimensions and levels off within 4 to 8"></svg></div>
+</div>
+<div class="xkind dims" id="xkind">x: number of dimensions</div>
+<footer><p id="cap"></p><div id="dots"></div></footer>
+<div id="gp-pop" class="gp-pop"><div class="gp-qs">
+  <div class="gp-q s1 statement popquote">What if a network better aligned with humans were included?</div>
+  <div class="gp-sub">   <!-- Fer 2026-10-16: the deck's research-question cards (.rq-* in outline/type.css, same as outline/deck.css) -->
+    <div class="gp-q2 s2" id="gp-q1"><div class="rq-eyebrow">Our research questions</div>
+      <div class="rq-card"><div class="rq-mark">?</div><div class="rq-q"><span class="rq-n">1</span>Would it predict similarity more accurately?</div></div></div>
+    <div class="gp-q2 s2" id="gp-q2"><div class="rq-card"><div class="rq-mark">?</div><div class="rq-q"><span class="rq-n">2</span>Would it need more dimensions?</div></div></div>
+  </div>
+</div></div>
+<div id="notes"></div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// Final slide 34 (Ch2 · Gap). Beats, one motion per click:
+//   0 title alone (deck-wide round 6)
+//   1 three textures (stream, waves, rain; play buttons)      ┐ the texture intro, kept from the
+//   2 stationarity: three 1-s windows, the same profile      │ previous version (real profiles,
+//   3 a few time-averaged statistics describe it             ┘ intro.json)
+//   4 the odd-one-out task: the shared triplet (45, 195, 116) + the question (the intro clears)
+//   5 Hicks's graph: axes, chance, noise ceiling (the task clears)
+//   6 the curves draw from 2 to 8 dimensions (rising)
+//   7 the curves continue to 64 (levelling off)
+//   8 the 4-to-8 band, "a few dimensions are enough"
+//   9 pop-out question: "What if a network better aligned with humans were included?"
+//  10 "Would it predict similarity more accurately?"
+//  11 "Would it need more dimensions?"
+// No robust curve on this slide: its absence is the point (the lead's brief).
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SLIDE_NAME = 'texturesIntro';
+
+// Every asset path written out literally, so outline/publish.py can freeze each file when the part is pushed.
+const ASSET = {
+  'triplet-coch-1.png': '../assets/defense/ch2-gap/triplet-coch-1.png',
+  'triplet-coch-2.png': '../assets/defense/ch2-gap/triplet-coch-2.png',
+  'triplet-coch-3.png': '../assets/defense/ch2-gap/triplet-coch-3.png',
+  'triplet-1.wav': '../assets/defense/ch2-gap/triplet-1.wav',
+  'triplet-2.wav': '../assets/defense/ch2-gap/triplet-2.wav',
+  'triplet-3.wav': '../assets/defense/ch2-gap/triplet-3.wav',
+  'intro-coch-stream.png': '../assets/defense/ch2-gap/intro-coch-stream.png',
+  'intro-coch-waves.png': '../assets/defense/ch2-gap/intro-coch-waves.png',
+  'intro-coch-rain.png': '../assets/defense/ch2-gap/intro-coch-rain.png',
+  'intro-stream.wav': '../assets/defense/ch2-gap/intro-stream.wav',
+  'intro-waves.wav': '../assets/defense/ch2-gap/intro-waves.wav',
+  'intro-rain.wav': '../assets/defense/ch2-gap/intro-rain.wav'
+};
+
+// ── Hicks (2025, Chapter 4), "Performance vs. Dimensions Included" (sim_dimensionality_jarrod.png), recomputed from
+// his raw results on Engaging: projection_v2_results.csv, validation proportion 0.1; per dims × distance (cosine,
+// Euclidean) the (learning rate, L2) with the best mean validation accuracy over 10 seeds; test accuracy averaged over
+// the two distances per seed; mean and SEM over the 10 seeds (his notebook test_plot_CCN_figures.ipynb). Reproduces
+// every point of the PNG. Script and output: assets/outline/ch2-gap/hicks-dims/hicks_dims.{py,json}.
+const DIMS = [2, 3, 4, 5, 6, 7, 8, 16, 32, 64];
+const CURVES = [   // drawn back to front
+  {k:'tex',      color:'var(--tex)', mk:'o', w:3.2, m:[0.4519, 0.46693, 0.48913, 0.49266, 0.49875, 0.4992, 0.49779, 0.5001, 0.49554, 0.50276], s:[0.00583, 0.00375, 0.00554, 0.00618, 0.00431, 0.00522, 0.00452, 0.00568, 0.00488, 0.00434]},
+  {k:'word',     color:'#525252',    mk:'o', w:2.6, m:[0.50032, 0.53239, 0.54133, 0.54475, 0.54551, 0.54662, 0.54477, 0.54695, 0.54396, 0.54885], s:[0.00338, 0.00431, 0.00372, 0.00369, 0.00467, 0.00375, 0.00374, 0.00401, 0.00309, 0.00457]},
+  {k:'speaker',  color:'#8C8C8C',    mk:'s', w:2.6, m:[0.5102, 0.54345, 0.54934, 0.55438, 0.55502, 0.55522, 0.55718, 0.56118, 0.55906, 0.56387], s:[0.00578, 0.00661, 0.0067, 0.00634, 0.00577, 0.00521, 0.00526, 0.00618, 0.00654, 0.00485]},
+  {k:'audioset', color:'#BDBDBD',    mk:'^', w:2.6, m:[0.53047, 0.55162, 0.55881, 0.56494, 0.56452, 0.56352, 0.56911, 0.56782, 0.5619, 0.56759], s:[0.00328, 0.00475, 0.00446, 0.00356, 0.00402, 0.00371, 0.00403, 0.00447, 0.00412, 0.00377]},
+  {k:'std',      color:'var(--std)', mk:'D', w:3.6, m:[0.52465, 0.55794, 0.56626, 0.56917, 0.56936, 0.57007, 0.57357, 0.57065, 0.57162, 0.57336], s:[0.00573, 0.00442, 0.00444, 0.00485, 0.00403, 0.00438, 0.00477, 0.00426, 0.00489, 0.00346]},
+];
+const CHANCE = 1/3, CEIL = [0.6588, 0.7107];   // Hicks's noise ceiling 0.6847 [0.6588, 0.7107]
+
+const NS = 'http://www.w3.org/2000/svg';
+const mk = (t, a={}, txt) => { const e = document.createElementNS(NS, t);
+  for(const k in a) e.setAttribute(k, a[k]); if(txt != null) e.textContent = txt; return e; };
+function rng(seed){ return () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }; }
+
+// ── play buttons: one sound at a time, stopped on every beat change ──
+const ICON_PLAY = 'M-5,-7.5 L8,0 L-5,7.5 z', ICON_STOP = 'M-6,-6 h12 v12 h-12 z';
+const players = [];
+function playBtn(parent, cx, cy, src, r=17){
+  const g = mk('g', {class:'play', transform:`translate(${cx},${cy}) scale(${r/17})`});
+  g.append(mk('circle', {r:17}));
+  const icon = mk('path', {d:ICON_PLAY}); g.append(icon);
+  parent.append(g);
+  const au = new Audio(src); au.preload = 'auto';
+  au.addEventListener('ended', stopAudio);
+  g.addEventListener('click', e => {
+    e.stopPropagation();
+    const was = !au.paused; stopAudio();
+    if(!was){ au.currentTime = 0; au.play().catch(() => {}); g.classList.add('playing'); icon.setAttribute('d', ICON_STOP); }
+  });
+  players.push({g, icon, au});
+}
+function stopAudio(){
+  players.forEach(p => { p.au.pause(); try{ p.au.currentTime = 0; }catch(e){}
+    p.g.classList.remove('playing'); p.icon.setAttribute('d', ICON_PLAY); });
+}
+
+// ── 1–3: the texture intro (kept from the previous version; built by assets/outline/ch2-gap/build_texture_intro.py) ──
+// Josh's stream and waves (McDermott & Simoncelli 2011 site; first 5 s) and the chapter's ms063 rain (2 s). Profiles =
+// the stream's time-averaged power per cochlear channel in three 1-s windows (real, from intro.json; low → high frequency).
+const INTRO_PROFILES = [[0.3869, 0.3384, 0.3977, 0.4306, 0.4522, 0.5664, 0.685, 0.7227, 0.6808, 0.662, 0.6455, 0.6458, 0.6105, 0.569, 0.591, 0.6286, 0.6239, 0.5865, 0.5436, 0.5425, 0.5785, 0.5642, 0.5124, 0.4809, 0.5125, 0.5132, 0.4818, 0.4378, 0.4622, 0.4879, 0.458, 0.4251, 0.4089, 0.4183, 0.4218, 0.4179, 0.4171, 0.393], [0.3547, 0.3356, 0.3861, 0.4163, 0.437, 0.6018, 0.6707, 0.6894, 0.6656, 0.6222, 0.6497, 0.6312, 0.6134, 0.5443, 0.6114, 0.6417, 0.6253, 0.5874, 0.5523, 0.5391, 0.5592, 0.5631, 0.5358, 0.4908, 0.5165, 0.5159, 0.4875, 0.4367, 0.4432, 0.4689, 0.448, 0.4137, 0.398, 0.4065, 0.418, 0.4251, 0.4114, 0.388], [0.3714, 0.3542, 0.3825, 0.3977, 0.449, 0.5631, 0.6537, 0.7069, 0.6835, 0.6464, 0.6647, 0.636, 0.6056, 0.5866, 0.6101, 0.6541, 0.6284, 0.5882, 0.5519, 0.5334, 0.537, 0.5594, 0.5047, 0.4769, 0.5197, 0.5231, 0.4806, 0.4465, 0.4637, 0.4971, 0.46, 0.4336, 0.4087, 0.412, 0.4217, 0.4213, 0.4159, 0.3889]];
+const isvg = document.getElementById('introSvg');
+const igrp = () => { const g = mk('g', {class:'it'}); isvg.append(g); return g; };
+const TY = 34, TW = 230, TH = 100, TX = [0, 250, 500];               // the three tiles
+const iThree = igrp();
+[['stream', TX[0]], ['waves', TX[1]], ['rain', TX[2]]].forEach(([k, x]) => {
+  iThree.append(mk('image', {href:ASSET[`intro-coch-${k}.png`], x, y:TY, width:TW, height:TH, preserveAspectRatio:'none'}));
+  iThree.append(mk('text', {x:x + TW/2, y:TY + TH + 36, class:'box', 'text-anchor':'middle'}, k));
+  playBtn(iThree, x + TW - 17, TY + TH - 17, ASSET[`intro-${k}.wav`]);
+});
+const CX = 800, CW = 220, PY0 = TY, PH = TH, pv = v => PY0 + PH - (v - 0.30) / 0.45 * PH;
+const iWin = igrp();
+[0, 2, 4].forEach(t => iWin.append(mk('rect', {x:TX[0] + t/5*TW, y:TY - 2, width:TW/5, height:TH + 4, fill:'none', stroke:'#0f172a', 'stroke-width':2.4})));
+iWin.append(mk('path', {d:`M${TX[0] + TW/2},${TY - 6} C${TX[0] + TW/2},${4} ${CX - 20},${4} ${CX - 8},${TY + 20}`, fill:'none',
+                        stroke:'#0f172a', 'stroke-width':1.6, 'stroke-dasharray':'5 5'}));
+iWin.append(mk('path', {d:`M${CX - 4},${TY + 28} l-1,-13 l-9,8 z`, fill:'#0f172a'}));
+iWin.append(mk('line', {x1:CX, y1:PY0 + PH, x2:CX + CW, y2:PY0 + PH, stroke:'#94a3b8', 'stroke-width':1.4}));
+INTRO_PROFILES.forEach(pr => { const n = pr.length;
+  iWin.append(mk('polyline', {points:pr.map((v, j) => `${(CX + j/(n-1)*CW).toFixed(1)},${pv(v).toFixed(1)}`).join(' '),
+                              fill:'none', stroke:'#38506e', 'stroke-width':2.6, 'stroke-linejoin':'round', opacity:.8})); });
+iWin.append(mk('text', {x:CX + CW/2, y:TY + TH + 36, class:'box', 'text-anchor':'middle'}, 'same in every window'));
+const SGX = 1150, iStat = igrp();
+iStat.append(mk('path', {d:`M${CX + CW + 18},${PY0 + PH/2} L${SGX - 22},${PY0 + PH/2}`, stroke:'#38506e', 'stroke-width':2.6}));
+iStat.append(mk('path', {d:`M${SGX - 12},${PY0 + PH/2} l-11,-6 v12 z`, fill:'#38506e'}));
+{ const r = rng(29), rows = [TY + 4, TY + 38, TY + 72];
+  for(let i=0; i<9; i++){ const h = 6 + 16*r(); iStat.append(mk('rect', {x:SGX + i*7, y:rows[0] + 22 - h, width:5, height:h, fill:'#38506e'})); }
+  for(let i=0; i<4; i++) for(let j=0; j<4; j++)
+    iStat.append(mk('rect', {x:SGX + 9 + i*10, y:rows[1] + 2 + j*5, width:9, height:4.4, opacity: i === j ? 1 : .25 + .6*r(), fill:'#38506e'}));
+  for(let i=0; i<9; i++){ const h = 4 + 18*Math.exp(-(((i-3)/2.4)**2)) + 2*r(); iStat.append(mk('rect', {x:SGX + i*7, y:rows[2] + 22 - h, width:5, height:h, fill:'#38506e'})); }
+  ['power', 'correlations', 'modulation'].forEach((t, i) => iStat.append(mk('text', {x:SGX + 74, y:rows[i] + 22, class:'box'}, t)));
+}
+const iFew = mk('text', {x:SGX + 110, y:TY + TH + 36, class:'box', 'text-anchor':'middle'});
+iFew.append(mk('tspan', {x:SGX + 110, dy:0}, 'a few time-averaged statistics'));
+iFew.append(mk('tspan', {x:SGX + 110, dy:32}, 'describe it'));
+iStat.append(iFew);
+
+// ── 4: the odd-one-out task: the shared triplet (45, 195, 116; assets/outline/ch2-gap/triplet.txt), the sounds
+// listeners heard (build_triplet_cochs.py) ──
+const tsvg = document.getElementById('taskSvg');
+const TBX = [45, 445, 845], TBW = 310, TBH = 165, TBY = 30;
+TBX.forEach((x, i) => {
+  tsvg.append(mk('image', {href:ASSET[`triplet-coch-${i+1}.png`], x, y:TBY, width:TBW, height:TBH, preserveAspectRatio:'none'}));
+  playBtn(tsvg, x + TBW - 22, TBY + TBH - 22, ASSET[`triplet-${i+1}.wav`], 20);
+});
+tsvg.append(mk('text', {x:600, y:300, class:'q', 'text-anchor':'middle'}, '“Which sound is least similar to the other two?”'));
+
+// ── 5–8: Hicks's graph ──
+const csvg = document.getElementById('chartSvg');
+const X0 = 130, X1 = 860, Y0 = 24, Y1 = 440, YLO = 0.30, YHI = 0.75;
+const lx = d => X0 + (Math.log2(d) - 1) / 5 * (X1 - X0);
+const ly = v => Y1 - (v - YLO) / (YHI - YLO) * (Y1 - Y0);
+const cg = (cls='fade') => { const g = mk('g', {class:cls}); csvg.append(g); return g; };
+
+// 8 (drawn first so it sits under everything): the 4-to-8 band, gray as on Ch2 · Dimensions
+const gBand = cg();
+gBand.append(mk('rect', {id:'band48', x:lx(4), y:Y0, width:lx(8) - lx(4), height:Y1 - Y0, fill:'#94a3b8', opacity:.2}));
+gBand.append(mk('text', {x:(lx(4) + lx(8))/2, y:ly(0.445), class:'lab', 'text-anchor':'middle'}, '4 to 8'));
+
+// 5: axes, chance, noise ceiling
+const gAx = cg();
+[0.3, 0.4, 0.5, 0.6, 0.7].forEach(v => {
+  gAx.append(mk('line', {class:'grid', x1:X0, x2:X1, y1:ly(v), y2:ly(v)}));
+  gAx.append(mk('text', {class:'tick', x:X0 - 12, y:ly(v) + 8, 'text-anchor':'end'}, v.toFixed(1)));
+});
+gAx.append(mk('rect', {x:X0, y:ly(CEIL[1]), width:X1 - X0, height:ly(CEIL[0]) - ly(CEIL[1]), fill:'#cbd5e1', opacity:.55}));
+gAx.append(mk('text', {class:'lab', x:(X0 + X1)/2, y:(ly(CEIL[0]) + ly(CEIL[1]))/2 + 8, 'text-anchor':'middle'}, 'noise ceiling'));
+gAx.append(mk('line', {x1:X0, x2:X1, y1:ly(CHANCE), y2:ly(CHANCE), stroke:'#94a3b8', 'stroke-width':2, 'stroke-dasharray':'8 7'}));
+gAx.append(mk('text', {class:'lab', x:X1 - 4, y:ly(CHANCE) - 10, 'text-anchor':'end'}, 'chance'));
+DIMS.forEach(d => gAx.append(mk('line', {class:'ax', x1:lx(d), x2:lx(d), y1:Y1, y2:Y1 + (d & (d - 1) ? 5 : 9)})));
+// light amber band behind the dimension counts (matches the "x: number of dimensions" tag)
+gAx.insertBefore(mk('rect', {x:X0 - 22, y:Y1 + 4, width:X1 + 44 - X0, height:42, fill:'#fdecd3', opacity:.8}), gAx.firstChild);
+[2, 4, 8, 16, 32, 64].forEach(d => gAx.append(mk('text', {class:'tick', x:lx(d), y:Y1 + 34, 'text-anchor':'middle'}, d)));
+gAx.append(mk('path', {class:'ax', d:`M${X0},${Y0} V${Y1} H${X1 + 14}`}));
+gAx.append(mk('text', {class:'axt xt', x:(X0 + X1)/2, y:Y1 + 80, 'text-anchor':'middle'}, 'Number of dimensions (fitted readout)'));
+gAx.append(mk('text', {class:'axt', id:'ylab', transform:`translate(${X0 - 78},${(Y0 + Y1)/2}) rotate(-90)`, 'text-anchor':'middle'}, 'Agreement with listeners'));
+
+// 6–7: the curves, revealed left to right by a clip (to 8 on beat 6, to 64 on beat 7)
+const defs = mk('defs'); csvg.append(defs);
+const clip = mk('clipPath', {id:'reveal'}); defs.append(clip);
+const clipR = mk('rect', {x:X0 - 20, y:0, width:0, height:540}); clip.append(clipR);
+const gCurves = mk('g', {'clip-path':'url(#reveal)'}); csvg.append(gCurves);
+const marker = (g, kind, x, y, c) => {
+  if(kind === 's') g.append(mk('rect', {x:x - 5, y:y - 5, width:10, height:10, fill:c, stroke:'#fff', 'stroke-width':1.2}));
+  else if(kind === '^') g.append(mk('path', {d:`M${x},${y - 6.5} l6.5,11 h-13 z`, fill:c, stroke:'#fff', 'stroke-width':1.2}));
+  else if(kind === 'D') g.append(mk('path', {d:`M${x},${y - 7.5} l7.5,7.5 l-7.5,7.5 l-7.5,-7.5 z`, fill:c, stroke:'#fff', 'stroke-width':1.2}));
+  else g.append(mk('circle', {cx:x, cy:y, r:5, fill:c, stroke:'#fff', 'stroke-width':1.2}));
+};
+CURVES.forEach(c => {
+  const g = mk('g'); gCurves.append(g);
+  const up = DIMS.map((d, i) => `${lx(d).toFixed(1)},${ly(c.m[i] + c.s[i]).toFixed(1)}`);
+  const dn = DIMS.map((d, i) => `${lx(d).toFixed(1)},${ly(c.m[i] - c.s[i]).toFixed(1)}`).reverse();
+  g.append(mk('polygon', {points:up.concat(dn).join(' '), fill:c.color, opacity:.22}));
+  g.append(mk('path', {d:'M' + DIMS.map((d, i) => `${lx(d).toFixed(1)},${ly(c.m[i]).toFixed(1)}`).join(' L'),
+                       fill:'none', stroke:c.color, 'stroke-width':c.w, 'stroke-linejoin':'round', 'stroke-linecap':'round'}));
+  DIMS.forEach((d, i) => marker(g, c.mk, lx(d), ly(c.m[i]), c.color));
+});
+// keys at the right end, keywords only (text black, color in the marks): the teal network by name, the grays as a group
+const gKeys = cg();   // a legend, outside the clip: fades in on beat 6, when the curves are named
+const KX = X1 + 26;
+{ const yG = [ly(0.56759), ly(0.54885)];
+  marker(gKeys, 'D', KX + 2, ly(0.586) - 7, 'var(--std)');            // legend mark, then the name (text stays black)
+  gKeys.append(mk('text', {class:'key', x:KX + 18, y:ly(0.586)}, 'multi-task standard'));
+  gKeys.append(mk('path', {d:`M${KX - 12},${yG[0] + 1} h8 V${yG[1]} h-8`, stroke:'#8C8C8C', 'stroke-width':2, fill:'none'}));
+  gKeys.append(mk('text', {class:'key', x:KX + 8, y:ly(0.5455)}, 'other standard networks'));
+  gKeys.append(mk('text', {class:'key', x:KX + 8, y:ly(0.503) + 8}, 'classical texture model'));
+}
+let clipW = 0, clipAnim = null;
+function setClip(target, instant){
+  cancelAnimationFrame(clipAnim);
+  if(instant){ clipW = target; clipR.setAttribute('width', target); return; }
+  const from = clipW, t0 = performance.now(), dur = 2600;   // slow, ~1.5x the deck's earlier draws (round 13)
+  const ease = t => t < .5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2)/2;
+  const step = now => { const t = Math.min(1, (now - t0)/dur);
+    clipW = from + (target - from)*ease(t); clipR.setAttribute('width', clipW);
+    if(t < 1) clipAnim = requestAnimationFrame(step); };
+  clipAnim = requestAnimationFrame(step);
+}
+const CLIP_TO_8 = lx(8) + 9 - (X0 - 20), CLIP_ALL = 1200;
+
+// 8: "a few dimensions are enough", over the band (between the curves and the noise ceiling)
+const gFew = cg();
+gFew.append(mk('text', {class:'few', x:(lx(4) + lx(8))/2, y:ly(0.622), 'text-anchor':'middle'}, 'a few dimensions are enough'));
+
+// ── beats ───────────────────────────────────────────────────────────────────
+// x-axis tag: left edge of the y-axis title, just under the deck title
+function placeTag(){
+  const xk = document.getElementById('xkind'), ya = document.getElementById('ylab').getBoundingClientRect();
+  const tb = document.querySelector('.deck-title').getBoundingClientRect().bottom;
+  const top = Math.round(tb + 0.012 * innerHeight);
+  xk.style.left = Math.round(ya.left) + 'px'; xk.style.top = top + 'px';
+  // keep the chart (its top is the 4-to-8 band) clear of the tag: move the chart layer down if needed (layout only)
+  const lc = L('L-chart'); lc.style.top = '';
+  const need = top + xk.offsetHeight + 0.01 * innerHeight - document.getElementById('band48').getBoundingClientRect().top;
+  if(need > 0){ lc.style.top = (-0.03 * innerHeight + need) + 'px';
+    xk.style.left = Math.round(document.getElementById('ylab').getBoundingClientRect().left) + 'px'; }
+}
+addEventListener('resize', placeTag);
+
+const N = 4;   // Day 3: the texture intro only (beats 0-3)
+const CITE_TEX = 'McDermott and Simoncelli (2011); McDermott et al. (2013)';
+const CITE_SIM = 'Hicks (2025, Chapter 4)';
+const CITE_FIG = 'Redrawn from Hicks (2025, Chapter 4)';
+const citeFor = b => b === 0 ? '' : b <= 3 ? CITE_TEX : b === 4 ? CITE_SIM : CITE_FIG;
+
+const SCRIPT = [
+  // Beats 0–4 keep Fer's practice wording (ch2-fer-script-2026-10-12 + her 10-13 presenter edits) where it still applies.
+  // "[new] " = drafted 2026-10-13 for the rebuild, awaiting Fer (shown in red in the presenter view and transcript).
+  `(draft) What is a texture?`,
+  `Sound textures, like a stream, waves or rain, are produced by many similar acoustic events. [play] They are rich
+   and varied, and listeners recognize them immediately.`,
+  `Unlike speech or music, a texture is defined by acoustic properties that stay constant over time. If we take a
+   stream and measure its statistics in short windows, we find very similar statistics in every window.`,
+  `This means a small set of time-averaged statistics can describe the sound. That makes textures a good place to
+   ask how the auditory system compresses sound into compact representations, and whether neural network models do
+   this the way humans do.`,
+  `[new] To study texture perception, we built on the earlier work of Jarrod Hicks, who collected a dataset of
+   similarity judgments and built a pipeline for evaluating models. In an odd-one-out task, listeners heard three
+   texture excerpts on each trial and chose the sound least similar to the other two.`,
+  `[new] That work asked how many dimensions a model needs to predict these judgments. For each model, it fitted a
+   readout with a given number of dimensions to listeners' judgments, and measured how often the model chose the same
+   odd one out as listeners, on triplets held out from the fit. Chance is one in three. The gray band at the top is
+   the noise ceiling: how consistently listeners themselves choose the same odd one out.`,
+  `[new] With only two dimensions, every model already agrees with listeners well above chance, and agreement rises
+   as dimensions are added. In teal is the multi-task standard network, in gray networks trained on words, speakers
+   or environmental sounds alone, and in rose the classical texture model.`,
+  `[new] Beyond a handful of dimensions, the curves level off: going all the way to 64 dimensions barely helps.`,
+  `[new] So only about four to eight dimensions are needed to predict the similarity judgments. A few dimensions are
+   enough.`,
+  `[new] But every model here is either the classical texture model or a standard-trained network. What if a network
+   better aligned with humans were included, like the robust network from Part 1?`,
+  `[new] First, would it predict the similarity judgments more accurately?`,
+  `[new] And second, would it need more dimensions to do so?`,
+];
+
+const capEl = document.getElementById('cap'), dotsEl = document.getElementById('dots');
+const notesEl = document.getElementById('notes');
+for(let i=0; i<N; i++){
+  const d = document.createElement('div'); d.className = 'dot';
+  d.addEventListener('click', e => { e.stopPropagation(); jump(i); });
+  dotsEl.appendChild(d);
+}
+const L = id => document.getElementById(id);
+
+let beat = 0, prevBeat = 0, capTimer = null;
+function render(instant){
+  document.body.classList.toggle('jump', !!instant);
+  const b = beat;
+  // layers: one at a time (the previous one clears on the click that brings the next)
+  L('L-intro').classList.toggle('on', b >= 1 && b <= 3);
+  L('L-task').classList.toggle('on', b === 4);
+  L('L-chart').classList.toggle('on', b >= 5);
+  const show = (g, on) => { g.style.opacity = on ? 1 : 0; };
+  show(iThree, b >= 1); show(iWin, b >= 2); show(iStat, b >= 3);
+  gAx.classList.toggle('on', b >= 5);
+  placeTag(); L('xkind').classList.toggle('on', b >= 5);
+  gKeys.classList.toggle('on', b >= 6);
+  gBand.classList.toggle('on', b >= 8);
+  gFew.classList.toggle('on', b >= 8);
+  const target = b >= 7 ? CLIP_ALL : b >= 6 ? CLIP_TO_8 : 0;
+  const forward = b > prevBeat && !instant;
+  setClip(target, !forward || Math.abs(target - clipW) < 1);
+  L('gp-pop').classList.toggle('shown', b >= 9);
+  L('gp-q1').classList.toggle('shown', b >= 10);
+  L('gp-q2').classList.toggle('shown', b >= 11);
+  if(b !== prevBeat) stopAudio();
+  notesEl.innerHTML = SCRIPT[b];
+  [...dotsEl.children].forEach((d,i) => d.classList.toggle('on', i <= b));
+  if(capEl.textContent !== citeFor(b)) capEl.classList.add('swap');
+  clearTimeout(capTimer);
+  capTimer = setTimeout(() => { capEl.textContent = citeFor(b); capEl.classList.remove('swap'); }, instant ? 0 : 140);
+  if(instant) requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('jump')));
+  prevBeat = b;
+}
+
+function advance(){ if(beat >= N-1) return; beat++; render(); }
+function goBack(){ if(beat <= 0) return; beat--; render(); }
+function jump(p){ beat = Math.max(0, Math.min(N-1, p)); render(true); }
+
+if(window.parent === window) addEventListener('click', e => { if(e.target.closest('#dots, #notes, .play')) return; advance(); });
+if(window.parent === window) addEventListener('keydown', e => {
+  if(e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); advance(); }
+  else if(e.key === 'ArrowLeft'){ e.preventDefault(); goBack(); }
+  else if(e.key === 'n' || e.key === 'N'){ notesEl.classList.toggle('on'); }
+  else if(e.key === 'r' || e.key === 'R'){ jump(0); }
+});
+
+window[SLIDE_NAME] = {
+  advance, back: goBack,
+  atStart: () => beat === 0,
+  atEnd:   () => beat === N-1,
+  reset:      () => jump(0),
+  resetToEnd: () => jump(N-1),
+  getBeat: () => beat,
+  notes: SCRIPT.slice(0, N),
+  count:   () => N,
+  setBeat: jump,
+};
+
+// ?beat=N opens on that beat (for checking a beat directly; the deck doesn't pass it)
+{ const q = new URLSearchParams(location.search).get('beat'); if(q != null) beat = Math.max(0, Math.min(N-1, +q || 0)); }
+render(true);
+</script>
+</body>
+</html>

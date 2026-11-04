@@ -285,9 +285,17 @@ st(`
 /* ---------- 3. Textures: statistics as knobs ---------- */
 section('Textures');
 
-sc('juleszTextons', 'scenes/julesz-textons.html');
+/* Fernanda, 2026-11-04: go right into the defense's texture intro (textures are stationary; a few statistics describe
+   them), then the knobs question, then the model. The Julesz and phase-scramble slides are out of the running order
+   (scenes kept: julesz-textons.html, metamers-scramble.html). */
+sc('texturesIntro', 'scenes/defense-textures-intro.html');
 
-sc('metamerScramble', 'scenes/metamers-scramble.html');
+st(`
+  <div class="question center b" data-step="1" style="margin:auto;max-width:22em">Can these knobs be thought of as our “knobs” for texture perception?</div>
+`, { notes: [
+  "(draft) So a texture can be described by a few statistics.",
+  "(draft) Can these statistics be thought of as our knobs for texture perception? If we could set them, one at a time, would we find the edges of texture perception the way the RGB knobs found the edges of color? That is what a texture model lets us try."
+]});
 
 sc('textureKnobs', 'scenes/texture-knobs.html');
 

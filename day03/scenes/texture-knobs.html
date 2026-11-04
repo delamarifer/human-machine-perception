@@ -27,7 +27,7 @@
   <div class="stagebox">
     <canvas id="cv"></canvas>
     <div class="label cap" id="cap"></div>
-    <div class="popquote pop" id="pop">A good model has enough knobs to recreate textures that people accept</div>
+    <div class="popquote pop" id="pop">A good “model” would have knobs that allow us to synthesize stimuli that people perceive as realistic</div>
   </div>
 </div>
 <div class="cite" id="cite">Model: Portilla &amp; Simoncelli (2000); syntheses made with plenoptic 2.1.2 · Images: public domain / CC0 (see SOURCES.md)</div>
@@ -70,7 +70,7 @@ const NOTES = [
   "(draft) Add the correlations between envelopes: now we get edges and shapes. This knob does a lot of the work: the mismatch on all the statistics drops four to five times at this step.",
   "(draft) Add the last knob, phase across scales, and we have all the statistics. Compare with the photo: no pixel was copied, and yet it reads as the same kind of stuff.",
   "(draft) The same knobs on a brick wall. The rows and the mortar come back, though the bricks are not perfectly straight: a hint of what this set of knobs still misses.",
-  "(draft) So a good model of texture is one with enough knobs to recreate textures that people accept as the same stuff. Where the synthesis fails, it tells us which knob is missing. That is how we find the edges of the representation."
+  "(draft) So a good model would have knobs that allow us to synthesize stimuli that people perceive as realistic. Where the synthesis fails, it tells us which knob is missing. That is how we find the edges of the representation."
 ];
 const N = NOTES.length - 1;
 
@@ -143,9 +143,20 @@ function line(x1, y1, x2, y2, al){ ctx.save(); ctx.globalAlpha = al; ctx.strokeS
   ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.restore(); }
 function band(y, h, label, al){ ctx.save(); ctx.globalAlpha = al * .55; ctx.fillStyle = '#e2e8f0'; ctx.fillRect(0, y, W * .6, h);
   ctx.globalAlpha = al; ctx.fillStyle = INK; ctx.font = font(Math.max(14, H * .03)); ctx.textBaseline = 'middle'; ctx.fillText(label, 8, y + h / 2); ctx.restore(); }
-function knob(x, y, r, k, lit, al){ ctx.save(); ctx.globalAlpha = al; ctx.beginPath(); ctx.arc(x, y, r, 0, 7);
-  ctx.fillStyle = lit ? KNOB : '#fff'; ctx.fill(); ctx.strokeStyle = KNOB; ctx.lineWidth = 2.5; ctx.stroke();
-  ctx.fillStyle = lit ? '#fff' : INK; ctx.font = font(r * .8, 700); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+/* each statistic group drawn as a knob (Fernanda, 2026-11-04): a dial whose notch turns from off (lower left) to on
+   (upper right) on the click that switches it on, like the color knobs */
+function knob(x, y, r, k, lit, al){ ctx.save(); ctx.globalAlpha = al;
+  const turning = lit && k >= prevOn && beat < 11, t = turning ? prog : 1;
+  const ang = (lit ? -225 + 270 * t * (turning ? 1 : 1) : -225) * Math.PI / 180;
+  const fillA = lit ? (turning ? t : 1) : 0;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fillStyle = '#fff'; ctx.fill();
+  if(fillA > 0){ ctx.globalAlpha = al * fillA; ctx.fillStyle = KNOB; ctx.fill(); ctx.globalAlpha = al; }
+  ctx.strokeStyle = KNOB; ctx.lineWidth = 2.5; ctx.stroke();
+  // the dial's travel, and its notch
+  ctx.beginPath(); ctx.arc(x, y, r * 1.28, -225 * Math.PI / 180, 45 * Math.PI / 180); ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2; ctx.stroke();
+  const nx = x + Math.cos(ang) * r * 1.28, ny = y + Math.sin(ang) * r * 1.28;
+  ctx.beginPath(); ctx.arc(nx, ny, Math.max(3, r * .22), 0, 7); ctx.fillStyle = KNOB; ctx.fill();
+  ctx.fillStyle = fillA > .5 ? '#fff' : INK; ctx.font = font(r * .8, 700); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(KNOBS[k].sym, x, y + 1); ctx.restore(); }
 function draw(){
   ctx.clearRect(0, 0, W, H);
