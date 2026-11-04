@@ -18,6 +18,7 @@ PRIMER = 'https://delamarifer.github.io/human-machine-perception/metamers.html'
 PLENOPTIC = 'https://docs.plenoptic.org/'
 FEATHER = 'https://doi.org/10.1038/s41593-023-01442-0'
 MCDERMOTT = 'https://doi.org/10.1016/j.neuron.2011.06.032'
+ROBUST_PAGE = 'https://huggingface.co/madrylab/robust-imagenet-models'
 
 # ---------------------------------------------------------------------------------------------
 md(f"""
@@ -161,20 +162,20 @@ def synthesize(target, model, steps, lr=0.01, init=None, stop_criterion=1e-4, **
 
 # --- the pairs test (section 7) ---
 _KEY = {}
-def ab_test(name, original, metamer, sound=False):
-    \"\"\"Shows (or plays) the original and the metamer as A and B, in a random order; reveal_answers() says which was which.\"\"\"
-    pair = [("original", original), ("metamer", metamer)]
+def ab_test(name, original, metamer, sound=False, labels=("original", "metamer"), question=None):
+    \"\"\"Shows (or plays) two stimuli as A and B, in a random order; reveal_answers() says which was which.\"\"\"
+    pair = [(labels[0], original), (labels[1], metamer)]
     random.shuffle(pair)
-    _KEY[name] = "A" if pair[0][0] == "original" else "B"
-    display(HTML(f"<h4>{name}: which one is the original, A or B?</h4>"))
+    _KEY[name] = (labels[0], "A" if pair[0][0] == labels[0] else "B")
+    display(HTML(f"<h4>{name}: {question or 'which one is the ' + labels[0] + ', A or B?'}</h4>"))
     if sound:
         play(pair[0][1], "A"); play(pair[1][1], "B")
     else:
         show([pair[0][1], pair[1][1]], ["A", "B"])
 
 def reveal_answers():
-    for name, k in _KEY.items():
-        print(f"{name}: the original was {k}")
+    for name, (what, k) in _KEY.items():
+        print(f"{name}: the {what} was {k}")
 """)
 
 # ---------------------------------------------------------------------------------------------
@@ -444,6 +445,73 @@ resources(("Feather et al. 2023 (open access)", FEATHER),
           ("plenoptic: using deep networks", "https://docs.plenoptic.org/"),
           ("Metamers primer: the test", PRIMER + "#test"))
 
+md(f"""
+### 4b · A standard and a robust network
+
+Feather et al. found one training change that made a network's late-stage metamers recognizable to
+people: **adversarial training**. During training, every image is first nudged by a small change, of a fixed
+size, chosen to confuse the network as much as possible, and the network learns to answer correctly anyway. Such
+a network is called **robust**.
+
+Here are two ResNet-50s from the same release, trained the same way except for that one step:
+- **standard**: `resnet50_l2_eps0`, 75.8% correct on ImageNet;
+- **robust**: `resnet50_l2_eps3`, adversarially trained with nudges of size 3 (L2 norm), 62.8% correct.
+
+Both come from the Madry lab's [robust ImageNet models]({ROBUST_PAGE}) (MIT license), released with
+Salman et al., *Do adversarially robust ImageNet models transfer better?* (NeurIPS 2020); the accuracies
+are the ones the release reports. The next cell downloads both, 205 MB each, the first time it runs.
+""")
+code('''
+ROBUST_URL = "https://huggingface.co/madrylab/robust-imagenet-models/resolve/main/"
+
+def madry_resnet50(name):
+    """A ResNet-50 from the Madry lab's robust ImageNet models (MIT license), as a torchvision model."""
+    path = name + ".ckpt"
+    if not os.path.exists(path):
+        print("downloading", path, "(205 MB) ...")
+        urllib.request.urlretrieve(ROBUST_URL + path, path)
+    checkpoint = torch.load(path, map_location="cpu", weights_only=True)["model"]
+    prefix = "module.model."       # the release stores the network under this name
+    weights = {k[len(prefix):]: v for k, v in checkpoint.items() if k.startswith(prefix)}
+    resnet = torchvision.models.resnet50()
+    resnet.load_state_dict(weights)
+    return resnet.to(DEVICE).eval()
+
+nets = {"standard": madry_resnet50("resnet50_l2_eps0"), "robust": madry_resnet50("resnet50_l2_eps3")}
+
+def top3_of(network, image):
+    with torch.no_grad():
+        p = network(normalize(image.clamp(0, 1))).softmax(-1)[0]
+    return ", ".join(f"{categories[i]} {p[i]:.0%}" for i in p.topk(3).indices)
+
+for name, network in nets.items():
+    print(f"The {name} network sees the photo as:", top3_of(network, photo_rgb))
+''')
+md("""
+Now a metamer from the **same late stage** (`layer4`) of each network, from the same photo, with the
+same settings. **Predict first:** will either one look like the photo to you?
+""")
+code('''
+late = {}
+for name, network in nets.items():
+    print(name, end=": ")
+    late[name] = synthesize(photo_rgb, po.models.DeepNetFeatures(network, "layer4", normalize),
+                            steps=600, lr=0.02).metamer
+
+show([photo_rgb, late["standard"], late["robust"]],
+     ["target", "standard ResNet-50, layer4", "robust ResNet-50, layer4"], size=3.6)
+for name, network in nets.items():
+    print(f"The {name} network sees its own layer4 metamer as:", top3_of(network, late[name]))
+''')
+md("""
+**Compare.** Each network gives its own metamer about the same answer it gives the photo: both metamers
+are equally good metamers *for their network*. To a person they differ: when we ran this, the standard
+network's metamer looked like colored noise, and the robust network's showed a cup on a saucer, with
+odd colors and textures. The robust network's last stage throws away less of what people use. That is
+the difference Feather et al. measured with human observers. It does not close the gap: the robust
+metamer is still far from the photo.
+""")
+
 # ---------------------------------------------------------------------------------------------
 md(f"""
 ## 5 · Sound: a model of the ear
@@ -676,6 +744,8 @@ other, without looking at the code, says which one is the original. Then switch 
 cells again (the order is shuffled every time).
 
 Keep score: for each pair, how many times did your partner pick the original? Guessing gets about half.
+The last pair is different: both are metamers, one from each ResNet-50 of section 4b, and your partner
+says which came from the robust network (and what it shows).
 For images, try glancing for one second while looking at the center, then looking for as long as you
 like: metamers depend on how you look (Freeman & Simoncelli, 2011).
 """)
@@ -684,6 +754,9 @@ ab_test("Pebbles (texture model)", pebbles, met_pebbles.metamer)
 ab_test("Café (ResNet-18 layer1)", photo_rgb, stage_metamers["layer1"])
 ab_test("Rain (texture statistics)", rain, tex_metamers["rain"], sound=True)
 ab_test("Speech (cochleagram)", speech, coch_metamers["speech"], sound=True)
+ab_test("Standard vs robust ResNet-50 (layer4)", late["robust"], late["standard"],
+        labels=("robust network's metamer", "standard network's metamer"),
+        question="one of these was made by the robust network, one by the standard network. Which is the robust one, A or B? What does it show?")
 """)
 code("""
 reveal_answers()
@@ -691,17 +764,19 @@ reveal_answers()
 md("""
 ### Exercise 6 · Your results
 
-Fill in how many times your partner picked the original, out of how many tries, for each pair. Then
+Fill in how many times your partner picked right (the original, or for the last pair the robust
+network's metamer), out of how many tries, for each pair. Then
 answer: **which models throw away the same information you do, and which throw away information you
 use?** Which pair would you add, using a metamer from this lab, to make the test harder?
 """)
 turn("""
-# Your turn 6: (picked the original, tries) for each pair, e.g. (3, 4).
+# Your turn 6: (picked right, tries) for each pair, e.g. (3, 4).
 results = {
     "Pebbles (texture model)": None,
     "Café (ResNet-18 layer1)": None,
     "Rain (texture statistics)": None,
     "Speech (cochleagram)": None,
+    "Standard vs robust ResNet-50 (layer4)": None,
 }
 
 for name, r in results.items():
@@ -784,7 +859,8 @@ md(f"""
 - **Stage matters.** Early stages (blur, retina-like cells, `layer1`, the cochleagram) keep most of what
   you see or hear. Statistics pooled over space or time keep *stuff*, not *things*: fine for pebbles and
   rain, wrong for a scene or a sentence. A network's last stage can throw away almost everything you use
-  while still giving the same answer.
+  while still giving the same answer. **Adversarial training** narrows the gap: a robust network's
+  late-stage metamer keeps more of what you use to recognize the object.
 - **The test** is people: a model whose metamers people also cannot tell apart shares their invariances.
 
 **Homework:** read Feather et al. (2023), [doi:10.1038/s41593-023-01442-0]({FEATHER}) (open access),
@@ -792,7 +868,8 @@ Figs. 1, 4 and 5, and finish any *Your turn* cells you didn't get to in class.
 
 **Credits.** Café photo: Shixart1985, CC BY 2.0. Pebbles: Yinan Chen, public domain. Brick wall:
 railyaal, CC0. Speech: LibriVox, read by Nicholi Volta, public domain. Rain: cori, public domain.
-Stream: jackthemurray, CC0. Applause: Amada44, CC0. All from Wikimedia Commons; the cut and resized
+Stream: jackthemurray, CC0. Applause: Amada44, CC0. Standard and robust ResNet-50 weights: Madry lab,
+[robust ImageNet models]({ROBUST_PAGE}), MIT license. Images and sounds from Wikimedia Commons; the cut and resized
 copies used here, and how they were made, are in `notebooks/data/day03/` in the course repository.
 """)
 
