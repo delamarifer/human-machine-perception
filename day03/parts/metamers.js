@@ -150,27 +150,69 @@ st(`
 ]});
 
 /* the lamp's spectrum as 41 numbers (every 10 nm), squeezed into three */
-const mvMany = (() => { const mx = mvLamp(780), n = 41, w = 420, h = 130;
-  const bars = [...Array(n)].map((_, i) => { const l = 380 + i * 10, bh = mvLamp(l) / mx * (h - 30);
-    return `<rect x="${10 + i * (w - 20) / n}" y="${h - 20 - bh}" width="${(w - 20) / n - 2}" height="${bh}" fill="${MV_INK}" fill-opacity=".55"/>`; }).join('');
-  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto">${bars}<line x1="8" y1="${h - 20}" x2="${w - 8}" y2="${h - 20}" stroke="${MV_MUTE}" stroke-width="2"/></svg>`; })();
+/* The negative space (Fernanda, 2026-11-04): spectra that differ in the world but are the same for the cones.
+   Computed from the cone curves (cones.json): start from the lamp, add smooth random patterns with everything the
+   three cones respond to projected out, so L, M and S stay exactly the same. The differences are the negative
+   space of the representation: patterns of energy no cone responds to. Checked in the console on load. */
+const mvNeg = { spectra:`<div style="position:relative"><svg class="metamers-neg-sp" viewBox="0 0 440 150" style="width:100%;height:auto;display:block"></svg>
+  <div class="b" data-step="2" style="position:absolute;inset:0"><svg class="metamers-neg-mt" viewBox="0 0 440 150" style="width:100%;height:auto;display:block"></svg></div></div>`,
+                diffs:`<svg class="metamers-neg-df" viewBox="0 0 440 120" style="width:100%;height:auto"></svg>` };
+fetch('../assets/metamers/cones.json').then(r => r.json()).then(c => {
+  const wl = c.wl.map((l, i) => [l, i]).filter(([l]) => l >= 400 && l <= 700), idx = wl.map(([, i]) => i), lam = wl.map(([l]) => l);
+  const C = ['L', 'M', 'S'].map(n => idx.map(i => c[n][i]));
+  const base = (() => { const b = lam.map(mvLamp), mx = Math.max(...b); return b.map(v => v / mx); })();
+  const dot = (a, b) => a.reduce((s, v, i) => s + v * b[i], 0);
+  // project out the span of the three cone curves (Gram-Schmidt), so the cones' responses do not change
+  const Q = []; C.forEach(v => { let u = v.slice(); Q.forEach(q => { const d = dot(u, q); u = u.map((x, i) => x - d * q[i]); });
+    const n = Math.sqrt(dot(u, u)); Q.push(u.map(x => x / n)); });
+  const nul = r => { let u = r.slice(); Q.forEach(q => { const d = dot(u, q); u = u.map((x, i) => x - d * q[i]); }); return u; };
+  const smooth = seed => lam.map(l => [1, 2, 3].reduce((s, k) => s + Math.sin(l / (18 + 9 * k + seed) + seed * k) / k, 0));
+  const diffs = [1.3, 4.1, 7.7].map(seed => { const d = nul(smooth(seed));
+    let sc = Infinity; d.forEach((v, i) => { if(v < 0) sc = Math.min(sc, (base[i] - .03) / -v); }); return d.map(v => v * .9 * sc); });
+  const mets = diffs.map(d => base.map((v, i) => v + d[i]));
+  const resp = sp => C.map(cv => dot(cv, sp));
+  console.log('negative space check, cone responses (lamp, then metamers):', [base, ...mets].map(sp => resp(sp).map(v => v.toFixed(4)).join(' ')).join(' | '));
+  const X = l => 14 + (l - 400) / 300 * 412, grays = ['#64748b', '#94a3b8', '#475569'];
+  const line = (sp, Y) => sp.map((v, i) => (i ? 'L' : 'M') + X(lam[i]).toFixed(1) + ',' + Y(v).toFixed(1)).join('');
+  const mx = Math.max(...base, ...mets.flat()), Ys = v => 124 - v / mx * 110;
+  const axis = (y, lab) => `<line x1="14" y1="${y}" x2="426" y2="${y}" stroke="${MV_MUTE}" stroke-width="1.5"/>` +
+    (lab ? `<text x="14" y="${y + 18}" font-size="14" fill="${MV_INK}">400</text><text x="426" y="${y + 18}" font-size="14" fill="${MV_INK}" text-anchor="end">700 nm</text>` : '');
+  const lampPath = `<path d="${line(base, Ys)}" fill="none" stroke="${MV_INK}" stroke-width="3"/>`;
+  const sp = axis(124, true) + lampPath;
+  const mt = mets.map((m, k) => `<path d="${line(m, Ys)}" fill="none" stroke="${grays[k]}" stroke-width="2.2"/>`).join('') + lampPath;
+  const dm = Math.max(...diffs.flat().map(Math.abs)), Yd = v => 56 - v / dm * 46;
+  const df = `<line x1="14" y1="56" x2="426" y2="56" stroke="${MV_MUTE}" stroke-width="1.5" stroke-dasharray="4 4"/>` +
+    diffs.map((d, k) => `<path d="${line(d, Yd)}L${X(700)},56L${X(400)},56Z" fill="${grays[k]}" fill-opacity=".14"/><path d="${line(d, Yd)}" fill="none" stroke="${grays[k]}" stroke-width="2"/>`).join('') +
+    `<text x="14" y="116" font-size="14" fill="${MV_INK}">400</text><text x="426" y="116" font-size="14" fill="${MV_INK}" text-anchor="end">700 nm</text>`;
+  const fill = () => { const a = document.querySelectorAll('svg.metamers-neg-sp'); if(!a.length) return setTimeout(fill, 200);
+    a.forEach(g => g.innerHTML = sp); document.querySelectorAll('svg.metamers-neg-mt').forEach(g => g.innerHTML = mt); document.querySelectorAll('svg.metamers-neg-df').forEach(g => g.innerHTML = df); };
+  fill();
+}).catch(() => {});
 st(`
   <h1 class="t">Metamers show the edges of a representation</h1>
-  <div class="b" data-step="1" style="display:grid;grid-template-columns:2fr auto 1fr;gap:2vw;align-items:center;width:80%;margin:2vh auto 0">
-    <div>${mvMany}<div class="label center">a spectrum: hundreds of numbers</div></div>
-    <div style="font-size:clamp(1.6rem,2.6vw,2.4rem);color:#64748b">→</div>
-    <div>${mvBars()}<div class="label center">the cones: three</div></div>
+  <div class="metamers-neg">
+    <div class="b" data-step="1">${mvNeg.spectra}<div class="label center">a spectrum: hundreds of numbers</div><div class="label center b" data-step="2">many different spectra in the world</div></div>
+    <div class="b metamers-neg-arrow" data-step="1">→</div>
+    <div class="b" data-step="1">${mvBars()}<div class="label center">the cones: three</div><div class="label center b" data-step="2">the same three numbers</div></div>
+    <div class="b metamers-neg-diff" data-step="3">${mvNeg.diffs}<div class="label center">what differs between them: the negative space, patterns no cone responds to</div></div>
+    <div class="b metamers-neg-arrow" data-step="3">→</div>
+    <div class="b label center" data-step="3"><b class="lead">0, 0, 0</b><br>the cones’ response</div>
   </div>
-  <ul class="frag" style="margin:auto 0;list-style:disc;padding-left:1.4em">
-    <li class="b" data-step="1">Some differences between spectra are not captured by the cones</li>
-    <li class="b" data-step="2">Those differences are thrown away</li>
-    <li class="b" data-step="3">There is no sensory machinery to make sense of them</li>
+  <ul class="frag" style="list-style:disc;padding-left:1.4em;margin-top:1vh">
+    <li class="b" data-step="2">Some differences between spectra are not captured by the cones</li>
+    <li class="b" data-step="3">Those differences are thrown away</li>
+    <li class="b" data-step="4">There is no sensory machinery to make sense of them</li>
   </ul>
+  <style>
+    .metamers-neg{ margin:auto 0; display:grid; grid-template-columns:2fr auto 1fr; column-gap:2vw; row-gap:2vh; align-items:center; width:64%; margin-left:auto; margin-right:auto; }
+    .metamers-neg-arrow{ font-size:clamp(1.6rem,2.6vw,2.4rem); color:#64748b; }
+  </style>
 `, { notes: [
   "(draft) So what do metamers tell us?",
-  "(draft) They show us the edges of the representation. A spectrum has energy at hundreds of wavelengths; the cones keep three numbers. Some differences in the real wavelengths, like the lamp's smooth spectrum against three narrow spikes, are simply not captured by those three cell types.",
-  "(draft) Which means the visual system throws those differences away, right at the first step.",
-  "(draft) Or, more precisely: there is no sensory machinery to make sense of them. No amount of attention or training will let you see the difference between the two halves of that field."
+  "(draft) A spectrum has energy at hundreds of wavelengths; the cones keep three numbers.",
+  "(draft) And many different spectra give exactly the same three numbers. These gray curves are not drawn by hand: I computed them from the cone sensitivities, so that each one gives exactly the same L, M and S as the lamp. Different in the physical world; identical in the representation.",
+  "(draft) Here is what differs between them: patterns of energy, going up at some wavelengths and down at others, that no cone responds to at all. That is the negative space of the representation: everything outside the three numbers. Those differences are thrown away.",
+  "(draft) There is no sensory machinery to make sense of them. No amount of attention or training will let you see the difference between the two halves of that field."
 ]});
 
 /* screen subpixels showing yellow: red and green lit, blue off (a sketch; real layouts vary) */
