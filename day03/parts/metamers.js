@@ -470,14 +470,12 @@ st(`
     <div class="arrow b" data-step="3">→</div>
     <div class="step b" data-step="3"><div style="height:13vh;width:16vw;display:flex;align-items:center;margin-bottom:1vh">${mvWave(11)}</div><b>A sound</b><span class="label">match an audio model</span></div>
   </div>
-  <div class="lead center b" data-step="4">Then test a partner: which one is real?</div>
-  <a class="b" data-step="5" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day03-lab-metamers.ipynb" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="align-self:center;border:3px solid var(--ink);border-radius:999px;padding:1.2vh 2vw;font-weight:700;font-size:clamp(1.2rem,2vw,1.8rem);color:var(--ink);text-decoration:none">Open the lab in Colab ↗</a>
+  <a class="b" data-step="4" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day03-lab-metamers.ipynb" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="align-self:center;margin-bottom:8vh;border:3px solid var(--ink);border-radius:999px;padding:1.2vh 2vw;font-weight:700;font-size:clamp(1.2rem,2vw,1.8rem);color:var(--ink);text-decoration:none">Open the lab in Colab ↗</a>
 `, { notes: [
   "(draft) Now you try. In the lab you make metamers yourselves, with a library called plenoptic.",
   "(draft) First a texture: pick a photo, and synthesize a new image that matches its statistics.",
   "(draft) Then a vision network: match the activations at one stage, early or late, and see what survives.",
   "(draft) Then a sound: the same idea with an audio model, and you can listen to the result.",
-  "(draft) And then test a partner: play or show them your original and your metamer, and see whether they can tell which one is real.",
   "(draft) Open the lab in Colab from this link. The images on these boxes are the solutions you will reach: the brick texture, and the café photo matched at the network's third stage."
 ]});
 /* The lab loop, as on Day 2 (Fernanda, 2026-11-04: "screenshots of the solutions after the exercise of try it
