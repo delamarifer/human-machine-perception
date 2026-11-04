@@ -17,3 +17,17 @@ original file, which reads "THIS IS A LIBERFOX RECORDING ALL LIBERFOX RECORTERIN
 (LibriVox's standard opening; "LIBERFOX" is the recognizer's spelling).
 
 The notebook also uses `assets/metamers/coffee.jpg` (Shixart1985, CC BY 2.0; see `assets/metamers/SOURCES.md`).
+
+## Network weights (downloaded by the notebook, not stored here)
+
+Section 4b downloads two ResNet-50 checkpoints from the Madry lab's release
+[madrylab/robust-imagenet-models](https://huggingface.co/madrylab/robust-imagenet-models) (MIT license), made for
+Salman, Ilyas, Engstrom, Kapoor & Madry, "Do Adversarially Robust ImageNet Models Transfer Better?", NeurIPS 2020
+(arXiv:2007.08489). Checked 2026-11-03: both download (204,818,947 bytes each) and load into `torchvision.models.resnet50`
+with all keys matching after removing the `module.model.` prefix; the release's input normalizer is the standard
+ImageNet mean and std.
+
+| Name in the notebook | File | ImageNet accuracy (from the release README) |
+|---|---|---|
+| standard | `https://huggingface.co/madrylab/robust-imagenet-models/resolve/main/resnet50_l2_eps0.ckpt` | 75.80% |
+| robust (L2, epsilon 3) | `https://huggingface.co/madrylab/robust-imagenet-models/resolve/main/resnet50_l2_eps3.ckpt` | 62.83% |
