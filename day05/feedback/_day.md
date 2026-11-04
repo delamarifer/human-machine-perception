@@ -1,6 +1,7 @@
 # Day 5 · Transformers and visual representations: feedback and open questions
 
-Day 5 follows the public syllabus (`syllabus.html`): Transformers and visual representations. Segments and
+Day 5 follows the public syllabus (`syllabus.html`): Transformers and visual representations. Since Round 3 the
+base is Shreya's deck (see below). Segments and
 minutes come from the plan block "Transformers + Visual Representation" (`plan/course-plan.md`), the human
 connection is face inversion and the Thatcher illusion, and the syllabus adds k-NN, K-means, t-SNE, RSA and
 CNN vs ViT. Preview: serve the repo root (`python3 -m http.server <port> --directory .`), open `day05/deck.html`.
@@ -8,6 +9,38 @@ CNN vs ViT. Preview: serve the repo root (`python3 -m http.server <port> --direc
 The earlier Neural Networks deck (fixed to learned filters, a 2D classifier trained live, forward pass,
 loss, backprop, gradient descent, PyTorch training loop) was removed from `day05/` in this round. It is in git
 at commit `b57d7e4` (`day05/parts/*.js`, `day05/scenes/*.html`), if any of it is wanted for Day 4 or later.
+
+## Round 3 · 2026-11-04 · Shreya's deck as the base, with Fernanda's scenes (day05 session)
+
+Fernanda: "Add my scenes to hers." The running order is now Shreya's Day 5 from the instructors repo
+(`day05/` at `ade0ad7`): her 13 parts copied as is (`s-*.js`, wording and notes untouched) and her `deck.html`
+(its styles for `.card`, `.cols`, `.agenda`, `.tbl`). The six live scenes from Round 2 sit next to her slides, one per
+`f-*` part. The Round 2 parts (my own slides) are removed; they are in git at `2e6d39d`.
+
+20 slides, 122 clicks; every click walked forward and back, passages == clicks + 1 everywhere, console clean.
+
+| After her slide | Scene |
+|---|---|
+| 4. How does a model decide what information matters? | `attention.html` (patches attending to patches) |
+| 5. How does a Vision Transformer work? | `vit.html` (the steps with numbers) |
+| 7. From features to visual representations | `embedding.html` (feature maps pooled to an embedding) |
+| 9. Exploring the representation space | `embedding-space.html` (neighbors, K-means, t-SNE) |
+| 10. Human and machine representations | `rsa.html` (three RDMs, rank correlation) |
+| *before* 11. The Thatcher effect (her notes ask for the demonstration first) | `thatcher.html` |
+
+Only the scenes' first notes changed, so each one follows her slide instead of repeating its question.
+
+### Questions for Fernanda (Round 3)
+- [ ] **Response paper left out.** `s-hw-questions` (handwritten start-of-class questions, "same role as the Day 3
+      Part 1 response paper") is not in the public deck, per the rule that response papers stay in the instructors
+      repo. Its 8 minutes ("Questions") are dropped from SEC_MINUTES here.
+- [ ] **Time.** Her sections add up to 120 minutes without the scenes. The six scenes add about 35 clicks. Which
+      sections give up time, or do some scenes go to the lab instead?
+- [ ] **Overlap to trim.** The Thatcher scene's beats 3-5 repeat what her Thatcher slide says. Keep both, or cut the
+      scene after beat 2 (the reveal)?
+- [ ] **Sync back.** Should these scenes also go to the instructors repo, in their own folder, so Shreya sees them?
+- [ ] **3Blue1Brown.** Deep Learning Ch. 6, "Attention in transformers, visually explained" (YouTube `eMlx5fFNoYc`),
+      as an optional link before or after slide 6? It explains attention on text, not images.
 
 ## Round 2 · 2026-11-04 · rebuilt as Transformers (day05 session)
 

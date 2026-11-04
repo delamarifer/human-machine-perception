@@ -59,7 +59,7 @@ const AMAX = Math.max(...ATT.flat()), rowSum = ATT.map(w => w.reduce((a, b) => a
 
 const CAPS = ['', 'cut into 16 patches', 'flatten + project: each patch → a token', '+ position', '+ a [CLS] token', 'self-attention: every token weighs every token', 'weighted sum, then an MLP: new tokens', 'stack many blocks', 'the [CLS] token: the image’s embedding'];
 const NOTES = [
-  "(draft) Title only. Now put attention to work on images: the Vision Transformer, or ViT.",
+  "(draft) Title only. The same steps again, this time with numbers, on a toy image.",
   "(draft) Step one: cut the image into patches. Here a toy 32 by 32 image becomes 16 patches of 8 by 8. The original ViT used 16 by 16 pixel patches; hence the paper's title, an image is worth 16 by 16 words.",
   "(draft) Flatten each patch into a list of 64 pixel values and multiply by one weight matrix: each patch becomes a token, a short vector. Here 6 numbers per token; in ViT-Base, 768. The same matrix is used for every patch.",
   "(draft) Attention by itself does not know where a patch came from. So we add a position embedding to each token, a vector that is different for each place in the grid.",

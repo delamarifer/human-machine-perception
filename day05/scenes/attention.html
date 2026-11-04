@@ -118,7 +118,7 @@ const pct = v => `${Math.round(v * 100)}%`;
 
 const CAPS = ['', '64 patches', 'a CNN unit: its neighborhood only', 'compare with every patch: q · k', 'softmax: weights that add up to 1', 'output: a weighted average of all patches', 'another patch looks elsewhere'];
 const NOTES = [
-  "(draft) Title only. CNNs build everything from local filters. Why would we want something else?",
+  "(draft) Title only. Now let's watch attention happen on an image, with real numbers, and see why it is different from a convolution.",
   "(draft) Here is a toy image made in code: horizontal stripes, two blocks of vertical stripes far apart, a block of dots and a block of rings. We cut it into an 8 by 8 grid of patches.",
   "(draft) In the first layer of a CNN, a unit looking at this patch sees only its small neighborhood. To relate it to the block in the opposite corner, information has to pass through many layers.",
   "(draft) Attention does it in one step. Describe each patch by a vector of features, and compare this patch, the query, with every patch, the keys, using a dot product. Darker means more similar. Here the vectors are just the patch's filter responses; in a trained transformer they come from learned projections.",
