@@ -113,7 +113,7 @@ const NOTES = [
   "(draft) For one representation, the embedding, measure how different every pair of images is: one minus the correlation of their embeddings. That gives an 18 by 18 matrix, a representational dissimilarity matrix, or RDM. Darker means more different. Some light blocks sit along the diagonal: for several kinds, images of the same kind are close.",
   "(draft) Now the same matrix computed from raw pixels. Much less structure: in pixels, two stripe images that are slightly shifted can look completely different.",
   "(draft) We can also write down a hypothesis as an RDM: same kind similar, different kinds different. This one is a model, not a measurement.",
-  (`(draft) Representational similarity analysis compares the matrices themselves, with a rank correlation. The embedding matches the kinds model at ${f2(S_EM)}; the pixels at only ${f2(S_PM)}. The same trick works for brain data: the rows can be voxels or neurons instead of network units, because we only compare the patterns of differences. In the lab, you will do this across the layers of a ViT.`)
+  (`(draft) Representational similarity analysis compares the matrices themselves, with a rank correlation. The embedding matches the kinds model at ${f2(S_EM)}; the pixels at only ${f2(S_PM)}. The same trick works for brain data: the rows can be voxels or neurons instead of network units, because we only compare the patterns of differences. The rsatoolbox package does this for any image set and any model, for example across the layers of a ViT.`)
 ];
 const NB = NOTES.length - 1;
 let beat = 0, t0 = 0;

@@ -20,6 +20,7 @@ const ORDER = [
   ['s-clip',              '8. CLIP: connecting images and language'],
   ['s-practical',         '9. Exploring the representation space'],
   ['f-space',             '9. Scene: neighbors, K-means, t-SNE'],
+  ['f-lab',               '9. The lab: MIT 6.S191 Lab 3, fine-tune a language model with LoRA'],
   ['s-rsa',               '10. Human and machine representations'],
   ['f-rsa',               '10. Scene: RDMs and RSA'],
   ['f-thatcher',          '11. Scene: the Thatcher illusion, demonstrated first'],

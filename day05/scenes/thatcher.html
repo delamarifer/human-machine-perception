@@ -29,7 +29,7 @@
    ACT 1  ILLUSION (1-3): two faces upside down look alike; turn them upright: one is grotesque;
                           only the eyes and mouth were flipped
    ACT 2  SYSTEMS  (4-5): a filter bank sees the same difference both ways up (computed);
-                          the lab question: what does a ViT do?
+                          an open question: what does a ViT do?
    No data colors. */
 /* ---- shared toy set (the same block is pasted into each Day 5 scene, so each scene stays self-contained) ----
    Images are made here, seeded: 6 kinds of 32x32 gray texture. The "embedding" is a hand-designed Gabor
@@ -133,7 +133,7 @@ const NOTES = [
   "(draft) Now turn them upright. One of them is grotesque.",
   "(draft) Here is all that changed: the eyes and the mouth were cut out and flipped upside down. Upside down, we barely notice; upright, it jumps out. Peter Thompson reported this in 1980, with a photo of Margaret Thatcher, hence the name. More generally, faces are much harder to recognize upside down than other objects, the face inversion effect. A common reading is that upright faces are processed as a whole configuration, and inversion disrupts that.",
   (`(draft) What would our filter-bank embedding say? We measured how far apart the two faces are in its 8-number embedding: ${f3(D_UP)} upright, ${f3(D_DN)} upside down. Exactly the same. Turning an image upside down does not change which orientations it contains, so a bag of local filter responses cannot show this effect. It sees parts, not their arrangement.`),
-  "(draft) So here is a real question for the lab: does a Vision Transformer, which can relate every patch to every other, treat the Thatcherized face differently upright and upside down, the way people do? You will measure it with the embeddings of a trained ViT."
+  "(draft) So here is an open question: does a Vision Transformer, which can relate every patch to every other, treat the Thatcherized face differently upright and upside down, the way people do? You could measure it with the embeddings of a trained ViT. It would make a good small project."
 ];
 const NB = NOTES.length - 1;
 let beat = 0, t0 = 0;
@@ -162,7 +162,7 @@ function frame(now){
   if(A(4) > 0){ ctx.globalAlpha = A(4); txt('filter-bank embedding:', rx, H * .16, fs, true, 'left'); txt('distance between the two faces', rx, H * .16 + fs * 1.4, fs, false, 'left');
     txt(`upright: ${f3(D_UP)}`, rx, H * .16 + fs * 3.4, big, true, 'left'); txt(`upside down: ${f3(D_DN)}`, rx, H * .16 + fs * 5.2, big, true, 'left'); ctx.globalAlpha = 1; }
   if(A(5) > 0){ ctx.globalAlpha = A(5); txt('people: a big difference upright,', rx, H * .52, fs, false, 'left'); txt('little upside down', rx, H * .52 + fs * 1.4, fs, false, 'left');
-    txt('a ViT: you measure it in the lab', rx, H * .52 + fs * 3.4, big, true, 'left'); ctx.globalAlpha = 1; }
+    txt('a ViT: an open question', rx, H * .52 + fs * 3.4, big, true, 'left'); ctx.globalAlpha = 1; }
   ctx.globalAlpha = beat ? Math.min(1, p * 2) : 0; txt(CAPS[beat], 0, H - big * .4, big, true, 'left', 'bottom'); ctx.globalAlpha = 1;
   requestAnimationFrame(frame);
 }

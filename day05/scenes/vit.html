@@ -67,7 +67,7 @@ const NOTES = [
   "(draft) Self-attention: each token makes a query, a key and a value, by three more matrix multiplications. Every query is compared with every key, and a softmax turns each row into weights that add up to one. This 17 by 17 matrix is who listens to whom.",
   "(draft) Each token becomes the weighted sum of all the values, added to what it was before, and then goes through a small two-layer network of its own, the MLP. That is one transformer block. (Layer normalization is skipped here.)",
   "(draft) Stack many blocks: ViT-Base has 12. Each block lets every token gather information from every other token again.",
-  "(draft) At the end, the CLS token's vector stands for the whole image: that is the embedding. A classifier on top of it gives the label. One honest caveat: the numbers on this slide come from random weights, so they show the arithmetic, not what a trained ViT computes. In the lab you will use a trained one."
+  "(draft) At the end, the CLS token's vector stands for the whole image: that is the embedding. A classifier on top of it gives the label. One honest caveat: the numbers on this slide come from random weights, so they show the arithmetic, not what a trained ViT computes. In the lab you will fine-tune a trained transformer: a language model built from these same blocks."
 ];
 const NB = NOTES.length - 1;
 let beat = 0, t0 = 0;

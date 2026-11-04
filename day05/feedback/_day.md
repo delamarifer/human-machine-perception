@@ -10,6 +10,44 @@ The earlier Neural Networks deck (fixed to learned filters, a 2D classifier trai
 loss, backprop, gradient descent, PyTorch training loop) was removed from `day05/` in this round. It is in git
 at commit `b57d7e4` (`day05/parts/*.js`, `day05/scenes/*.html`), if any of it is wanted for Day 4 or later.
 
+## Round 4 · 2026-11-04 · the Day 5 lab is MIT 6.S191 Lab 3 (day05 session)
+
+Fernanda: "This will be the lab for Day 5:
+https://github.com/MITDeepLearning/introtodeeplearning/blob/master/lab3/LLM_Finetuning.ipynb"
+
+What the notebook does (read from it, 2026 version): fine-tunes LiquidAI LFM2-1.2B, a 1.2-billion-parameter
+language model. Part 1 covers chat templates, tokenization, next-token prediction with cross-entropy, and LoRA
+(rank 8, on q/k/v/o and MLP projections) with a Lion optimizer, training first to a leprechaun style and then to Yoda.
+Part 2 is "LLM as a judge": Gemini 2.5 Flash through OpenRouter scores the Yoda-speak, with Comet Opik for metrics and
+tracing. The final cell computes the likelihood of held-out Yoda text, for MIT's class competition (a Dropbox
+submission).
+
+Done in this round:
+- New slide 16, `f-lab` ("Lab: fine-tune a language model"), after the representation-space scene. It credits
+  the source ("MIT 6.S191 Introduction to Deep Learning, Lab 3, LLM Fine-tuning (MIT License)") and links LoRA to the
+  query, key and value matrices from the attention slide. A TO DO box holds the open decisions below.
+- My scene notes no longer promise a ViT lab: `vit.html` now points to fine-tuning a language model built from the same
+  blocks, `rsa.html` names rsatoolbox, and `thatcher.html` (notes and its on-screen line) calls the ViT Thatcher test an
+  open question and a possible small project.
+
+### Questions for Fernanda (Round 4)
+- [ ] **Shreya's slides still name the ViT lab.** `s-practical` ("Lab: day05-lab-vit-embeddings", notes too),
+      `s-homework` ("Finish the lab: day05-lab-vit-embeddings") and `s-rsa` (notes: "the numbers from the lab"). These are
+      her words, so I left them. Should she change them, or should I make copies (`f-practical`, `f-homework`) that
+      name the new lab?
+- [ ] **API keys and cost.** Part 2 needs an OpenRouter key (paid; MIT gives credits only to its own students; free
+      models are rate-limited) and a Comet/Opik key. `notebooks/README.md` says notebooks use no API keys. Options: Part 1
+      only in class; Part 2 as an optional homework; or an instructor demo of Part 2.
+- [ ] **GPU.** Students must switch Colab to a GPU runtime (the 1.2B model plus LoRA). Check it fits a free T4 and how
+      long 200 training steps take.
+- [ ] **Competition cell and Dropbox submission** are MIT's. Tell students to skip the submission, and decide what
+      they upload to our course site instead.
+- [ ] **Course copy or link?** Link the original notebook (the solution notebook is public in the same repo), or make
+      a course copy in `notebooks/` with the MIT credit kept, per the license note in its first cell?
+- [ ] **Vision link.** The lab is about language. Slide 16 frames it as "the same blocks". Want a short vision tie-in
+      (for example, LoRA is also used to adapt ViTs), or leave it?
+- [ ] The Round 2 ViT-embeddings lab spec (below) is not the Day 5 lab anymore. Keep it for a later day, or drop it?
+
 ## Round 3 · 2026-11-04 · Shreya's deck as the base, with Fernanda's scenes (day05 session)
 
 Fernanda: "Add my scenes to hers." The running order is now Shreya's Day 5 from the instructors repo
@@ -90,7 +128,7 @@ The shared toy-set code (images + filter bank) is pasted into each scene so each
 - Thompson, P. (1980). Margaret Thatcher: a new illusion. *Perception*, 9, 483-484.
 - Yin, R. K. (1969). Looking at upside-down faces. *Journal of Experimental Psychology*, 81, 141-145.
 
-### What the Day 5 Colab lab needs (for the notebooks session)
+### ViT-embeddings lab spec (Round 2; no longer the Day 5 lab, see Round 4)
 Name per `notebooks/README.md`: `notebooks/day05-lab-vit-representations.ipynb` (built from `notebooks/build/day05_lab.py`).
 - Section 0: environment check (torch, torchvision, rsatoolbox via `pip install -q rsatoolbox`; CPU is fine).
 - Load `torchvision.models.vit_b_16` with `ViT_B_16_Weights.IMAGENET1K_V1`; `model.heads = nn.Identity()` gives the
