@@ -1,11 +1,12 @@
-"""Join the Day 3 metamers lab and the image-filtering lab into one notebook.
+"""Build the Day 3 lab, notebooks/day03-lab.ipynb.
 
-    python3 notebooks/build/day03_combined.py
+Part 1 is the metamers lab. Part 2 is the image-filtering lab.
 
-Writes notebooks/day03-lab.ipynb (the student notebook for the public course).
+    python3 notebooks/build/day03_lab.py
+
 Pass the instructor copies to also write those:
 
-    python3 notebooks/build/day03_combined.py \
+    python3 notebooks/build/day03_lab.py \
         --instructor-metamers ../human-machine-perception-instructors/notebooks/instructor/day03-lab-metamers-instructor.ipynb \
         --instructor-filtering ../human-machine-perception-instructors/notebooks/instructor/day03-lab2-image-filtering-instructor.ipynb \
         --out-instructor ../human-machine-perception-instructors/notebooks/instructor/day03-lab-instructor.ipynb \
