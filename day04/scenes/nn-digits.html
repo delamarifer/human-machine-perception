@@ -55,7 +55,7 @@ const NOTES = [
   "(draft) And into the output layer: one neuron per digit, turned into probabilities with softmax. The network says 3, with high confidence. On the 497 test digits it never saw, it is right about 98 percent of the time.",
   "(draft) What does one hidden neuron look for? Its 64 incoming weights can be drawn back as an 8 by 8 image: dark where a bright pixel pushes the neuron up, light where it pushes it down. Nobody designed this pattern; training found it. Often these patterns are not the clean strokes or edges we might hope for.",
   "(draft) In total this small network has this many numbers, every one of them set by gradient descent. A network for real photos has millions.",
-  "(draft) And it is not perfect: here is a test digit it gets wrong. Labeled as one digit, read as another. Worth asking whether you would have read it correctly."
+  "(draft) And it is not perfect: here is a test digit it gets wrong. Labeled 0, read as 4, and with more than 99.9 percent confidence: a network can be confidently wrong. Would you have read it correctly?"
 ];
 const N = NOTES.length - 1;
 
@@ -134,7 +134,7 @@ function frame(now){
     F.p.forEach((v, j) => { const y = ys(10, j);
       ctx.fillStyle = '#0f172a'; ctx.font = (j === best ? '700 ' : '') + FONT(Math.max(14, rH * 1.4));
       ctx.fillText(j, X[3] + rH * 1.8, y);
-      if(j === best) ctx.fillText(`${(v * 100).toFixed(1)}%`, X[3] + rH * 3.6, y); });
+      if(j === best) ctx.fillText(v > .999 ? ">99.9%" : `${(v * 100).toFixed(1)}%`, X[3] + rH * 3.6, y); });
     ctx.globalAlpha = 1;
   }
   // one hidden neuron opened up: its weights as an 8x8 image (beats 6-7)
