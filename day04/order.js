@@ -6,6 +6,7 @@
    Avoid apostrophes inside the strings. */
 const ORDER = [
   // part                 what
+  ['start',               'Added by Fernanda: quiz, recap, course site, what is due, how to submit the proposal'],
   ['title',               'Title, one image and four questions, the path through today'],
   ['networks',            'Section 1 (0:00-0:10, 10 min): neurons, layers, loss, backpropagation, learned representations'],
   ['nn-scenes',           'Section 1, added by Fernanda: a real digit network and its training run, two 3Blue1Brown clips'],
@@ -23,6 +24,7 @@ const PARTS = ORDER.map(r => r[0]);
 
 /* Minutes per section (the progress bar): adds up to exactly 120 minutes. */
 const SEC_MINUTES = {
+  'Start': 15,   // added by Fernanda: quiz (5-10 min) and the opening slides, on top of the 120
   '1. Networks': 10,
   '2. Images': 10,
   '3. Convolution': 8,
