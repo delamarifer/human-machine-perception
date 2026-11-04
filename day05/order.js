@@ -1,6 +1,7 @@
 /* Day 5 running order: Transformers and Visual Representations.
    Base: Shreya's deck from the instructors repo (day05 at ade0ad7), her parts and wording unchanged (s-*).
-   Fernanda's live-computed scenes (f-*) sit next to the slide each one illustrates.
+   Fernanda's live-computed scenes (f-*) sit next to the slide each one illustrates. f-practical, f-human-rsa and
+   f-homework are copies of Shreya's parts that name the new lab (MIT 6.S191 Lab 3); her originals stay, unloaded.
    Left out of this public deck: s-hw-questions (the start-of-class written questions, a response paper;
    those stay in the instructors repo only).
    Avoid apostrophes inside the strings. */
@@ -18,14 +19,14 @@ const ORDER = [
   ['s-representations',   '7. From features to visual representations'],
   ['f-embedding',         '7. Scene: from feature maps to an embedding'],
   ['s-clip',              '8. CLIP: connecting images and language'],
-  ['s-practical',         '9. Exploring the representation space'],
+  ['f-practical',         '9. Exploring the representation space (copy of s-practical, lab name updated)'],
   ['f-space',             '9. Scene: neighbors, K-means, t-SNE'],
   ['f-lab',               '9. The lab: MIT 6.S191 Lab 3, fine-tune a language model with LoRA'],
-  ['s-rsa',               '10. Human and machine representations'],
+  ['f-human-rsa',         '10. Human and machine representations (copy of s-rsa, lab pointers updated)'],
   ['f-rsa',               '10. Scene: RDMs and RSA'],
   ['f-thatcher',          '11. Scene: the Thatcher illusion, demonstrated first'],
   ['s-thatcher',          '11. The Thatcher effect'],
-  ['s-homework',          'Homework: proposal due tonight, detailed proposal Monday, lab, readings'],
+  ['f-homework',          'Homework (copy of s-homework, lab updated): proposal tonight, detailed proposal Monday, lab, readings'],
 ];
 const PARTS = ORDER.map(r => r[0]);
 

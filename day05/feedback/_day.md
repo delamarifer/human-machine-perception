@@ -31,7 +31,9 @@ Done in this round:
   open question and a possible small project.
 
 ### Questions for Fernanda (Round 4)
-- [ ] **Shreya's slides still name the ViT lab.** `s-practical` ("Lab: day05-lab-vit-embeddings", notes too),
+- [x] **Shreya's slides still name the ViT lab.** Fernanda: "Make my copies." Done: `f-practical`, `f-human-rsa`
+      and `f-homework` replace them in the running order; each header lists exactly what changed, and changed notes are
+      `(draft)`. Her originals stay in `parts/`, unloaded. Was: `s-practical` ("Lab: day05-lab-vit-embeddings", notes too),
       `s-homework` ("Finish the lab: day05-lab-vit-embeddings") and `s-rsa` (notes: "the numbers from the lab"). These are
       her words, so I left them. Should she change them, or should I make copies (`f-practical`, `f-homework`) that
       name the new lab?
