@@ -132,6 +132,42 @@ st(`
   "(draft) And that is what makes them useful: whatever differs between two metamers is information f has thrown away. Let's see this happen, first in color."
 ]});
 
+/* What metamers are for (Fernanda, 2026-11-04, after teaching: students were confused about the point of metamers;
+   she explained two uses: 1) reveal what a system represents, 2) compare systems, human vs AI or AI vs AI) */
+const mvBox = (t, sub) => `<div class="metamers-use-f"><b>${t}</b>${sub ? `<span class="label">${sub}</span>` : ''}</div>`;
+st(`
+  <h1 class="t">What are metamers for?</h1>
+  <div class="metamers-use">
+    <div class="b metamers-use-card" data-step="1">
+      <div class="lead"><b>1 · Reveal what a system represents</b></div>
+      <div class="metamers-use-flow"><span>x₁, x₂</span><span class="metamers-use-arr">→</span>${mvBox('f')}<span class="metamers-use-arr">→</span><span>same</span></div>
+      <div class="label">what differs between x₁ and x₂ is what f throws away; what they share is what f keeps</div>
+      <div class="label"><b>color:</b> the cones keep three numbers per patch</div>
+    </div>
+    <div class="b metamers-use-card" data-step="2">
+      <div class="lead"><b>2 · Compare systems</b></div>
+      <div class="metamers-use-flow"><span>x₁, x₂</span><span class="metamers-use-arr">→</span>
+        <div style="display:flex;flex-direction:column;gap:1vh">${mvBox('system A')}${mvBox('system B')}</div>
+        <span class="metamers-use-arr">→</span><div style="display:flex;flex-direction:column;gap:2.4vh"><span>same</span><span>same?</span></div></div>
+      <div class="label">a metamer for one system: is it a metamer for the other?</div>
+      <div class="label"><b>human vs AI model</b>, or <b>AI model vs AI model</b></div>
+    </div>
+  </div>
+  <div class="statement center b" data-step="3" style="margin-bottom:4vh">Systems that share metamers throw away the same information</div>
+  <style>
+    .metamers-use{ margin:auto 0; display:grid; grid-template-columns:1fr 1fr; gap:3vw; align-items:stretch; }
+    .metamers-use-card{ display:flex; flex-direction:column; gap:2vh; padding:3vh 2vw; border:2px solid var(--ink); border-radius:14px; }
+    .metamers-use-flow{ display:flex; align-items:center; gap:1.2vw; font-size:clamp(1.2rem, 1.9vw, 1.8rem); margin:1vh 0; }
+    .metamers-use-arr{ color:#64748b; }
+    .metamers-use-f{ border:2px solid var(--ink); border-radius:10px; padding:.8vh 1vw; display:flex; flex-direction:column; align-items:center; }
+  </style>
+`, { notes: [
+  "(draft) Before we go on: what are metamers for? They do two jobs, and we will use both today.",
+  "(draft) First, they reveal what a system represents. If two different inputs give the same output, whatever differs between them is information the system threw away, and whatever they share is what it keeps. For color, this told us the cones keep three numbers per patch of retina.",
+  "(draft) Second, they let us compare systems. Make a metamer for one system, then show it to another. Is it still a metamer? We can compare a person with an AI model, or one AI model with another.",
+  "(draft) If two systems share their metamers, they throw away the same information: in that sense they have the same representation. If they don't, the metamers show us exactly where they differ. Color is the first job; at the end of today, with neural networks, we will do the second."
+]});
+
 sc('colorMetamers', 'scenes/color-metamers.html');
 
 st(`
@@ -429,6 +465,24 @@ st(`
 
 /* Fernanda, 2026-11-04: straight into model metamers; the adversarial-vulnerability slide is out of the running order
    (scene kept: defense-adversarial.html) */
+
+st(`
+  <h1 class="t">Metamers compare systems</h1>
+  <div class="flow" style="margin:auto 0">
+    <div class="step b" data-step="1"><b>Make a metamer</b><span class="label">for a network: same activations at one stage</span></div>
+    <div class="arrow b" data-step="2">→</div>
+    <div class="step b" data-step="2"><b>Show it to people</b><span class="label">human vs AI: is it a metamer for us too?</span></div>
+    <div class="arrow b" data-step="3">→</div>
+    <div class="step b" data-step="3"><b>Show it to another network</b><span class="label">AI vs AI: is it a metamer for that one?</span></div>
+  </div>
+  <div class="statement center b" data-step="4" style="margin-bottom:4vh">If not, the two systems throw away different information</div>
+`, { notes: [
+  "(draft) This brings back the second job of metamers: comparing systems.",
+  "(draft) We make a metamer for a network: an image that gives the same activations as a natural image at one stage of the model.",
+  "(draft) Then we show it to people. Human versus AI: if the model's metamer is also a metamer for us, people should recognize it as the same thing the model sees.",
+  "(draft) Or we show it to another network. AI versus AI: is one network's metamer a metamer for another network, for example a robust one?",
+  "(draft) If it is not, the two systems throw away different information: they represent the image differently, even if they give the same answer on natural images. Here is what happens."
+]});
 
 sc('metamerBoxes', 'scenes/defense-metamers.html');
 
