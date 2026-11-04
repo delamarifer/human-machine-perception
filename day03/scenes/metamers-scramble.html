@@ -33,7 +33,7 @@
     <div class="metamers-cell" id="c3"><canvas id="ad" width="256" height="256"></canvas><div class="label" id="rlab">Pixel difference</div></div>
     <div class="metamers-cell" id="c4"><canvas id="b1" width="256" height="256"></canvas><div class="label">Texture 2</div></div>
     <div class="metamers-cell" id="c5"><canvas id="b2" width="256" height="256"></canvas><div class="label">Same power spectrum, new phases</div></div>
-    <div class="metamers-cell" id="c6"><div class="todo">Texture 2 resynthesized from Portilla-Simoncelli statistics (make with plenoptic). Source: to add</div><div class="label">More statistics matched</div></div>
+    <div class="metamers-cell" id="c6"><div style="flex:1 1 auto;aspect-ratio:1;height:100%;min-height:0;display:flex;align-items:center;justify-content:center;text-align:center" class="statement">Which statistics are enough?</div><div class="label">Next: more statistics</div></div>
   </div>
   <div class="lead metamers-cap" id="cap"></div>
 </div>
@@ -43,7 +43,7 @@
    ACT 1  CLOUDS     (1-4):  a cloud-like texture; the same texture with its Fourier phases randomized
                              (amplitude spectrum kept); their pixel difference and correlation; they look alike
    ACT 2  PEBBLES    (5-8):  a texture of round pebbles; the same phase scramble; it looks different;
-                             the Portilla-Simoncelli synthesis (TO DO box)
+                             which statistics are enough? (the next slide shows real syntheses)
 
    Everything is computed here, from a fixed seed: no third-party images. Texture 1 is multi-octave value
    noise, Texture 2 is random non-overlapping shaded disks. The scramble keeps |FFT| exactly and takes the
@@ -58,7 +58,7 @@ const NOTES = [
   "(draft) Let us try a second texture: round pebbles.",
   "(draft) Same procedure: keep the power spectrum, randomize the phases.",
   "(draft) This time it does not look the same at all. The pebbles are gone; we see blurry blobs. The power spectrum, a second-order statistic, is not enough to describe this texture. This is the kind of counterexample that went against Julesz's early conjecture that textures with the same second-order statistics look the same.",
-  "(draft) Portilla and Simoncelli matched many more statistics: correlations between filter responses across positions, orientations and scales. Their synthesis of a texture like this one keeps the pebbles. (Image to add: we can make it with the plenoptic library.)"
+  "(draft) So the power spectrum is not enough. Which statistics are? Portilla and Simoncelli matched many more: correlations between filter responses across positions, orientations and scales. That is next, with real syntheses."
 ];
 const N = NOTES.length - 1;
 let beat = 0;

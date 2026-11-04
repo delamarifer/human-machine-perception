@@ -1,7 +1,8 @@
 /* PART: metamers (Day 3). Owner: Fernanda. Storyline from Fernanda, 2026-11-03:
      1. Definition, then color (the knobs we can turn; metamers show the edges of the cones' representation)
      2. Beyond color it is hard: what are the knobs?
-     3. Textures: statistics as knobs (McDermott & Simoncelli; Julesz; phase scramble; Portilla-Simoncelli),
+     3. Textures: Julesz; phase scramble; statistics as knobs (Portilla-Simoncelli, real plenoptic syntheses);
+        the same knobs for sound (McDermott & Simoncelli);
         and the periphery (what human metamers are sensitive to)
      4. No knobs at all: drive and suppress stimuli (visual system, language)
      5. Neural networks: gradient descent as the knobs, the model's representation and behavior as the cones
@@ -189,8 +190,14 @@ st(`
 /* ---------- 3. Textures: statistics as knobs ---------- */
 section('Textures');
 
+sc('juleszTextons', 'scenes/julesz-textons.html');
+
+sc('metamerScramble', 'scenes/metamers-scramble.html');
+
+sc('textureKnobs', 'scenes/texture-knobs.html');
+
 st(`
-  <h1 class="t">Textures: statistics as knobs</h1>
+  <h1 class="t">The same knobs, for sound</h1>
   <div class="flow" style="margin:auto 0">
     <div class="step b" data-step="1"><b>A sound texture</b><span class="label">rain, wind, fire</span></div>
     <div class="arrow b" data-step="2">→</div>
@@ -203,35 +210,12 @@ st(`
   <div class="todo b" data-step="5">Sound examples: an original texture and its synthetic version, to play in class. Source: to add</div>
   ${cite('McDermott &amp; Simoncelli, 2011')}
 `, { notes: [
-  "(draft) For textures, there is a beautiful answer.",
-  "(draft) Take a sound texture, like rain, wind or fire.",
-  "(draft) Pass it through a model of the ear, the cochlea: a bank of filters, each picking out one band of frequencies.",
+  "(draft) The same idea works for sound, and it is where McDermott and Simoncelli started.",
+  "(draft) Take a sound texture, like rain, wind or fire: sounds made of many similar events.",
+  "(draft) Pass it through a model of the ear: the cochlea splits the sound into frequency channels, the way the image model split the photo into filters.",
   "(draft) Then measure a set of statistics of those channels over time: how loud each band is on average, how much it varies, how the bands move together. Those statistics are the knobs.",
   "(draft) Start from noise and adjust it until its statistics match the original's. McDermott and Simoncelli did exactly this.",
   "(to write) Listen to the original and the synthetic version. For many textures, listeners hear them as the same kind of sound, even though the waveform is completely different: a metamer, for us. And when a synthetic sound does not sound right, it tells us which statistic we were missing: turning the knobs shows the edges of our hearing."
-]});
-
-sc('juleszTextons', 'scenes/julesz-textons.html');
-
-sc('metamerScramble', 'scenes/metamers-scramble.html');
-
-st(`
-  <h1 class="t">Matching more statistics</h1>
-  <div class="flow">
-    <div class="step b" data-step="1"><b>A texture photo</b></div>
-    <div class="arrow b" data-step="2">→</div>
-    <div class="step b" data-step="2"><b>Measure statistics</b><span class="label">of a filter bank's outputs</span></div>
-    <div class="arrow b" data-step="3">→</div>
-    <div class="step b" data-step="3"><b>Start from noise</b><span class="label">adjust until the statistics match</span></div>
-  </div>
-  <div class="todo b" data-step="4">Original and synthesized texture, side by side; then the same synthesis with groups of statistics dropped. Generate with plenoptic (the lab session can make these).</div>
-  ${cite('Portilla &amp; Simoncelli, 2000')}
-`, { notes: [
-  "(draft) For images, Portilla and Simoncelli asked the same question: which statistics are enough?",
-  "(draft) Start from a photograph of a texture.",
-  "(draft) Pass it through a bank of oriented filters at several scales, like the Gabor bank from earlier today, and measure statistics of the outputs: not just the power spectrum, but correlations between responses at neighboring positions, orientations and scales.",
-  "(draft) Then start from random noise and adjust its pixels, step by step with gradient descent, until its statistics match the ones measured on the photo.",
-  "(to write) The result, next to the original. Then turn the knobs one group at a time: drop a group of statistics, and see which part of the texture falls apart."
 ]});
 
 /* Crowding: the target letter sits at the same distance from the cross in both rows. */
