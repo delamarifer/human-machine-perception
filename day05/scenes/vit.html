@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Vision Transformer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: Day 5 vit part. Pattern B. The arithmetic of one ViT block, computed here on a toy image with
+     random (seeded) weights: patches, linear embedding, position, CLS, self-attention, MLP.
+     It shows the steps, not a trained model; the notes say so. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">The Vision Transformer</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+  <div class="cite" id="cite" style="opacity:0;transition:opacity .6s">Dosovitskiy et al., 2021, ICLR · Vaswani et al., 2017, NeurIPS</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE    (0):   the title alone
+   ACT 1  TOKENS   (1-4): cut into 16 patches; flatten and project each to a token; add position; add [CLS]
+   ACT 2  BLOCK    (5-6): self-attention between all 17 tokens (the matrix); weighted sum + MLP: new tokens
+   ACT 3  OUT      (7-8): stack many blocks; the [CLS] token's final vector is the image's embedding
+   No data colors: values are gray cells (mid gray = 0, darker = positive). */
+const FONT = "Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif";
+function rng(seed){ return () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const gauss = r => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r());
+
+/* a toy image: rings, 32x32, cut into a 4x4 grid of 8x8 patches */
+const N = 32, G = 4, P = 8, D = 6, T = G * G + 1, r = rng(31);
+const IM = new Float32Array(N * N);
+for(let y = 0; y < N; y++) for(let x = 0; x < N; x++) IM[y * N + x] = .5 + .4 * Math.sin(.75 * Math.hypot(x - 13, y - 15)) + .04 * gauss(r);
+const PATCH = [...Array(G * G)].map((_, t) => { const gx = t % G, gy = Math.floor(t / G), v = [];
+  for(let y = 0; y < P; y++) for(let x = 0; x < P; x++) v.push(IM[(gy * P + y) * N + gx * P + x] - .5); return v; });
+const mat = (rows, cols, s) => [...Array(rows)].map(() => [...Array(cols)].map(() => s * gauss(r)));
+const mul = (v, M) => M[0].map((_, j) => v.reduce((s, vi, i) => s + vi * M[i][j], 0));
+const E = mat(P * P, D, 1 / Math.sqrt(P * P)), POS = mat(G * G + 1, D, .5), CLS = mat(1, D, .5)[0];
+const WQ = mat(D, D, 1 / Math.sqrt(D)), WK = mat(D, D, 1 / Math.sqrt(D)), WV = mat(D, D, 1 / Math.sqrt(D));
+const W1 = mat(D, 2 * D, 1 / Math.sqrt(D)), W2 = mat(2 * D, D, 1 / Math.sqrt(2 * D));
+const TOK0 = PATCH.map(p => mul(p, E));                                   // linear embedding
+const TOK1 = TOK0.map((t, i) => t.map((v, j) => v + POS[i + 1][j]));      // + position
+const X = [CLS.map((v, j) => v + POS[0][j]), ...TOK1];                    // + [CLS]
+const Q = X.map(x => mul(x, WQ)), K = X.map(x => mul(x, WK)), V = X.map(x => mul(x, WV));
+const ATT = Q.map(q => { const s = K.map(k => q.reduce((a, v, i) => a + v * k[i], 0) / Math.sqrt(D)), m = Math.max(...s), e = s.map(v => Math.exp(v - m)), z = e.reduce((a, b) => a + b); return e.map(v => v / z); });
+const MIX = ATT.map(w => V[0].map((_, j) => w.reduce((s, wi, i) => s + wi * V[i][j], 0)));
+const H1 = X.map((x, i) => x.map((v, j) => v + MIX[i][j]));              // residual
+const OUT = H1.map(h => { const u = mul(h, W1).map(v => Math.max(0, v)), o = mul(u, W2); return h.map((v, j) => v + o[j]); });   // MLP + residual
+const AMAX = Math.max(...ATT.flat()), rowSum = ATT.map(w => w.reduce((a, b) => a + b));
+
+const CAPS = ['', 'cut into 16 patches', 'flatten + project: each patch → a token', '+ position', '+ a [CLS] token', 'self-attention: every token weighs every token', 'weighted sum, then an MLP: new tokens', 'stack many blocks', 'the [CLS] token: the image’s embedding'];
+const NOTES = [
+  "(draft) Title only. Now put attention to work on images: the Vision Transformer, or ViT.",
+  "(draft) Step one: cut the image into patches. Here a toy 32 by 32 image becomes 16 patches of 8 by 8. The original ViT used 16 by 16 pixel patches; hence the paper's title, an image is worth 16 by 16 words.",
+  "(draft) Flatten each patch into a list of 64 pixel values and multiply by one weight matrix: each patch becomes a token, a short vector. Here 6 numbers per token; in ViT-Base, 768. The same matrix is used for every patch.",
+  "(draft) Attention by itself does not know where a patch came from. So we add a position embedding to each token, a vector that is different for each place in the grid.",
+  "(draft) And we add one extra token at the front, called CLS, for class. It belongs to no patch; its job is to collect information from all of them.",
+  "(draft) Self-attention: each token makes a query, a key and a value, by three more matrix multiplications. Every query is compared with every key, and a softmax turns each row into weights that add up to one. This 17 by 17 matrix is who listens to whom.",
+  "(draft) Each token becomes the weighted sum of all the values, added to what it was before, and then goes through a small two-layer network of its own, the MLP. That is one transformer block. (Layer normalization is skipped here.)",
+  "(draft) Stack many blocks: ViT-Base has 12. Each block lets every token gather information from every other token again.",
+  "(draft) At the end, the CLS token's vector stands for the whole image: that is the embedding. A classifier on top of it gives the label. One honest caveat: the numbers on this slide come from random weights, so they show the arithmetic, not what a trained ViT computes. In the lab you will use a trained one."
+];
+const NB = NOTES.length - 1;
+let beat = 0, t0 = 0;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+function go(b, jump){ beat = b; t0 = performance.now() - (jump ? 1e9 : 0); document.getElementById('cite').style.opacity = b >= 1 ? 1 : 0;
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join(''); }
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const d = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+const txt = (t, x, y, sz, bold, align = 'center', base = 'middle') => { ctx.fillStyle = '#0f172a'; ctx.font = `${bold ? 700 : 400} ${sz}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(t, x, y); };
+const off = document.createElement('canvas'); off.width = off.height = N; { const o = off.getContext('2d'), d = o.createImageData(N, N);
+  for(let i = 0; i < N * N; i++){ const g = Math.round(255 * Math.max(0, Math.min(1, IM[i]))); d.data[4 * i] = d.data[4 * i + 1] = d.data[4 * i + 2] = g; d.data[4 * i + 3] = 255; } o.putImageData(d, 0, 0); }
+const VMAX = Math.max(...[X, OUT].flat(2).map(Math.abs));
+const gray = v => { const g = Math.round(255 * (.5 - .5 * Math.max(-1, Math.min(1, v / VMAX)))); return `rgb(${g},${g},${g})`; };
+function column(vec, x, y, c, a){ ctx.globalAlpha = a; vec.forEach((v, j) => { ctx.fillStyle = gray(v); ctx.fillRect(x, y + j * c, c, c); });
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1; ctx.strokeRect(x, y, c, c * vec.length); ctx.globalAlpha = 1; }
+
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();
+  const p = Math.min(1, (now - t0) / 1000), A = b => beat > b ? 1 : beat === b ? ease(p) : 0;
+  ctx.clearRect(0, 0, W, H);
+  const fs = Math.max(15, W * .014), big = Math.max(20, W * .019);
+  const S = Math.min(H * .3, W * .14);
+  /* the image, top-left; at beat 1 its patches fly out into a row */
+  const colW = W / 19, rowX = i => W * .02 + (i + 1.6) * colW, pS = colW * .72, rowY = H * .02, cell = Math.min(colW * .5, H * .042), tokY = rowY + pS + H * .07;
+  if(beat < 1) { }
+  else {
+    const fly = A(1);
+    for(let t = 0; t < G * G; t++){
+      const gx = t % G, gy = Math.floor(t / G);
+      const sx = W * .02 + gx * S / G, sy = rowY + gy * S / G, ex = rowX(t + 1) - pS / 2, ey = rowY;
+      const x = sx + (ex - sx) * fly, y = sy + (ey - sy) * fly, s = S / G + (pS - S / G) * fly;
+      ctx.imageSmoothingEnabled = false; ctx.drawImage(off, gx * P, gy * P, P, P, x, y, s, s);
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, s, s);
+    }
+  }
+  /* tokens under each patch */
+  if(A(2) > 0){ const vec = t => beat >= 6 ? OUT[t + 1] : beat >= 3 ? TOK1[t] : TOK0[t], a = A(2);
+    txt('tokens', W * .02, tokY + cell * D / 2, fs, true, 'left');
+    for(let t = 0; t < G * G; t++){ ctx.globalAlpha = a; ctx.strokeStyle = '#cbd5e1'; ctx.beginPath(); ctx.moveTo(rowX(t + 1), rowY + pS + 4); ctx.lineTo(rowX(t + 1), tokY - 4); ctx.stroke();
+      column(vec(t), rowX(t + 1) - cell / 2, tokY, cell, a); }
+    if(beat === 3){ ctx.globalAlpha = A(3); txt('+ position', rowX(8.5), tokY + cell * D + fs * 1.4, fs, true); ctx.globalAlpha = 1; } }
+  if(A(4) > 0){ ctx.globalAlpha = A(4); ctx.fillStyle = '#f1f5f9'; ctx.fillRect(rowX(0) - pS / 2, rowY, pS, pS); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1.5; ctx.strokeRect(rowX(0) - pS / 2, rowY, pS, pS);
+    txt('CLS', rowX(0), rowY + pS / 2, fs * .9, true); column(beat >= 6 ? OUT[0] : X[0], rowX(0) - cell / 2, tokY, cell, A(4)); ctx.globalAlpha = 1; }
+  /* the attention matrix */
+  const mY = tokY + cell * D + H * .08, mS = Math.min(H - mY - big * 1.8, W * .3), mc = mS / T;
+  if(A(5) > 0 && beat < 7){ ctx.globalAlpha = beat === 5 ? A(5) : .35;
+    for(let i = 0; i < T; i++) for(let j = 0; j < T; j++){ const g = Math.round(255 * (1 - ATT[i][j] / AMAX)); ctx.fillStyle = `rgb(${g},${g},${g})`; ctx.fillRect(W * .02 + j * mc, mY + i * mc, mc, mc); }
+    ctx.strokeStyle = '#94a3b8'; ctx.strokeRect(W * .02, mY, mS, mS);
+    txt('who listens to whom (each row adds up to 1)', W * .02 + mS + W * .02, mY + fs, fs, true, 'left');
+    txt('rows: queries · columns: keys', W * .02 + mS + W * .02, mY + fs * 2.6, fs, false, 'left'); ctx.globalAlpha = 1; }
+  /* stacking and output */
+  if(A(7) > 0){ ctx.globalAlpha = A(7); const bx = W * .04, by = mY, bw = W * .3, bh = Math.min(H * .07, (H - mY) / 5);
+    for(let k = 2; k >= 0; k--){ ctx.fillStyle = '#fff'; ctx.fillRect(bx + k * 10, by + k * 10, bw, bh); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1.5; ctx.strokeRect(bx + k * 10, by + k * 10, bw, bh); }
+    txt('transformer block × 12 (ViT-Base)', bx + 20 + bw / 2, by + 20 + bh / 2, fs, true); ctx.globalAlpha = 1; }
+  if(A(8) > 0){ ctx.globalAlpha = A(8); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 4; ctx.strokeRect(rowX(0) - cell / 2 - 4, tokY - 4, cell + 8, cell * D + 8);
+    const ex = W * .5, ey = mY + H * .05; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(rowX(0), tokY + cell * D + 6); ctx.lineTo(rowX(0), ey); ctx.lineTo(ex - 10, ey); ctx.stroke();
+    ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex - 12, ey - 7); ctx.lineTo(ex - 12, ey + 7); ctx.fill();
+    txt('embedding → classifier → label', ex + 10, ey, big, true, 'left'); ctx.globalAlpha = 1; }
+  ctx.globalAlpha = beat ? Math.min(1, p * 2) : 0; txt(CAPS[beat], W, H - big * .4, big, true, 'right', 'bottom'); ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+
+window.vitScene = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+  notes: NOTES,
+  debug: () => ({rowSums: rowSum.map(v => +v.toFixed(6)), clsAtt: ATT[0].map(v => +v.toFixed(3))})
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) vitScene.advance(); if(e.key === 'ArrowLeft') vitScene.back(); });
+  addEventListener('click', () => vitScene.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

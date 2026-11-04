@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Comparing representations</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: Day 5 compare part. Pattern B. Representational dissimilarity matrices (1 - Pearson r) for
+     18 toy images, from the Gabor-bank embedding and from raw pixels, and a model RDM ("same kind =
+     similar"); compared with Spearman correlation. All computed here. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Comparing representations</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+  <div class="cite" id="cite" style="opacity:0;transition:opacity .6s">RSA: Kriegeskorte, Mur &amp; Bandettini, 2008</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE   (0):   the title alone
+   ACT 1  RDMS    (1-4): 18 images; the embedding's RDM; the pixels' RDM; a model RDM (same kind = similar)
+   ACT 2  RSA     (5):   correlate the RDMs: which representation matches the model?
+   No data colors: darker cell = more different. */
+/* ---- shared toy set (the same block is pasted into each Day 5 scene, so each scene stays self-contained) ----
+   Images are made here, seeded: 6 kinds of 32x32 gray texture. The "embedding" is a hand-designed Gabor
+   filter bank (4 orientations x 2 scales, as on Day 3), standing in for a network layer: each filter's
+   energy map is averaged over the image, giving 8 numbers. */
+const FONT = "Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif";
+function rng(seed){ return () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const gauss = r => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r());
+const KINDS = ['horizontal stripes', 'vertical stripes', 'diagonal stripes', 'checkers', 'dots', 'rings'];
+function toyImage(kind, r, n = 32){
+  const f = .09 + .07 * r(), ph = 6.2832 * r(), ph2 = 6.2832 * r(), c = .32 + .12 * r(), cx = n * (.3 + .4 * r()), cy = n * (.3 + .4 * r());
+  const im = new Float32Array(n * n), T = 2 * Math.PI * f;
+  for(let y = 0; y < n; y++) for(let x = 0; x < n; x++){
+    let v;
+    if(kind === 0) v = Math.sin(T * y + ph);
+    else if(kind === 1) v = Math.sin(T * x + ph);
+    else if(kind === 2) v = Math.sin(T * (x + y) * Math.SQRT1_2 + ph);
+    else if(kind === 3) v = Math.sign(Math.sin(T * x + ph) * Math.sin(T * y + ph2));
+    else if(kind === 4) v = Math.sin(T * x + ph) * Math.sin(T * y + ph2) > .55 ? 1 : -.6;
+    else v = Math.sin(T * Math.hypot(x - cx, y - cy) + ph);
+    im[y * n + x] = Math.max(0, Math.min(1, .5 + c * v + .05 * gauss(r)));
+  }
+  return im;
+}
+/* the filter bank: even and odd Gabors; theta 0 responds to vertical stripes */
+const BANK = [];
+for(const [lam, sig] of [[4, 1.8], [8, 3.4]]) for(let o = 0; o < 4; o++){
+  const th = o * Math.PI / 4, R = Math.ceil(2.2 * sig), size = 2 * R + 1, ev = new Float32Array(size * size), od = new Float32Array(size * size);
+  for(let v = 0; v < size; v++) for(let u = 0; u < size; u++){
+    const x = u - R, y = v - R, xr = x * Math.cos(th) + y * Math.sin(th), g = Math.exp(-(x * x + y * y) / (2 * sig * sig));
+    ev[v * size + u] = g * Math.cos(2 * Math.PI * xr / lam); od[v * size + u] = g * Math.sin(2 * Math.PI * xr / lam);
+  }
+  const m = ev.reduce((a, b) => a + b) / ev.length; ev.forEach((_, i) => ev[i] -= m);
+  for(const k of [ev, od]){ const s = Math.hypot(...k); k.forEach((_, i) => k[i] /= s); }
+  BANK.push({R, size, ev, od, th, lam, name: `${o * 45}°, ${lam === 4 ? 'fine' : 'coarse'}`});
+}
+function energyMap(im, n, b, stride = 1){
+  const m = Math.ceil(n / stride), out = new Float32Array(m * m);
+  for(let j = 0; j < m; j++) for(let i = 0; i < m; i++){
+    const y0 = j * stride, x0 = i * stride; let e = 0, o = 0;
+    for(let v = 0; v < b.size; v++){ let yy = y0 + v - b.R; yy = yy < 0 ? 0 : yy >= n ? n - 1 : yy;
+      for(let u = 0; u < b.size; u++){ let xx = x0 + u - b.R; xx = xx < 0 ? 0 : xx >= n ? n - 1 : xx;
+        const p = im[yy * n + xx] - .5, k = v * b.size + u; e += b.ev[k] * p; o += b.od[k] * p; } }
+    out[j * m + i] = Math.hypot(e, o);
+  }
+  return out;
+}
+const embedRaw = (im, n = 32) => BANK.map(b => { const m = energyMap(im, n, b, 2); return m.reduce((a, v) => a + v, 0) / m.length; });
+/* the standard set: 8 images of each kind, seed 100 + i */
+function toySet(per = 8){ const S = []; for(let k = 0; k < KINDS.length; k++) for(let i = 0; i < per; i++){ const im = toyImage(k, rng(100 + k * 50 + i)); S.push({kind: k, im, raw: embedRaw(im)}); } return S; }
+/* standardize each embedding dimension over a set; cosine similarity; Pearson correlation */
+function standardizer(rows){ const d = rows[0].length, mu = Array(d).fill(0), sd = Array(d).fill(0);
+  rows.forEach(r => r.forEach((v, i) => mu[i] += v / rows.length)); rows.forEach(r => r.forEach((v, i) => sd[i] += (v - mu[i]) ** 2 / rows.length));
+  return r => r.map((v, i) => (v - mu[i]) / (Math.sqrt(sd[i]) || 1)); }
+const dot = (a, b) => a.reduce((s, v, i) => s + v * b[i], 0);
+const cosine = (a, b) => dot(a, b) / (Math.sqrt(dot(a, a) * dot(b, b)) || 1);
+function pearson(a, b){ const n = a.length, ma = a.reduce((s, v) => s + v, 0) / n, mb = b.reduce((s, v) => s + v, 0) / n;
+  let sab = 0, saa = 0, sbb = 0; for(let i = 0; i < n; i++){ const x = a[i] - ma, y = b[i] - mb; sab += x * y; saa += x * x; sbb += y * y; } return sab / Math.sqrt(saa * sbb); }
+/* draw a gray image (values 0..1) into a box */
+function grayCanvas(im, n){ const c = document.createElement('canvas'); c.width = c.height = n; const x = c.getContext('2d'), d = x.createImageData(n, n);
+  for(let i = 0; i < n * n; i++){ const g = Math.round(255 * im[i]); d.data[4 * i] = d.data[4 * i + 1] = d.data[4 * i + 2] = g; d.data[4 * i + 3] = 255; }
+  x.putImageData(d, 0, 0); return c; }
+/* ---- end of shared toy set ---- */
+
+const ALL = toySet(8), Zs = standardizer(ALL.map(s => s.raw));
+const SET = ALL.filter((_, i) => i % 8 < 3), n = SET.length;                // 3 of each kind, in kind order
+const EMB = SET.map(s => Zs(s.raw)), PIX = SET.map(s => Array.from(s.im));
+const rdm = X => X.map(a => X.map(b => 1 - pearson(a, b)));
+const R_E = rdm(EMB), R_P = rdm(PIX), R_M = SET.map(a => SET.map(b => a.kind === b.kind ? 0 : 1));
+const upper = R => { const v = []; for(let i = 0; i < n; i++) for(let j = i + 1; j < n; j++) v.push(R[i][j]); return v; };
+const ranks = v => { const o = v.map((x, i) => [x, i]).sort((a, b) => a[0] - b[0]), r = Array(v.length); let i = 0;
+  while(i < o.length){ let j = i; while(j + 1 < o.length && o[j + 1][0] === o[i][0]) j++; for(let k = i; k <= j; k++) r[o[k][1]] = (i + j) / 2; i = j + 1; } return r; };
+const spearman = (A, B) => pearson(ranks(upper(A)), ranks(upper(B)));
+const S_EM = spearman(R_E, R_M), S_PM = spearman(R_P, R_M), S_EP = spearman(R_E, R_P);
+const f2 = v => (v < 0 ? '−' : '') + Math.abs(v).toFixed(2);
+
+const CAPS = ['', '18 images: 3 of each kind', 'embedding: how different is each pair?', 'raw pixels: the same question', 'a model: same kind = similar', 'RSA: correlate the matrices'];
+const NOTES = [
+  "(draft) Title only. How do we compare two representations that do not even use the same units, say a network layer and a brain area?",
+  "(draft) Take a set of images, here 18 toy images, 3 of each kind, and keep them in the same order throughout.",
+  "(draft) For one representation, the embedding, measure how different every pair of images is: one minus the correlation of their embeddings. That gives an 18 by 18 matrix, a representational dissimilarity matrix, or RDM. Darker means more different. Some light blocks sit along the diagonal: for several kinds, images of the same kind are close.",
+  "(draft) Now the same matrix computed from raw pixels. Much less structure: in pixels, two stripe images that are slightly shifted can look completely different.",
+  "(draft) We can also write down a hypothesis as an RDM: same kind similar, different kinds different. This one is a model, not a measurement.",
+  (`(draft) Representational similarity analysis compares the matrices themselves, with a rank correlation. The embedding matches the kinds model at ${f2(S_EM)}; the pixels at only ${f2(S_PM)}. The same trick works for brain data: the rows can be voxels or neurons instead of network units, because we only compare the patterns of differences. In the lab, you will do this across the layers of a ViT.`)
+];
+const NB = NOTES.length - 1;
+let beat = 0, t0 = 0;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+function go(b, jump){ beat = b; t0 = performance.now() - (jump ? 1e9 : 0); document.getElementById('cite').style.opacity = b >= 2 ? 1 : 0;
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join(''); }
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const d = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+const txt = (t, x, y, sz, bold, align = 'center', base = 'middle') => { ctx.fillStyle = '#0f172a'; ctx.font = `${bold ? 700 : 400} ${sz}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(t, x, y); };
+const THUMB = SET.map(s => grayCanvas(s.im, 32));
+/* shown as rank percentiles of the off-diagonal values (as RSA figures usually are), so the structure is visible */
+const pctRank = R => { const v = upper(R), rk = ranks(v), P = R.map(row => row.map(() => 0)); let k = 0;
+  for(let i = 0; i < n; i++) for(let j = i + 1; j < n; j++){ P[i][j] = P[j][i] = rk[k++] / (v.length - 1); } return P; };
+const SHOW = new Map([[R_E, pctRank(R_E)], [R_P, pctRank(R_P)], [R_M, R_M]]);
+function matrix(R0, x, y, m, a){ const c = m / n, R = SHOW.get(R0); ctx.globalAlpha = a;
+  for(let i = 0; i < n; i++) for(let j = 0; j < n; j++){ const g = Math.round(255 * (1 - R[i][j])); ctx.fillStyle = `rgb(${g},${g},${g})`; ctx.fillRect(x + j * c, y + i * c, c + .5, c + .5); }
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1; ctx.strokeRect(x, y, m, m);
+  ctx.strokeStyle = 'rgba(148,163,184,.8)'; for(let k = 3; k < n; k += 3){ ctx.beginPath(); ctx.moveTo(x + k * c, y); ctx.lineTo(x + k * c, y + m); ctx.moveTo(x, y + k * c); ctx.lineTo(x + m, y + k * c); ctx.stroke(); }
+  ctx.globalAlpha = 1; }
+
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();
+  const p = Math.min(1, (now - t0) / 900), A = b => beat > b ? 1 : beat === b ? ease(p) : 0;
+  ctx.clearRect(0, 0, W, H);
+  const fs = Math.max(16, W * .015), big = Math.max(20, W * .019);
+  const m = Math.min(H * .66, W * .26), th = m / n, top = fs * 2.2 + th, gap = W * .045;
+  const X1 = th + 6, X2 = X1 + m + gap, X3 = X2 + m + gap;
+  if(A(1) > 0){ ctx.globalAlpha = A(1); ctx.imageSmoothingEnabled = false;
+    THUMB.forEach((c, i) => { ctx.drawImage(c, X1 + i * th, top - th - 4, th - 1, th - 1); ctx.drawImage(c, 0, top + i * th, th - 1, th - 1); });
+    ctx.strokeStyle = '#e2e8f0'; ctx.strokeRect(X1, top, m, m); ctx.globalAlpha = 1; }
+  if(A(2) > 0){ matrix(R_E, X1, top, m, A(2)); ctx.globalAlpha = A(2); txt('embedding', X1 + m / 2, fs * .8, fs, true); ctx.globalAlpha = 1; }
+  if(A(3) > 0){ matrix(R_P, X2, top, m, A(3)); ctx.globalAlpha = A(3); txt('raw pixels', X2 + m / 2, fs * .8, fs, true); ctx.globalAlpha = 1; }
+  if(A(4) > 0){ matrix(R_M, X3, top, m, A(4)); ctx.globalAlpha = A(4); txt('model: same kind = similar', X3 + m / 2, fs * .8, fs, true); ctx.globalAlpha = 1; }
+  if(A(5) > 0){ ctx.globalAlpha = A(5); const yb = top + m + fs * 2;
+    txt(`embedding vs model: ${f2(S_EM)}`, X1 + m / 2, yb, big, true); txt(`pixels vs model: ${f2(S_PM)}`, X2 + m / 2, yb, big, true);
+    txt('(Spearman correlation between matrices)', X3 + m / 2, yb, fs, false); ctx.globalAlpha = 1; }
+  if(beat >= 2 && beat < 5){ ctx.globalAlpha = .9; txt('darker = more different (rank percentiles)', X1, top + m + fs * 1.6, fs, false, 'left'); ctx.globalAlpha = 1; }
+  ctx.globalAlpha = beat ? Math.min(1, p * 2) : 0; txt(CAPS[beat], W, H - big * .4, big, true, 'right', 'bottom'); ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+
+window.rsaScene = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+  notes: NOTES,
+  debug: () => ({S_EM, S_PM, S_EP})
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) rsaScene.advance(); if(e.key === 'ArrowLeft') rsaScene.back(); });
+  addEventListener('click', () => rsaScene.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
