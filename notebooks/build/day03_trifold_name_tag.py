@@ -998,22 +998,5 @@ code(r"""
 show_folding_diagram()
 """)
 
-md(r"""
----
-## Reflect (answer in a text cell, or discuss with your neighbor)
-
-1. Which techniques did you combine on your front face, and what visual information does each contribute?
-2. Pick one filter: what did it remove from your photo, what did it emphasize, and what did it preserve?
-3. Your visual system filters at many orientations and scales too (center-surround cells in the retina and
-   LGN, oriented cells in V1). Which of your filtered images is closest to "what V1 sends forward", and what
-   does that suggest about what vision throws away?
-
-**References.** Burt & Adelson (1983), *IEEE Trans. Communications* 31(4):532–540 · Enroth-Cugell & Robson
-(1966), *J. Physiology* 187(3):517–552 · Hubel & Wiesel (1959), *J. Physiology* 148(3):574–591; (1962),
-*J. Physiology* 160(1):106–154 · Jones & Palmer (1987), *J. Neurophysiology* 58(6):1233–1258 · Torralba,
-Isola & Freeman (2024), [*Foundations of Computer Vision*](https://visionbook.mit.edu), chapters 15
-(linear filtering), 22 (filter banks) and 23 (pyramids). *Sample photo:* the café photo from the Day 2 lab.
-""")
-
 if __name__ == '__main__':
     main(FILE, private_solutions=True)
