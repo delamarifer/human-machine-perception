@@ -75,20 +75,61 @@ const mvArrow = step => `<div class="b" data-step="${step}" style="font-size:cla
 /* ---------- 1. Definition, then color ---------- */
 section('Metamers');
 
+/* The definition, general (Fernanda, 2026-11-04: just the function; then x1, x2 can be images, sounds or any
+   sensory input, and f the human visual system, an AI model or any system that does inference).
+   Each slot swaps in place: later items stack on top of earlier ones (white background). */
+const mvWave = (seed, n = 90) => { let r = seed; const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
+  const pts = [...Array(n)].map((_, i) => { const env = .25 + .75 * Math.abs(Math.sin(i / n * Math.PI * (2 + seed % 3)));
+    return `${(i / (n - 1) * 200).toFixed(1)},${(40 + (rnd() * 2 - 1) * 34 * env).toFixed(1)}`; });
+  return `<svg viewBox="0 0 200 80" style="width:100%;height:auto"><polyline points="${pts.join(' ')}" fill="none" stroke="${MV_INK}" stroke-width="1.6" stroke-linejoin="round"/></svg>`; };
+const mvPair = (a, b, step, cap) => `<div class="b mvdef-item" data-step="${step}">
+  <div class="mvdef-pair"><div><div class="label mvdef-sub">x₁</div>${a}</div><div><div class="label mvdef-sub">x₂</div>${b}</div></div>
+  <div class="label mvdef-cap">${cap}</div></div>`;
+const mvF = (step, text) => `<div class="b mvdef-item mvdef-f" data-step="${step}"><b class="lead">f</b><div class="label">${text}</div></div>`;
+
 st(`
   <h1 class="t">Metamers</h1>
   <div class="statement center b" data-step="1">x₁ ≠ x₂ &nbsp;&nbsp;but&nbsp;&nbsp; f(x₁) = f(x₂)</div>
-  <div style="margin:auto 0;display:grid;grid-template-columns:1fr 1fr auto 1fr auto 1fr;gap:2vw;align-items:center">
-    ${mvCol(mvSpectrum('lamp'), 'x₁: a lamp', 1)}${mvCol(mvSpectrum('spikes'), 'x₂: three lights', 1)}
-    ${mvArrow(2)}<div class="b" data-step="2" style="border:2px solid ${MV_INK};border-radius:14px;padding:3vh 1vw;text-align:center"><b class="lead">f</b><div class="label">the cones</div></div>
-    ${mvArrow(2)}${mvCol(mvBars(), 'f(x₁) = f(x₂)', 2)}
+  <div class="mvdef-row">
+    <div class="mvdef-stack">
+      ${mvPair('<img src="assets/ps-textures/pebbles-original.png" alt="">', '<img src="assets/ps-textures/pebbles-all.png" alt="">', 2, 'images')}
+      ${mvPair(mvWave(7), mvWave(4242), 3, 'sounds')}
+      <div class="b mvdef-item" data-step="4"><div class="lead mvdef-any">any sensory input</div><div class="label mvdef-cap">touch, smell, …</div></div>
+    </div>
+    <div class="b mvdef-arrow" data-step="5">→</div>
+    <div class="mvdef-stack">
+      ${mvF(5, 'the human visual system')}
+      ${mvF(6, 'an AI model')}
+      ${mvF(7, 'any system that does inference over the stimuli')}
+    </div>
+    <div class="b mvdef-arrow" data-step="5">→</div>
+    <div class="b lead" data-step="5">f(x₁) = f(x₂)</div>
   </div>
-  <div class="lead center b" data-step="3">They show what f throws away</div>
+  <div class="lead center b" data-step="8">They show what f throws away</div>
+  <style>
+    .mvdef-row{ margin:auto 0; display:grid; grid-template-columns:min(40vw, 62vh) auto minmax(0, 1fr) auto auto; gap:2vw; align-items:center; }
+    .mvdef-stack{ display:grid; align-items:center; }
+    .mvdef-stack > .mvdef-item{ grid-area:1 / 1; align-self:center; }
+    .mvdef-stack > .mvdef-item:has(~ .mvdef-item.shown){ opacity:0 !important; }   /* a later item replaces it */
+    .mvdef-pair{ display:grid; grid-template-columns:1fr 1fr; gap:1.4vw; align-items:end; }
+    .mvdef-pair img{ width:100% !important; height:auto !important; max-height:none !important; aspect-ratio:1 / 1; object-fit:cover; display:block; border-radius:6px; }
+    .mvdef-sub{ text-align:center; margin-bottom:.6vh; }
+    .mvdef-cap{ text-align:center; margin-top:1.2vh; }
+    .mvdef-any{ text-align:center; padding:6vh 0; }
+    .mvdef-f{ border:2px solid ${MV_INK}; border-radius:14px; padding:3vh 1.2vw; text-align:center; }
+    .mvdef-arrow{ font-size:clamp(1.6rem,2.6vw,2.4rem); color:#64748b; }
+  </style>
+  <div class="cite b" data-step="2">Images: a pebble photo and its Portilla–Simoncelli texture metamer, made with plenoptic</div>
 `, { notes: [
   "(draft) You read about metamers in the primer. Here is the short version, in the language we just set up.",
-  "(draft) Two inputs, x one and x two, that are physically different. Here, the light of a lamp, with energy at every wavelength, and a mix of three single wavelengths.",
-  "(draft) A representation f, here the cones, maps them to exactly the same three numbers. The system cannot tell them apart: physically different, the same to the system.",
-  "(draft) And that is what makes them useful: whatever differs between two metamers is information f has thrown away. Let's see this happen."
+  "(draft) Two inputs, x one and x two, that are physically different, and a function f that maps them to exactly the same output.",
+  "(draft) The inputs can be images. Here, a photo of pebbles, and a new image synthesized to match its texture statistics: every pixel is different.",
+  "(draft) They can be sounds: two different waveforms.",
+  "(draft) Or any sensory input at all: touch, smell, anything a system takes in.",
+  "(draft) And f can be the human visual system: two images that look the same to us.",
+  "(draft) It can be an AI model: two inputs that produce the same activations, or the same answer.",
+  "(draft) Or any system that does inference over the stimuli. If its output is the same, the two inputs are metamers for that system.",
+  "(draft) And that is what makes them useful: whatever differs between two metamers is information f has thrown away. Let's see this happen, first in color."
 ]});
 
 sc('colorMetamers', 'scenes/color-metamers.html');
