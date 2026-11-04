@@ -310,7 +310,7 @@ st(`
     <div class="arrow b" data-step="4">→</div>
     <div class="step b" data-step="4"><b>Synthesis</b><span class="label">noise, adjusted to match</span></div>
   </div>
-  <div class="todo b" data-step="5">Sound examples: an original texture and its synthetic version, to play in class. Source: to add</div>
+  <a class="label center b" data-step="5" href="https://mcdermottlab.mit.edu/texture_examples/index.html" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--ink)">Listen: originals and syntheses, mcdermottlab.mit.edu/texture_examples ↗</a>
   ${cite('McDermott &amp; Simoncelli, 2011')}
 `, { notes: [
   "(draft) The same idea works for sound, and it is where McDermott and Simoncelli started.",
@@ -318,7 +318,7 @@ st(`
   "(draft) Pass it through a model of the ear: the cochlea splits the sound into frequency channels, the way the image model split the photo into filters.",
   "(draft) Then measure a set of statistics of those channels over time: how loud each band is on average, how much it varies, how the bands move together. Those statistics are the knobs.",
   "(draft) Start from noise and adjust it until its statistics match the original's. McDermott and Simoncelli did exactly this.",
-  "(to write) Listen to the original and the synthetic version. For many textures, listeners hear them as the same kind of sound, even though the waveform is completely different: a metamer, for us. And when a synthetic sound does not sound right, it tells us which statistic we were missing: turning the knobs shows the edges of our hearing."
+  "(draft) Listen to the original and the synthetic version. For many textures, listeners hear them as the same kind of sound, even though the waveform is completely different: a metamer, for us. And when a synthetic sound does not sound right, it tells us which statistic we were missing: turning the knobs shows the edges of our hearing."
 ]});
 
 /* Crowding: the target letter sits at the same distance from the cross in both rows. */
