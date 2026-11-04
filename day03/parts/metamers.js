@@ -572,4 +572,30 @@ labTurn(3, 'The stages in between', ['Pick "layer2" or "layer3"', 'Predict first
   'Pick layer 2 or layer 3. Predict first: will its metamer look like the photo to you? And what will the network call it?',
   'Open Your turn 3 in Colab and take a few minutes.']);
 labSolution(3, 'From layer 3, the metamer looks mostly like colored noise to us, with a faint trace of the cup. The network still calls it espresso, 62 percent, then cup and coffee mug. What makes it a cup to you is already thrown away by layer 3.');
+
+/* Fernanda, 2026-11-04: follow Your turn 3 with the robust parallel. The lab's section 4b, run fresh by the lab session
+   (claude/day03-metamer-lab-d865a4 91dffa0): standard vs robust ResNet-50 (Madry lab checkpoints), both matched at layer4. */
+st(`
+  <h1 class="t">The same metamer, from a robust network</h1>
+  <img class="b" data-step="1" src="assets/lab-solutions/robust-4b.png" alt="" style="width:min(80vw, 150vh);max-height:38vh;object-fit:contain;align-self:center;margin-top:1vh">
+  <div class="b" data-step="2" style="display:grid;grid-template-columns:1.2fr 1fr;gap:1.6vw;margin-top:2vh">
+    <pre class="metamers-code">${labEsc(`late = {}
+for name, network in nets.items():
+    print(name, end=": ")
+    late[name] = synthesize(photo_rgb, po.models.DeepNetFeatures(network, "layer4", normalize),
+                            steps=600, lr=0.02).metamer
+
+show([photo_rgb, late["standard"], late["robust"]],
+     ["target", "standard ResNet-50, layer4", "robust ResNet-50, layer4"], size=3.6)
+for name, network in nets.items():
+    print(f"The {name} network sees its own layer4 metamer as:", top3_of(network, late[name]))`)}</pre><pre class="metamers-out">${labEsc(`standard: 440 steps in 25.7 s; loss 0.751 -> 0.0385
+robust: 600 steps in 36.1 s; loss 1.01 -> 0.0448
+The standard network sees its own layer4 metamer as: espresso 59%, cup 26%, coffee mug 5%
+The robust network sees its own layer4 metamer as: espresso 37%, cup 26%, coffee mug 6%`)}</pre>
+  </div>${LAB_CSS}
+`, { notes: [
+  "(draft) One more, from the lab: the same café photo, matched at the last stage, layer 4, of two networks.",
+  "(draft) On the left, the photo. In the middle, the metamer for a standard ResNet-50: colored noise to us. On the right, the metamer for a robust ResNet-50, trained with adversarial training: you can still see the cup, the saucer and the hand. Same recipe, same stage; the robust network throws away much less of what matters to us.",
+  "(draft) Both networks still call their own metamer espresso: 59 percent for the standard one, 37 percent for the robust one. You can run this in section 4b of the lab."
+]});
 }

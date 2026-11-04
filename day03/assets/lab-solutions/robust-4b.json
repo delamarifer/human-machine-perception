@@ -1,0 +1,4 @@
+{
+  "code": "late = {}\nfor name, network in nets.items():\n    print(name, end=\": \")\n    late[name] = synthesize(photo_rgb, po.models.DeepNetFeatures(network, \"layer4\", normalize),\n                            steps=600, lr=0.02).metamer\n\nshow([photo_rgb, late[\"standard\"], late[\"robust\"]],\n     [\"target\", \"standard ResNet-50, layer4\", \"robust ResNet-50, layer4\"], size=3.6)\nfor name, network in nets.items():\n    print(f\"The {name} network sees its own layer4 metamer as:\", top3_of(network, late[name]))",
+  "out": "standard: 440 steps in 25.7 s; loss 0.751 -> 0.0385\nrobust: 600 steps in 36.1 s; loss 1.01 -> 0.0448\nThe standard network sees its own layer4 metamer as: espresso 59%, cup 26%, coffee mug 5%\nThe robust network sees its own layer4 metamer as: espresso 37%, cup 26%, coffee mug 6%"
+}
