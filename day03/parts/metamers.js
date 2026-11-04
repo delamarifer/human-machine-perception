@@ -386,21 +386,44 @@ st(`
   "(draft) In both cases, a model chooses the stimulus. And that is where neural networks come in."
 ]});
 
+/* Fernanda, 2026-11-04: the network again (from the start of Part 1), then the parallel, drawn with pictures */
+sc('nnModels', 'scenes/defense-nn-models.html');
+
+/* the parallel, in pictures. Network column: a real gradient-descent result (the lab's Your turn 3 solution: the
+   café photo and its ResNet-18 layer3 metamer, run fresh) and the network's real answer for it (espresso 62%). */
+const mvAct = (() => { const cols = 5, rows = 7, out = [];
+  for(let k = 0; k < cols; k++) for(let i = 0; i < rows; i++){ const t = (Math.sin(k * 2.1 + i * 1.7) + Math.sin(k * .7 + i * 2.9) + 2) / 4;
+    out.push(`<rect x="${10 + k * 26}" y="${8 + i * 14 - k * 4 + 16}" width="20" height="14" fill="#4f6d9a" fill-opacity="${(.15 + .85 * t).toFixed(2)}" stroke="#0f172a" stroke-width="1"/>`); }
+  return `<svg viewBox="0 0 150 130" style="height:14vh;width:auto">${out.join('')}</svg>`; })();
+const mvField = `<svg viewBox="0 0 120 120" style="height:14vh;width:auto"><rect width="120" height="120" rx="10" fill="#0b0d10"/>
+  <circle cx="60" cy="60" r="40" fill="#f3b670"/><line x1="60" y1="20" x2="60" y2="100" stroke="#475569" stroke-width="1.5"/></svg>`;
 st(`
-  <h1 class="t">Neural networks: gradient descent as the knobs</h1>
-  <div style="margin:auto 0;display:grid;grid-template-columns:auto 1fr 1fr;gap:2.4vh 3vw;align-items:center">
+  <h1 class="t">Gradient descent on model representations as the ‘knobs’ for looking into inner mechanisms</h1>
+  <div class="metamers-par">
     <div></div><div class="lead b" data-step="1"><b>Color</b></div><div class="lead b" data-step="1"><b>A network</b></div>
-    <div class="label b" data-step="2">the knobs</div><div class="lead b" data-step="2">three lights</div><div class="lead b" data-step="2">gradient descent on the pixels</div>
-    <div class="label b" data-step="3">the sensors</div><div class="lead b" data-step="3">the cones</div><div class="lead b" data-step="3">a stage's activations</div>
-    <div class="label b" data-step="4">the percept</div><div class="lead b" data-step="4">the color you see</div><div class="lead b" data-step="4">the model's behavior</div>
+    <div class="label b" data-step="2">the knobs</div>
+    <div class="b metamers-par-cell" data-step="2"><div style="height:14vh">${mvKnobs()}</div><span class="label">three lights</span></div>
+    <div class="b metamers-par-cell" data-step="2"><img src="assets/lab-solutions/solution-3.png" alt="" style="height:14vh"><span class="label">gradient descent on the pixels</span></div>
+    <div class="label b" data-step="3">the sensors</div>
+    <div class="b metamers-par-cell" data-step="3"><div style="height:14vh">${mvCones}</div><span class="label">the cones</span></div>
+    <div class="b metamers-par-cell" data-step="3">${mvAct}<span class="label">a stage’s activations</span></div>
+    <div class="label b" data-step="4">the percept</div>
+    <div class="b metamers-par-cell" data-step="4">${mvField}<span class="label">the color you see</span></div>
+    <div class="b metamers-par-cell" data-step="4"><div class="metamers-par-say">“espresso, 62%”</div><span class="label">the model’s behavior</span></div>
   </div>
-  <div class="statement center b" data-step="5">What does the model encode, and what does it throw away?</div>
+  <div class="statement center b" data-step="5" style="margin-bottom:2vh">What does the model encode, and what does it throw away?</div>
+  <style>
+    .metamers-par{ margin:auto 0; display:grid; grid-template-columns:auto 1fr 1fr; gap:1.2vh 3vw; align-items:center; }
+    .metamers-par-cell{ display:flex; align-items:center; gap:1.4vw; }
+    .metamers-par-cell svg{ height:14vh; width:auto; }
+    .metamers-par-say{ height:14vh; display:flex; align-items:center; padding:0 1.2vw; border:2px solid var(--ink); border-radius:14px; font-size:clamp(1.3rem, 2.2vw, 2rem); font-weight:700; }
+  </style>
 `, { notes: [
-  "(draft) Neural networks give us knobs for any representation we can compute.",
+  "(draft) Gradient descent on model representations gives us knobs for looking into a model's inner mechanisms.",
   "(draft) Compare with color.",
-  "(draft) In color, the knobs are three lights. In a network, the knob is gradient descent: we can change every pixel of an image, a little at a time, in whatever direction moves the network where we want.",
+  "(draft) In color, the knobs are three lights. In a network, the knob is gradient descent: we change every pixel of an image, a little at a time, in whatever direction moves the network where we want. Here, the café photo, and an image made this way to match the network's third stage. You will make this one yourselves in the lab.",
   "(draft) In color, the sensors are the cones. In a network, they are the activations at one stage: the model's representation.",
-  "(draft) And in color, the output is the color you see. In a network, it is the model's behavior, for example its label.",
+  "(draft) And in color, the output is the color you see. In a network, it is the model's behavior: for that scrambled image, the network still answers espresso, 62 percent.",
   "(draft) So networks let us ask exactly the question we asked of the cones: what does this model encode, and what does it throw away? Here are some answers."
 ]});
 
