@@ -8,6 +8,7 @@ page (`index.html`) with the "Open in Colab" badge; nothing to install.
 | [day01-practice-numpy-images.ipynb](day01-practice-numpy-images.ipynb) | Class day 2 | Checker-shadow image and NumPy: pixels, slices, brightness, contrast |
 | [day01-lab-simple-vision-system.ipynb](day01-lab-simple-vision-system.ipynb) | Class day 2 | A simple vision system that recovers 3D from one image of a blocks world (after Ch. 2 of Torralba, Isola & Freeman, *Foundations of Computer Vision*) |
 | [day02-lab.ipynb](day02-lab.ipynb) | Class day 3 | ResNet-18 on the café photo, the Rubik's cube, and the elephant statue, plus an optional depth section |
+| [day03-lab.ipynb](day03-lab.ipynb) | Class day 4 | Day 3 lab in one notebook: Part 1 metamers, then Part 2 image filtering. |
 | [day03-lab-metamers.ipynb](day03-lab-metamers.ipynb) | Class day 4 | Make metamers with plenoptic: a pooling model by hand, front-end and texture models, ResNet-18 early vs late, and sound (a cochleagram model, sound-texture statistics, wav2vec 2.0). Data in `data/day03/` |
 | [day03-lab2-image-filtering.ipynb](day03-lab2-image-filtering.ipynb) | Class day 4 | Lab 2, image filtering: filter your own photograph and make a printable trifold name tag. Student notebook; no solutions. |
 
