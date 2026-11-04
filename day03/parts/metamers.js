@@ -464,21 +464,21 @@ st(`
 st(`
   <h1 class="t">Now you try: make a metamer</h1>
   <div class="flow" style="margin:auto 0">
-    <div class="step b" data-step="1"><b>A texture</b><span class="label">match its statistics</span></div>
+    <div class="step b" data-step="1"><img src="assets/lab-solutions/solution-2.png" alt="" style="height:13vh;width:auto;margin-bottom:1vh"><b>A texture</b><span class="label">match its statistics</span></div>
     <div class="arrow b" data-step="2">→</div>
-    <div class="step b" data-step="2"><b>A vision network</b><span class="label">match one stage</span></div>
+    <div class="step b" data-step="2"><img src="assets/lab-solutions/solution-3.png" alt="" style="height:13vh;width:auto;margin-bottom:1vh"><b>A vision network</b><span class="label">match one stage</span></div>
     <div class="arrow b" data-step="3">→</div>
-    <div class="step b" data-step="3"><b>A sound</b><span class="label">match an audio model</span></div>
+    <div class="step b" data-step="3"><div style="height:13vh;width:16vw;display:flex;align-items:center;margin-bottom:1vh">${mvWave(11)}</div><b>A sound</b><span class="label">match an audio model</span></div>
   </div>
   <div class="lead center b" data-step="4">Then test a partner: which one is real?</div>
-  <div class="todo b" data-step="5">Colab link: notebooks/day03-lab-metamers.ipynb (being built with plenoptic)</div>
+  <a class="b" data-step="5" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day03-lab-metamers.ipynb" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="align-self:center;border:3px solid var(--ink);border-radius:999px;padding:1.2vh 2vw;font-weight:700;font-size:clamp(1.2rem,2vw,1.8rem);color:var(--ink);text-decoration:none">Open the lab in Colab ↗</a>
 `, { notes: [
   "(draft) Now you try. In the lab you make metamers yourselves, with a library called plenoptic.",
   "(draft) First a texture: pick a photo, and synthesize a new image that matches its statistics.",
   "(draft) Then a vision network: match the activations at one stage, early or late, and see what survives.",
   "(draft) Then a sound: the same idea with an audio model, and you can listen to the result.",
   "(draft) And then test a partner: play or show them your original and your metamer, and see whether they can tell which one is real.",
-  "(to write) Where to find the notebook."
+  "(draft) Open the lab in Colab from this link. The images on these boxes are the solutions you will reach: the brick texture, and the café photo matched at the network's third stage."
 ]});
 /* The lab loop, as on Day 2 (Fernanda, 2026-11-04: "screenshots of the solutions after the exercise of try it
    yourself for at least 2 or 3 parts"): Your turn N, then its solution as a notebook cell with its real output.
