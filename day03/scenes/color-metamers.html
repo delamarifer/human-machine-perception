@@ -428,7 +428,7 @@ const NOTES = [
   "(defense) Turn the red knob. 700 nm drives mostly the L cones, some M, almost no S. The right half turns red.",
   "(defense) Add green. 546 nm drives M and L. L and M on the right now match the left; the color is close, but S is still off.",
   "(defense) Add blue. 436 nm supplies the S cones. At R 1.000, G 0.397, B 0.232 the three cone numbers agree, and the boundary disappears: two physically different lights, one color. That is a metamer.",
-  "(draft) Now look at what is physically coming out of each half of the field. On the left, the lamp: energy at every wavelength, rising toward the red. On the right, three narrow spikes, and nothing in between. The scale is logarithmic: the red spike carries hundreds of times more energy than the other two, because your cones are so insensitive at 700 nm. Almost no wavelength has the same energy on both sides. A spectrometer would call these two lights completely different. Your cones report the same three numbers, so you see one color."
+  "(draft) Now look at what is physically coming out of the two halves of the field, on the same axes. The lamp, in black: energy at every wavelength, rising toward the red. The three primaries, in their knobs' colors: three narrow spikes, and nothing in between. The scale is logarithmic: the red spike carries hundreds of times more energy than the other two, because your cones are so insensitive at 700 nm. Almost no wavelength has the same energy on both sides. A spectrometer would call these two lights completely different. Your cones report the same three numbers, so you see one color."
 ];
 const N = NOTES.length;
 const settle = b => {                                       // the state a beat lands on
@@ -462,23 +462,33 @@ function enter(prev, jumped){
   render();
 }
 
-// ── the last beat: each half's spectrum, drawn on that half. Log scale, 4 decades below each curve's peak:
-//    the 700 nm primary carries ~600x the energy of the other two, so a linear axis would hide them ──
-{ const g = $('#spectra'), pad = 14, w = SCR.w/2 - FR - 22 - 2*pad, h = SCR.h - 2*pad - 62;
-  const X = (x0, l) => x0 + (l - LAM0)/(LAM1 - LAM0)*w, DEC = 4;
-  const Y = (v, mx) => SCR.y + pad + 24 + h - Math.max(0, DEC + Math.log10(Math.max(v, 1e-12)/mx))/DEC*h;
-  const right = lam.map((_, i) => dialsAtMatch().reduce((s, d, k) => s + d*P[k][i], 0));
-  [[SCR.x + 8 + pad, TEST, 'lamp'], [MID + FR + 14 + pad, right, 'primaries']].forEach(([x0, sp, name]) => {
-    mk('rect', {x:x0 - 8, y:SCR.y + 8, width:w + 16, height:SCR.h - 16, rx:6, fill:'#fff', 'fill-opacity':.88}, g);
-    const mx = Math.max(...sp);
-    let d = ''; sp.forEach((v, i) => { d += (i ? 'L' : 'M') + X(x0, lam[i]).toFixed(1) + ',' + Y(v, mx).toFixed(1); });
-    mk('path', {d: d + `L${X(x0, LAM1)},${Y(0, mx)}L${X(x0, LAM0)},${Y(0, mx)}Z`, fill:'#0f172a', 'fill-opacity':.12}, g);
-    mk('path', {d, fill:'none', stroke:'#0f172a', 'stroke-width':2.2}, g);
-    mk('line', {x1:x0, y1:Y(0, mx), x2:x0 + w, y2:Y(0, mx), stroke:'#64748b', 'stroke-width':1}, g);
-    [400, 550, 700].forEach(l => mk('text', {x:X(x0, l), y:Y(0, mx) + 16, 'text-anchor':'middle', class:'nm'}, g).textContent = l);
-    mk('text', {x:x0 + w/2, y:SCR.y + pad + 12, 'text-anchor':'middle', class:'lbl'}, g).textContent = name;
-  });
-  [SCR.x + 8 + pad + w/2, MID + FR + 14 + pad + w/2].forEach(x => mk('text', {x, y:SCR.y + SCR.h - 14, 'text-anchor':'middle', class:'nm'}, g).textContent = 'nm, log energy');
+// ── the last beat: both lights on ONE plot (Fernanda, 2026-11-04): the same axes, wavelength and energy, so the
+//    two spectra are directly comparable. The lamp is a smooth curve (ink); the primaries are three spikes, each in
+//    its knob's color, at the heights the knobs were set to at the match. One shared log scale, 5 decades below the
+//    highest point: the 700 nm primary carries ~600x the energy of the other two, so a linear axis would hide them ──
+{ const g = $('#spectra'), pad = 16, x0 = SCR.x + 8 + pad + 40, w = SCR.w - 16 - 2*pad - 60, h = SCR.h - 2*pad - 70;
+  const X = l => x0 + (l - LAM0)/(LAM1 - LAM0)*w, DEC = 5;
+  const prims = TARGET.map((d, k) => lam.map((_, i) => d*P[k][i]));
+  const mx = Math.max(...TEST, ...prims.flat());
+  const Y = v => SCR.y + pad + 34 + h - Math.max(0, DEC + Math.log10(Math.max(v, 1e-12)/mx))/DEC*h;
+  const path = sp => { let d = ''; sp.forEach((v, i) => { d += (i ? 'L' : 'M') + X(lam[i]).toFixed(1) + ',' + Y(v).toFixed(1); }); return d; };
+  const base = `L${X(LAM1)},${Y(0)}L${X(LAM0)},${Y(0)}Z`;
+  mk('rect', {x:SCR.x + 8, y:SCR.y + 8, width:SCR.w - 16, height:SCR.h - 16, rx:8, fill:'#fff', 'fill-opacity':.94}, g);
+  const dl = path(TEST);
+  mk('path', {d: dl + base, fill:'#0f172a', 'fill-opacity':.10}, g);
+  mk('path', {d: dl, fill:'none', stroke:'#0f172a', 'stroke-width':2.4}, g);
+  prims.forEach((sp, k) => { const d = path(sp);
+    mk('path', {d: d + base, fill:PRIM_COL[k], 'fill-opacity':.35}, g);
+    mk('path', {d, fill:'none', stroke:PRIM_COL[k], 'stroke-width':2.4}, g); });
+  mk('line', {x1:x0, y1:Y(0), x2:x0 + w, y2:Y(0), stroke:'#64748b', 'stroke-width':1}, g);
+  [400, 450, 500, 550, 600, 650, 700].forEach(l => mk('text', {x:X(l), y:Y(0) + 18, 'text-anchor':'middle', class:'nm'}, g).textContent = l);
+  mk('text', {x:x0 + w/2, y:SCR.y + SCR.h - 14, 'text-anchor':'middle', class:'nm'}, g).textContent = 'wavelength (nm), log energy';
+  // legend, top left: the lamp's line, then the three primaries' swatches
+  const ly = SCR.y + pad + 14;
+  mk('line', {x1:x0, y1:ly, x2:x0 + 26, y2:ly, stroke:'#0f172a', 'stroke-width':2.4}, g);
+  mk('text', {x:x0 + 34, y:ly + 5, class:'lbl'}, g).textContent = 'lamp';
+  PRIM_COL.forEach((c, k) => mk('rect', {x:x0 + 110 + k*14, y:ly - 6, width:10, height:12, fill:c}, g));
+  mk('text', {x:x0 + 110 + 3*14 + 6, y:ly + 5, class:'lbl'}, g).textContent = 'three primaries';
 }
 function dialsAtMatch(){ return TARGET; }
 
