@@ -14,6 +14,7 @@ const ORDER = [
   ['convolution',         'Section 3 (0:20-0:28, 8 min): Day 3 convolution scene, hand-designed vs learned filters, output size'],
   ['conv-scene',          'Section 3, added by Fernanda: a kernel slid over an image: blur, vertical and horizontal edges'],
   ['architecture',        'Section 4 (0:28-0:45, 17 min): channels, conv-ReLU-pool, receptive fields, hierarchy, head, equivariance'],
+  ['open-research',       'Section 4, added by Fernanda: open research areas in CNNs, attention (Griffith) and confidence (Govindarajan) scenes'],
   ['classification',      'Section 5 (0:45-1:00, 15 min): ImageNet, ResNet-18 on the street, softmax, embeddings, visual search'],
   ['detect-segment',      'Section 6 (1:00-1:25, 25 min): YOLO detection, thresholds and NMS, U-Net segmentation, CT example'],
   ['domains',             'Section 7 (1:25-1:35, 10 min): medical, satellite, audio, time series'],

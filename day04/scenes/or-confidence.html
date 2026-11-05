@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Knowing what you don’t know</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: open-research part (Day 4, Fernanda). A schematic of Govindarajan, Alavilli & McDermott (2025): a
+     sound-localization CNN that outputs a distribution over directions, trained with maximum likelihood, compared
+     with people's bets. The polar curves are illustrations (von Mises shapes), not the paper's model outputs; the
+     numbers on the last beat are quoted from the preprint. Works alone too. */
+  html, body{ background:#fff; }
+  body.jump *{ transition:none !important; }
+  .wrap{ position:absolute; inset:0; padding:9vh 5vw 12vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .or-cap{ min-height:1.4em; }
+  .or-results{ position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; gap:2.4vh;
+    list-style:none; padding:0 4vw; opacity:0; transition:opacity .6s ease; pointer-events:none; }
+  .or-results.on{ opacity:1; }
+  .or-results li{ font-size:clamp(1.4rem, 2.4vw, 2.2rem); line-height:1.35; color:var(--ink); }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Knowing what you don’t know</h1>
+  <div class="stagebox">
+    <canvas id="cv"></canvas>
+    <ul class="or-results" id="res">
+      <li>People’s bets tracked the model’s confidence: lower for tones than for noise, lower for sounds off to the side than straight ahead</li>
+      <li>Correlation with people’s bets: r = 0.90 for this model, 0.81 for the same model trained with cross-entropy</li>
+      <li>The same approach also works for pitch</li>
+    </ul>
+  </div>
+  <div class="lead or-cap" id="cap"></div>
+  <div class="cite">Govindarajan, Alavilli &amp; McDermott (2025), Task-optimized models of sensory uncertainty reproduce human confidence judgments, bioRxiv preprint · doi.org/10.1101/2025.10.31.685933 · curves: illustration</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE   (0):   the title alone
+   ACT 1  MODEL   (1-5): a sound and a listener; a standard network gives one answer; this one gives a distribution
+                         over directions (narrow for footsteps, broad and two-peaked for a beeping truck); confidence =
+                         the width of the 50% highest-density region; trained with maximum likelihood, not cross-entropy
+   ACT 2  PEOPLE  (6-7): people bet on their answers; what the paper found (quoted)
+
+   From the preprint: binaural cochleagram in; out, a mixture of 5 von Mises distributions over azimuth and
+   elevation; trained by maximum likelihood; confidence = width of the 50% HPD interval; r = 0.90 vs 0.81.
+   The curves here are von Mises shapes chosen by hand (azimuth only), to show the idea. */
+const CAPS = ['', 'Where did that sound come from?', 'A standard network: one answer, nothing about how sure it is',
+  'This network: a distribution over directions', 'Confidence = how wide the most likely 50% is',
+  'Trained with maximum likelihood, so the width means something', 'People point, then bet on their answer', ''];
+const NOTES = [
+  "(draft) Title only. A network that always answers is not enough. We also want it to know when it might be wrong.",
+  "(draft) The task is sound localization: a sound plays somewhere around you, and you say where it came from. The model hears it through two ears, as a binaural cochleagram.",
+  "(draft) A standard classifier would pick one direction and report it. Its softmax looks like a probability, but as we will see in the next section, it is not a confidence: it says nothing reliable about how sure the model should be.",
+  "(draft) Lakshmi Govindarajan's model instead outputs a whole distribution over directions: a mixture of five von Mises distributions, which are bell curves on a circle, over azimuth and elevation. For footsteps, a broadband sound, the distribution is narrow. For a beeping truck, a pure tone, it is broad, and it can have two peaks, front and back, because a tone in front and the same tone behind can reach the two ears almost the same way. These curves are our drawings of the idea, not the model's actual outputs.",
+  "(draft) From the distribution you read off a confidence: take the most likely directions that together hold half of the probability, and measure how wide that region is. Narrow means confident; wide means unsure.",
+  "(draft) The training matters. The model is trained with maximum likelihood: it is rewarded for putting high probability on where the sound really was, so the spread has to match how often it is wrong. The paper's point is that the usual cross-entropy training pushes models to be overconfident: the dashed curve, narrow even for the truck.",
+  "(draft) Then they asked people. Listeners heard a sound, pointed to where it came from, and then placed a bet on their answer: bet more when you are sure, less when you are not.",
+  "(draft) People's bets tracked the model's confidence. They bet less for tones than for noise, and less for sounds off to the side than straight ahead, just as the model's distributions were wider. Across conditions, the model's confidence correlated with people's bets at r = 0.90, against 0.81 for the same kind of model trained with cross-entropy. The same approach also extends to pitch. Optimizing for the task, with the right objective, gives you human-like uncertainty."
+];
+const N = NOTES.length - 1;
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let beat = 0, t0 = 0, W = 0, H = 0;
+function size(){ const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1; W = r.width; H = r.height; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+addEventListener('resize', size);
+function go(b, instant){
+  beat = b; t0 = instant ? -1e9 : performance.now();
+  document.getElementById('cap').textContent = CAPS[b];
+  document.getElementById('res').classList.toggle('on', b === 7);
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+function jump(){ document.body.classList.add('jump'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('jump'))); }
+
+/* illustration: von Mises mixtures over azimuth (0 = straight ahead, clockwise); hand-picked, not model outputs */
+const D = Math.PI / 180, NG = 720;
+const vm = (th, mu, k) => Math.exp(k * (Math.cos(th - mu) - 1));
+const SRC = 40 * D;                                               // the sound, front right
+const CURVES = {
+  steps: th => vm(th, SRC, 25),                                   // footsteps: broadband, narrow
+  truck: th => .55 * vm(th, SRC, 6) + .45 * vm(th, Math.PI - SRC, 6),   // beeping truck: a tone, broad, front/back
+  ce:    th => vm(th, SRC, 60),                                   // the same sound, a cross-entropy model: narrow
+};
+/* the 50% highest-density region on the grid: the most likely directions that hold half the mass */
+const hpd = f => { const v = [...Array(NG)].map((_, i) => [f(i / NG * 2 * Math.PI), i]), tot = v.reduce((s, x) => s + x[0], 0);
+  v.sort((a, b) => b[0] - a[0]); const on = new Uint8Array(NG); let c = 0;
+  for(const [p, i] of v){ if(c >= tot / 2) break; on[i] = 1; c += p; } return on; };
+const HPD = { steps: hpd(CURVES.steps), truck: hpd(CURVES.truck) };
+const ease = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
+const ink = '#0f172a', grey = '#94a3b8', mute = '#64748b', hi = '#b45309';
+
+function frame(now){
+  if(!W) size();
+  ctx.clearRect(0, 0, W, H);
+  const p = ease((now - t0) / 700);
+  const fade = b => beat === b ? p : beat > b ? 1 : 0;
+  const dim = beat === 7 ? .05 : 1;
+  const fs = Math.round(H * .045);
+  ctx.font = `${fs}px system-ui, sans-serif`; ctx.lineCap = ctx.lineJoin = 'round';
+  const R = Math.min(H * .085, W * .05), A = Math.min(H * .3, W * .17); // head radius, curve reach
+  const P = (cx, cy, th, r) => [cx + r * Math.sin(th), cy - r * Math.cos(th)];
+  const label = (t, x, y, a, al = 'center', col = mute) => { ctx.globalAlpha = a * dim; ctx.fillStyle = col; ctx.textAlign = al; ctx.fillText(t, x, y); };
+  const head = (cx, cy, a) => {
+    ctx.globalAlpha = a * dim; ctx.strokeStyle = ink; ctx.fillStyle = '#fff'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(cx - R * .25, cy - R * .95); ctx.lineTo(cx, cy - R * 1.3); ctx.lineTo(cx + R * .25, cy - R * .95); ctx.fill(); ctx.stroke();   // nose: front
+    [-1, 1].forEach(s => { ctx.beginPath(); ctx.ellipse(cx + s * R, cy, R * .18, R * .32, 0, 0, 2 * Math.PI); ctx.fill(); ctx.stroke(); });  // ears
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
+  };
+  const ring = (cx, cy, a) => { ctx.globalAlpha = a * dim * .6; ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(cx, cy, R * 1.4 + A, 0, 2 * Math.PI); ctx.stroke(); };
+  const source = (cx, cy, name, a) => { const [x, y] = P(cx, cy, SRC, R * 1.4 + A + H * .05);
+    ctx.globalAlpha = a * dim; ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(x, y, H * .016, 0, 2 * Math.PI); ctx.fill();
+    ctx.strokeStyle = ink; ctx.lineWidth = 2; [1, 2].forEach(k => { ctx.beginPath(); ctx.arc(x, y, H * .016 + k * H * .016, SRC + Math.PI * .5 + .6, SRC + Math.PI * 1.5 - .6); ctx.stroke(); });
+    label(name, x - H * .07, y - H * .02, a, 'right', ink); };
+  const curve = (cx, cy, f, a, o = {}) => {                         // density drawn outward from the head
+    let mx = 0; for(let i = 0; i < NG; i++) mx = Math.max(mx, f(i / NG * 2 * Math.PI));
+    ctx.globalAlpha = a * dim; ctx.beginPath();
+    for(let i = 0; i <= NG; i++){ const th = i / NG * 2 * Math.PI, [x, y] = P(cx, cy, th, R * 1.4 + A * f(th) / mx); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+    ctx.closePath();
+    if(o.dash){ ctx.setLineDash([7, 6]); ctx.strokeStyle = ink; ctx.lineWidth = 2.2; ctx.stroke(); ctx.setLineDash([]); return; }
+    ctx.fillStyle = 'rgba(180,83,9,.16)'; ctx.fill(); ctx.strokeStyle = hi; ctx.lineWidth = 2.5; ctx.stroke();
+  };
+  const arc50 = (cx, cy, on, a) => {                                // the 50% region, as a thick arc outside the ring
+    ctx.globalAlpha = a * dim; ctx.strokeStyle = ink; ctx.lineWidth = H * .016; ctx.lineCap = 'butt';
+    for(let i = 0; i < NG; i++) if(on[i]){ const th = i / NG * 2 * Math.PI - Math.PI / 2;
+      ctx.beginPath(); ctx.arc(cx, cy, R * 1.4 + A + H * .025, th, th + 2 * Math.PI / NG + .004); ctx.stroke(); }
+    ctx.lineCap = 'round';
+  };
+  const chips = (x, y, n, a) => { for(let k = 0; k < n; k++){ ctx.globalAlpha = a * dim; ctx.fillStyle = '#fff'; ctx.strokeStyle = ink; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(x, y - k * H * .028, W * .028, H * .014, 0, 0, 2 * Math.PI); ctx.fill(); ctx.stroke(); } };
+
+  if(beat >= 1 && beat <= 2){                                     // one listener, one sound
+    const cx = W * .5, cy = H * .55, a = fade(1);
+    ring(cx, cy, a); head(cx, cy, a); source(cx, cy, 'a sound', a);
+    if(beat === 2){                                               // a standard network: a single spike
+      const [x0, y0] = P(cx, cy, SRC, R * 1.4), [x1, y1] = P(cx, cy, SRC, R * 1.4 + A);
+      ctx.globalAlpha = p * dim; ctx.strokeStyle = hi; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+      label('one answer', cx - R * 1.6, cy + R * 2.6, p, 'center', ink);
+    }
+  }
+  if(beat >= 3){                                                  // two sounds, two distributions
+    const a = fade(3), L = [W * .27, H * .56], Rt = [W * .73, H * .56];
+    ring(...L, a); ring(...Rt, a);
+    curve(...L, CURVES.steps, a); curve(...Rt, CURVES.truck, a);
+    head(...L, a); head(...Rt, a);
+    source(...L, 'footsteps', a); source(...Rt, 'a beeping truck', a);
+    label('broadband: narrow', L[0], H * .99, a); label('a tone: broad, front or back', Rt[0], H * .99, a);
+    if(beat >= 4){ const b = fade(4); arc50(...L, HPD.steps, b); arc50(...Rt, HPD.truck, b);
+      const [x, y] = P(...L, SRC + 22 * D, R * 1.4 + A + H * .06); label('50% region', x, y, b, 'left', ink); }
+    if(beat >= 5){ const b = fade(5); curve(...Rt, CURVES.ce, b, {dash: true});
+      label('- - cross-entropy: overconfident', Rt[0] + W * .1, H * .1, b, 'center', ink); }
+    if(beat >= 6){ const b = fade(6);                              // bets: illustration of the idea, not data
+      chips(L[0] - W * .17, H * .9, 6, b); chips(Rt[0] - W * .17, H * .9, 2, b);
+      label('bet', L[0] - W * .17, H * .99, b); label('bet', Rt[0] - W * .17, H * .99, b); }
+  }
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+
+window.orConfidence = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ jump(); go(0, true); },
+  resetToEnd(){ jump(); go(N, true); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) orConfidence.advance(); if(e.key === 'ArrowLeft') orConfidence.back(); });
+  addEventListener('click', () => orConfidence.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+if(location.hash === '#end') orConfidence.resetToEnd();
+</script>
+</body>
+</html>

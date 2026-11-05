@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Attention: listening for one voice</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: open-research part (Day 4, Fernanda). A schematic of Griffith, Hess & McDermott (2025): a cue → a memory
+     → multiplicative feature gains on a word-recognition CNN. Drawn, not data: the traces, blocks and bar heights
+     are illustrations. The quoted facts are in the captions and the last beat. Works alone too. */
+  html, body{ background:#fff; }
+  body.jump *{ transition:none !important; }
+  .wrap{ position:absolute; inset:0; padding:9vh 5vw 12vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .or-cap{ min-height:1.4em; }
+  .or-results{ position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; gap:2.4vh;
+    list-style:none; padding:0 4vw; opacity:0; transition:opacity .6s ease; pointer-events:none; }
+  .or-results.on{ opacity:1; }
+  .or-results li{ font-size:clamp(1.4rem, 2.4vw, 2.2rem); line-height:1.35; color:var(--ink); }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Attention: listening for one voice</h1>
+  <div class="stagebox">
+    <canvas id="cv"></canvas>
+    <ul class="or-results" id="res">
+      <li>Trained only to recognize words, it matches human cocktail-party behavior</li>
+      <li>Two new predictions, confirmed in people: separating talkers in azimuth helps more than in elevation · the spotlight is narrower at the midline</li>
+      <li>Late selection: target and distractor separate only in later stages, as in human auditory cortex</li>
+    </ul>
+  </div>
+  <div class="lead or-cap" id="cap"></div>
+  <div class="cite">Griffith, Hess &amp; McDermott (2025), Optimized feature gains explain and predict successes and failures of human selective listening, bioRxiv preprint · doi.org/10.1101/2025.05.28.656682 · schematic, not data</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE   (0):   the title alone
+   ACT 1  MODEL   (1-5): a mixture of talkers; the cue (the target voice, from its location); the cue through the
+                         same network, averaged over time into a memory; the memory sets a multiplicative gain on
+                         every feature, at the cochleagram and before every conv block; out comes the target's word
+   ACT 2  RESULT  (6):   what the paper found (quoted, no figures redrawn)
+
+   Facts from the preprint: binaural cochleagram input; softmax over 800 words (the cued talker's word); the cue
+   goes through the same network and is averaged over time; a learned sigmoid maps the memory to the gains. */
+const CAPS = ['', 'A party: several people talk at once', 'The cue: a short clip of the target voice, from where it is',
+  'The cue goes through the same network → a memory, one number per feature',
+  'Memory → gains: every feature is multiplied, at the input and before every block',
+  'Out comes the target talker’s word (one of 800)', ''];
+const NOTES = [
+  "(draft) Title only. You can follow one voice at a noisy party and ignore the others. How could a network learn to do that?",
+  "(draft) Here is the problem. Several people talk at once, and their sounds add up into one mixture at your ears. The model hears that mixture through both ears, as a binaural cochleagram, the same kind of input as our spectrograms, one per ear.",
+  "(draft) To tell the model whom to follow, it first hears a cue: a short clip of the target voice, coming from the target's location. That is like knowing your friend's voice and where they are standing.",
+  "(draft) The cue goes through the same network. Its activity is averaged over time into a memory of that voice: one number per feature, per channel and frequency.",
+  "(draft) A learned function turns that memory into gains, one per feature, and the mixture's features are multiplied by them: at the input and again before every convolutional block. Features that match the target voice are turned up, the others down. That is attention as multiplicative gain, an idea that comes from neuroscience.",
+  "(draft) At the end, the network reports a word, one of 800: the word spoken by the cued talker. The only thing it was ever trained on is getting that word right.",
+  "(draft) And yet, trained only to recognize words, it matches human behavior at the cocktail party, where people succeed and where they fail. It also made two new predictions that were then confirmed in people: separating two talkers in azimuth, left and right, helps more than separating them in elevation, up and down; and the spatial spotlight of attention is narrower straight ahead than off to the side. Inside the model, target and distractor are separated only in the later stages, which is called late selection, as in human auditory cortex. Models without gains, or with gains only early or only late, fit people worse."
+];
+const N = NOTES.length - 1;
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let beat = 0, t0 = 0, W = 0, H = 0;
+function size(){ const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1; W = r.width; H = r.height; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+addEventListener('resize', size);
+function go(b, instant){
+  beat = b; t0 = instant ? -1e9 : performance.now();
+  document.getElementById('cap').textContent = CAPS[b];
+  document.getElementById('res').classList.toggle('on', b === 6);
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+function jump(){ document.body.classList.add('jump'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('jump'))); }
+
+/* a voice-like trace: a few sines under a syllable envelope (drawn, not a recording) */
+const voice = (s, u) => (Math.sin(u * (21 + 5 * s) + s) + .6 * Math.sin(u * (37 + 3 * s) + 2 * s) + .4 * Math.sin(u * (55 + 7 * s)))
+  * (.35 + .65 * Math.abs(Math.sin(u * (3.1 + .7 * s) + s)));
+const MEM = [.85, .3, .7, .15, .95, .45, .25, .6];              // memory bar heights: illustration
+const ease = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
+const ink = '#0f172a', grey = '#94a3b8', mute = '#64748b', hi = '#b45309';
+
+function frame(now){
+  if(!W) size();
+  ctx.clearRect(0, 0, W, H);
+  const p = ease((now - t0) / 700);
+  const fade = b => beat === b ? p : beat > b ? 1 : 0;           // a part appears on beat b and stays
+  const dim = beat === 6 ? .05 : 1;
+  const fs = Math.round(H * .042);
+  ctx.font = `${fs}px system-ui, sans-serif`; ctx.lineCap = ctx.lineJoin = 'round';
+  const yC = H * .2, yM = H * .7, bh = H * .2;                     // cue row, mixture row, block height
+  const BX = [.37, .49, .61, .73].map(f => f * W), bw = W * .07;   // four conv blocks
+  const trace = (x0, x1, y, amp, s, col, lw, a) => {
+    ctx.globalAlpha = a * dim; ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.beginPath();
+    for(let k = 0; k <= 120; k++){ const u = k / 120, x = x0 + (x1 - x0) * u, v = y + amp * voice(s, u) / 2;
+      k ? ctx.lineTo(x, v) : ctx.moveTo(x, v); }
+    ctx.stroke();
+  };
+  const label = (t, x, y, a, al = 'center', col = mute) => { ctx.globalAlpha = a * dim; ctx.fillStyle = col; ctx.textAlign = al; ctx.fillText(t, x, y); };
+  const arrow = (x0, y0, x1, y1, a, col = grey) => {
+    ctx.globalAlpha = a * dim; ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+    const an = Math.atan2(y1 - y0, x1 - x0), r = H * .018;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x1 - r * Math.cos(an - .45), y1 - r * Math.sin(an - .45));
+    ctx.lineTo(x1 - r * Math.cos(an + .45), y1 - r * Math.sin(an + .45)); ctx.fill();
+  };
+  const blocks = (y, a) => BX.forEach((x, k) => {
+    ctx.globalAlpha = a * dim; ctx.fillStyle = '#f1f5f9'; ctx.strokeStyle = grey; ctx.lineWidth = 2;
+    ctx.fillRect(x, y - bh / 2, bw, bh); ctx.strokeRect(x, y - bh / 2, bw, bh);
+    label('conv', x + bw / 2, y + fs * .35, a);
+    if(k < 3) arrow(x + bw, y, BX[k + 1] - W * .028, y, a);
+  });
+
+  // beat 1: three talkers add up into one mixture
+  if(beat >= 1){
+    const a = fade(1);
+    [[yM - H * .17, 1, hi], [yM, 2, grey], [yM + H * .17, 3, grey]].forEach(([y, s, c]) => trace(W * .01, W * .12, y, H * .09, s, c, 2, a));
+    label('talkers', W * .065, yM + H * .29, a);
+    arrow(W * .135, yM - H * .14, W * .165, yM - H * .03, a); arrow(W * .135, yM, W * .165, yM, a); arrow(W * .135, yM + H * .14, W * .165, yM + H * .03, a);
+    // the mixture: the sum of the three traces
+    ctx.globalAlpha = a * dim; ctx.strokeStyle = ink; ctx.lineWidth = 2.2; ctx.beginPath();
+    for(let k = 0; k <= 120; k++){ const u = k / 120, x = W * .18 + W * .12 * u, v = yM + H * .05 * (voice(1, u) + voice(2, u) + voice(3, u)) / 2;
+      k ? ctx.lineTo(x, v) : ctx.moveTo(x, v); }
+    ctx.stroke();
+    label('mixture, both ears', W * .24, yM + H * .17, a);
+    blocks(yM, a);
+  }
+  // beat 2: the cue, the target voice alone
+  if(beat >= 2){
+    const a = fade(2);
+    trace(W * .18, W * .3, yC, H * .1, 1, hi, 2.4, a);
+    label('cue: the target voice', W * .24, yC - H * .1, a);
+    label('from its location', W * .24, yC + H * .13, a);
+  }
+  // beat 3: the cue through the same network, averaged over time into a memory
+  if(beat >= 3){
+    const a = fade(3);
+    arrow(W * .31, yC, BX[0] - W * .008, yC, a);
+    blocks(yC, a);
+    label('same network', (BX[0] + BX[3] + bw) / 2, yC - bh / 2 - H * .03, a);
+    arrow(BX[3] + bw, yC, W * .86, yC, a);
+    label('averaged over time', W * .93, yC + H * .15, a);
+    MEM.forEach((m, k) => { ctx.globalAlpha = a * dim; ctx.fillStyle = hi;
+      ctx.fillRect(W * .875 + k * W * .014, yC + H * .08 - m * H * .16, W * .009, m * H * .16); });
+    label('memory', W * .93, yC - H * .11, a);
+  }
+  // beat 4: memory → gains → multiply the mixture's features at the input and before every block
+  if(beat >= 4){
+    const a = fade(4), yG = (yC + yM) / 2;
+    const XS = BX.map(x => x - W * .017);                           // × before each block (the first one = the input)
+    ctx.globalAlpha = a * dim; ctx.strokeStyle = hi; ctx.lineWidth = 2.4;
+    ctx.beginPath(); ctx.moveTo(W * .99, yC + H * .08); ctx.lineTo(W * .99, yG); ctx.lineTo(XS[0], yG); ctx.stroke();
+    label('sigmoid → gains', W * .84, yG - H * .025, a, 'center', mute);
+    XS.forEach((x, k) => {
+      arrow(x, yG, x, yM - H * .045, a, hi);
+      // a small dial: one gain per feature, drawn as a needle
+      ctx.globalAlpha = a * dim; ctx.strokeStyle = hi; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, yG, H * .03, Math.PI, 2 * Math.PI); ctx.stroke();
+      const g = Math.PI * (1.15 + .7 * MEM[2 * k]); ctx.beginPath(); ctx.moveTo(x, yG); ctx.lineTo(x + H * .028 * Math.cos(g), yG + H * .028 * Math.sin(g)); ctx.stroke();
+      ctx.globalAlpha = a * dim; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, yM, H * .028, 0, 2 * Math.PI); ctx.fill();
+      ctx.strokeStyle = hi; ctx.stroke(); ctx.fillStyle = hi; ctx.textAlign = 'center'; ctx.fillText('×', x, yM + fs * .35);
+    });
+  }
+  // beat 5: out comes the cued talker's word
+  if(beat >= 5){
+    const a = fade(5);
+    arrow(BX[3] + bw, yM, W * .86, yM, a);
+    for(let k = 0; k < 24; k++){ const top = k === 9, h = top ? H * .2 : H * (.015 + .03 * Math.abs(Math.sin(k * 2.3)));
+      ctx.globalAlpha = a * dim; ctx.fillStyle = top ? hi : grey; ctx.fillRect(W * .875 + k * W * .0045, yM + H * .1 - h, W * .003, h); }
+    label('800 words', W * .93, yM + H * .17, a);
+    label('the target’s word', W * .985, yM - H * .14, a, 'right', ink);
+  }
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+
+window.orAttention = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ jump(); go(0, true); },
+  resetToEnd(){ jump(); go(N, true); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) orAttention.advance(); if(e.key === 'ArrowLeft') orAttention.back(); });
+  addEventListener('click', () => orAttention.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+if(location.hash === '#end') orAttention.resetToEnd();
+</script>
+</body>
+</html>
