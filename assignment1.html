@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Assignment 1 · Computer Vision</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Same look as homework.html. */
+  :root{
+    --bg:#0a0d16; --surface:#121827; --surface2:#171f33; --line:#25304a;
+    --text:#e9edf6; --mute:#9aa5bd;
+    --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--text);
+    font:16.5px/1.6 Inter, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif; }
+  a{ color:var(--cyan); }
+
+  .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
+  .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;
+    font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
+  .spine b{ color:var(--text); font-weight:500; }
+  .page{ margin-left:44px; }
+
+
+  .hero{ position:relative; overflow:hidden; border-bottom:1px solid var(--line);
+    background:radial-gradient(120% 90% at 78% 40%, #0f1a33 0%, var(--bg) 60%); }
+  .hero-in{ position:relative; max-width:64rem; margin:0 auto; padding:8vh 24px 5vh; }
+  .back{ margin:0 0 2.2em; font-size:.95rem; }
+  .back a{ color:var(--mute); text-decoration:none; margin-right:1.2em; }
+  .back a:hover{ color:var(--text); }
+  .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--sky); }
+  h1{ margin:0 0 .35em; font:700 clamp(2.4rem, 7vw, 4.4rem)/.95 'Space Grotesk', sans-serif; text-transform:uppercase;
+    background:linear-gradient(90deg, #fff 0%, #bfdbfe 50%, #c7fff4 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lead{ max-width:44rem; color:#d3d9e6; font-size:1.05rem; margin:0 0 .7em; }
+
+  .facts{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-top:1.6em; max-width:52rem; }
+  .facts div{ padding:12px 14px; border:1px solid var(--line); border-radius:14px; background:var(--surface); }
+  .facts small{ display:block; font-size:.68rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); }
+  .facts b{ font:700 1.05rem/1.3 'Space Grotesk', sans-serif; }
+
+  main{ max-width:64rem; margin:0 auto; padding:0 24px 12vh; }
+  section{ padding-top:3em; }
+  h2{ margin:0 0 .8em; font:700 1.5rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
+  h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
+  h2 .pts{ margin-left:auto; font:600 .9rem/1 Inter, sans-serif; color:var(--mute); }
+  p{ margin:0 0 .6em; }
+  .mute{ color:var(--mute); }
+
+  .cards{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; }
+  a.card, .card.empty{ position:relative; display:block; padding:16px 18px 14px; border:1px solid var(--line); border-radius:16px; overflow:hidden;
+    background:linear-gradient(180deg, var(--surface2), var(--surface)); color:var(--text); text-decoration:none; transition:all .2s; }
+  a.card::before{ content:''; position:absolute; inset:0 0 auto 0; height:3px; background:var(--k); box-shadow:0 0 18px 2px var(--k); }
+  a.card:hover{ border-color:var(--k); transform:translateY(-2px); }
+  .card.empty{ border-style:dashed; background:rgba(18,24,39,.5); }
+  .card small{ display:block; font-size:.7rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--k); margin-bottom:.3em; }
+  .card b{ display:block; font:700 1.05rem/1.3 'Space Grotesk', sans-serif; }
+  .card.empty b{ color:var(--mute); font-weight:500; }
+
+  .steps{ counter-reset:s; list-style:none; padding:0; margin:0; display:grid; gap:10px; }
+  .steps > li{ counter-increment:s; position:relative; padding:14px 16px 14px 66px; border:1px solid var(--line); border-radius:14px; background:var(--surface); }
+  .steps > li::before{ content:attr(data-n); position:absolute; left:14px; top:14px; min-width:32px; height:26px; padding:0 6px; border-radius:8px;
+    display:grid; place-items:center; font:700 .8rem/1 'Space Grotesk', sans-serif; color:var(--bg); background:var(--c); }
+  .steps h3{ margin:0 0 .25em; font:700 1.05rem/1.3 'Space Grotesk', sans-serif; display:flex; gap:.6em; flex-wrap:wrap; }
+  .steps h3 em{ font:600 .72rem/1.9 Inter, sans-serif; font-style:normal; letter-spacing:.12em; text-transform:uppercase; color:var(--mute); }
+  .steps h3 .pts{ margin-left:auto; font:600 .85rem/1.6 Inter, sans-serif; color:var(--mute); }
+  .steps p{ margin:.2em 0; }
+  .q{ color:#d3d9e6; }
+  .q::before{ content:'Answer: '; font-weight:700; color:var(--c); }
+
+  .examples{ margin:.4em 0 0; padding-left:1.2em; }
+  .examples li{ margin:.25em 0; }
+
+  .tw{ overflow-x:auto; border:1px solid var(--line); border-radius:14px; }
+  table{ width:100%; border-collapse:collapse; font-size:.95rem; }
+  th, td{ text-align:left; padding:10px 14px; border-top:1px solid var(--line); vertical-align:top; }
+  th{ border-top:none; background:var(--surface2); font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); font-weight:600; }
+  td.w{ white-space:nowrap; font:700 1rem/1.5 'Space Grotesk', sans-serif; color:var(--c); }
+
+  .box{ padding:16px 18px; border:1px solid var(--line); border-radius:14px; background:var(--surface); }
+  .box + .box{ margin-top:10px; }
+
+
+  @media (max-width:640px){
+    .spine{ display:none; } .page{ margin-left:0; }
+    .hero-in{ padding:5vh 16px 3vh; }
+    main{ padding:0 16px 10vh; }
+    .steps > li{ padding-left:16px; padding-top:48px; }
+  }
+
+  td.n, th.n{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  tr.chance td{ color:var(--mute); }
+  code{ font-size:.9em; background:var(--surface2); padding:1px 5px; border-radius:5px; }
+</style>
+</head>
+<body>
+<div class="spine" aria-hidden="true"><span><b>Computer Vision</b> &nbsp;/&nbsp; Assignment 1</span></div>
+<div class="page">
+
+<header class="hero">
+  <div class="hero-in">
+    <p class="back"><a href="index.html">← Home</a><a href="syllabus.html">Syllabus</a></p>
+    <p class="kicker">Week 1 · Assignment 1</p>
+    <h1>Are vision models still blind?</h1>
+    <p class="lead">In class we saw <i>Vision Language Models Are Blind</i>: questions a child can answer, such as
+      whether two circles touch or how many times two lines cross, that the best models of 2024 often got
+      wrong. Someone asked how newer models do. That is this assignment. You test models that came out since,
+      then make new images that no model has seen, and find where they break.</p>
+    <div class="facts">
+      <div><small>Weight</small><b>15% of the grade</b></div>
+      <div><small>Due</small><b>Wed, Nov 11, 2pm</b></div>
+      <div><small>Time</small><b>About 5 hours</b></div>
+      <div><small>Hand in</small><b>Colab notebook + 1-page PDF</b></div>
+      <div><small>Cost</small><b>Free</b></div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section style="--c:var(--sky)">
+    <h2>How it works</h2>
+    <div class="box">
+      <p><b>Part A: replicate.</b> Everyone runs the same test on a newer model, with the starter notebook,
+        and compares the result with the paper's.</p>
+      <p><b>Part B: fresh images.</b> The test has been public since 2024, so a newer model may have seen it in
+        training. A high score could mean it can see, or that it memorized the test. You generate new images
+        with code, change one thing step by step, and find where the models break.</p>
+      <p><b>Part C: reflection and sources.</b> What you found, and a log of every source you used.</p>
+    </div>
+    <div class="box">
+      <p><b>Using the internet and AI tools is allowed, and part of the point.</b> Finding models, reading
+        model cards and adapting other people's code is how this work is done. Two rules: log every source in
+        Part C, and be able to explain every line you hand in. You work alone, but you can talk about ideas
+        with anyone.</p>
+    </div>
+    <p class="mute" style="margin-top:1em">Before you run something, write down what you expect. A wrong
+      prediction loses no points; a missing one does.</p>
+  </section>
+
+  <section style="--c:var(--cyan)">
+    <h2>The test, and what it found in 2024</h2>
+    <p><b>BlindTest</b> (Rahmanzadehgervi, Bolton, Taesiri &amp; Nguyen, ACCV 2024) has seven kinds of simple
+      drawing: two lines that cross, two circles, a circled letter, overlapping circles or pentagons (counted
+      separately below), nested squares, a grid, and a subway map. Mean accuracy in percent, from Table 1 of the paper
+      (arXiv version 6):</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Model</th><th class="n">Lines cross</th><th class="n">Two circles</th><th class="n">Circled letter</th>
+          <th class="n">Circles</th><th class="n">Pentagons</th><th class="n">Nested squares</th><th class="n">Grid</th>
+          <th class="n">Subway</th><th class="n">Mean</th></tr></thead>
+        <tbody>
+          <tr class="chance"><td>Guessing</td><td class="n">33.3</td><td class="n">50.0</td><td class="n">5.8</td><td class="n">20.0</td><td class="n">20.0</td><td class="n">25.0</td><td class="n">4.6</td><td class="n">33.3</td><td class="n">24.0</td></tr>
+          <tr><td>GPT-4o</td><td class="n">41.6</td><td class="n">75.9</td><td class="n">74.2</td><td class="n">41.3</td><td class="n">20.2</td><td class="n">55.8</td><td class="n">39.6</td><td class="n">53.2</td><td class="n">50.2</td></tr>
+          <tr><td>Gemini-1.5 Pro</td><td class="n">66.9</td><td class="n">93.6</td><td class="n">83.3</td><td class="n">20.3</td><td class="n">24.2</td><td class="n">87.1</td><td class="n">39.4</td><td class="n">53.1</td><td class="n">58.5</td></tr>
+          <tr><td>Claude 3 Sonnet</td><td class="n">43.4</td><td class="n">86.5</td><td class="n">72.1</td><td class="n">29.8</td><td class="n">1.9</td><td class="n">65.0</td><td class="n">36.2</td><td class="n">31.1</td><td class="n">45.7</td></tr>
+          <tr><td>Claude 3.5 Sonnet</td><td class="n">75.4</td><td class="n">90.8</td><td class="n">87.9</td><td class="n">66.5</td><td class="n">77.7</td><td class="n">92.1</td><td class="n">74.3</td><td class="n">58.2</td><td class="n">77.8</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="mute" style="margin-top:.8em">The paper also tested Gemini 2.0 Flash, Qwen2-VL, LLaVA-OneVision,
+      InternVL-2 and Phi-3.5. Pick a model that is not on this list. A person is expected to get every question right.</p>
+  </section>
+
+  <section style="--c:var(--amber)">
+    <h2>Links and models</h2>
+    <div class="cards">
+      <a class="card" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/assignment1-starter.ipynb" style="--k:var(--amber)"><small>Start here</small><b>Assignment 1 starter notebook</b></a>
+      <a class="card" href="https://vlmsareblind.github.io/" style="--k:var(--cyan)"><small>The paper</small><b>Vision Language Models Are Blind</b></a>
+      <a class="card" href="https://huggingface.co/datasets/XAI/vlmsareblind" style="--k:var(--violet)"><small>The data</small><b>BlindTest on Hugging Face (MIT license)</b></a>
+      <a class="card" href="https://huggingface.co/models?pipeline_tag=image-text-to-text&amp;sort=trending" style="--k:var(--pink)"><small>Find a model</small><b>Image-text-to-text models on Hugging Face</b></a>
+    </div>
+    <div class="box" style="margin-top:12px">
+      <p><b>Models that run free in the notebook</b>, on Colab's free GPU (<i>Runtime → Change runtime type → T4
+        GPU</i>):</p>
+      <ul class="examples">
+        <li><code>Qwen/Qwen3-VL-4B-Instruct</code>: the default (Alibaba, October 2025)</li>
+        <li><code>Qwen/Qwen3-VL-2B-Instruct</code>: smaller and faster</li>
+        <li><code>HuggingFaceTB/SmolVLM2-2.2B-Instruct</code>: a small model from Hugging Face</li>
+        <li><code>google/gemma-3-4b-it</code>: needs a free Hugging Face account; accept the license on the
+          model's page and add your token to Colab's Secrets as <code>HF_TOKEN</code></li>
+        <li>Another model you find, if it runs in Colab. Say where you found it in your source log.</li>
+      </ul>
+      <p style="margin-top:.6em"><b>Gemini (optional):</b> make a free API key in
+        <a href="https://aistudio.google.com/apikey">Google AI Studio</a> (no card needed) and add it to Colab's
+        Secrets (the key icon on the left) as <code>GEMINI_API_KEY</code>. The free tier has daily limits, and
+        Google may use what you send to improve its products, so send only the test images.</p>
+      <p><b>Never paste a key into a code cell.</b> Anyone with the link to your notebook could copy it.</p>
+    </div>
+  </section>
+
+  <section style="--c:var(--cyan)">
+    <h2>Part A · Replicate <span class="pts">35 points</span></h2>
+    <ol class="steps">
+      <li data-n="A1">
+        <h3>Look, then predict <em>5 pts</em></h3>
+        <p>The notebook shows one image from each task. Answer them yourself. Then pick the model you will
+          test, and predict: which task will it find hardest, and why?</p>
+      </li>
+      <li data-n="A2">
+        <h3>Run a newer model <em>10 pts</em></h3>
+        <p>Run your model on the course subset: 20 images from each of the 9 tasks, the same for everyone, with
+          the paper's own questions. The notebook scores the answers and makes a table of accuracy by task.</p>
+      </li>
+      <li data-n="A3">
+        <h3>Compare with 2024 <em>10 pts</em></h3>
+        <p>Plot your model's accuracy next to the paper's models.</p>
+        <p class="q">Which tasks improved, and which did not? Is your model better than the best model of 2024?
+          With 20 images per task, how big a difference would you trust?</p>
+      </li>
+      <li data-n="A4">
+        <h3>Look at the mistakes <em>10 pts</em></h3>
+        <p>Show at least six images your model got wrong, with its answers.</p>
+        <p class="q">Is there a pattern: counts off by one, the same answer every time, trouble with small or
+          thin things? Compare each task with the score you would get by always giving the most common answer.</p>
+      </li>
+    </ol>
+  </section>
+
+  <section style="--c:var(--violet)">
+    <h2>Part B · Fresh images <span class="pts">45 points</span></h2>
+    <p>Pick one task. Write code that draws new images for it, with the right answer known, and change one
+      thing step by step: the gap between the circles, the line width, the number of crossings, the image
+      size, the colors, the angle. The notebook has two example drawing functions (two circles, and two lines
+      that cross) that you can change, or you can write your own or adapt code you find.</p>
+    <ol class="steps">
+      <li data-n="B1">
+        <h3>Question and prediction <em>8 pts</em></h3>
+        <p>One sentence: what you change, and what you expect to happen to accuracy, with a reason. Written
+          before you run anything.</p>
+      </li>
+      <li data-n="B2">
+        <h3>Make the images <em>10 pts</em></h3>
+        <p>At least 5 levels of the thing you change, and at least 10 images per level. Show a row of examples,
+          one per level.</p>
+      </li>
+      <li data-n="B3">
+        <h3>Run two conditions <em>10 pts</em></h3>
+        <p>Run the same images in at least two conditions: two models (for example your open model and Gemini,
+          or a small and a larger version), or one model with two ways of asking.</p>
+      </li>
+      <li data-n="B4">
+        <h3>The human side <em>7 pts</em></h3>
+        <p>Answer a sample of the images yourself, and ask at least one other person. Keep it informal: no
+          names or personal details in what you hand in.</p>
+      </li>
+      <li data-n="B5">
+        <h3>The result <em>10 pts</em></h3>
+        <p>A plot of accuracy against the thing you changed, one line per condition, with people marked.</p>
+        <p class="q">Where does each model break? Did the fresh images give the same picture as BlindTest? One
+          thing that surprised you, and the limits of your test.</p>
+      </li>
+    </ol>
+  </section>
+
+  <section style="--c:var(--pink)">
+    <h2>Part C · Reflection and sources <span class="pts">20 points</span></h2>
+    <div class="box">
+      <p><b>Reflection (half a page, 12 points).</b> Are vision models still blind? Answer from your results in
+        Parts A and B, and say what your test cannot tell apart (for example memorizing versus seeing). End with
+        one thing you would test next. It can become your project.</p>
+    </div>
+    <div class="box">
+      <p><b>Source log (8 points).</b> A table with one row per source (models, datasets, code, tutorials, forum
+        answers): what it is, the link, how you used it, and what you changed. Then one line on any AI tools you
+        used and what for.</p>
+    </div>
+  </section>
+
+  <section style="--c:var(--sky)">
+    <h2>How it is graded</h2>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Part</th><th>Points</th><th>What we look for</th></tr></thead>
+        <tbody>
+          <tr style="--c:var(--cyan)"><td class="w">A · Replicate</td><td>35</td><td>Predictions written first (5) · the model run on the full course subset (10) · a fair comparison with 2024, aware of how few images there are (10) · mistakes looked at, not just counted (10)</td></tr>
+          <tr style="--c:var(--violet)"><td class="w">B · Fresh images</td><td>45</td><td>A clear question and prediction (8) · images that change one thing, with correct answers (10) · two conditions on the same images (10) · the human side (7) · an honest reading of the result, including its limits (10)</td></tr>
+          <tr style="--c:var(--pink)"><td class="w">C · Reflection and sources</td><td>20</td><td>A claim backed by your results (12) · a complete source log (8)</td></tr>
+          <tr><td class="w" style="--c:var(--text)">Total</td><td>100</td><td>15% of the course grade</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section style="--c:var(--amber)">
+    <h2>What to hand in</h2>
+    <div class="box">
+      <p>1. A link to your Colab notebook, shared so that anyone with the link can view it, with all cells run
+        and their outputs showing.</p>
+      <p>2. A one-page PDF with Part C. Part B's plot can go in the PDF or the notebook.</p>
+      <p class="mute">The submission form will be linked here and on the course page.</p>
+    </div>
+  </section>
+
+</main>
+</div>
+</body>
+</html>

@@ -7,6 +7,9 @@
 }
 *{ box-sizing:border-box; margin:0; padding:0; }
 html, body{ height:100%; overflow:hidden; background:var(--bg); color:var(--ink); font-family:var(--font); }
+/* Above 1920x1080 the rem caps in the type scale would freeze text while the screen grows (tiny on a 4K TV);
+   growing the root font with the screen keeps text the same share of it. 16px, as before, up to 1920x1080. */
+html{ font-size:max(16px, min(0.8333vw, 1.4815vh)); }
 
 #root{ position:fixed; inset:0; }
 .slide{ position:absolute; inset:0; display:none; }
