@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 460" font-family="Helvetica, Arial, sans-serif" font-size="34">
+<line x1="60" y1="40" x2="60" y2="396" stroke="#94a3b8" stroke-width="2"/>
+<line x1="60" y1="396" x2="890" y2="396" stroke="#94a3b8" stroke-width="2"/>
+<text x="48" y="47" text-anchor="end" fill="#64748b">1</text>
+<text x="48" y="403" text-anchor="end" fill="#64748b">0</text>
+<text x="480.0" y="445" text-anchor="middle" fill="#64748b">top 20 of 1,000 labels, ranked</text>
+<rect x="66.0" y="117.1" width="35.0" height="278.9" fill="#0f172a"/>
+<text x="66.0" y="107.1" fill="#0f172a">matchstick 78%</text>
+<rect x="107.0" y="351.1" width="35.0" height="44.9" fill="#94a3b8"/>
+<text x="107.0" y="341.1" fill="#0f172a">drumstick 13%</text>
+<rect x="148.0" y="387.0" width="35.0" height="9.0" fill="#94a3b8"/>
+<rect x="189.0" y="390.4" width="35.0" height="5.6" fill="#94a3b8"/>
+<rect x="230.0" y="394.1" width="35.0" height="1.9" fill="#94a3b8"/>
+<rect x="271.0" y="394.6" width="35.0" height="1.4" fill="#94a3b8"/>
+<rect x="312.0" y="395.0" width="35.0" height="1.0" fill="#94a3b8"/>
+<rect x="353.0" y="395.0" width="35.0" height="1.0" fill="#94a3b8"/>
+<rect x="394.0" y="395.1" width="35.0" height="0.9" fill="#94a3b8"/>
+<rect x="435.0" y="395.2" width="35.0" height="0.8" fill="#94a3b8"/>
+<rect x="476.0" y="395.2" width="35.0" height="0.8" fill="#94a3b8"/>
+<rect x="517.0" y="395.3" width="35.0" height="0.7" fill="#94a3b8"/>
+<rect x="558.0" y="395.4" width="35.0" height="0.6" fill="#94a3b8"/>
+<rect x="599.0" y="395.4" width="35.0" height="0.6" fill="#94a3b8"/>
+<rect x="640.0" y="395.5" width="35.0" height="0.5" fill="#94a3b8"/>
+<rect x="681.0" y="395.7" width="35.0" height="0.3" fill="#94a3b8"/>
+<rect x="722.0" y="395.7" width="35.0" height="0.3" fill="#94a3b8"/>
+<rect x="763.0" y="395.7" width="35.0" height="0.3" fill="#94a3b8"/>
+<rect x="804.0" y="395.8" width="35.0" height="0.2" fill="#94a3b8"/>
+<rect x="845.0" y="395.8" width="35.0" height="0.2" fill="#94a3b8"/>
+</svg>

@@ -45,16 +45,21 @@ sc('cueConflict', 'scenes/cue-conflict.html', {title: 'Cue-conflict: shape or te
 
 st(`
   <h1 class="t">A probability is not a confidence</h1>
-  <div class="d4-cols">
-    <div class="pic"><img src="${A}audio/spectrogram.png" alt="" style="max-height:44vh"><div class="label">a spectrogram of a synthetic bird call and a held note: not a photo, not in ImageNet</div></div>
-    <div style="display:flex;flex-direction:column;gap:2.4vh">
-      ${bars(D4.audio.top5, {build: true, together: true})}
-      <div class="d4-card hi b" data-step="2"><div class="label">Softmax always sums to 1. It ranks the ${fmt(R.n_classes)} labels; it never says “none of these”.</div></div>
-    </div>
+  <!-- reworked at Fernanda's request (2026-11-05): the whole ranked distribution for a photo and for the
+       spectrogram, from assets/softmax/softmax.py (same ResNet-18). -->
+  <div class="classification-dist" style="flex:1 1 auto;min-height:0;display:grid;grid-template-columns:auto 1fr;grid-template-rows:1fr 1fr;gap:1.5vh 2vw;align-items:center">
+    <img class="b" data-step="1" src="${A}resnet/street-crop.jpg" alt="" style="height:26vh;border-radius:6px">
+    <div class="b" data-step="1"><img src="${A}softmax/street.svg" alt="" style="height:28vh"><div class="label">the street photo: an ImageNet-like scene</div></div>
+    <img class="b" data-step="2" src="${A}audio/spectrogram.png" alt="" style="height:26vh;max-width:30vw;object-fit:cover;border-radius:6px">
+    <div class="b" data-step="2"><img src="${A}softmax/spectrogram.svg" alt="" style="height:28vh"><div class="label">a spectrogram of a synthetic bird call and a held note: not a photo, not in ImageNet</div></div>
   </div>
+  <div class="d4-card hi b" data-step="3"><div class="label">Softmax always sums to 1. It ranks the ${fmt(R.n_classes)} labels; it never says “none of these”.</div></div>
 `, { notes: [
-  "Now something that is not a photograph at all: a spectrogram of a synthetic bird call, made in our pipeline. Time runs left to right, frequency bottom to top. Nothing like it is in ImageNet.",
-  `ResNet-18 says: ${D4.audio.top5[0].label}, at ${pct(D4.audio.top5[0].p)}. The four chirps do look a bit like matchsticks.`,
+  "(draft) Title only. What do the probabilities a classifier gives us actually mean? Let us look at all of them, not just the top one.",
+  "(draft) Here is ResNet-18 on our street photo. Every label gets a probability, and together the 1,000 add up to one. Ranked from most to least probable, the top twenty look like this: a mode, police van at 55 percent, then cab at 14, and a long tail of labels close to zero.",
+  "Now something that is not a photograph at all: a spectrogram of a synthetic bird call, made in our pipeline. Time runs left to right, frequency bottom to top. Nothing like it is in ImageNet. " +
+    `ResNet-18 says: ${D4.audio.top5[0].label}, at ${pct(D4.audio.top5[0].p)}. The four chirps do look a bit like matchsticks. ` +
+    "(draft) And look at the shape: the mode is sharper than for the real street photo, 78 percent against 55. The peak is higher for the image that matches none of the labels.",
   "That is the lesson. Softmax always sums to one over the classes it knows. A high softmax value tells you which of those classes is the best match, not whether the image belongs to any of them. Treat it as a ranking, not a confidence."
 ]});
 
@@ -104,11 +109,11 @@ st(`
 ]});
 
 st(`
-  <div class="center" style="max-width:64vw">
+  <div class="center" style="max-width:72vw">
     <div class="question">What does “similar” mean to this network?</div>
-    <div class="label b" style="margin-top:4vh">Same objects? Same layout? Same colours? Same texture?</div>
-    <div class="label b" style="margin-top:1.2vh">It depends on what the training objective rewarded. ImageNet labels reward telling a police van from a cab.</div>
-    <div class="label b" style="margin-top:1.2vh;color:var(--mute)">Day 5: embedding spaces, and comparing them with human judgements.</div>
+    <div class="lead b" style="margin-top:5vh;font-size:4.2vh">Same objects? Same layout? Same colours? Same texture?</div>
+    <div class="lead b" style="margin-top:2.4vh;font-size:4.2vh">It depends on what the training objective rewarded. ImageNet labels reward telling a police van from a cab.</div>
+    <div class="lead b" style="margin-top:2.4vh;font-size:3.6vh;color:var(--mute)">Day 5: embedding spaces, and comparing them with human judgements.</div>
   </div>
 `, { notes: [
   "So: what does similar mean to this network?",

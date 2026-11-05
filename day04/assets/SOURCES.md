@@ -65,3 +65,7 @@ having buses, cars, motorbikes, people and buildings in one frame. Selection, no
 The bus cut from `photos/street.jpg` (Bahnfrend, Wikimedia Commons, CC BY-SA 4.0), using the YOLO box in
 `result.json`, pasted on a plain canvas and moved one pixel at a time; ResNet-18 (torchvision ImageNet
 weights, as in `pipeline.py`) labels every position. Made by `shift/shift.py`; numbers in `shift/shift.json`.
+
+## softmax/ (added for Fernanda, 2026-11-05)
+ResNet-18's full softmax over its 1,000 ImageNet labels for `resnet/street-crop.jpg`'s photo and for
+`audio/spectrogram.png`, ranked. Made by `softmax/softmax.py`; numbers in `softmax/softmax.json`.

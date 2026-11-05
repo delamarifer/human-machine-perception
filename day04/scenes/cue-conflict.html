@@ -62,8 +62,8 @@
       </div>
       <div class="bar-row">
         <b>ResNet-50 (ImageNet)</b>
-        <div class="bar-track"><div class="bar-shape" style="width:21.4%"></div><div class="bar-tex" style="width:78.6%"></div></div>
-        <span style="font-family:monospace;font-weight:700">21.4%</span>
+        <div class="bar-track"><div class="bar-shape" style="width:22.1%"></div><div class="bar-tex" style="width:77.9%"></div></div>
+        <span style="font-family:monospace;font-weight:700">22.1%</span>
       </div>
       <div class="bar-row">
         <b>AlexNet (ImageNet)</b>
@@ -91,7 +91,7 @@ const EXPS = [
   '<b>Step 1 (Texture source):</b> Take a local surface texture patch—for example, wrinkled gray elephant skin (or clock numbers, fur, or bottle glass).',
   '<b>Step 2 (Shape source):</b> Take the global silhouette and contour of a different category—here, a sitting cat with pointed ears and a curved tail.',
   '<b>Step 3 (Cue-conflict image):</b> Combine the cat silhouette with the elephant skin texture using style transfer. <b>Ask the class:</b> What do you recognize? What will ResNet-50 predict?',
-  '<b>Result (Geirhos et al., 2019):</b> Humans choose the <b>shape</b> category on <b>95.9%</b> of cue-conflict trials ("cat"), whereas standard ImageNet-trained ResNet-50 chooses the <b>texture</b> category on <b>78.6%</b> of trials ("Indian elephant" /only 21.4% shape)!',
+  '<b>Result (Geirhos et al., 2019):</b> Humans choose the <b>shape</b> category on <b>95.9%</b> of cue-conflict trials ("cat"), whereas standard ImageNet-trained ResNet-50 chooses the <b>texture</b> category on <b>77.9%</b> of trials ("Indian elephant" /only 22.1% shape)!',
   '<b>Can we change what CNNs learn?</b> When Geirhos et al. replaced local textures in ImageNet using style transfer (<b>Stylized-ImageNet</b>) so local texture was no longer predictive of class, ResNet-50 shifted to <b>81.0% shape bias</b>—and became more robust to noise and distortions!'
 ];
 const NOTES = [
@@ -99,7 +99,7 @@ const NOTES = [
   "The texture source is a local surface, here wrinkled elephant skin.",
   "The shape source is the silhouette of a different object, here a sitting cat.",
   "Stop and ask the room: what do you see, and what would an ImageNet-trained CNN call it? The pictures are a sketch of the experiment, not the original stimuli.",
-  "People choose shape 95.9% of the time. ImageNet ResNet-50 chooses shape 21.4% of the time. This is a published ResNet-50 result, not the ResNet-18 we just ran on the street.",
+  "People choose shape 95.9% of the time. ImageNet ResNet-50 chooses shape 22.1% of the time. This is a published ResNet-50 result, not the ResNet-18 we just ran on the street.",
   "The same architecture, trained on Stylized-ImageNet so that texture no longer predicts the class, moves to 81% shape. The shortcut came from the training images."
 ];
 const N = NOTES.length - 1;
