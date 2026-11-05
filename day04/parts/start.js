@@ -12,7 +12,7 @@ const RECAP = [
   ['Day 3', 'Metamers, transformations and filters'],
 ];
 const DUE = [
-  ['Day 3 homework', 'Both Day 3 labs: metamers and image filtering', 'Thu, Nov 5, 2pm'],
+  ['Assignment 1', 'Coding and conceptual questions · 15%', 'Next week'],   // exact date: to add (Fernanda)
   ['Project proposal', '1–2 pages, from the template', 'Fri, Nov 6, midnight'],
   ['Proposal meeting', 'Book a time on Calendly', 'Mon–Wed'],
 ];
@@ -72,21 +72,33 @@ st(`
   </div>
 `, { notes: [
   "(draft) What is coming up.",
-  "(draft) The Day 3 homework, both labs, metamers and image filtering, is due " + DUE[0][2] + ".",
+  "(draft) Assignment 1 is due next week (to write: the exact day and time). Coding and conceptual questions, worth 15 percent of your grade.",
   "(draft) Your project proposal is due " + DUE[1][2] + ". One to two pages, using the template. More on how to submit it on the next slide.",
   "(draft) And then you meet with one of us about your proposal, Monday to Wednesday. Book a time on Calendly."
 ]});
 
 st(`
+  <style>
+    .flow.start-steps{ display:grid; grid-template-columns:1fr auto 1fr auto 1fr auto 1fr; gap:0 1.2vw; align-items:stretch; margin:auto 0; }
+    .start-steps .arrow{ align-self:center; }
+    .start-steps .step{ display:flex; flex-direction:column; align-items:center; gap:1vh; min-width:0; }
+    .start-steps .label{ overflow-wrap:anywhere; }
+    .start-shot{ width:100%; height:auto; max-height:34vh; object-fit:contain;
+      border:2px solid var(--line); border-radius:8px; margin-top:auto; }
+  </style>
   <h1 class="t">How to submit your proposal</h1>
-  <div class="flow">
-    <div class="step b" data-step="1"><b>1. Pick a track</b><span class="label">build a demo, or run an experiment</span></div>
+  <div class="flow start-steps">
+    <div class="step b" data-step="1"><b>1. Pick a track</b><span class="label">build a demo, or run an experiment</span>
+      <img class="start-shot" src="assets/start/track.png" alt="Project templates page: the two tracks"></div>
     <div class="arrow b" data-step="2">→</div>
-    <div class="step b" data-step="2"><b>2. Fill the template</b><span class="label">problem · approach · evaluation · plan, 25% each</span></div>
+    <div class="step b" data-step="2"><b>2. Fill the template</b><span class="label">problem · approach · evaluation · plan, 25% each</span>
+      <img class="start-shot" src="assets/start/template.png" alt="Project templates page: the detailed proposal template"></div>
     <div class="arrow b" data-step="3">→</div>
-    <div class="step b" data-step="3"><b>3. Upload it</b><span class="label">${PROPOSAL_FORM}</span></div>
+    <div class="step b" data-step="3"><b>3. Upload it</b><span class="label">${PROPOSAL_FORM}</span>
+      <img class="start-shot" src="assets/start/upload.png" alt="Course site: the Project proposal upload card"></div>
     <div class="arrow b" data-step="4">→</div>
-    <div class="step b" data-step="4"><b>4. Book a meeting</b><span class="label">Calendly, Mon–Wed</span></div>
+    <div class="step b" data-step="4"><b>4. Book a meeting</b><span class="label">Calendly, Mon–Wed</span>
+      <img class="start-shot" src="assets/start/meeting.png" alt="Project templates page: what to bring to the meeting"></div>
   </div>
   <div class="label b" data-step="5" style="text-align:center">Templates and the upload link: course site → Project</div>
 `, { notes: [

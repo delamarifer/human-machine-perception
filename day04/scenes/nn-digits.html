@@ -38,7 +38,7 @@
    Network 64-16-16-10, ReLU, trained by ../assets/nn/train_digits.py. Activations are computed here
    with those weights. Line opacity = |weight x input activation| (the contribution), one ink color. */
 const D = DIGITS, [W1, B1] = D.weights[0], [W2, B2] = D.weights[1], [W3, B3] = D.weights[2];
-const GOOD = D.digits.find(d => d.label === 3), BAD = D.digits.find(d => d.label !== d.predicted);
+const GOOD = D.digits.find(d => d.label === 3), BAD = D.wrong;
 const NPAR = D.sizes.slice(1).reduce((s, n, i) => s + D.sizes[i] * n + n, 0);
 const PEEK = 5;                                                  // which layer-1 neuron to open up (any one works; to choose with Fernanda)
 const CAPS = ['', '8 × 8 pixels of a handwritten digit the network never saw', '64 pixels → 64 input neurons',

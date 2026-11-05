@@ -76,13 +76,21 @@ A = np.linspace(-0.3, 1.3, 49); B = np.linspace(-0.8, 0.8, 41)
 grid = [[loss(unflat(theta0 + a * d1 + b * d2), Xtr, ytr) for a in A] for b in B]
 proj = [[float((th - theta0) @ d1 / (d1 @ d1)), float((th - theta0) @ d2 / (d2 @ d2))] for th in path]
 
-# a few test digits, one per class
-show = [int(np.where(yte == c)[0][0]) for c in range(10)]
+# one test digit per class: the correctly read one that looks most like its class average (the clearest),
+# plus the first misclassified test digit, for the last beat of the scene
+mean = [Xtr[ytr == c].mean(0) for c in range(10)]
+def clearest(c):
+  ok = np.where((yte == c) & (pte.argmax(1) == c))[0]
+  return int(ok[np.argmax([np.corrcoef(Xte[i], mean[c])[0, 1] for i in ok])])
+show = [clearest(c) for c in range(10)]
+wrong = int(np.where(pte.argmax(1) != yte)[0][0])
 out = {
   'source': 'scikit-learn load_digits (UCI Optical Recognition of Handwritten Digits, CC BY 4.0); trained by train_digits.py',
   'sizes': SIZES, 'lr': LR, 'steps': STEPS, 'ntrain': ntr, 'ntest': int(len(yte)), 'testAccuracy': round(acc, 4),
   'weights': [[np.round(W, 4).tolist(), np.round(b, 4).tolist()] for W, b in P],
   'digits': [{'label': int(yte[i]), 'pixels': np.round(Xte[i], 4).tolist(), 'predicted': int(pte[i].argmax())} for i in show],
+  'wrong': {'label': int(yte[wrong]), 'pixels': np.round(Xte[wrong], 4).tolist(), 'predicted': int(pte[wrong].argmax()),
+            'confidence': round(float(pte[wrong].max()), 6)},
   'surface': {'alpha': np.round(A, 4).tolist(), 'beta': np.round(B, 4).tolist(), 'loss': np.round(grid, 4).tolist()},
   'path': {'every': EVERY, 'ab': np.round(proj, 4).tolist(), 'loss': np.round(losses, 4).tolist()},
 }
