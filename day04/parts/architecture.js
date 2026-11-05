@@ -140,12 +140,23 @@ st(`
       <div class="d4-eq" style="font-size:clamp(1.1rem,1.8vw,1.6rem)"><i>g</i>(shift(<b>x</b>)) ≈ <i>g</i>(<b>x</b>)</div>
       <div class="label">Move the bus; the label should stay the same.</div></div>
   </div>
+  <!-- added at Fernanda's request (2026-11-05): the same ResNet-18, the street photo's bus moved pixel by pixel.
+       Every image and number from assets/shift/shift.py (shift.json). -->
+  <div class="architecture-shift" style="display:grid;grid-template-columns:repeat(3,auto) 1fr;gap:.6vh 1.2vw;align-items:center;margin-top:1.5vh;min-height:0">
+    ${['0', '1', '2'].map(j => `
+      <img class="b" data-step="1" src="assets/shift/bus-${j}.png" alt="" style="height:17vh;border-radius:4px">`).join('')}
+    <div class="b" data-step="3" style="grid-row:span 3;text-align:center"><img src="assets/shift/chart.png" alt="" style="width:100%;max-height:22vh;object-fit:contain">
+      <div class="label">bus moved 1 pixel at a time, 85 positions: “minibus” 82 times, “jeep” 3 times</div></div>
+    ${['0', '1', '2'].map(j => `
+      <img class="b" data-step="1" src="assets/shift/fm-${j}.png" alt="" style="height:17vh;border-radius:4px;border:1px solid var(--line)">`).join('')}
+    ${[50, 54, 43].map(p => `<div class="label b" data-step="2" style="text-align:center">minibus ${p}%</div>`).join('')}
+  </div>
   <div class="label b" data-step="3" style="color:var(--mute)">Only roughly: strides and pooling break exact invariance, and a shift of a few pixels can change a prediction (Azulay &amp; Weiss, 2019). A good lab experiment.</div>
 `, { notes: [
   "Two words worth getting right.",
-  "Convolution is translation-equivariant: shift the input and the feature map shifts by the same amount. Where is preserved.",
-  "Global pooling and the head throw where away, so the final label is approximately translation-invariant: the bus is a bus wherever it is.",
-  "Approximately. Strides and pooling sample the image on a grid, so a shift of a few pixels can change the prediction. Azulay and Weiss showed this for standard ImageNet models. That is a nice thing to test in your lab."
+  "Convolution is translation-equivariant: shift the input and the feature map shifts by the same amount. Where is preserved. (draft, added with the images) Top row: the bus from our street photo, pasted at three positions. Below each, one feature map from ResNet-18's first layer: the response moves with the bus.",
+  "Global pooling and the head throw where away, so the final label is approximately translation-invariant: the bus is a bus wherever it is. (draft, added with the images) At all three positions ResNet-18 says minibus, at 50, 54 and 43 percent.",
+  "Approximately. Strides and pooling sample the image on a grid, so a shift of a few pixels can change the prediction. Azulay and Weiss showed this for standard ImageNet models. That is a nice thing to test in your lab. (draft, added with the images) On the right: the probability of minibus as we move the bus one pixel at a time, 85 positions. It wobbles between 30 and 74 percent, it can jump by 21 points for a one-pixel shift, and at three positions the label flips to jeep."
 ]});
 
 st(`

@@ -1,0 +1,557 @@
+{
+ "box_xywhn": [
+  0.0,
+  0.568,
+  0.3713,
+  0.2923
+ ],
+ "bus_width": 140,
+ "positions": 85,
+ "main_label": "minibus",
+ "shown_positions": [
+  8,
+  42,
+  76
+ ],
+ "conv1_channel": 45,
+ "n_main_top1": 82,
+ "labels": [
+  "jeep",
+  "minibus"
+ ],
+ "p_main_min": 0.2954,
+ "p_main_max": 0.7383,
+ "largest_one_pixel_change": 0.2096,
+ "shown": [
+  {
+   "x": 8,
+   "label": "minibus",
+   "p": 0.5046,
+   "p_main": 0.5046
+  },
+  {
+   "x": 42,
+   "label": "minibus",
+   "p": 0.5394,
+   "p_main": 0.5394
+  },
+  {
+   "x": 76,
+   "label": "minibus",
+   "p": 0.4261,
+   "p_main": 0.4261
+  }
+ ],
+ "rows": [
+  {
+   "x": 0,
+   "label": "jeep",
+   "p": 0.315,
+   "p_main": 0.2954
+  },
+  {
+   "x": 1,
+   "label": "minibus",
+   "p": 0.414,
+   "p_main": 0.414
+  },
+  {
+   "x": 2,
+   "label": "minibus",
+   "p": 0.3718,
+   "p_main": 0.3718
+  },
+  {
+   "x": 3,
+   "label": "minibus",
+   "p": 0.319,
+   "p_main": 0.319
+  },
+  {
+   "x": 4,
+   "label": "minibus",
+   "p": 0.3251,
+   "p_main": 0.3251
+  },
+  {
+   "x": 5,
+   "label": "minibus",
+   "p": 0.4453,
+   "p_main": 0.4453
+  },
+  {
+   "x": 6,
+   "label": "jeep",
+   "p": 0.3467,
+   "p_main": 0.3003
+  },
+  {
+   "x": 7,
+   "label": "minibus",
+   "p": 0.4433,
+   "p_main": 0.4433
+  },
+  {
+   "x": 8,
+   "label": "minibus",
+   "p": 0.5046,
+   "p_main": 0.5046
+  },
+  {
+   "x": 9,
+   "label": "minibus",
+   "p": 0.6328,
+   "p_main": 0.6328
+  },
+  {
+   "x": 10,
+   "label": "minibus",
+   "p": 0.5098,
+   "p_main": 0.5098
+  },
+  {
+   "x": 11,
+   "label": "minibus",
+   "p": 0.4621,
+   "p_main": 0.4621
+  },
+  {
+   "x": 12,
+   "label": "minibus",
+   "p": 0.4847,
+   "p_main": 0.4847
+  },
+  {
+   "x": 13,
+   "label": "minibus",
+   "p": 0.4607,
+   "p_main": 0.4607
+  },
+  {
+   "x": 14,
+   "label": "jeep",
+   "p": 0.4148,
+   "p_main": 0.3284
+  },
+  {
+   "x": 15,
+   "label": "minibus",
+   "p": 0.498,
+   "p_main": 0.498
+  },
+  {
+   "x": 16,
+   "label": "minibus",
+   "p": 0.4251,
+   "p_main": 0.4251
+  },
+  {
+   "x": 17,
+   "label": "minibus",
+   "p": 0.6347,
+   "p_main": 0.6347
+  },
+  {
+   "x": 18,
+   "label": "minibus",
+   "p": 0.4422,
+   "p_main": 0.4422
+  },
+  {
+   "x": 19,
+   "label": "minibus",
+   "p": 0.4519,
+   "p_main": 0.4519
+  },
+  {
+   "x": 20,
+   "label": "minibus",
+   "p": 0.3895,
+   "p_main": 0.3895
+  },
+  {
+   "x": 21,
+   "label": "minibus",
+   "p": 0.4218,
+   "p_main": 0.4218
+  },
+  {
+   "x": 22,
+   "label": "minibus",
+   "p": 0.3631,
+   "p_main": 0.3631
+  },
+  {
+   "x": 23,
+   "label": "minibus",
+   "p": 0.5397,
+   "p_main": 0.5397
+  },
+  {
+   "x": 24,
+   "label": "minibus",
+   "p": 0.6273,
+   "p_main": 0.6273
+  },
+  {
+   "x": 25,
+   "label": "minibus",
+   "p": 0.7383,
+   "p_main": 0.7383
+  },
+  {
+   "x": 26,
+   "label": "minibus",
+   "p": 0.6937,
+   "p_main": 0.6937
+  },
+  {
+   "x": 27,
+   "label": "minibus",
+   "p": 0.6891,
+   "p_main": 0.6891
+  },
+  {
+   "x": 28,
+   "label": "minibus",
+   "p": 0.5619,
+   "p_main": 0.5619
+  },
+  {
+   "x": 29,
+   "label": "minibus",
+   "p": 0.5031,
+   "p_main": 0.5031
+  },
+  {
+   "x": 30,
+   "label": "minibus",
+   "p": 0.4605,
+   "p_main": 0.4605
+  },
+  {
+   "x": 31,
+   "label": "minibus",
+   "p": 0.551,
+   "p_main": 0.551
+  },
+  {
+   "x": 32,
+   "label": "minibus",
+   "p": 0.543,
+   "p_main": 0.543
+  },
+  {
+   "x": 33,
+   "label": "minibus",
+   "p": 0.6873,
+   "p_main": 0.6873
+  },
+  {
+   "x": 34,
+   "label": "minibus",
+   "p": 0.5197,
+   "p_main": 0.5197
+  },
+  {
+   "x": 35,
+   "label": "minibus",
+   "p": 0.4395,
+   "p_main": 0.4395
+  },
+  {
+   "x": 36,
+   "label": "minibus",
+   "p": 0.3596,
+   "p_main": 0.3596
+  },
+  {
+   "x": 37,
+   "label": "minibus",
+   "p": 0.3922,
+   "p_main": 0.3922
+  },
+  {
+   "x": 38,
+   "label": "minibus",
+   "p": 0.3223,
+   "p_main": 0.3223
+  },
+  {
+   "x": 39,
+   "label": "minibus",
+   "p": 0.5217,
+   "p_main": 0.5217
+  },
+  {
+   "x": 40,
+   "label": "minibus",
+   "p": 0.5321,
+   "p_main": 0.5321
+  },
+  {
+   "x": 41,
+   "label": "minibus",
+   "p": 0.6518,
+   "p_main": 0.6518
+  },
+  {
+   "x": 42,
+   "label": "minibus",
+   "p": 0.5394,
+   "p_main": 0.5394
+  },
+  {
+   "x": 43,
+   "label": "minibus",
+   "p": 0.4774,
+   "p_main": 0.4774
+  },
+  {
+   "x": 44,
+   "label": "minibus",
+   "p": 0.4713,
+   "p_main": 0.4713
+  },
+  {
+   "x": 45,
+   "label": "minibus",
+   "p": 0.4399,
+   "p_main": 0.4399
+  },
+  {
+   "x": 46,
+   "label": "minibus",
+   "p": 0.3627,
+   "p_main": 0.3627
+  },
+  {
+   "x": 47,
+   "label": "minibus",
+   "p": 0.5312,
+   "p_main": 0.5312
+  },
+  {
+   "x": 48,
+   "label": "minibus",
+   "p": 0.4586,
+   "p_main": 0.4586
+  },
+  {
+   "x": 49,
+   "label": "minibus",
+   "p": 0.6558,
+   "p_main": 0.6558
+  },
+  {
+   "x": 50,
+   "label": "minibus",
+   "p": 0.4543,
+   "p_main": 0.4543
+  },
+  {
+   "x": 51,
+   "label": "minibus",
+   "p": 0.4565,
+   "p_main": 0.4565
+  },
+  {
+   "x": 52,
+   "label": "minibus",
+   "p": 0.409,
+   "p_main": 0.409
+  },
+  {
+   "x": 53,
+   "label": "minibus",
+   "p": 0.412,
+   "p_main": 0.412
+  },
+  {
+   "x": 54,
+   "label": "minibus",
+   "p": 0.3204,
+   "p_main": 0.3204
+  },
+  {
+   "x": 55,
+   "label": "minibus",
+   "p": 0.4825,
+   "p_main": 0.4825
+  },
+  {
+   "x": 56,
+   "label": "minibus",
+   "p": 0.5683,
+   "p_main": 0.5683
+  },
+  {
+   "x": 57,
+   "label": "minibus",
+   "p": 0.678,
+   "p_main": 0.678
+  },
+  {
+   "x": 58,
+   "label": "minibus",
+   "p": 0.6449,
+   "p_main": 0.6449
+  },
+  {
+   "x": 59,
+   "label": "minibus",
+   "p": 0.6402,
+   "p_main": 0.6402
+  },
+  {
+   "x": 60,
+   "label": "minibus",
+   "p": 0.5016,
+   "p_main": 0.5016
+  },
+  {
+   "x": 61,
+   "label": "minibus",
+   "p": 0.4391,
+   "p_main": 0.4391
+  },
+  {
+   "x": 62,
+   "label": "minibus",
+   "p": 0.3592,
+   "p_main": 0.3592
+  },
+  {
+   "x": 63,
+   "label": "minibus",
+   "p": 0.4399,
+   "p_main": 0.4399
+  },
+  {
+   "x": 64,
+   "label": "minibus",
+   "p": 0.438,
+   "p_main": 0.438
+  },
+  {
+   "x": 65,
+   "label": "minibus",
+   "p": 0.6149,
+   "p_main": 0.6149
+  },
+  {
+   "x": 66,
+   "label": "minibus",
+   "p": 0.4765,
+   "p_main": 0.4765
+  },
+  {
+   "x": 67,
+   "label": "minibus",
+   "p": 0.4082,
+   "p_main": 0.4082
+  },
+  {
+   "x": 68,
+   "label": "minibus",
+   "p": 0.3341,
+   "p_main": 0.3341
+  },
+  {
+   "x": 69,
+   "label": "minibus",
+   "p": 0.3549,
+   "p_main": 0.3549
+  },
+  {
+   "x": 70,
+   "label": "minibus",
+   "p": 0.3218,
+   "p_main": 0.3218
+  },
+  {
+   "x": 71,
+   "label": "minibus",
+   "p": 0.4708,
+   "p_main": 0.4708
+  },
+  {
+   "x": 72,
+   "label": "minibus",
+   "p": 0.4656,
+   "p_main": 0.4656
+  },
+  {
+   "x": 73,
+   "label": "minibus",
+   "p": 0.6027,
+   "p_main": 0.6027
+  },
+  {
+   "x": 74,
+   "label": "minibus",
+   "p": 0.4821,
+   "p_main": 0.4821
+  },
+  {
+   "x": 75,
+   "label": "minibus",
+   "p": 0.4353,
+   "p_main": 0.4353
+  },
+  {
+   "x": 76,
+   "label": "minibus",
+   "p": 0.4261,
+   "p_main": 0.4261
+  },
+  {
+   "x": 77,
+   "label": "minibus",
+   "p": 0.3897,
+   "p_main": 0.3897
+  },
+  {
+   "x": 78,
+   "label": "minibus",
+   "p": 0.3887,
+   "p_main": 0.3887
+  },
+  {
+   "x": 79,
+   "label": "minibus",
+   "p": 0.5335,
+   "p_main": 0.5335
+  },
+  {
+   "x": 80,
+   "label": "minibus",
+   "p": 0.4766,
+   "p_main": 0.4766
+  },
+  {
+   "x": 81,
+   "label": "minibus",
+   "p": 0.6199,
+   "p_main": 0.6199
+  },
+  {
+   "x": 82,
+   "label": "minibus",
+   "p": 0.4297,
+   "p_main": 0.4297
+  },
+  {
+   "x": 83,
+   "label": "minibus",
+   "p": 0.3624,
+   "p_main": 0.3624
+  },
+  {
+   "x": 84,
+   "label": "minibus",
+   "p": 0.2997,
+   "p_main": 0.2997
+  }
+ ]
+}

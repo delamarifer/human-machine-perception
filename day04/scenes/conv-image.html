@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Convolution on an image</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: conv-scene part (Day 4). Replaces the 3Blue1Brown convolution clip (no sound in class).
+     The image is the 9 drawn in nn-layers.html (28 x 28, not data); every output pixel is computed here.
+     Works alone too. */
+  html, body{ background:#fff; }
+  body.jump *{ transition:none !important; }
+  .wrap{ position:absolute; inset:0; padding:9vh 5vw 12vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .cv-cap{ min-height:1.4em; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Convolution on an image</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+  <div class="lead cv-cap" id="cap"></div>
+  <div class="cite">After 3Blue1Brown, “But what is a convolution?” · image drawn for this slide, outputs computed live</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE  (0):   the title alone
+   ACT 1  BLUR   (1-3): a 28 x 28 image; a 3 x 3 kernel of 1/9s on one patch (one output pixel = sum of 9
+                        products); slide it everywhere: a blurred image
+   ACT 2  EDGES  (4-6): a vertical-edge kernel; a horizontal-edge kernel; a CNN learns its kernels
+
+   Zero padding, so the output is 28 x 28 too. Gray levels: image and blur 0 = white, 1 = black. Edge outputs
+   are signed: zero = mid gray, positive = darker, negative = lighter. */
+const NPX = 28;
+const img = (() => {                                             // the 9 of nn-layers.html, same strokes and pen
+  const c = document.createElement('canvas'); c.width = c.height = NPX;
+  const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, NPX, NPX);
+  g.strokeStyle = '#000'; g.lineWidth = 2.4; g.lineCap = g.lineJoin = 'round';
+  const arc = [...Array(41)].map((_, k) => { const a = 2 * Math.PI * k / 40; return [13 + 5.5 * Math.cos(a), 9.5 + 5.2 * Math.sin(a)]; });
+  [arc, [[18.5, 9.5], [18.3, 14], [17.6, 19], [16.8, 23.5]]].forEach(s => { g.beginPath(); s.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke(); });
+  const d = g.getImageData(0, 0, NPX, NPX).data;
+  return [...Array(NPX * NPX)].map((_, i) => 1 - d[4 * i] / 255);
+})();
+const K = {
+  blur: [[1, 1, 1], [1, 1, 1], [1, 1, 1]].map(r => r.map(v => v / 9)),
+  vert: [[-.25, 0, .25], [-.5, 0, .5], [-.25, 0, .25]],
+  horz: [[-.25, -.5, -.25], [0, 0, 0], [.25, .5, .25]],
+};
+const at = (x, y) => x < 0 || y < 0 || x >= NPX || y >= NPX ? 0 : img[y * NPX + x];
+const conv = k => [...Array(NPX * NPX)].map((_, i) => {
+  const x = i % NPX, y = Math.floor(i / NPX); let s = 0;
+  for(let dy = -1; dy <= 1; dy++) for(let dx = -1; dx <= 1; dx++) s += k[dy + 1][dx + 1] * at(x + dx, y + dy);
+  return s;
+});
+const OUT = {blur: conv(K.blur), vert: conv(K.vert), horz: conv(K.horz)};
+const PX = 15, PY = 6;                                           // the patch opened up at beat 2: right edge of the loop
+const fmt = v => (Math.abs(v) < 1e-9 ? 0 : v).toFixed(2).replace('-', '−');
+const CAPS = ['', 'An image: 28 × 28 pixels', 'A 3 × 3 kernel on one patch: multiply, then add',
+  'Slide it everywhere: the 1/9 kernel blurs', 'Another kernel: vertical edges',
+  'Turn it: horizontal edges', 'A CNN learns its kernels from data'];
+const NOTES = [
+  "(draft) Title only. Back to convolution, now on a whole image. This is the operation at the heart of a convolutional network.",
+  "(draft) An image: 28 by 28 pixels, each a number. Here it is the 9 from a few slides ago.",
+  "(draft) The kernel is a small grid of weights, here 3 by 3, each one ninth. Put it on one patch of the image, multiply each pixel by the weight on top of it, and add the nine products. That sum is one pixel of the output.",
+  "(draft) Now slide the kernel to every position in the image and do the same. With all weights equal to one ninth, each output pixel is the average of its neighborhood: the image gets blurred.",
+  "(draft) Change the weights and you change what it finds. This kernel has negative weights on the left and positive on the right. On a flat area the products cancel and the output is zero, mid gray. Where the image changes from left to right, at a vertical edge, the output is strongly positive or negative: darker on one side of the stroke, lighter on the other.",
+  "(draft) Turn the same kernel by 90 degrees and it finds horizontal edges instead: the top and bottom of the loop light up, and the vertical stroke almost disappears.",
+  "(draft) Here we chose the weights by hand. A convolutional network does not: it starts with random kernels and learns them from data with gradient descent, the same walking downhill we saw. Remarkably, the kernels it learns in its first layer often look like these edge detectors."
+];
+const N = NOTES.length - 1;
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let beat = 0, t0 = 0, W = 0, H = 0;
+function size(){ const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1; W = r.width; H = r.height; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+addEventListener('resize', size);
+function go(b, instant){
+  beat = b; t0 = instant ? -1e9 : performance.now();
+  document.getElementById('cap').textContent = CAPS[b];
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+function jump(){ document.body.classList.add('jump'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('jump'))); }
+const ease = x => x < 0 ? 0 : x > 1 ? 1 : x;
+const gray = v => { const c = Math.round(255 * (1 - Math.max(0, Math.min(1, v)))); return `rgb(${c},${c},${c})`; };
+
+function grid(vals, ox, oy, cell, signed, shown = NPX * NPX){
+  const m = signed ? Math.max(...vals.map(Math.abs)) : 1;
+  for(let i = 0; i < shown; i++){
+    const v = signed ? .5 + .5 * vals[i] / m : vals[i];
+    ctx.fillStyle = gray(v); ctx.fillRect(ox + (i % NPX) * cell, oy + Math.floor(i / NPX) * cell, cell, cell);
+  }
+  ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.5; ctx.strokeRect(ox, oy, NPX * cell, NPX * cell);
+}
+function frame(now){
+  if(!W) size();
+  ctx.clearRect(0, 0, W, H);
+  const side = Math.min(H * .92, W * .3), cell = side / NPX, oy = (H - side) / 2;
+  const ix = W * .02, kx = ix + side + W * .06, ks = Math.min(side * .55, W * .17), ky = (H - ks) / 2, ox = kx + ks + W * .06;
+  const ink = '#0f172a', hi = '#b45309', fs = Math.round(H * .05);
+  ctx.font = `${fs}px system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  if(beat >= 1) grid(img, ix, oy, cell, false);
+  const kname = beat >= 5 ? 'horz' : beat === 4 ? 'vert' : 'blur', k = K[kname];
+  if(beat >= 2){                                                 // the kernel, with its numbers
+    ctx.fillStyle = '#64748b'; ctx.fillText('∗', (ix + side + kx) / 2, H / 2); ctx.fillText('=', (kx + ks + ox) / 2, H / 2);
+    const kc = ks / 3; ctx.font = `${Math.round(kc * .3)}px system-ui, sans-serif`;
+    k.forEach((row, r) => row.forEach((v, c) => {
+      const x = kx + c * kc, y = ky + r * kc;
+      ctx.fillStyle = kname === 'blur' ? '#f1f5f9' : gray(.5 + v); ctx.fillRect(x, y, kc, kc);
+      ctx.strokeStyle = ink; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, kc, kc);
+      ctx.fillStyle = kname !== 'blur' && v > .2 ? '#fff' : ink; ctx.fillText(kname === 'blur' ? '1/9' : fmt(v), x + kc / 2, y + kc / 2);
+    }));
+    ctx.font = `${fs}px system-ui, sans-serif`;
+  }
+  // output: one pixel at beat 2, a scan on the click at beats 3-5
+  const scan = beat >= 3 ? Math.round(ease((now - t0) / 1800) * NPX * NPX) : 0;
+  if(beat >= 2){
+    ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.5; ctx.strokeRect(ox, oy, side, side);
+    if(beat >= 3) grid(OUT[kname], ox, oy, cell, kname !== 'blur', scan);
+    const pos = beat === 2 ? PY * NPX + PX : Math.min(scan, NPX * NPX - 1);
+    const px = pos % NPX, py = Math.floor(pos / NPX);
+    if(beat === 2 || scan < NPX * NPX){                          // the window on the image and its output pixel
+      ctx.strokeStyle = hi; ctx.lineWidth = 3;
+      ctx.strokeRect(ix + (px - 1) * cell, oy + (py - 1) * cell, 3 * cell, 3 * cell);
+      ctx.strokeRect(ox + px * cell, oy + py * cell, cell, cell);
+      if(beat === 2){
+        ctx.fillStyle = gray(OUT.blur[pos]); ctx.fillRect(ox + px * cell, oy + py * cell, cell, cell);
+        ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.moveTo(ix + (px + 2) * cell, oy + (py + .5) * cell); ctx.lineTo(ox + px * cell, oy + (py + .5) * cell); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = ink; ctx.font = `${Math.round(fs * .8)}px system-ui, sans-serif`;
+        ctx.fillText(`sum of 9 products = ${fmt(OUT.blur[pos])}`, ox + side / 2, oy + side * .75);
+      }
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+window.convImage = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ jump(); go(0, true); },
+  resetToEnd(){ jump(); go(N, true); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) convImage.advance(); if(e.key === 'ArrowLeft') convImage.back(); });
+  addEventListener('click', () => convImage.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+if(location.hash === '#end') convImage.resetToEnd();
+</script>
+</body>
+</html>
