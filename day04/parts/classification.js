@@ -63,6 +63,10 @@ st(`
   "That is the lesson. Softmax always sums to one over the classes it knows. A high softmax value tells you which of those classes is the best match, not whether the image belongs to any of them. Treat it as a ranking, not a confidence."
 ]});
 
+/* added at Fernanda's request (2026-11-05): Govindarajan et al.'s confidence scene follows the softmax slide.
+   The scene belongs to the open-research part (owner Fernanda), which lists it on slide "Open research areas". */
+sc('orConfidence', 'scenes/or-confidence.html');
+
 st(`
   <h1 class="t">Cut off the head: an embedding</h1>
   <div class="d4-cols wide-l">

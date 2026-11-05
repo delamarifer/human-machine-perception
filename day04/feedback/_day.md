@@ -78,7 +78,7 @@ All notes are `(draft)` or `(to write)`; none are Fernanda's wording yet.
 - [ ] Timing: 65 minutes of segments in the plan. The invariance segment has 5 slides for 20 minutes and
   the metamers segment includes the activity in its 15 minutes, which looks tight.
 
-## Open research areas in CNNs (slides 35–37, part `open-research`, added 2026-11-05)
+## Open research areas in CNNs (slides 35–36 and 41, part `open-research`, added 2026-11-05)
 
 Slide 35 lists four open questions (attention, calibrated confidence, model metamers, why they generalize).
 Slide 36 is a scene of Griffith, Hess & McDermott (2025): cue → memory → multiplicative feature gains on a
@@ -95,7 +95,6 @@ schematics (labeled "schematic, not data" / "curves: illustration"); the numbers
 - [ ] Please check the quoted facts against the papers: 800-word softmax; gains at the cochleagram and before
   every conv block; the two confirmed predictions (azimuth > elevation; narrower spotlight at the midline); late
   selection; 5-component von Mises mixture; 50% HPD width as confidence; r = 0.90 vs 0.81; extension to pitch.
-- [ ] Slide 37 notes explain the two-peaked truck distribution as front-back confusion. Is that how Lakshmi
+- [ ] Slide 41 notes explain the two-peaked truck distribution as front-back confusion. Is that how Lakshmi
   describes the paper's Fig. 1 example?
-- [ ] Slide 35 note on "calibrated confidence" points forward to "A probability is not a confidence"
-  (Section 5, after this slide), not back.
+- [x] Moved (Fernanda, 2026-11-05): the confidence scene is now slide 41, right after "A probability is not a confidence" (slide 40); slide 35 row 2 points to it in Section 5.

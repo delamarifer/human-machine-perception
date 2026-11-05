@@ -54,9 +54,9 @@ const CAPS = ['', 'Where did that sound come from?', 'A standard network: one an
   'This network: a distribution over directions', 'Confidence = how wide the most likely 50% is',
   'Trained with maximum likelihood, so the width means something', 'People point, then bet on their answer', ''];
 const NOTES = [
-  "(draft) Title only. A network that always answers is not enough. We also want it to know when it might be wrong.",
+  "(draft) Title only. Back to one of the open questions from Section 4. A network that always answers is not enough. We also want it to know when it might be wrong.",
   "(draft) The task is sound localization: a sound plays somewhere around you, and you say where it came from. The model hears it through two ears, as a binaural cochleagram.",
-  "(draft) A standard classifier would pick one direction and report it. Its softmax looks like a probability, but as we will see in the next section, it is not a confidence: it says nothing reliable about how sure the model should be.",
+  "(draft) A standard classifier would pick one direction and report it. Its softmax looks like a probability, but as we just saw, it is not a confidence: it says nothing reliable about how sure the model should be.",
   "(draft) Lakshmi Govindarajan's model instead outputs a whole distribution over directions: a mixture of five von Mises distributions, which are bell curves on a circle, over azimuth and elevation. For footsteps, a broadband sound, the distribution is narrow. For a beeping truck, a pure tone, it is broad, and it can have two peaks, front and back, because a tone in front and the same tone behind can reach the two ears almost the same way. These curves are our drawings of the idea, not the model's actual outputs.",
   "(draft) From the distribution you read off a confidence: take the most likely directions that together hold half of the probability, and measure how wide that region is. Narrow means confident; wide means unsure.",
   "(draft) The training matters. The model is trained with maximum likelihood: it is rewarded for putting high probability on where the sound really was, so the spread has to match how often it is wrong. The paper's point is that the usual cross-entropy training pushes models to be overconfident: the dashed curve, narrow even for the truck.",
