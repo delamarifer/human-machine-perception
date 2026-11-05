@@ -4,6 +4,8 @@
    The earlier Day 4 parts (opening, cnns, recognition, bias, human-vs-machine, transfer, lab, wrapup)
    are still in parts/ but are no longer loaded.
    Avoid apostrophes inside the strings. */
+/* Published deck ends with Section 4 (Fernanda, 2026-11-05): Shreya's Sections 5-9 (classification,
+   detect-segment, domains, pretrained) and the project part stay in parts/ but are not loaded here. */
 const ORDER = [
   // part                 what
   ['start',               'Added by Fernanda: quiz, recap, course site, what is due, how to submit the proposal'],
@@ -15,11 +17,6 @@ const ORDER = [
   ['conv-scene',          'Section 3, added by Fernanda: a kernel slid over an image: blur, vertical and horizontal edges'],
   ['architecture',        'Section 4 (0:28-0:45, 17 min): channels, conv-ReLU-pool, receptive fields, hierarchy, head, equivariance'],
   ['open-research',       'Section 4, added by Fernanda: open research areas in CNNs, attention (Griffith) and confidence (Govindarajan) scenes'],
-  ['classification',      'Section 5 (0:45-1:00, 15 min): ImageNet, ResNet-18 on the street, softmax, embeddings, visual search'],
-  ['detect-segment',      'Section 6 (1:00-1:25, 25 min): YOLO detection, thresholds and NMS, U-Net segmentation, CT example'],
-  ['domains',             'Section 7 (1:25-1:35, 10 min): medical, satellite, audio, time series'],
-  ['pretrained',          'Section 8 (1:35-1:55, 20 min): architecture vs weights, five questions, ResNet-18, YOLO11n, MONAI U-Net'],
-  ['project',             'Section 9 (1:55-2:00, 5 min): lab directions and homework'],
 ];
 const PARTS = ORDER.map(r => r[0]);
 
