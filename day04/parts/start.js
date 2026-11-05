@@ -11,12 +11,35 @@ const RECAP = [
   ['Day 2', 'Computer vision: promise, pitfalls, your project'],
   ['Day 3', 'Metamers, transformations and filters'],
 ];
-const DUE = [
-  ['Assignment 1', 'Coding and conceptual questions · 15%', 'Next week'],
-  ['Project proposal', '1–2 pages, from the template', 'Fri, Nov 6, midnight'],
-  ['Proposal meeting', 'Book a time on Calendly', 'Mon–Wed'],
-];
-const PROPOSAL_FORM = 'forms.gle/wBXHE6AFaHf8RR4T8';
+const ASSIGNMENT = ['Assignment 1', 'Due next Wednesday', 'https://delamarifer.github.io/human-machine-perception/assignment1.html'];
+const PROPOSAL_DUE = 'Fri, Nov 6, midnight';
+
+/* announcements (Fernanda, 2026-11-05; replaces the 'Coming up' and 'How to submit your proposal' slides).
+   Screenshots in assets/start/: her Discord post, the course-site proposal card, the idea form (cropped so no
+   email address shows). */
+st(`
+  <style>
+    .start-ann{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1.25fr 1fr; gap:2vw; align-items:stretch; }
+    .start-ann > div{ display:flex; flex-direction:column; gap:1vh; min-height:0; }
+    .start-ann img, .start-ann iframe{ width:100%; min-height:0; border:2px solid var(--line); border-radius:8px; }
+    .start-ann img{ object-fit:contain; object-position:top; background:#fff; }
+  </style>
+  <h1 class="t">Announcements</h1>
+  <div class="start-ann">
+    <div class="b" data-step="1"><div class="lead"><b>Office hours</b></div><div class="label">Mon–Fri, 4–5pm · AIMS office 105</div>
+      <img src="assets/start/discord.png" alt="Fernanda's Discord post about office hours" style="flex:1 1 auto"></div>
+    <div class="b" data-step="2"><div class="lead"><b>${ASSIGNMENT[0]}</b></div><div class="label">${ASSIGNMENT[1]}</div>
+      <iframe loading="lazy" src="${ASSIGNMENT[2]}" title="${ASSIGNMENT[0]}" style="flex:1 1 auto"></iframe></div>
+    <div class="b" data-step="3"><div class="lead"><b>Project proposal</b></div><div class="label">${PROPOSAL_DUE} · upload it with the form</div>
+      <img src="assets/start/proposal-card.png" alt="Course site: the Project proposal card" style="flex:0 1 auto;max-height:16vh">
+      <img src="assets/start/idea-form.png" alt="The project Google Form" style="flex:1 1 auto"></div>
+  </div>
+`, { notes: [
+  "(draft) A few announcements before the quiz.",
+  "(draft) Office hours: I am in my office at AIMS, office 105, every day from 4 to 5pm, Monday to Friday. Come find me with questions about the course or for research advice. I posted this on Discord too. And I will come to as many lunches as I can, and some dinners.",
+  "(draft) Assignment 1 is out. It is on the course site, and it is due next Wednesday.",
+  "(draft) Your project proposal is due " + PROPOSAL_DUE + ". The card on the course site, under Project, takes you to the Google Form where you upload it."
+]});
 
 st(`
   <h1 class="t">Quiz</h1>
@@ -46,51 +69,4 @@ st(`
   "(draft) Today: we put filters inside networks that learn them. Convolutional networks, and what they can recognize."
 ]});
 
-st(`
-  <h1 class="t">Coming up</h1>
-  <div class="start-due" style="display:grid;grid-template-columns:auto 1fr auto;gap:2.4vh 3vw;align-items:baseline;margin:auto 0">
-    ${DUE.map(([what, detail, when], k) => `
-      <div class="lead b" data-step="${k + 1}"><b>${what}</b></div>
-      <div class="label b" data-step="${k + 1}">${detail}</div>
-      <div class="lead b" data-step="${k + 1}">${when}</div>`).join('')}
-  </div>
-`, { notes: [
-  "(draft) What is coming up.",
-  "(draft) Assignment 1 is due next week. Coding and conceptual questions, worth 15 percent of your grade.",
-  "(draft) Your project proposal is due " + DUE[1][2] + ". One to two pages, using the template. More on how to submit it on the next slide.",
-  "(draft) And then you meet with one of us about your proposal, Monday to Wednesday. Book a time on Calendly."
-]});
-
-st(`
-  <style>
-    .flow.start-steps{ display:grid; grid-template-columns:1fr auto 1fr auto 1fr auto 1fr; gap:0 1.2vw; align-items:stretch; margin:auto 0; }
-    .start-steps .arrow{ align-self:center; }
-    .start-steps .step{ display:flex; flex-direction:column; align-items:center; gap:1vh; min-width:0; }
-    .start-steps .label{ overflow-wrap:anywhere; }
-    .start-shot{ width:100%; height:auto; max-height:34vh; object-fit:contain;
-      border:2px solid var(--line); border-radius:8px; margin-top:auto; }
-  </style>
-  <h1 class="t">How to submit your proposal</h1>
-  <div class="flow start-steps">
-    <div class="step b" data-step="1"><b>1. Pick a track</b><span class="label">build a demo, or run an experiment</span>
-      <img class="start-shot" src="assets/start/track.png" alt="Project templates page: the two tracks"></div>
-    <div class="arrow b" data-step="2">→</div>
-    <div class="step b" data-step="2"><b>2. Fill the template</b><span class="label">problem · approach · evaluation · plan, 25% each</span>
-      <img class="start-shot" src="assets/start/template.png" alt="Project templates page: the detailed proposal template"></div>
-    <div class="arrow b" data-step="3">→</div>
-    <div class="step b" data-step="3"><b>3. Upload it</b><span class="label">${PROPOSAL_FORM}</span>
-      <img class="start-shot" src="assets/start/upload.png" alt="Course site: the Project proposal upload card"></div>
-    <div class="arrow b" data-step="4">→</div>
-    <div class="step b" data-step="4"><b>4. Book a meeting</b><span class="label">Calendly, Mon–Wed</span>
-      <img class="start-shot" src="assets/start/meeting.png" alt="Project templates page: what to bring to the meeting"></div>
-  </div>
-  <div class="label b" data-step="5" style="text-align:center">Templates and the upload link: course site → Project</div>
-`, { notes: [
-  "(draft) How to submit your proposal.",
-  "(draft) First, pick a track: build a demo that someone can try, or run an experiment that explores or overcomes a limitation of a vision model.",
-  "(draft) Second, fill in the template for your track. Four sections, each a quarter of the grade: the problem and why it matters, your approach, how you will evaluate it, and a realistic plan. Answer every question; short is fine.",
-  "(draft) Third, upload it with the form, by Friday at midnight.",
-  "(draft) Fourth, book a meeting with one of us for Monday to Wednesday, and come with your proposal and your questions.",
-  "(draft) The templates and the upload link are on the course site, under Project."
-]});
 }
