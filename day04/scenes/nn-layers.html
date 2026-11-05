@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Why layers?</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: nn-scenes part (Day 4). Replaces the 3Blue1Brown "Why layers?" clip (no sound in class).
+     The idea follows 3Blue1Brown, Deep learning ch. 1; the digits are strokes drawn here on a 28 x 28 grid,
+     not data. Works alone too. */
+  html, body{ background:#fff; }
+  body.jump *{ transition:none !important; }
+  .wrap{ position:absolute; inset:0; padding:9vh 5vw 12vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .lay-stage{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:3vh; }
+  .row{ display:flex; align-items:center; gap:1.4vw; }
+  .tile{ width:13vh; height:13vh; border:2px solid var(--line, #cbd5e1); border-radius:6px; image-rendering:pixelated; }
+  .row.small .tile{ width:9vh; height:9vh; }
+  .op{ font-size:5vh; color:#64748b; width:2.4vw; text-align:center; }
+  .rowlab{ width:9vw; color:#64748b; font-size:2.6vh; }
+  .x{ opacity:0; transition:opacity .45s; }
+  .x.on{ opacity:1; }
+  .strip{ display:flex; align-items:stretch; gap:1vw; }
+  .strip .st{ flex:1; border:2px solid #0f172a; border-radius:10px; padding:1vh 1vw; text-align:center; }
+  .strip .st b{ display:block; font-size:3.2vh; }
+  .strip .st .label{ font-size:2.4vh; }
+  .strip .ar{ align-self:center; color:#64748b; font-size:4vh; }
+  .nn-cap{ min-height:1.4em; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Why layers?</h1>
+  <div class="lay-stage">
+    <div class="row">
+      <span class="rowlab x" data-b="1">digit</span>
+      <canvas class="tile x" data-b="1" data-draw="nine"></canvas>
+      <span class="op x" data-b="2">=</span><canvas class="tile x" data-b="2" data-draw="loop9"></canvas>
+      <span class="op x" data-b="2">+</span><canvas class="tile x" data-b="2" data-draw="line9"></canvas>
+    </div>
+    <div class="row">
+      <span class="rowlab x" data-b="3">digit</span>
+      <canvas class="tile x" data-b="3" data-draw="eight"></canvas>
+      <span class="op x" data-b="3">=</span><canvas class="tile x" data-b="3" data-draw="loopTop"></canvas>
+      <span class="op x" data-b="3">+</span><canvas class="tile x" data-b="3" data-draw="loopBottom"></canvas>
+    </div>
+    <div class="row small">
+      <span class="rowlab x" data-b="4">part</span>
+      <canvas class="tile x" data-b="4" data-draw="loop9"></canvas>
+      <span class="op x" data-b="4">=</span><canvas class="tile x" data-b="4" data-draw="edge0"></canvas>
+      <span class="op x" data-b="4">+</span><canvas class="tile x" data-b="4" data-draw="edge1"></canvas>
+      <span class="op x" data-b="4">+</span><canvas class="tile x" data-b="4" data-draw="edge2"></canvas>
+      <span class="op x" data-b="4">+</span><canvas class="tile x" data-b="4" data-draw="edge3"></canvas>
+      <span class="op x" data-b="4">+</span><canvas class="tile x" data-b="4" data-draw="edge4"></canvas>
+    </div>
+    <div class="strip x" data-b="5">
+      <div class="st"><b>Pixels</b><span class="label">input</span></div><span class="ar">→</span>
+      <div class="st"><b>Edges</b><span class="label">hidden layer 1</span></div><span class="ar">→</span>
+      <div class="st"><b>Parts</b><span class="label">hidden layer 2</span></div><span class="ar">→</span>
+      <div class="st"><b>Digit</b><span class="label">output</span></div>
+    </div>
+  </div>
+  <div class="lead nn-cap" id="cap"></div>
+  <div class="cite">After 3Blue1Brown, “But what is a neural network?”, Deep learning ch. 1 · digits drawn for this slide</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE  (0):   the title alone
+   ACT 1  PARTS  (1-4): a 9; a 9 is a loop and a line; an 8 is two loops (parts are shared);
+                        a loop is a few short edges
+   ACT 2  LAYERS (5-6): pixels -> edges -> parts -> digit, one step per layer; the caveat: the hope,
+                        not what training guarantees
+
+   Strokes live on a 28 x 28 grid (the size of an MNIST digit), are drawn with a thick pen onto a
+   28 x 28 canvas and shown pixelated, dark on white like the digit in the previous scene. */
+const arc = (cx, cy, rx, ry, a0, a1, n = 40) =>
+  [...Array(n + 1)].map((_, k) => { const a = a0 + (a1 - a0) * k / n; return [cx + rx * Math.cos(a), cy + ry * Math.sin(a)]; });
+const T = 2 * Math.PI, E = 5;                                     // the loop of the 9 is cut into E short edges
+const STROKES = {
+  loop9:      [arc(13, 9.5, 5.5, 5.2, 0, T)],
+  line9:      [[[18.5, 9.5], [18.3, 14], [17.6, 19], [16.8, 23.5]]],
+  loopTop:    [arc(14, 8, 4.3, 4, 0, T)],
+  loopBottom: [arc(14, 17.8, 5.3, 5, 0, T)],
+};
+STROKES.nine  = [...STROKES.loop9, ...STROKES.line9];
+STROKES.eight = [...STROKES.loopTop, ...STROKES.loopBottom];
+for(let k = 0; k < E; k++) STROKES['edge' + k] = [arc(13, 9.5, 5.5, 5.2, T * k / E - .12, T * (k + 1) / E + .12, 12)];
+
+function draw(cv, strokes){
+  cv.width = cv.height = 28;
+  const c = cv.getContext('2d');
+  c.fillStyle = '#fff'; c.fillRect(0, 0, 28, 28);
+  c.strokeStyle = '#111'; c.lineWidth = 2.4; c.lineCap = c.lineJoin = 'round';
+  strokes.forEach(s => { c.beginPath(); s.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.stroke(); });
+}
+document.querySelectorAll('[data-draw]').forEach(cv => draw(cv, STROKES[cv.dataset.draw]));
+
+const CAPS = ['', 'A handwritten 9', 'A 9 is a loop and a line', 'An 8 is two loops: parts are shared',
+  'A loop is a few short edges', 'The hope: each layer builds on the one before',
+  'A hope, not a guarantee: trained networks rarely split this cleanly'];
+const NOTES = [
+  "(draft) Title only. Why stack layers at all? Why not go straight from pixels to the answer?",
+  "(draft) Take a handwritten 9.",
+  "(draft) We can describe it with bigger pieces: a 9 is a loop on top and a line on the right.",
+  "(draft) An 8 is two loops. So the pieces are shared: one detector for loops is useful for 9, 8, 6 and 0. That is cheaper than learning every digit from scratch.",
+  "(draft) And a loop itself is made of smaller pieces: a few short edges at different angles. Edges are shared by even more shapes.",
+  "(draft) So here is the hope behind layers. The first hidden layer finds edges in the pixels, the second combines edges into parts, and the output combines parts into a digit. Each layer builds on the one before. This is the picture 3Blue1Brown uses in his first video on neural networks.",
+  "(draft) But it is a hope, not a guarantee. Remember the hidden neuron we opened on the previous slide: its weights did not look like a clean edge. A plain network is free to solve the task however it likes. Convolutional networks, coming up, build the edges-then-parts idea into the architecture itself, and there the hope comes much closer to true."
+];
+const N = NOTES.length - 1;
+let beat = 0;
+function go(b){
+  beat = b;
+  document.querySelectorAll('.x').forEach(e => e.classList.toggle('on', +e.dataset.b <= b));
+  document.getElementById('cap').textContent = CAPS[b];
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+function jump(){ document.body.classList.add('jump'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('jump'))); }
+
+window.nnLayers = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ jump(); go(0); },
+  resetToEnd(){ jump(); go(N); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) nnLayers.advance(); if(e.key === 'ArrowLeft') nnLayers.back(); });
+  addEventListener('click', () => nnLayers.advance());
+}
+go(0);
+if(location.hash === '#end') nnLayers.resetToEnd();
+</script>
+</body>
+</html>

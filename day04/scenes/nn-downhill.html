@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gradient descent: walking downhill</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: nn-scenes part (Day 4). Replaces the 3Blue1Brown gradient descent clip (no sound in class).
+     One weight, a made-up loss curve (a formula, not data), the real gradient descent rule on it.
+     The next scene (nn-descent.html) shows the same rule on our real digit network. Works alone too. */
+  html, body{ background:#fff; }
+  body.jump *{ transition:none !important; }
+  .wrap{ position:absolute; inset:0; padding:9vh 5vw 12vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .nn-cap{ min-height:1.4em; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Gradient descent: walking downhill</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+  <div class="lead nn-cap" id="cap"></div>
+  <div class="cite">After 3Blue1Brown, “Gradient descent, how neural networks learn”, Deep learning ch. 2 · a made-up loss with one weight</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE  (0):   the title alone
+   ACT 1  ONE STEP (1-4): the loss as a function of one weight; a random start; the slope there; one step
+                        w <- w - eta * slope
+   ACT 2  REPEAT (5-6): repeat: the steps shrink as the slope flattens; a second start ends in the other,
+                        shallower valley (a local minimum)
+
+   L(w) = 0.05 w^4 - 0.5 w^2 + 0.25 w + 2 has two valleys; every step below is the rule applied exactly. */
+const L  = w => .05 * w ** 4 - .5 * w ** 2 + .25 * w + 2;
+const dL = w => .2 * w ** 3 - w + .25;
+const ETA = .35, NSTEP = 14, W0 = -0.6, W0B = 3.2, WMIN = -3.6, WMAX = 3.6;
+const run = w => { const p = [w]; for(let k = 0; k < NSTEP; k++) p.push(w -= ETA * dL(w)); return p; };
+const PA = run(W0), PB = run(W0B);
+const CAPS = ['', 'The loss for every value of one weight', 'Start at a random weight',
+  'The slope: which way is uphill', 'Step the other way: w ← w − η × slope',
+  'Repeat: the steps shrink as the slope flattens', 'Another start ends in a local minimum'];
+const NOTES = [
+  "(draft) Title only. How does a network find good weights? By walking downhill on the loss.",
+  "(draft) Imagine the network had only one weight. For every value of that weight, horizontal, we can compute the loss on the training set, vertical. Low is good. This curve is made up, to keep it simple; our real network has 1,482 weights, and we will come back to it right after this.",
+  "(draft) We start with a random value of the weight. Here the loss is high.",
+  "(draft) We cannot see the whole curve; computing it everywhere would be far too expensive. But we can compute the slope right where we stand. That is the gradient, and backpropagation is the method that computes it. The slope tells us which way is uphill.",
+  "(draft) So we take a step the other way, downhill. The size of the step is the slope times a small number, eta, the learning rate.",
+  "(draft) And we repeat. Where the curve is steep, the steps are big; as we approach the bottom of the valley the slope flattens and the steps get smaller, until we barely move.",
+  "(draft) Start somewhere else and you can end up in a different valley, here a shallower one: a local minimum. The deepest valley is the global minimum. Gradient descent finds a valley, not necessarily the deepest. With millions of weights this matters less than it sounds, but it is why the starting weights and the learning rate matter."
+];
+const N = NOTES.length - 1;
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let beat = 0, t0 = 0, W = 0, H = 0;
+function size(){ const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1; W = r.width; H = r.height; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+addEventListener('resize', size);
+function go(b, instant){
+  beat = b; t0 = instant ? -1e9 : performance.now();
+  document.getElementById('cap').textContent = CAPS[b];
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+function jump(){ document.body.classList.add('jump'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('jump'))); }
+
+const LMIN = 0, LMAX = L(WMAX) + .2;
+const ease = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
+function frame(now){
+  if(!W) size();
+  ctx.clearRect(0, 0, W, H);
+  const p = ease((now - t0) / 600);                              // fade-in of the newest beat
+  const x0 = W * .12, x1 = W * .9, y0 = H * .92, y1 = H * .04;
+  const X = w => x0 + (w - WMIN) / (WMAX - WMIN) * (x1 - x0), Y = l => y0 - (l - LMIN) / (LMAX - LMIN) * (y0 - y1);
+  const ink = '#0f172a', grey = '#94a3b8', hi = '#b45309';
+  ctx.lineCap = ctx.lineJoin = 'round';
+  // axes and labels (with the curve, beat 1)
+  if(beat >= 1){
+    ctx.globalAlpha = beat === 1 ? p : 1;
+    ctx.strokeStyle = grey; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x0, y1); ctx.lineTo(x0, y0); ctx.lineTo(x1, y0); ctx.stroke();
+    ctx.fillStyle = '#64748b'; ctx.font = `${Math.round(H * .045)}px system-ui, sans-serif`;
+    ctx.textAlign = 'right'; ctx.fillText('weight w', x1, y0 + H * .07);
+    ctx.save(); ctx.translate(x0 - H * .03, (y0 + y1) / 2); ctx.rotate(-Math.PI / 2); ctx.textAlign = 'center'; ctx.fillText('loss', 0, 0); ctx.restore();
+    ctx.strokeStyle = ink; ctx.lineWidth = 3; ctx.beginPath();
+    for(let k = 0; k <= 300; k++){ const w = WMIN + (WMAX - WMIN) * k / 300; k ? ctx.lineTo(X(w), Y(L(w))) : ctx.moveTo(X(w), Y(L(w))); }
+    ctx.stroke(); ctx.globalAlpha = 1;
+  }
+  const ball = (w, a, col = hi, r = H * .022) => { ctx.globalAlpha = a; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(X(w), Y(L(w)) - r * .9, r, 0, 2 * Math.PI); ctx.fill(); ctx.globalAlpha = 1; };
+  // slope (tangent) at the start, beats 3-4
+  if(beat === 3 || beat === 4){
+    const w = PA[0], s = dL(w), dw = .9;
+    ctx.globalAlpha = beat === 3 ? p : .5; ctx.strokeStyle = grey; ctx.lineWidth = 2.5; ctx.setLineDash([8, 6]);
+    ctx.beginPath(); ctx.moveTo(X(w - dw), Y(L(w) - s * dw)); ctx.lineTo(X(w + dw), Y(L(w) + s * dw)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+  }
+  // one step, beat 4: arrow along the curve to the next point
+  if(beat === 4){
+    const a = PA[0], b = a + (PA[1] - a) * p;
+    ctx.strokeStyle = hi; ctx.lineWidth = 3; ctx.beginPath();
+    for(let k = 0; k <= 30; k++){ const w = a + (b - a) * k / 30; k ? ctx.lineTo(X(w), Y(L(w)) - H * .05) : ctx.moveTo(X(w), Y(L(w)) - H * .05); }
+    ctx.stroke();
+    ball(PA[0], .35); ball(b, 1);
+  }
+  // the whole descent, beats 5-6: one dot per step, appearing one after another
+  const path = (P, shown, a) => {
+    for(let k = 0; k < shown; k++){ ctx.globalAlpha = a; ctx.fillStyle = hi; ctx.beginPath(); ctx.arc(X(P[k]), Y(L(P[k])) - H * .02, H * .009, 0, 2 * Math.PI); ctx.fill(); }
+    ctx.globalAlpha = 1;
+    ball(P[Math.max(0, shown - 1)], a);
+  };
+  if(beat >= 5){
+    const shownA = beat === 5 ? 1 + Math.floor(ease((now - t0) / 2200) * NSTEP) : NSTEP + 1;
+    path(PA, shownA, beat === 6 ? .45 : 1);
+  }
+  if(beat === 6){
+    path(PB, 1 + Math.floor(ease((now - t0) / 2200) * NSTEP), 1);
+    ctx.globalAlpha = ease((now - t0 - 2200) / 500); ctx.fillStyle = '#64748b'; ctx.textAlign = 'center';
+    ctx.fillText('global minimum', X(PA[NSTEP]), Y(L(PA[NSTEP])) + H * .08);
+    ctx.fillText('local minimum', X(PB[NSTEP]), Y(L(PB[NSTEP])) + H * .08);
+    ctx.globalAlpha = 1;
+  }
+  if(beat === 2 || beat === 3) ball(PA[0], beat === 2 ? p : 1);
+  requestAnimationFrame(frame);
+}
+
+window.nnDownhill = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ jump(); go(0, true); },
+  resetToEnd(){ jump(); go(N, true); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) nnDownhill.advance(); if(e.key === 'ArrowLeft') nnDownhill.back(); });
+  addEventListener('click', () => nnDownhill.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+if(location.hash === '#end') nnDownhill.resetToEnd();
+</script>
+</body>
+</html>
