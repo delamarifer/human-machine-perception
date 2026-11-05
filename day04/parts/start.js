@@ -16,7 +16,6 @@ const DUE = [
   ['Project proposal', '1–2 pages, from the template', 'Fri, Nov 6, midnight'],
   ['Proposal meeting', 'Book a time on Calendly', 'Mon–Wed'],
 ];
-const SITE = 'delamarifer.github.io/human-machine-perception';
 const PROPOSAL_FORM = 'forms.gle/wBXHE6AFaHf8RR4T8';
 
 st(`
@@ -24,13 +23,11 @@ st(`
   <ul class="frag" style="margin:auto 0">
     <li class="b"><b>On paper</b>, first 5 to 10 minutes</li>
     <li class="b">On ${QUIZ_ON}</li>
-    <li class="b">Four questions</li>
   </ul>
 `, { notes: [
   "(draft) We start, as every day, with the quiz.",
   "(draft) It is on paper, and it takes the first five to ten minutes of class.",
-  "(draft) It covers yesterday: " + QUIZ_ON + ".",
-  "(draft) Four questions."
+  "(draft) It covers yesterday: " + QUIZ_ON + "."
 ]});
 
 st(`
@@ -47,19 +44,6 @@ st(`
   "(draft) Day 2: what computer vision can do today, where it still fails, and your project.",
   "(draft) Day 3: metamers, as a way to probe what a system represents, and filters, the basic operation on images.",
   "(draft) Today: we put filters inside networks that learn them. Convolutional networks, and what they can recognize."
-]});
-
-/* the live course homepage, so the slide never goes out of date */
-st(`
-  <h1 class="t">Everything is on the course site</h1>
-  <div class="b" style="flex:1 1 auto;min-height:0;display:flex;flex-direction:column;align-items:center;gap:1vh">
-    <iframe loading="lazy" src="../index.html" title="Course site"
-      style="flex:1 1 auto;min-height:0;width:min(100%, 120vh);border:2px solid var(--line);border-radius:10px"></iframe>
-    <div class="label">${SITE}</div>
-  </div>
-`, { notes: [
-  "(draft) Everything we use is on the course site.",
-  "(draft) Slides for every day, the labs, the readings, the homework forms, the project templates, and the Discord. If you are ever lost, start here."
 ]});
 
 st(`

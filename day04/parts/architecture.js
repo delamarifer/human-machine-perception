@@ -108,6 +108,37 @@ st(`
   "So the hierarchy goes from local, detailed, generic features to coarse, large, more specific ones. Zeiler and Fergus visualised what drives units at each depth: edges, then textures, then parts, then object-like configurations. You can compare it to the ventral stream from Day 1, V1 to V4 to IT, but treat the analogy as suggestive, not exact."
 ]});
 
+/* added at Fernanda's request (2026-11-05, via the coordinator): feature maps vs metamers. Row 5's label is her
+   wording. layer4 shape from result.json (stages: 512 x 7 x 7). */
+const architectureMM = [
+  ['Direction', 'image → activations', 'activations → a new image'],
+  ['What you see', 'the model’s numbers, as heatmaps', 'a picture, the same size as the input'],
+  ['How much of the stage', '4 channels out of 64 to 512, each scaled to its own range', 'every channel at once'],
+  ['Who can judge it', 'you read it as a diagram', 'a person can look and say “same” or “different”'],
+  ['When it comes to representation, what does it answer?', 'What does each unit respond to in this image?', 'What does the representation keep, and what does it throw away?'],
+];
+const l4 = stg[5].shape;
+st(`
+  <h1 class="t">Feature maps and metamers</h1>
+  <div class="architecture-mm" style="display:grid;grid-template-columns:minmax(14vw,1fr) 1.3fr 1.3fr;gap:1.4vh 2vw;align-items:baseline;margin:auto 0;font-size:2.9vh;line-height:1.3">
+    <div></div><div><b>Feature maps</b> <span style="color:var(--mute)">(previous slide)</span></div><div><b>Metamer</b></div>
+    ${architectureMM.map(([k, a, b], j) => `
+      <div class="label b" data-step="${j + 1}"><b>${k}</b></div>
+      <div class="b" data-step="${j + 1}">${a}</div>
+      <div class="b" data-step="${j + 1}">${b}</div>`).join('')}
+  </div>
+  <div class="label b" data-step="${architectureMM.length + 1}">By layer4: 224 × 224 × 3 = ${fmt(224 * 224 * 3)} pixel values become ${l4[1]} × ${l4[2]} × ${l4[0]} = ${fmt(l4[0] * l4[1] * l4[2])} numbers, with almost nothing left about where things are. Many different images share them.</div>
+  ${cite('Feather, Leclerc, Mądry &amp; McDermott (2023), Model metamers reveal divergent invariances between biological and artificial neural networks, Nature Neuroscience · doi.org/10.1038/s41593-023-01442-0')}
+`, { notes: [
+  "(draft) Title only. Two ways to look inside a network: the feature maps we just saw, and the metamers from Day 3. They answer different questions.",
+  "(draft) Direction. A feature map goes forward: image in, activations out. A metamer goes backward: we start from the activations and make a new image that produces the same ones.",
+  "(draft) What you see. Feature maps are the model's own numbers, drawn as heatmaps. A metamer is a picture, the same size as the input.",
+  "(draft) How much of the stage. On the previous slide we showed 4 channels out of 64 to 512, each stretched to its own range. A metamer has to match every channel of that stage at once.",
+  "(draft) Who can judge it. A feature map you read like a diagram. A metamer you can show to a person and ask: same or different?",
+  "(draft) And when it comes to representation, what does each answer? Feature maps: what does each unit respond to in this image. Metamers: what does the representation keep, and what does it throw away. Feature maps show what the network computes from this photo; a metamer shows what it ignores, and only a metamer can be tested on a person.",
+  "(draft) Back to the previous slide. By layer4, the photo's 150,528 pixel values have become 7 by 7 by 512, 25,088 numbers, that keep almost nothing about where things are. So many different images share them. That is why the layer4 metamer in the Day 3 lab looked like colored noise and still got the same label. Feather and colleagues showed this for many models: metamers from late layers are often unrecognizable to people."
+]});
+
 const fc = R.head.fc_params, bb = R.params - fc;
 st(`
   <h1 class="t">Backbone and head</h1>
