@@ -12,7 +12,7 @@ const RECAP = [
   ['Day 3', 'Metamers, transformations and filters'],
 ];
 const DUE = [
-  ['Assignment 1', 'Coding and conceptual questions · 15%', 'Next week'],   // exact date: to add (Fernanda)
+  ['Assignment 1', 'Coding and conceptual questions · 15%', 'Next week'],
   ['Project proposal', '1–2 pages, from the template', 'Fri, Nov 6, midnight'],
   ['Proposal meeting', 'Book a time on Calendly', 'Mon–Wed'],
 ];
@@ -72,7 +72,7 @@ st(`
   </div>
 `, { notes: [
   "(draft) What is coming up.",
-  "(draft) Assignment 1 is due next week (to write: the exact day and time). Coding and conceptual questions, worth 15 percent of your grade.",
+  "(draft) Assignment 1 is due next week. Coding and conceptual questions, worth 15 percent of your grade.",
   "(draft) Your project proposal is due " + DUE[1][2] + ". One to two pages, using the template. More on how to submit it on the next slide.",
   "(draft) And then you meet with one of us about your proposal, Monday to Wednesday. Book a time on Calendly."
 ]});
