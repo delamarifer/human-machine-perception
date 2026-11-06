@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Day 3 · Lecture 2 Notes · Computer Vision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0d16; --surface:#121827; --line:#25304a;
+    --text:#e9edf6; --mute:#9aa5bd;
+    --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{ margin:0; background:var(--bg); color:var(--text);
+    font:16.5px/1.65 Inter, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif; }
+  a{ color:var(--cyan); }
+  .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
+  .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;
+    font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
+  .spine b{ color:var(--text); font-weight:500; }
+  .page{ margin-left:44px; }
+  .hero{ border-bottom:1px solid var(--line); background:radial-gradient(120% 90% at 78% 40%, #121a33 0%, var(--bg) 60%); }
+  .hero-in{ max-width:46rem; margin:0 auto; padding:8vh 24px 4vh; }
+  .back{ margin:0 0 2.2em; font-size:.95rem; display:flex; align-items:center; gap:1.2em; flex-wrap:wrap; }
+  .back a{ color:var(--mute); text-decoration:none; }
+  .back a:hover{ color:var(--text); }
+  .back button{ margin-left:auto; font:600 .85rem/1 'Space Grotesk', sans-serif; color:var(--bg);
+    background:var(--cyan); border:0; border-radius:999px; padding:.45em .9em; cursor:pointer; }
+  .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--cyan); }
+  h1{ margin:0 0 .35em; font:700 clamp(2.2rem, 6vw, 3.6rem)/.95 'Space Grotesk', sans-serif; text-transform:uppercase;
+    background:linear-gradient(90deg, #fff 0%, #c7fff4 55%, #e4d8ff 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lead{ max-width:42rem; color:#d3d9e6; font-size:1.05rem; margin:0 0 1.2em; }
+  .toc{ display:flex; flex-wrap:wrap; gap:8px; margin:0; padding:0; list-style:none; }
+  .toc a{ color:var(--mute); text-decoration:none; font:500 .88rem/1 'Space Grotesk', sans-serif;
+    border:1px solid var(--line); border-radius:999px; padding:.35em .75em; }
+  .toc a:hover{ color:var(--text); border-color:var(--cyan); }
+  main{ max-width:46rem; margin:28px auto 72px; padding:36px 40px 56px; background:#fff; color:#1c1917;
+    border-radius:18px; box-shadow:0 18px 50px rgba(0,0,0,.35); }
+  main a{ color:#0f766e; } main a:hover{ color:#115e59; }
+  main h2, main h3, main strong{ color:#1c1917; }
+  main li::marker{ color:#a8a29e; }
+  main .callout{ background:#f5f5f4; border-color:#e7e5e4; color:#1c1917; }
+  main figcaption{ color:#57534e; }
+  section{ padding-top:2.4em; scroll-margin-top:1.25rem; }
+  #open{ --c:var(--cyan); } #found{ --c:var(--violet); } #low{ --c:var(--amber); }
+  #deriv{ --c:var(--pink); } #see{ --c:var(--sky); } #choose{ --c:var(--cyan); } #lab{ --c:var(--amber); }
+  h2{ margin:0 0 .7em; font:700 1.45rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
+  h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
+  h3{ margin:1.3em 0 .35em; font:700 1.08rem/1.3 'Space Grotesk', sans-serif; }
+  p{ margin:0 0 .75em; } ul, ol{ margin:0 0 .9em; padding-left:1.2em; } li{ margin:.28em 0; }
+  .callout{ margin:1em 0 1.15em; padding:14px 16px; border-radius:14px; border-left:4px solid var(--c, var(--cyan)); }
+  .callout p{ margin:0; }
+  figure.fig{ margin:1em 0 1.2em; }
+  figure img, .pair img, .grid3 img{ display:block; width:100%; max-width:100%; height:auto; background:#fff; border-radius:12px; }
+  figcaption{ margin-top:.45em; font-size:.9rem; line-height:1.45; }
+  .pair{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; margin:1em 0 1.2em; }
+  .pair figure, .grid3 figure{ margin:0; min-width:0; }
+  .grid3{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; margin:1em 0 1.15em; }
+  .grid3 img{ aspect-ratio:1; object-fit:cover; }
+  .grid3 figcaption, .pair figcaption{ font-size:.82rem; }
+  @media (max-width:700px){
+    .spine{ display:none; } .page{ margin-left:0; }
+    .hero-in{ padding:5vh 16px 3vh; }
+    main{ margin:16px; padding:24px 18px 40px; }
+    .pair, .grid3{ grid-template-columns:1fr; }
+    .back button{ margin-left:0; }
+  }
+  @media print{
+    body, .page, .hero, main{ background:#fff; color:#1c1917; box-shadow:none; }
+    .spine, .back{ display:none; } .page{ margin:0; } main{ margin:0; max-width:none; }
+    h1{ color:#1c1917; background:none; -webkit-text-fill-color:#1c1917; }
+    a{ color:#1c1917; } h2::before{ box-shadow:none; }
+    figure, .callout{ break-inside:avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="spine" aria-hidden="true"><span><b>Computer Vision</b> &nbsp;/&nbsp; Day 3 · Lecture 2</span></div>
+<div class="page">
+<header class="hero">
+  <div class="hero-in">
+    <div class="back"><a href="../index.html">← Home</a><a href="deck.html">Slides</a><a href="lecture-1-notes.html">Lecture 1</a>
+      <button type="button" onclick="window.print()" title="Opens the print dialog. Choose Save as PDF.">Download PDF</button></div>
+    <p class="kicker">Day 3 · Lecture 2 · Fernanda de la Torre · Shreya Pandit</p>
+    <h1>Lecture notes</h1>
+    <p class="lead">Linear image filtering, spatial frequency, and visual perception. These notes follow the second half of the Day 3 lecture. Every filter runs on one photograph, the beach huts at Muizenberg, so the differences come from the filter.</p>
+    <nav class="toc" aria-label="On this page">
+      <a href="#open">The question</a>
+      <a href="#found">Foundations</a>
+      <a href="#low">Low-pass</a>
+      <a href="#deriv">Derivatives</a>
+      <a href="#see">The visual system</a>
+      <a href="#choose">Choosing a filter</a>
+      <a href="#lab">Lab and homework</a>
+    </nav>
+  </div>
+</header>
+<main>
+
+  <section id="open">
+    <h2>How do we change what we see?</h2>
+    <p>Blur, Sharpen, and an edges view are three buttons on a phone, and three ideas. Blur replaces each pixel by an average of its neighbors. The ripples, the people, and the hut outlines fade. The sky, the sand, and the colors stay. Small, fast detail went. Large, slow structure stayed. Sharpen does the opposite: it amplifies detail that was already there. It does not invent information. Edges keep only the places where brightness changes fast.</p>
+    <div class="grid3">
+      <figure><img src="assets/photo.jpg" alt="Beach huts at Muizenberg"><figcaption>Muizenberg, the original</figcaption></figure>
+      <figure><img src="assets/phone-blur.jpg" alt="The same photo after blur"><figcaption>After blur</figcaption></figure>
+      <figure><img src="assets/phone-sharpen.jpg" alt="The same photo after sharpen"><figcaption>After sharpen</figcaption></figure>
+    </div>
+    <p>The beach did not move, and no new photo was taken. A filter rewrites the pixel values we already have. It changes the representation, not the scene.</p>
+    <div class="callout">
+      <p><strong>Today’s question.</strong> How can we manipulate an image to reveal, suppress, or extract particular visual information? Filtering is the first computation in almost every vision system, biological or artificial. The same operations sit inside denoising, image pyramids, Canny edges, SIFT and HOG, and the first layer of a CNN.</p>
+    </div>
+    <p>On this photo, the sky is slow variation, a low spatial frequency. The water is fast, repeated texture, a high spatial frequency. The huts are sharp vertical and horizontal boundaries. The people are small, a few pixels across, and the first thing a strong blur destroys. The horizon is a long edge with low contrast. What you keep depends on the task. Counting people needs the small, high-frequency structure. Estimating the weather could survive a heavy blur.</p>
+    <div class="grid3">
+      <figure><img src="assets/crop-color.jpg" alt="A crop of the beach photo"><figcaption>The crop we compare</figcaption></figure>
+      <figure><img src="assets/crop-phone-blur.jpg" alt="The crop after Gaussian blur"><figcaption>Gaussian blur, σ = 4</figcaption></figure>
+      <figure><img src="assets/crop-phone-edges.jpg" alt="The crop as edge strength"><figcaption>Gradient magnitude</figcaption></figure>
+    </div>
+    <p>Two families organize the rest of the lecture. A <strong>low-pass</strong> filter keeps broad, gradual changes and removes fine detail. A <strong>band-pass</strong> filter keeps changes within a range of scales, and removes both the very broad and the very fine.</p>
+  </section>
+
+  <section id="found">
+    <h2>An image as a signal</h2>
+    <p>A grayscale image is a function of position. <em>I</em>(<em>x</em>, <em>y</em>) is the brightness at column <em>x</em> and row <em>y</em>, one number per pixel, here from 0 to 255. Color is three such functions. A row through the sky barely moves. A row through the huts jumps at every wall. A row through the water oscillates quickly. Spatial frequency is how fast intensity changes as you move across the image.</p>
+    <p>One pixel is ambiguous. A value of 158 could be noise, a mid-gray wall, or the middle of an edge. Only its neighbors can tell. A local operation computes the new center value from a small window. The rule is a <strong>kernel</strong>: a table of weights, one per neighbor. Equal weights that sum to 1 replace the center by the average of the window.</p>
+    <h3>A linear filter</h3>
+    <p>The new pixel is a weighted sum of its neighbors, with the same weights at every position. The filter is <strong>linear</strong>: scaling or adding inputs scales or adds the outputs. It is <strong>shift-invariant</strong>: move the input and the output moves. Together, those two properties make the filter a convolution. A median filter is not linear. The median of a sum is not the sum of the medians.</p>
+    <p>Four kernels, one mechanism. Identity leaves the image alone. A box of equal weights blurs a little. A sharpening kernel is a large center minus its neighbors: flat regions stay put, edges overshoot. A Sobel kernel in <em>x</em> is negative on the left and positive on the right, so it is large where brightness increases to the right and zero on a flat region. The sum of the kernel is the gain on a flat region. Smoothing and sharpening keep the mean. Derivatives remove it.</p>
+    <h3>Convolution</h3>
+    <p>The output at (<em>x</em>, <em>y</em>) is the sum, over offsets <em>i</em> and <em>j</em>, of the kernel weight <em>K</em>(<em>i</em>, <em>j</em>) times the input at (<em>x</em> − <em>i</em>, <em>y</em> − <em>j</em>). The minus signs flip the kernel by 180 degrees. With the flip, convolution is commutative and associative, so filtering with <em>K</em><sub>1</sub> and then <em>K</em><sub>2</sub> equals filtering once with <em>K</em><sub>1</sub> convolved with <em>K</em><sub>2</sub>. Without the flip, the operation is correlation. For a symmetric kernel, a box or a Gaussian, the two are the same. For a derivative, the sign of the output flips. Libraries such as PyTorch compute correlation and call it convolution. Learned kernels make the flip irrelevant.</p>
+    <p>At the edge of the photo the kernel hangs off the image. You can shrink the output, or pad. Zero padding pulls black in from outside and a derivative reports that as a fake edge around the frame. Copying the edge pixel, or mirroring, keeps the border looking like the image. This lecture uses mirror boundaries. Stride 2 halves the size. Without blurring first, that downsampling aliases. A <em>K</em> by <em>K</em> kernel costs <em>K</em>² multiplications per pixel. A separable kernel, an outer product of a column and a row, is a row pass then a column pass: 2<em>K</em>. The box, Gaussian, binomial, and Sobel kernels are separable.</p>
+    <h3>Why frequency</h3>
+    <p>An image is a weighted sum of gratings, each with a frequency, an orientation, and a weight. A linear filter cannot mix those gratings. It only scales each one. Split the photo into a blur and the difference, original minus blur. They add back to the photo. The blur holds the low frequencies. The difference holds the outlines, ripples, people, and noise. The Fourier transform of a convolution is the product of the Fourier transforms. In frequency, a filter is a gain for each grating. Near 1 at the center and falling to zero, it is low-pass. Zero at the center and peaking on a ring, it is band-pass.</p>
+    <div class="grid3">
+      <figure><img src="assets/crop-low.jpg" alt="Low frequencies of the crop"><figcaption>Low frequencies</figcaption></figure>
+      <figure><img src="assets/crop-high.jpg" alt="High frequencies of the crop"><figcaption>High frequencies</figcaption></figure>
+      <figure><img src="assets/crop-color.jpg" alt="The original crop"><figcaption>They add to the photo</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="low">
+    <h2>Low-pass filters</h2>
+    <p>A low-pass filter lets slow changes through and removes fast ones. The simplest is a box: every neighbor in the window gets the same weight, and the weights sum to 1. A wider box blurs more, and it can leave blocky artifacts because its frequency response rings.</p>
+    <p>A Gaussian weights the center most and falls off smoothly. Its width is σ. A larger σ keeps only slower structure. The Gaussian is the low-pass filter used for the comparisons in this lecture. Binomial filters, built by repeated smoothing with [1, 2, 1], approximate a Gaussian and are cheap. All of them throw away fine detail. That is the point when the detail is noise, and it is the failure when the detail is a person, a door, or a thin edge you needed.</p>
+  </section>
+
+  <section id="deriv">
+    <h2>Derivatives</h2>
+    <p>A derivative asks where brightness changes. The first derivative in <em>x</em> is large on vertical edges and quiet on flat walls. The first derivative in <em>y</em> is large on horizontal edges. Together they are a gradient: a magnitude, how strong the change is, and an orientation, which way it points. Sobel filters estimate those derivatives with a little smoothing built in, so a single noisy pixel does not dominate.</p>
+    <p>The second derivative, the Laplacian, is positive on one side of an edge and negative on the other. The edge itself is the zero crossing between them. A raw derivative amplifies noise, because noise is high frequency and differentiation boosts high frequencies. The practical filter is a derivative of a Gaussian, or a Laplacian of a Gaussian: blur first, at a scale σ, then differentiate. That makes the derivative a band-pass filter. It removes the flat regions, the zero frequency, and it also removes detail finer than σ.</p>
+    <p>One filter is not a description of a scene. A bank of filters, at several orientations and several scales, is. Gabor filters are localized gratings: an oriented wave under a Gaussian envelope. A bank of them reports which orientations and frequencies are present in each patch. Difference of Gaussians does a similar job without a preferred orientation: it marks blobs and structure at one scale.</p>
+    <div class="grid3">
+      <figure><img src="assets/crop-grad-mag.jpg" alt="Gradient magnitude of the crop"><figcaption>Gradient magnitude</figcaption></figure>
+      <figure><img src="assets/crop-dog-fine.jpg" alt="Difference of Gaussians on the crop"><figcaption>Difference of Gaussians</figcaption></figure>
+      <figure><img src="assets/crop-gabor-color.jpg" alt="Gabor orientation energy on the crop"><figcaption>Gabor orientation energy</figcaption></figure>
+    </div>
+    <p>Derivatives have limits. Texture, shadows, and folds all produce strong gradients, so a white line in an edge map is not always an object boundary. A very faint edge can fall below the noise. And a derivative throws away absolute brightness: the inside of a wall is zero, whatever color the wall was.</p>
+  </section>
+
+  <section id="see">
+    <h2>Does the visual system filter images?</h2>
+    <p>Retinal ganglion cells have center-surround receptive fields. They pool a patch of photoreceptors, not one, and they fire for a difference between the center and the surround. A uniform wall is quiet. A boundary is loud. A difference of Gaussians is the engineer’s version of that field: one Gaussian minus a wider one.</p>
+    <p>In V1, Hubel and Wiesel found cells that prefer a bar at one orientation. A Gabor filter is a compact model of that preference: a particular orientation, a particular spatial frequency, and a limited region of the image. The visual system does not run one of these filters. It runs many, across scales and orientations, and later stages combine them. The first layer of a convolutional network learns filters that look like this.</p>
+  </section>
+
+  <section id="choose">
+    <h2>Choosing a filter</h2>
+    <ul>
+      <li><strong>Noise.</strong> Gaussian smoothing. Noise is mostly high frequency. Use the largest σ that still leaves the smallest structure you need. Lost: fine detail.</li>
+      <li><strong>Fine detail.</strong> Unsharp masking adds back a scaled copy of image minus blur. It emphasizes changes that were already there. Noise gets louder, and strong edges grow halos.</li>
+      <li><strong>Boundaries.</strong> Sobel or Gaussian derivatives, then magnitude. Lost: flat regions, absolute brightness, and texture edges you did not want.</li>
+      <li><strong>Blobs at one scale.</strong> Difference of Gaussians. Lost: orientation, and everything outside the band.</li>
+      <li><strong>Orientation and texture.</strong> A Gabor bank. Lost, if you keep only the energy: the exact phase and position. You also pay for many filters.</li>
+    </ul>
+    <p>There is no best filter. There is a best filter for a question. Every filter on that list throws something away.</p>
+    <h3>When a linear filter is not enough</h3>
+    <p>A linear filter blurs across an edge as readily as across a flat region, because its weights ignore the image. A bilateral filter averages only over neighbors that are close in space and similar in brightness. Inside a flat region it smooths. Across an edge the pixels on the other side get almost no weight, so the edge survives. The weights depend on the image, so it is not a convolution and it has no single frequency response.</p>
+    <p>Two cases make the difference concrete. In a noisy CT, the diagnostic information is often at an edge: the margin of a lesion, the line of a fracture. A Gaussian quiets the noise and softens those edges. An edge-preserving filter keeps them. A very faint structure close to the noise can still be smoothed away. In a dashcam at dusk, a speed-limit sign is only a few dozen pixels across. A Gaussian blurs the digits into each other. An edge-preserving filter keeps the strokes. In both cases a linear filter cannot tell noise from fine detail, because both are high frequency.</p>
+    <div class="pair">
+      <figure>
+        <img src="assets/ct-gauss.png" alt="A noisy CT smoothed with a Gaussian">
+        <figcaption>Gaussian: the fracture softens.</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/ct-bilateral.png" alt="The same CT with edge-preserving smoothing">
+        <figcaption>Edge-preserving: the fracture stays.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="lab">
+    <h2>Back to the photograph, then the lab</h2>
+    <p>No single filter output looks like what we see. Low-pass keeps layout and color, and loses the people. Derivatives keep boundaries and their direction, and lose the color of the walls. Difference of Gaussians keeps blobs at one scale. Gabor energy keeps orientation. The visual system runs many of these in parallel. So does the first layer of a CNN. Which of them you would hand to a system depends on the question: finding the people is not the same job as deciding whether it is a sunny day.</p>
+    <p>The lab for this lecture is <a href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day03-lab2-image-filtering.ipynb">Image filtering, in Colab</a>. You pick a photo and build a trifold name tag from filtered versions of it: spatial filters, a filter bank, and a pyramid. Change only the lines marked EDIT.</p>
+    <p>Homework is both labs: <a href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day03-lab-metamers.ipynb">Part 1, metamers</a>, and Part 2, this filtering notebook. The project proposal is due Friday night, through the form on the course page.</p>
+  </section>
+
+</main>
+</div>
+</body>
+</html>

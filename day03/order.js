@@ -9,18 +9,16 @@ const ORDER = [
   ['part1',             'Part 1 divider'],
   ['representation',    'What a representation is: decoding from a network or the brain; pixels to objects'],
   ['metamers',          'Metamers: color knobs, textures, drive and suppress, model metamers, into the lab'],
-  // Part 2 (Shreya): images
-  ['part2',             'Part 2 divider and the question: Where does an image come from?'],
-  ['homework-review',   'Homework review (10 min)'],
-  ['image-formation',   'Image formation: pinhole, projection, pixels, color (20 min)'],
-  ['convolution',       'Convolution mathematically: slide, multiply, add; LSI (20 min)'],
-  ['receptive-fields',  'Human vision: Mach bands, Hermann grid, V1 and Gabor filters (10 min)'],
-  ['lab',               'Lab: 2D convolution from scratch in NumPy (45 min)'],
-  ['filters',           'Edge detection, sharpening, blur; homework (15 min)'],
+  // Part 2 (Shreya): linear image filtering, from the instructors repo day03-part2 (2026-11-06)
+  ['intro',             'Part 2: phone filters and the Muizenberg photo'],
+  ['foundations',       'Part 2: signal, convolution, spatial frequency'],
+  ['low-pass',          'Part 2: low-pass, box, Gaussian, binomial'],
+  ['derivatives',       'Part 2: gradients, Sobel, Laplacian'],
+  ['perception',        'Part 2: center-surround, Hermann grid, V1'],
+  ['synthesis',         'Part 2: choosing a filter, the lab, homework'],
 ];
 const PARTS = ORDER.map(r => r[0]);
 
 /* Minutes per section (the progress bar), from plan/course-plan.md, Day 3. */
-const SEC_MINUTES = {'Homework review': 10, 'Image formation': 20, 'Convolution': 20, 'Human vision': 10,
-  'Lab': 45, 'Edges and blur': 15,
-  'Representation': 10, 'Metamers': 10, 'Textures': 12, 'Networks': 15, 'Your turn': 5};   // Fernanda's storyline, 2026-11-03 (minutes are a first guess)
+const SEC_MINUTES = {'Representation': 10, 'Metamers': 10, 'Textures': 12, 'Networks': 15, 'Your turn': 5,   // Fernanda's storyline, 2026-11-03 (minutes are a first guess)
+  'I. Everyday filters': 10, 'II. Foundations': 20, 'III. Low-pass': 25, 'IV. Derivatives': 30, 'V. Perception': 20, 'VI. Synthesis': 15};
