@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Contrastive learning on a circle</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: Day 5, Fernanda (contrastive scene). Pattern B. 24 toy images (6 kinds x 4), each with 6 views
+     (crop and color shift). A small encoder (Gabor features -> 16 tanh units -> 2 numbers, divided by
+     their length) puts every view on the unit circle. It is trained live, here, with real gradient steps
+     of the InfoNCE loss (SimCLR form, temperature 0.2), and, for the contrast, of the pull term alone.
+     The intuition follows Torralba, Isola & Freeman, Foundations of Computer Vision, Sec. 30.10;
+     the figures are our own. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Contrastive learning on a circle</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+</div>
+<div class="cite" id="cite" style="opacity:0;transition:opacity .6s">after <i>Foundations of Computer Vision</i>, Sec. 30.10 · alignment and uniformity: Wang &amp; Isola, 2020</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE     (0):   the title alone
+   ACT 1  POINTS    (1-2): each image is a point on the circle (untrained encoder); one image's two views, a positive pair
+   ACT 2  TRAIN     (3-4): the real gradient on one pair (pull) and the others (push), 20 steps; then 600 steps:
+                           alignment and uniformity
+   ACT 3  COLLAPSE  (5):   the same encoder trained with the pull term only falls onto one spot
+   No data colors: everything is ink and gray. Filled dot = view 1 (the crop), ring = view 2 (the color shift). */
+/* ---- shared toy set (the same block is pasted into each Day 5 scene, so each scene stays self-contained) ----
+   Images are made here, seeded: 6 kinds of 32x32 gray texture. The "embedding" is a hand-designed Gabor
+   filter bank (4 orientations x 2 scales, as on Day 3), standing in for a network layer: each filter's
+   energy map is averaged over the image, giving 8 numbers. */
+const FONT = "Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif";
+function rng(seed){ return () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const gauss = r => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r());
+const KINDS = ['horizontal stripes', 'vertical stripes', 'diagonal stripes', 'checkers', 'dots', 'rings'];
+function toyImage(kind, r, n = 32){
+  const f = .09 + .07 * r(), ph = 6.2832 * r(), ph2 = 6.2832 * r(), c = .32 + .12 * r(), cx = n * (.3 + .4 * r()), cy = n * (.3 + .4 * r());
+  const im = new Float32Array(n * n), T = 2 * Math.PI * f;
+  for(let y = 0; y < n; y++) for(let x = 0; x < n; x++){
+    let v;
+    if(kind === 0) v = Math.sin(T * y + ph);
+    else if(kind === 1) v = Math.sin(T * x + ph);
+    else if(kind === 2) v = Math.sin(T * (x + y) * Math.SQRT1_2 + ph);
+    else if(kind === 3) v = Math.sign(Math.sin(T * x + ph) * Math.sin(T * y + ph2));
+    else if(kind === 4) v = Math.sin(T * x + ph) * Math.sin(T * y + ph2) > .55 ? 1 : -.6;
+    else v = Math.sin(T * Math.hypot(x - cx, y - cy) + ph);
+    im[y * n + x] = Math.max(0, Math.min(1, .5 + c * v + .05 * gauss(r)));
+  }
+  return im;
+}
+/* the filter bank: even and odd Gabors; theta 0 responds to vertical stripes */
+const BANK = [];
+for(const [lam, sig] of [[4, 1.8], [8, 3.4]]) for(let o = 0; o < 4; o++){
+  const th = o * Math.PI / 4, R = Math.ceil(2.2 * sig), size = 2 * R + 1, ev = new Float32Array(size * size), od = new Float32Array(size * size);
+  for(let v = 0; v < size; v++) for(let u = 0; u < size; u++){
+    const x = u - R, y = v - R, xr = x * Math.cos(th) + y * Math.sin(th), g = Math.exp(-(x * x + y * y) / (2 * sig * sig));
+    ev[v * size + u] = g * Math.cos(2 * Math.PI * xr / lam); od[v * size + u] = g * Math.sin(2 * Math.PI * xr / lam);
+  }
+  const m = ev.reduce((a, b) => a + b) / ev.length; ev.forEach((_, i) => ev[i] -= m);
+  for(const k of [ev, od]){ const s = Math.hypot(...k); k.forEach((_, i) => k[i] /= s); }
+  BANK.push({R, size, ev, od, th, lam, name: `${o * 45}°, ${lam === 4 ? 'fine' : 'coarse'}`});
+}
+function energyMap(im, n, b, stride = 1){
+  const m = Math.ceil(n / stride), out = new Float32Array(m * m);
+  for(let j = 0; j < m; j++) for(let i = 0; i < m; i++){
+    const y0 = j * stride, x0 = i * stride; let e = 0, o = 0;
+    for(let v = 0; v < b.size; v++){ let yy = y0 + v - b.R; yy = yy < 0 ? 0 : yy >= n ? n - 1 : yy;
+      for(let u = 0; u < b.size; u++){ let xx = x0 + u - b.R; xx = xx < 0 ? 0 : xx >= n ? n - 1 : xx;
+        const p = im[yy * n + xx] - .5, k = v * b.size + u; e += b.ev[k] * p; o += b.od[k] * p; } }
+    out[j * m + i] = Math.hypot(e, o);
+  }
+  return out;
+}
+const embedRaw = (im, n = 32) => BANK.map(b => { const m = energyMap(im, n, b, 2); return m.reduce((a, v) => a + v, 0) / m.length; });
+/* the standard set: 8 images of each kind, seed 100 + i */
+function toySet(per = 8){ const S = []; for(let k = 0; k < KINDS.length; k++) for(let i = 0; i < per; i++){ const im = toyImage(k, rng(100 + k * 50 + i)); S.push({kind: k, im, raw: embedRaw(im)}); } return S; }
+/* standardize each embedding dimension over a set; cosine similarity; Pearson correlation */
+function standardizer(rows){ const d = rows[0].length, mu = Array(d).fill(0), sd = Array(d).fill(0);
+  rows.forEach(r => r.forEach((v, i) => mu[i] += v / rows.length)); rows.forEach(r => r.forEach((v, i) => sd[i] += (v - mu[i]) ** 2 / rows.length));
+  return r => r.map((v, i) => (v - mu[i]) / (Math.sqrt(sd[i]) || 1)); }
+const dot = (a, b) => a.reduce((s, v, i) => s + v * b[i], 0);
+const cosine = (a, b) => dot(a, b) / (Math.sqrt(dot(a, a) * dot(b, b)) || 1);
+function pearson(a, b){ const n = a.length, ma = a.reduce((s, v) => s + v, 0) / n, mb = b.reduce((s, v) => s + v, 0) / n;
+  let sab = 0, saa = 0, sbb = 0; for(let i = 0; i < n; i++){ const x = a[i] - ma, y = b[i] - mb; sab += x * y; saa += x * x; sbb += y * y; } return sab / Math.sqrt(saa * sbb); }
+/* draw a gray image (values 0..1) into a box */
+function grayCanvas(im, n){ const c = document.createElement('canvas'); c.width = c.height = n; const x = c.getContext('2d'), d = x.createImageData(n, n);
+  for(let i = 0; i < n * n; i++){ const g = Math.round(255 * im[i]); d.data[4 * i] = d.data[4 * i + 1] = d.data[4 * i + 2] = g; d.data[4 * i + 3] = 255; }
+  x.putImageData(d, 0, 0); return c; }
+/* ---- end of shared toy set ---- */
+
+/* ---- the toy images, their views, and the encoder ---- */
+const NI = 24, PER = NI / KINDS.length, NV = 6, HID = 16, TAU = 0.2;
+const R0 = rng(7);
+const IMGS = []; for(let k = 0; k < KINDS.length; k++) for(let i = 0; i < PER; i++) IMGS.push({kind: k, im: toyImage(k, rng(100 + k * 50 + i))});
+/* a view: a random square crop (20-28 px of 32), then a color shift (contrast x0.6-1.4, brightness -0.15..+0.15) */
+function makeView(im, r, crop = true, shift = true){
+  const m = crop ? 20 + Math.floor(9 * r()) : 32, ox = Math.floor((32 - m + 1) * r()), oy = Math.floor((32 - m + 1) * r());
+  let a = .6 + .8 * r(), b = -.15 + .3 * r(); if(!shift){ a = 1; b = 0; }
+  const out = new Float32Array(m * m);
+  for(let y = 0; y < m; y++) for(let x = 0; x < m; x++) out[y * m + x] = Math.max(0, Math.min(1, a * (im[(y + oy) * 32 + x + ox] - .5) + .5 + b));
+  return {im: out, n: m, crop: [ox, oy, m], a, b};
+}
+IMGS.forEach(I => { I.views = [...Array(NV)].map((_, v) => makeView(I.im, R0, v !== 1, v !== 0)); I.views.forEach(v => v.raw = embedRaw(v.im, v.n)); });
+const Zs = standardizer(IMGS.flatMap(I => I.views.map(v => v.raw)));
+IMGS.forEach(I => I.views.forEach(v => v.x = Zs(v.raw)));
+const DIN = IMGS[0].views[0].x.length;
+/* encoder: x (8) -> tanh(W1 x + b1) (16) -> W2 h + b2 (2) -> divided by its length: a point on the unit circle */
+const NP = HID * DIN + HID + 2 * HID + 2;
+let WD = 0.2; /* weight decay on the weights (not the biases), as in AdamW */
+const ISW = Float64Array.from({length: NP}, (_, i) => (i < HID * DIN || (i >= HID * DIN + HID && i < NP - 2)) ? 1 : 0);
+function initParams(seed){ const r = rng(seed), p = new Float64Array(NP); let o = 0;
+  for(let i = 0; i < HID * DIN; i++) p[o++] = gauss(r) / Math.sqrt(DIN); o += HID;
+  for(let i = 0; i < 2 * HID; i++) p[o++] = gauss(r) / Math.sqrt(HID); return p; }
+function fwd(p, x){ const h = new Float64Array(HID); let o = 0;
+  for(let j = 0; j < HID; j++){ let s = p[HID * DIN + j]; for(let i = 0; i < DIN; i++) s += p[j * DIN + i] * x[i]; h[j] = Math.tanh(s); }
+  o = HID * DIN + HID; const u = [p[o + 2 * HID], p[o + 2 * HID + 1]];
+  for(let j = 0; j < HID; j++){ u[0] += p[o + j] * h[j]; u[1] += p[o + HID + j] * h[j]; }
+  const len = Math.hypot(u[0], u[1]) || 1e-9; return {x, h, u, len, z: [u[0] / len, u[1] / len]}; }
+function bwd(p, f, dz, g){ /* add d(loss)/d(params) into g, given d(loss)/dz */
+  const zd = f.z[0] * dz[0] + f.z[1] * dz[1], du = [(dz[0] - f.z[0] * zd) / f.len, (dz[1] - f.z[1] * zd) / f.len];
+  const o = HID * DIN + HID; g[o + 2 * HID] += du[0]; g[o + 2 * HID + 1] += du[1];
+  for(let j = 0; j < HID; j++){ g[o + j] += du[0] * f.h[j]; g[o + HID + j] += du[1] * f.h[j];
+    const dh = (du[0] * p[o + j] + du[1] * p[o + HID + j]) * (1 - f.h[j] * f.h[j]);
+    g[HID * DIN + j] += dh; for(let i = 0; i < DIN; i++) g[j * DIN + i] += dh * f.x[i]; } }
+/* the losses on one batch of pairs (all 24 images, view a and view b of each).
+   InfoNCE as in SimCLR (NT-Xent), temperature TAU: each of the 48 views must pick its partner out of the other 47,
+   using similarities z . z' / TAU.
+   pull only: mean squared distance between partners. */
+function lossGrad(p, A, B, kind, g){
+  const FA = A.map(x => fwd(p, x)), FB = B.map(x => fwd(p, x)), N = A.length, dA = FA.map(() => [0, 0]), dB = FB.map(() => [0, 0]);
+  let L = 0;
+  if(kind === 'pull'){ for(let i = 0; i < N; i++){ const d0 = FA[i].z[0] - FB[i].z[0], d1 = FA[i].z[1] - FB[i].z[1];
+    L += (d0 * d0 + d1 * d1) / N; dA[i] = [2 * d0 / N, 2 * d1 / N]; dB[i] = [-2 * d0 / N, -2 * d1 / N]; } }
+  else {
+    const Z = FA.concat(FB).map(f => f.z), M = 2 * N, dZ = Z.map(() => [0, 0]);
+    for(let k = 0; k < M; k++){ const pos = (k + N) % M, s = Z.map((z, l) => l === k ? -Infinity : (z[0] * Z[k][0] + z[1] * Z[k][1]) / TAU);
+      const mx = Math.max(...s), e = s.map(v => Math.exp(v - mx)), tot = e.reduce((a, b) => a + b);
+      L += (Math.log(tot) + mx - s[pos]) / M;
+      for(let l = 0; l < M; l++){ if(l === k) continue; const w = (e[l] / tot - (l === pos)) / M / TAU;
+        dZ[k][0] += w * Z[l][0]; dZ[k][1] += w * Z[l][1]; dZ[l][0] += w * Z[k][0]; dZ[l][1] += w * Z[k][1]; } }
+    for(let i = 0; i < N; i++){ dA[i] = dZ[i]; dB[i] = dZ[i + N]; }
+  }
+  if(g){ FA.forEach((f, i) => bwd(p, f, dA[i], g)); FB.forEach((f, i) => bwd(p, f, dB[i], g)); }
+  return {L, ZA: FA.map(f => f.z), ZB: FB.map(f => f.z), dA, dB};
+}
+/* display pair: views 0 and 1 of every image */
+const XA = IMGS.map(I => I.views[0].x), XB = IMGS.map(I => I.views[1].x);
+/* alignment and uniformity (Wang & Isola, 2020): mean squared distance between partners; log mean exp(-2 d^2) over all pairs of images */
+const align = (ZA, ZB) => ZA.reduce((s, a, i) => s + (a[0] - ZB[i][0]) ** 2 + (a[1] - ZB[i][1]) ** 2, 0) / ZA.length;
+function unif(Z){ let s = 0, n = 0; for(let i = 0; i < Z.length; i++) for(let j = i + 1; j < Z.length; j++){ s += Math.exp(-2 * ((Z[i][0] - Z[j][0]) ** 2 + (Z[i][1] - Z[j][1]) ** 2)); n++; } return Math.log(s / n); }
+/* train with Adam; each step draws a fresh pair of views per image (seeded); keeps a snapshot every `every` steps */
+function train(p0, steps, kind, seed, lr, every = 1, wd = WD){
+  const p = Float64Array.from(p0), m = new Float64Array(NP), v = new Float64Array(NP), r = rng(seed), snaps = [];
+  const snap = () => { const o = lossGrad(p, XA, XB, kind); snaps.push({ZA: o.ZA, ZB: o.ZB, L: o.L, Lnce: kind === 'pull' ? lossGrad(p, XA, XB, 'nce').L : o.L}); };
+  snap();
+  for(let t = 1; t <= steps; t++){
+    const A = [], B = []; IMGS.forEach(I => { const a = Math.floor(r() * NV); let b = Math.floor(r() * (NV - 1)); if(b >= a) b++; A.push(I.views[a].x); B.push(I.views[b].x); });
+    const g = new Float64Array(NP); lossGrad(p, A, B, kind, g);
+    for(let i = 0; i < NP; i++){ m[i] = .9 * m[i] + .1 * g[i]; v[i] = .999 * v[i] + .001 * g[i] * g[i];
+      p[i] -= lr * wd * p[i] * ISW[i]; p[i] -= lr * (m[i] / (1 - .9 ** t)) / (Math.sqrt(v[i] / (1 - .999 ** t)) + 1e-8); }
+    if(t % every === 0) snap();
+  }
+  return {p, snaps};
+}
+
+/* ---- the runs, computed once at load (deterministic) ---- */
+const P0 = initParams(3);
+const RUN1 = train(P0, 20, 'nce', 11, .02);                     // beat 3: 20 steps
+const RUN2 = train(RUN1.p, 600, 'nce', 12, .02, 5);             // beat 4: 600 more steps (a frame every 5)
+const RUNC = train(P0, 600, 'pull', 13, .02, 10);               // beat 5: pull only, from the same start
+const S0 = RUN1.snaps[0], S1 = RUN1.snaps[RUN1.snaps.length - 1], S2 = RUN2.snaps[RUN2.snaps.length - 1], SC = RUNC.snaps[RUNC.snaps.length - 1];
+const ANCHOR = S0.ZA.reduce((b, a, i, Z) => align([a], [S0.ZB[i]]) > align([Z[b]], [S0.ZB[b]]) ? i : b, 0);
+/* the real gradient of the anchor's own loss term (its crop must pick out its color shift among the other 47 views) */
+function anchorForces(S){
+  const Z = S.ZA.concat(S.ZB), k = ANCHOR, pos = k + NI, s = Z.map((z, l) => l === k ? -Infinity : (z[0] * Z[k][0] + z[1] * Z[k][1]) / TAU);
+  const mx = Math.max(...s), e = s.map(v => Math.exp(v - mx)), tot = e.reduce((a, b) => a + b);
+  return Z.map((z, l) => { if(l === k) return null; const w = (e[l] / tot - (l === pos)) / TAU, v = [-w * Z[k][0], -w * Z[k][1]], d = v[0] * z[0] + v[1] * z[1];
+    return [v[0] - d * z[0], v[1] - d * z[1]]; });           // descent direction, along the circle
+}
+const F0 = anchorForces(S0);
+const LN47 = Math.log(2 * NI - 1);
+const evenU = unif([...Array(NI)].map((_, i) => [Math.cos(2 * Math.PI * i / NI), Math.sin(2 * Math.PI * i / NI)]));
+function nnSameKind(Z){ let n = 0; Z.forEach((a, i) => { let b = -1, bd = 9; Z.forEach((q, j) => { if(j === i) return; const d = (a[0] - q[0]) ** 2 + (a[1] - q[1]) ** 2; if(d < bd){ bd = d; b = j; } }); if(IMGS[b].kind === IMGS[i].kind) n++; }); return n; }
+const NN = nnSameKind(S2.ZA);
+const f2 = v => v.toFixed(2);
+
+const CAPS = ['', 'each image: a point on the circle', 'two views of one image: a positive pair', 'pull the pair together, push the others apart', '600 more steps', 'pull only: collapse'];
+const NOTES = [
+  "(draft) Title only. Now let's watch contrastive learning happen, with a real loss and real gradient steps, on the simplest space there is: a circle. The idea follows the Foundations of Computer Vision book, section 30.10.",
+  "(draft) Here are 24 toy images, four each of six textures, made in code. A small network turns each one into two numbers, and we divide by their length, so every image lands on a circle of radius one. The network has not been trained yet, so where each image lands is arbitrary.",
+  "(draft) Now take one image and make two views of it: a crop, and a copy with the brightness and contrast shifted. Same image, so we want the two views to land in the same place. They are a positive pair. Right now they are far apart: the filled dot is the crop, the ring is the color shift.",
+  (`(draft) The InfoNCE loss asks the crop to pick out its partner among all the other views, using similarity divided by a temperature, here 0.2. The arrows are the actual gradient of that one term: the partner is pulled toward it, and every other image is pushed away, hardest for the ones that are close; the push arrows are drawn longer than the pull arrow so you can see them, the pull is much stronger at this point. Then we take 20 steps on all the images at once. The loss goes from ${f2(S0.L)} to ${f2(S1.L)}.`),
+  (`(draft) Now 600 more steps, with fresh views of each image at every step. Two things happen, and the book names them. Alignment: partners end up together; the mean squared distance between partners goes from ${f2(align(S0.ZA, S0.ZB))} to ${f2(align(S2.ZA, S2.ZB))}. Uniformity: the images spread out around the circle; the uniformity score, lower is more spread out, goes from ${f2(unif(S0.ZA))} to ${f2(unif(S2.ZA))}, close to ${f2(evenU)} for perfectly even spacing. The loss ends at ${f2(S2.L)}. And nobody gave it labels, yet for ${NN} of the 24 images the nearest neighbor is the same texture.`),
+  (`(draft) Why do we need the push at all? Here is the same network, from the same start, trained with only the pull term. Pulling partners together is easy if every image goes to the same spot, and that is what happens: the pull loss reaches zero, and the embedding says nothing about the images. Its InfoNCE loss is ${f2(SC.Lnce)}, which is chance, the log of 47. This is collapse. The negatives are what prevent it. To be precise: both runs use a little weight decay, as standard training does; that is what carries the pull-only run all the way to one point.`)
+];
+const NB = NOTES.length - 1;
+const DUR = [0, 900, 900, 5000, 4500, 3600];
+let beat = 0, t0 = 0;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+function go(b, jump){ beat = b; t0 = performance.now() - (jump ? 1e9 : 0); document.getElementById('cite').style.opacity = b >= 1 ? 1 : 0;
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join(''); }
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const d = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+const txt = (t, x, y, sz, bold, align = 'center', base = 'middle', col = '#0f172a', maxW) => { ctx.fillStyle = col; ctx.font = `${bold ? 700 : 400} ${sz}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(t, x, y, maxW); };
+const THUMB = IMGS.map(I => grayCanvas(I.im, 32));
+const VTH = [0, 1].map(v => grayCanvas(IMGS[ANCHOR].views[v].im, IMGS[ANCHOR].views[v].n));
+/* a snapshot along a run, at fraction q of the way (interpolated between stored frames, then put back on the circle) */
+function at(run, q){ const s = run.snaps, x = Math.max(0, Math.min(1, q)) * (s.length - 1), i = Math.min(s.length - 2, Math.floor(x)), f = x - i, a = s[i], b = s[i + 1];
+  const mix = (P, Q) => P.map((u, k) => { const v = [u[0] * (1 - f) + Q[k][0] * f, u[1] * (1 - f) + Q[k][1] * f], l = Math.hypot(...v) || 1; return [v[0] / l, v[1] / l]; });
+  return {ZA: mix(a.ZA, b.ZA), ZB: mix(a.ZB, b.ZB), L: (f < .5 ? a : b).L, Lnce: (f < .5 ? a : b).Lnce, step: Math.round(x * (run === RUN1 ? 1 : run === RUN2 ? 5 : 10))}; }
+function arrow(x, y, dx, dy, lw){ const l = Math.hypot(dx, dy); if(l < 3) return; const ux = dx / l, uy = dy / l, h = Math.min(14, l * .5);
+  ctx.lineWidth = lw; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + dx - ux * h * .6, y + dy - uy * h * .6); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x + dx, y + dy); ctx.lineTo(x + dx - ux * h - uy * h * .5, y + dy - uy * h + ux * h * .5); ctx.lineTo(x + dx - ux * h + uy * h * .5, y + dy - uy * h - ux * h * .5); ctx.closePath(); ctx.fill(); }
+
+/* one circle with its points. o: {thumbs, pairs (which images show their color-shift ring), anchor, fade (others), small} */
+function drawCircle(cx, cy, R, S, o){
+  ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 2 * Math.PI); ctx.stroke();
+  const P = z => [cx + R * z[0], cy - R * z[1]], dr = o.small ? 5 : 7;
+  for(let i = 0; i < NI; i++){
+    const isA = o.anchor && i === ANCHOR, al = isA ? 1 : 1 - .75 * (o.fade || 0);
+    ctx.globalAlpha = al * (o.alpha ?? 1);
+    const [x, y] = P(S.ZA[i]);
+    if(o.thumbs){ const tr = R + R * .17, ts = R * .15, tx = cx + tr * S.ZA[i][0], ty = cy - tr * S.ZA[i][1];
+      ctx.imageSmoothingEnabled = false; ctx.drawImage(THUMB[i], tx - ts / 2, ty - ts / 2, ts, ts); ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1; ctx.strokeRect(tx - ts / 2, ty - ts / 2, ts, ts); }
+    const showB = o.pairs === 'all' || (o.pairs === 'anchor' && i === ANCHOR);
+    if(showB){ const ba = o.pairs === 'all' && !(o.anchor && i === ANCHOR) ? (o.pairAlpha ?? 1) : 1, [u, v] = P(S.ZB[i]);
+      ctx.globalAlpha = al * ba * (o.alpha ?? 1); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = isA ? 3 : 1.5;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(u, v); ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.lineWidth = isA ? 3 : 2; ctx.beginPath(); ctx.arc(u, v, isA ? dr * 1.5 : dr, 0, 2 * Math.PI); ctx.fill(); ctx.stroke(); ctx.globalAlpha = al * (o.alpha ?? 1); }
+    ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.arc(x, y, isA ? dr * 1.5 : dr, 0, 2 * Math.PI); ctx.fill();
+  }
+  ctx.globalAlpha = 1; return P;
+}
+
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();
+  const p = Math.min(1, (now - t0) / (DUR[beat] || 900)), A = b => beat > b ? 1 : beat === b ? ease(p) : 0;
+  ctx.clearRect(0, 0, W, H);
+  const fs = Math.max(16, W * .015), big = Math.max(20, W * .019), rx = W * .6;
+  let S = S0, info = null;
+  if(beat === 3){ const q = (p - .45) / .55; S = at(RUN1, q); info = {L: S.L, step: S.step}; }
+  else if(beat === 4){ S = at(RUN2, ease(p)); info = {L: S.L, step: 20 + S.step}; }
+  else if(beat > 4) S = S2;
+  if(beat >= 1 && beat <= 4){
+    const R = Math.min(H * .36, W * .2), cx = W * .27, cy = H * .5;
+    const P = drawCircle(cx, cy, R, S, {thumbs: true, alpha: A(1), anchor: beat >= 2, fade: beat === 2 ? A(2) : beat === 3 ? 1 - Math.max(0, Math.min(1, (p - .4) / .1)) : 0,
+      pairs: beat >= 4 ? 'all' : beat >= 2 ? 'anchor' : null, pairAlpha: beat === 4 ? Math.min(1, p * 5) : 1});
+    if(beat === 3){ /* the gradient arrows, drawn at the start, fading as the steps play */
+      const a = p < .15 ? ease(p / .15) : Math.max(0, Math.min(1, 1 - (p - .4) / .1)), Z = S0.ZA.concat(S0.ZB);
+      const mxPos = Math.hypot(...F0[ANCHOR + NI]), mxNeg = Math.max(...F0.map((f, l) => f && l < NI ? Math.hypot(...f) : 0));
+      ctx.globalAlpha = a; ctx.strokeStyle = ctx.fillStyle = '#0f172a';
+      F0.forEach((f, l) => { if(!f) return; const isPos = l === ANCHOR + NI, [x, y] = P(Z[l]), s = isPos ? R * .45 / mxPos : R * .3 / mxNeg;
+        if(!isPos && l >= NI) return;                     // the other images' second views are hidden until beat 4
+        arrow(x, y, f[0] * s, -f[1] * s, isPos ? 4 : 2); });
+      ctx.globalAlpha = 1; }
+    /* the anchor's views, on the right */
+    if(beat >= 2){ const ts = Math.min(H * .2, W * .1), y0 = H * .02, a = beat === 2 ? A(2) : 1;
+      ctx.globalAlpha = a; ctx.imageSmoothingEnabled = false;
+      [[THUMB[ANCHOR], 'image'], [VTH[0], 'view 1: crop'], [VTH[1], 'view 2: color shift']].forEach(([c, lab], k) => {
+        const x = rx + k * (ts * 1.35); ctx.drawImage(c, x, y0, ts, ts); ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1; ctx.strokeRect(x, y0, ts, ts);
+        txt(lab, x + ts / 2, y0 + ts + fs * .9, fs, false); });
+      ctx.globalAlpha = 1; }
+    /* the numbers */
+    const ny = H * .02 + Math.min(H * .2, W * .1) + fs * 3.2;
+    if(beat >= 1){ ctx.globalAlpha = beat === 1 ? A(1) : 1; const L = info ? info.L : beat >= 4 ? S2.L : S0.L;
+      txt(`InfoNCE loss: ${f2(L)}`, rx, ny, big, true, 'left');
+      txt(`training step: ${info ? info.step : beat >= 4 ? 620 : beat === 3 ? 20 : 0}`, rx, ny + big * 1.4, big * .85, false, 'left');
+      ctx.globalAlpha = 1; }
+    if(beat >= 4){ const Sx = beat === 4 ? S : S2;
+      txt(`alignment (partners apart): ${f2(align(S0.ZA, S0.ZB))} → ${f2(align(Sx.ZA, Sx.ZB))}`, rx, ny + big * 3, big * .85, false, 'left', 'middle', '#0f172a', W - rx);
+      txt(`uniformity (lower = more spread): ${f2(unif(S0.ZA))} → ${f2(unif(Sx.ZA))}`, rx, ny + big * 4.3, big * .85, false, 'left', 'middle', '#0f172a', W - rx); }
+  }
+  if(beat === 5){ /* the contrast: pull + push (left, finished) vs pull only (right, trained now) */
+    const R = Math.min(H * .32, W * .16), cy = H * .45, c1 = W * .25, c2 = W * .68, C = at(RUNC, ease(p));
+    drawCircle(c1, cy, R, S2, {pairs: 'all', small: true});
+    ctx.globalAlpha = A(5); drawCircle(c2, cy, R, C, {pairs: 'all', small: true, alpha: A(5)}); ctx.globalAlpha = 1;
+    txt('pull + push (InfoNCE)', c1, cy + R + big * 1.3, big, true);
+    txt(`InfoNCE loss ${f2(S2.L)}`, c1, cy + R + big * 2.6, big * .85, false);
+    ctx.globalAlpha = A(5);
+    txt('pull only', c2, cy + R + big * 1.3, big, true);
+    txt(`pull loss ${C.L.toFixed(3)} · InfoNCE loss ${f2(C.Lnce)} (chance ${f2(LN47)})`, c2, cy + R + big * 2.6, big * .85, false, 'center', 'middle', '#0f172a', W - c2 + R);
+    txt(`step ${C.step}`, c2, cy - R - big * .9, fs, false, 'center', 'middle', '#64748b');
+    ctx.globalAlpha = 1; }
+  ctx.globalAlpha = beat ? Math.min(1, p * 2) : 0; txt(CAPS[beat], beat === 5 ? W * .5 : rx, H - big * .4, big, true, beat === 5 ? 'center' : 'left', 'bottom', '#0f172a', beat === 5 ? W : W - rx); ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+
+window.contrastiveScene = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+  notes: NOTES,
+  seek(q){ t0 = performance.now() - q * (DUR[beat] || 900); },               // for checking a moment of an animation
+  debug: () => ({anchor: ANCHOR, L: [S0.L, S1.L, S2.L], align: [align(S0.ZA, S0.ZB), align(S2.ZA, S2.ZB)], unif: [unif(S0.ZA), unif(S2.ZA), evenU], nn: NN, collapse: {pull: SC.L, nce: SC.Lnce, unif: unif(SC.ZA)}})
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) contrastiveScene.advance(); if(e.key === 'ArrowLeft') contrastiveScene.back(); });
+  addEventListener('click', () => contrastiveScene.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
