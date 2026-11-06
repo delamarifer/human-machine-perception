@@ -212,7 +212,8 @@ twenty = first_of_each_class(per_class=2, start=N)     # 20 images we have not u
 twenty_images = [cifar[i][0] for i in twenty]
 n_views = 5
 
-example = twenty_images[0]
+example = twenty_images[3]    # a red car (test image 540); try another index from 0 to 19
+name = CLASSES[cifar.targets[twenty[3]]]
 
 # Crop views: each crop keeps 40 to 100% of the image and is scaled back up to 32 x 32, so it looks like a zoom.
 # Top row: the box shows which part of the original each crop kept. Bottom row: the crop view itself.
@@ -223,7 +224,7 @@ fig, axes = plt.subplots(2, n_views, figsize=(n_views * 1.8, 3.9))
 for k in range(n_views):
     top, left, height, width = crop.get_params(example, crop.scale, crop.ratio)
     axes[0, k].imshow(example)
-    axes[0, k].add_patch(Rectangle((left - 0.5, top - 0.5), width, height, fill=False, edgecolor="red", linewidth=2))
+    axes[0, k].add_patch(Rectangle((left - 0.5, top - 0.5), width, height, fill=False, edgecolor="cyan", linewidth=2))
     axes[0, k].set_title(f"crop {k + 1}: {width * height / 32**2:.0%} of the image", fontsize=8)
     axes[1, k].imshow(TF.resized_crop(example, top, left, height, width, [32, 32]))
     axes[1, k].set_title(f"crop view {k + 1}", fontsize=8)
@@ -235,7 +236,7 @@ plt.show()
 # Color views and both together
 for kind in ["color", "both"]:
     show_images([example] + [VIEWS[kind](example) for _ in range(n_views)],
-                ["original"] + [f"{kind} view {k + 1}" for k in range(n_views)], cols=6, size=1.4)
+                [f"original ({name})"] + [f"{kind} view {k + 1}" for k in range(n_views)], cols=6, size=1.4)
 """)
 md("""
 Now embed five views of each of the 20 images, for each kind of view. `owner` says which image each view
