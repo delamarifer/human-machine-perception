@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Flatten each patch into a vector</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<script>document.write(`<link rel="stylesheet" href="planb-scene.css?v=${Date.now()}"><script src="planb-lib.js?v=${Date.now()}"><\/script>`);</script>
+</head>
+<body>
+<!-- Owner: day05-planb. Video 0:30 to 0:57: patches numbered; the three channels of one patch flattened
+     into one vector; the same for every patch; the vectors rearranged into a row. Real values. -->
+<div class="planb-wrap">
+  <h1 class="t deck-title">Flatten each patch into a vector</h1>
+  <div class="planb-stage"><canvas id="cv"></canvas></div>
+  <div class="lead planb-cap" id="cap"></div>
+  <div class="cite" id="credit"></div>
+</div>
+<div class="planb-dots" id="dots"></div>
+<script>
+document.getElementById('credit').textContent = PB.CREDIT;
+const CAPS = ['',
+  'Number the patches, 1 to 64',
+  'Flatten: 3 channels × 8 × 8 = 192 numbers in one column',
+  'Do the same for every patch: 64 columns',
+  'Line them up: 64 vectors of 192 numbers each'];
+const NOTES = [
+  "(draft) Title only. A network layer expects a list of numbers, not little tables, so the next step is to flatten each patch.",
+  "(draft) First we number the patches, left to right and top to bottom, 1 to 64. The order matters later.",
+  "(draft) Now take the three tables of our blue-eye patch, patch 38, and unroll them: the red values first, then the green, then the blue. Three channels times 8 times 8 gives one column of 192 numbers. Each little stripe in the column is one of the real values we saw.",
+  "(draft) We do exactly the same for every patch. Each patch becomes one column of 192 numbers. Every stripe you see in this row is a real value from the photo.",
+  "(draft) For the rest of the video, and of this lecture, we line these vectors up in a row, in patch order: 64 vectors, 192 numbers each. This row is the input to the Vision Transformer."
+];
+const E = PB.EYE.row * 8 + PB.EYE.col;
+planbScene('planbFlatten', {
+  notes: NOTES, caps: CAPS, durs: [0, 1000, 2600, 2400, 1500],
+  draw({ctx, W, H, beat, t, e, cat}){
+    const cols = PB.colsCanvas(cat);
+    const S = Math.min(H * .96, W * .34), ix = W * .01, iy = (H - S) / 2;
+    const imgA = beat === 4 ? 1 - e : 1;
+    if(imgA > 0){
+      ctx.globalAlpha = imgA;
+      PB.drawImageSquare(ctx, cat.small, ix, iy, S);
+      PB.grid(ctx, ix, iy, S, 8, 'rgba(255,255,255,.95)', 2);
+      const na = beat === 1 ? e : 1;
+      for(let k = 0; k < 64; k++){
+        const [x, y, c] = PB.cellRect(ix, iy, S, 8, k);
+        ctx.save(); ctx.globalAlpha = imgA * na; ctx.fillStyle = 'rgba(15,23,42,.55)';
+        ctx.fillRect(x + 2, y + 2, c * .46, c * .3); ctx.restore();
+        PB.text(ctx, String(k + 1), x + 2 + c * .23, y + 2 + c * .155, c * .24, {w: 700, color: '#fff', alpha: imgA * na});
+      }
+      if(beat >= 2){
+        const [px, py, pc] = PB.cellRect(ix, iy, S, 8, E);
+        ctx.strokeStyle = PB.ACC; ctx.lineWidth = 4; ctx.strokeRect(px, py, pc, pc);
+      }
+      ctx.globalAlpha = 1;
+    }
+    if(beat < 2) return;
+    const v = PB.patchVector(cat, E);
+    const colX = W * .88, colW = W * .028, colY = H * .02, colH = H * .96, ch_ = colH / 192;
+    if(beat === 2){
+      const G = Math.min(H * .42, W * .13), gap = W * .018, gx = W * .385, gy = (H - G) / 2, c = G / 8;
+      const a0 = PB.seg(t, 0, 400);
+      for(let ch = 0; ch < 3; ch++){
+        if(t < 500) PB.text(ctx, ['Red', 'Green', 'Blue'][ch], gx + ch * (G + gap) + G / 2, gy - H * .04, Math.max(14, H * .04), {w: 700, alpha: a0});
+      }
+      for(let j = 0; j < 192; j++){
+        const ch = Math.floor(j / 64), k = j % 64;
+        const fx = gx + ch * (G + gap) + (k % 8) * c, fy = gy + Math.floor(k / 8) * c;
+        const m = PB.seg(t, 500 + j * 6, 1200 + j * 6);
+        const x = PB.lerp(fx, colX, m), y = PB.lerp(fy, colY + j * ch_, m), w = PB.lerp(c, colW, m), h = PB.lerp(c, ch_, m);
+        ctx.globalAlpha = a0; ctx.fillStyle = PB.chanColor(ch, v[j]); ctx.fillRect(x, y, w + .4, h + .4);
+      }
+      ctx.globalAlpha = 1;
+      const lab = PB.seg(t, 2100, 2500);
+      ctx.strokeStyle = PB.INK; ctx.lineWidth = 1.2; ctx.globalAlpha = lab; ctx.strokeRect(colX, colY, colW, colH); ctx.globalAlpha = 1;
+      PB.text(ctx, '192 numbers', colX - W * .012, H * .45, Math.max(15, H * .045), {w: 700, align: 'right', alpha: lab});
+      PB.text(ctx, '3 × 8 × 8', colX - W * .012, H * .53, Math.max(14, H * .04), {align: 'right', alpha: lab});
+      return;
+    }
+    // beats 3-4: the row of 64 columns
+    const rowA = {x: W * .40, y: H * .03, w: W * .58, h: H * .86};
+    const rowB = {x: W * PB.ROWX[0], y: H * .02, w: W * (PB.ROWX[1] - PB.ROWX[0]), h: H * .30};
+    const m4 = beat === 4 ? e : 0;
+    const row = {x: PB.lerp(rowA.x, rowB.x, m4), y: PB.lerp(rowA.y, rowB.y, m4), w: PB.lerp(rowA.w, rowB.w, m4), h: PB.lerp(rowA.h, rowB.h, m4)};
+    ctx.save(); ctx.imageSmoothingEnabled = false;
+    for(let k = 0; k < 64; k++){
+      const [x, y, w, h] = PB.slot(row, k);
+      if(beat === 3 && k === E){                       // the eye column slides into its place
+        const m = PB.seg(t, 0, 800);
+        ctx.drawImage(cols, k, 0, 1, 192, PB.lerp(colX, x, m), PB.lerp(colY, y, m), PB.lerp(colW, w, m), PB.lerp(colH, h, m));
+        continue;
+      }
+      const a = beat === 3 ? PB.seg(t, 700 + k * 22, 1000 + k * 22) : 1;
+      if(a <= 0) continue;
+      ctx.globalAlpha = a; ctx.drawImage(cols, k, 0, 1, 192, x, y, w, h);
+    }
+    ctx.restore();
+    const [ex, ey, ew, eh] = PB.slot(row, E);
+    ctx.strokeStyle = PB.ACC; ctx.lineWidth = 2.5; ctx.strokeRect(ex - 1, ey - 1, ew + 2, eh + 2);
+    const fs = Math.max(13, H * .036);
+    [[0, '1'], [E, '38'], [63, '64']].forEach(([k, s]) => { const [x, y, w, h] = PB.slot(row, k); PB.text(ctx, s, x + w / 2, y + h + fs * .8, fs, {w: 700}); });
+    if(beat === 4){ ctx.globalAlpha = e; PB.rowLabel(ctx, W, rowB, 'Inputs', Math.max(15, H * .045)); ctx.globalAlpha = 1; }
+  }
+});
+</script>
+</body>
+</html>

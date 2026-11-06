@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>From tokens to a class</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<script>document.write(`<link rel="stylesheet" href="planb-scene.css?v=${Date.now()}"><script src="planb-lib.js?v=${Date.now()}"><\/script>`);</script>
+</head>
+<body>
+<!-- Owner: day05-planb. Video 2:25 to 2:53: a classifier with softmax at the end; one option is the last
+     patch's output, as in next-token generation; instead an extra learnable token is added that gathers
+     information from all patches through attention, and its output is classified. Bars are schematic. -->
+<div class="planb-wrap">
+  <h1 class="t deck-title">From tokens to a class</h1>
+  <div class="planb-stage"><canvas id="cv"></canvas></div>
+  <div class="lead planb-cap" id="cap"></div>
+</div>
+<div class="planb-dots" id="dots"></div>
+<script>
+const CAPS = ['',
+  'At the end: a small classifier with a softmax over class labels',
+  'One option: classify the last patch’s output, as in text generation',
+  'Instead: add one extra, learnable token, the class token',
+  'Through attention, it gathers information from every patch',
+  'Its output goes to the classifier'];
+const NOTES = [
+  "(draft) Title only. We have 64 output vectors. But we want one answer: what is in the image?",
+  "(draft) At the very end sits a small neural network, a classifier, with a softmax that gives a probability for each class label. The bars here are only a schematic. The question is what to feed it.",
+  "(draft) One option is to take the output of the last patch and classify that, the way a language model uses its last token to predict the next word. The video mentions this option before setting it aside.",
+  "(draft) What the Vision Transformer actually does: it adds one extra token at the front of the sequence. It belongs to no patch. It is a learnable vector, the class token, and it gets its own position, position zero.",
+  "(draft) In every attention block, the class token attends to all the patches, so layer by layer it gathers whatever information from them matters for classification.",
+  "(draft) At the end, only the class token's output goes to the classifier, and the softmax gives the distribution over class labels. The other 64 outputs are not used for the classification."
+];
+const LABELS = ['cat', 'dog', 'fox', 'car', 'cup'], SCHEM = [.62, .14, .12, .06, .06];   // schematic heights, not a model output
+planbScene('planbClassify', {
+  noImage: true, notes: NOTES, caps: CAPS, durs: [0, 1000, 1300, 1600, 2200, 1600],
+  draw({ctx, W, H, beat, t, e}){
+    const posC = PB._pos || (PB._pos = PB.posCanvas(65, 48));
+    const fs = Math.max(14, H * .042), X = W * PB.ROWX[0], RW = W * (PB.ROWX[1] - PB.ROWX[0]);
+    const inR = {x: X, y: H * .02, w: RW, h: H * .10}, outR = {x: X, y: H * .50, w: RW, h: H * .10};
+    const blocks = [H * .16, H * .27, H * .38], bh = H * .07;
+    const ins = beat === 3 ? PB.seg(t, 0, 1000) : beat > 3 ? 1 : 0;      // class token inserted
+    const at = (r, k) => { const a = PB.slot(r, k, 64), b = PB.slot(r, k + 1, 65); return a.map((v, i) => PB.lerp(v, b[i], ins)); };
+    const cl = r => PB.slot(r, 0, 65);
+    // rows and blocks
+    ctx.save(); ctx.imageSmoothingEnabled = false;
+    for(let k = 0; k < 64; k++){
+      const [x, y, w, h] = at(inR, k); ctx.fillStyle = PB.ACC; ctx.fillRect(x, y, w, h);
+      ctx.globalAlpha = .45; ctx.drawImage(posC, k + 1, 0, 1, 48, x, y, w, h); ctx.globalAlpha = 1;
+      const [ox, oy, ow, oh] = at(outR, k); ctx.fillStyle = '#2c3e5c'; ctx.fillRect(ox, oy, ow, oh);
+    }
+    ctx.restore();
+    blocks.forEach(by => { PB.box(ctx, X, by, RW, bh, {stroke: PB.INK, lw: 1.6, r: 8});
+      PB.text(ctx, 'Attention block', X + RW / 2, by + bh / 2, fs * .85, {w: 700, alpha: beat === 4 ? 1 - .7 * PB.seg(t, 0, 300) : beat === 5 ? .3 : 1}); });
+    PB.text(ctx, 'Input', W * .005, inR.y + inR.h / 2, fs, {w: 700, align: 'left'});
+    PB.text(ctx, 'Outputs', W * .005, outR.y + outR.h / 2, fs, {w: 700, align: 'left'});
+    if(ins > 0){
+      [inR, outR].forEach(r => { const [x, y, w, h] = cl(r); ctx.globalAlpha = ins; ctx.fillStyle = PB.CLS; ctx.fillRect(x, y, w, h);
+        ctx.strokeStyle = PB.INK; ctx.lineWidth = 2; ctx.strokeRect(x - 2, y - 2, w + 4, h + 4); ctx.globalAlpha = 1; });
+      const [x, y, w] = cl(inR);
+      PB.text(ctx, 'class token', x, y + inR.h + fs * .6, fs * .8, {w: 700, align: 'left', alpha: ins});
+    }
+    // classifier and softmax
+    const cx0 = W * .38, cx1 = W * .54, cy0 = H * .70, cy1 = H * .97, cmid = (cy0 + cy1) / 2;
+    const bx0 = W * .62, bw = W * .055, bgap = W * .015, bbase = H * .90, bmax = H * .24;
+    PB.box(ctx, cx0, cy0, cx1 - cx0, cy1 - cy0, {stroke: PB.INK, lw: 2, r: 10, fill: '#fff'});
+    PB.text(ctx, 'classifier', (cx0 + cx1) / 2, cy0 + fs * .8, fs * .9, {w: 700});
+    const L = [[cx0 + W * .03, 4], [(cx0 + cx1) / 2, 3], [cx1 - W * .03, 3]];
+    ctx.strokeStyle = 'rgba(100,116,139,.45)'; ctx.lineWidth = 1; ctx.beginPath();
+    const ny = (i, n) => cmid + fs * .5 + (i - (n - 1) / 2) * H * .04;
+    for(let l = 0; l < 2; l++) for(let i = 0; i < L[l][1]; i++) for(let j = 0; j < L[l + 1][1]; j++){ ctx.moveTo(L[l][0], ny(i, L[l][1])); ctx.lineTo(L[l + 1][0], ny(j, L[l + 1][1])); }
+    ctx.stroke();
+    L.forEach(([x, n]) => { for(let i = 0; i < n; i++){ ctx.beginPath(); ctx.arc(x, ny(i, n), H * .011, 0, 7); ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = PB.INK; ctx.lineWidth = 1.2; ctx.stroke(); } });
+    PB.arrow(ctx, cx1 + 6, cmid, bx0 - W * .01, cmid);
+    const fill = beat === 5 ? PB.seg(t, 900, 1500) : 0;
+    LABELS.forEach((lab, i) => {
+      const x = bx0 + i * (bw + bgap), h = PB.lerp(H * .02, bmax * SCHEM[i] / SCHEM[0], fill);
+      ctx.fillStyle = i === 0 && fill > 0 ? PB.ACC : '#cbd5e1'; ctx.fillRect(x, bbase - h, bw, h);
+      PB.text(ctx, lab, x + bw / 2, bbase + fs * .7, fs * .85);
+    });
+    PB.text(ctx, 'softmax (schematic)', bx0 + (5 * bw + 4 * bgap) / 2, cy0 - fs * .2, fs * .8, {color: PB.MUTE});
+    // option 1: the last patch
+    if(beat === 2 || (beat === 3 && t < 600)){
+      const a = beat === 2 ? e : 1 - PB.seg(t, 0, 600);
+      const [x, y, w, h] = at(outR, 63);
+      ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = PB.ACC; ctx.lineWidth = 3; ctx.strokeRect(x - 3, y - 3, w + 6, h + 6);
+      ctx.setLineDash([8, 6]); ctx.beginPath(); ctx.moveTo(x + w / 2, y + h + 4);
+      ctx.bezierCurveTo(x + w / 2, cy0 - H * .02, cx1 + W * .1, cy0 - H * .1, cx1 - W * .02, cy0 - 4); ctx.stroke(); ctx.setLineDash([]);
+      ctx.restore();
+      PB.text(ctx, 'last patch', x + w, y + h + fs * .7, fs * .8, {w: 700, align: 'right', alpha: a});
+    }
+    // the class token gathers information in every block
+    if(beat >= 4){
+      blocks.forEach((by, b) => {
+        const g = beat === 4 ? PB.seg(t, 300 + b * 500, 1100 + b * 500) : 1;
+        const [tx, , tw] = cl(inR);
+        ctx.strokeStyle = 'rgba(15,23,42,.30)'; ctx.lineWidth = 1; ctx.beginPath();
+        for(let k = 0; k < 64; k += 2){ const [x, , w] = at(inR, k);
+          const sx = x + w / 2, sy = by + 3, ex = tx + tw / 2, ey = by + bh - 3;
+          ctx.moveTo(sx, sy); ctx.quadraticCurveTo(sx, ey, PB.lerp(sx, ex, g), PB.lerp(sy, ey, g)); }
+        ctx.stroke();
+      });
+    }
+    if(beat === 5){
+      const [x, y, w, h] = cl(outR), a = PB.seg(t, 0, 700);
+      ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = PB.ACC; ctx.lineWidth = 3; ctx.strokeRect(x - 4, y - 4, w + 8, h + 8);
+      ctx.beginPath(); ctx.moveTo(x + w / 2, y + h + 5); ctx.bezierCurveTo(x + w / 2, cmid, cx0 - W * .12, cmid, cx0 - 8, cmid); ctx.stroke(); ctx.restore();
+      ctx.globalAlpha = a; PB.arrow(ctx, cx0 - W * .02, cmid, cx0 - 4, cmid, PB.ACC, 3, 12); ctx.globalAlpha = 1;
+    }
+  }
+});
+</script>
+</body>
+</html>

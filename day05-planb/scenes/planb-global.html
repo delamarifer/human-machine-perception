@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Global and local receptive fields</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<script>document.write(`<link rel="stylesheet" href="planb-scene.css?v=${Date.now()}"><script src="planb-lib.js?v=${Date.now()}"><\/script>`);</script>
+</head>
+<body>
+<!-- Owner: day05-planb. Video 3:17 to 3:40: attention between the first and last patch is computed in every
+     layer, a global receptive field; CNNs have local receptive fields, a built-in inductive bias.
+     The CNN panel is a schematic at the scale of the patch grid: 3 x 3 kernels, stride 1, no pooling. -->
+<div class="planb-wrap">
+  <h1 class="t deck-title">Global and local receptive fields</h1>
+  <div class="planb-stage"><canvas id="cv"></canvas></div>
+  <div class="lead planb-cap" id="cap"></div>
+  <div class="cite" id="credit"></div>
+</div>
+<div class="planb-dots" id="dots"></div>
+<script>
+document.getElementById('credit').textContent = PB.CREDIT;
+const CAPS = ['',
+  'The first patch and the last patch',
+  'Attention links them directly, in every layer',
+  'A global receptive field: every patch reaches every patch',
+  'A CNN: a 3 × 3 kernel sees only its neighbors',
+  'Its reach grows one step per layer',
+  'Locality is built in: an inductive bias'];
+const NOTES = [
+  "(draft) Title only. This difference is the heart of the comparison with the CNNs from Day 4.",
+  "(draft) Take the two patches that are as far apart as possible: the first, top left, and the last, bottom right.",
+  "(draft) In a Vision Transformer, the attention between these two is computed directly, in the very first layer, and again in every layer after.",
+  "(draft) And that holds for every pair of patches. Every patch can draw on every other patch from layer 1. In the video's words, attention gives the Vision Transformer a global receptive field.",
+  "(draft) Now a CNN, like the ones we built on Day 4. A 3 by 3 kernel at the first patch sees only its immediate neighbors. Its receptive field is local.",
+  "(draft) Each new layer adds one step on every side: 3 by 3, then 5 by 5, then 7 by 7. On this 8 by 8 grid it takes seven layers before the first patch's view reaches the last patch. This panel is a schematic at the scale of the patch grid, with 3 by 3 kernels and no pooling; a real CNN works on pixels and uses pooling and strides, but the point is the same: information from far away arrives only after many layers.",
+  "(draft) This locality is an assumption built into the architecture: nearby pixels belong together and matter most. The name for an assumption like this is an inductive bias. It is a good assumption for images, and it helps CNNs learn from less data. Keep that in mind for the last slides."
+];
+planbScene('planbGlobal', {
+  notes: NOTES, caps: CAPS, durs: [0, 900, 1100, 1300, 1000, 3800, 800],
+  draw({ctx, W, H, beat, t, e, cat}){
+    const S = Math.min(H * .84, W * .4), y0 = H * .12, xL = W * .05, xR = W * .55, c = S / 8, fs = Math.max(16, H * .05);
+    const ctrL = k => [xL + (k % 8 + .5) * c, y0 + (Math.floor(k / 8) + .5) * c];
+    PB.text(ctx, 'Vision Transformer', xL + S / 2, H * .05, fs, {w: 700});
+    PB.drawImageSquare(ctx, cat.im, xL, y0, S, false);
+    ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(xL, y0, S, S);
+    PB.grid(ctx, xL, y0, S, 8, beat >= 3 ? 'rgba(79,109,154,.9)' : 'rgba(255,255,255,.95)', beat >= 3 ? 2.5 : 2);
+    const box = (x0, k, col = PB.ACC, lw = 4) => { ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.strokeRect(x0 + (k % 8) * c + 1, y0 + Math.floor(k / 8) * c + 1, c - 2, c - 2); };
+    const a1 = beat === 1 ? e : 1;
+    ctx.globalAlpha = a1; box(xL, 0); box(xL, 63); ctx.globalAlpha = 1;
+    if(beat >= 2){
+      const m = beat === 2 ? e : 1, [x1, y1] = ctrL(0), [x2, y2] = ctrL(63);
+      ctx.strokeStyle = PB.INK; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(PB.lerp(x1, x2, m), PB.lerp(y1, y2, m)); ctx.stroke();
+    }
+    if(beat >= 3){
+      const a = beat === 3 ? e : 1;
+      ctx.save(); ctx.strokeStyle = `rgba(15,23,42,${.06 * a})`; ctx.lineWidth = 1; ctx.beginPath();
+      for(let p = 0; p < 64; p++) for(let q = p + 1; q < 64; q++){ const [x1, y1] = ctrL(p), [x2, y2] = ctrL(q); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); }
+      ctx.stroke(); ctx.restore();
+      PB.text(ctx, 'global: layer 1', xL + S / 2, y0 + S + fs * .8, fs * .9, {alpha: a});
+    }
+    if(beat < 4) return;
+    const a4 = beat === 4 ? e : 1;
+    ctx.globalAlpha = a4;
+    PB.text(ctx, 'Convolutional network', xR + S / 2, H * .05, fs, {w: 700});
+    PB.drawImageSquare(ctx, cat.im, xR, y0, S, false);
+    ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(xR, y0, S, S);
+    PB.grid(ctx, xR, y0, S, 8, 'rgba(255,255,255,.95)', 2);
+    box(xR, 63, PB.ACC, 4);
+    // receptive field of the first patch after L layers: cells within L steps (clipped to the grid)
+    let L = 1;
+    if(beat === 5) L = 1 + Math.min(6, Math.floor(PB.clamp((t - 300) / 3200) * 7));
+    if(beat >= 6) L = 7;
+    const n = Math.min(8, L + 1);
+    ctx.fillStyle = 'rgba(79,109,154,.38)'; ctx.fillRect(xR, y0, n * c, n * c);
+    ctx.strokeStyle = PB.ACC; ctx.lineWidth = 4; ctx.strokeRect(xR + 1, y0 + 1, n * c - 2, n * c - 2);
+    box(xR, 0, PB.INK, 4);
+    PB.text(ctx, beat === 4 ? '3 × 3 kernel: layer 1' : `after ${L} layer${L > 1 ? 's' : ''}`, xR + S / 2, y0 + S + fs * .8, fs * .9);
+    ctx.globalAlpha = 1;
+  }
+});
+</script>
+</body>
+</html>

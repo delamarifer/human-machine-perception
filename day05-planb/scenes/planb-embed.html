@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>From flattened patch to embedding</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<script>document.write(`<link rel="stylesheet" href="planb-scene.css?v=${Date.now()}"><script src="planb-lib.js?v=${Date.now()}"><\/script>`);</script>
+</head>
+<body>
+<!-- Owner: day05-planb. Video 0:57 to 1:15: each flattened patch goes through the same small network,
+     one by one, and comes out as an embedding vector; embeddings play the role of word embeddings.
+     The input row is the real data; the embeddings are drawn plain (schematic: no trained weights here). -->
+<div class="planb-wrap">
+  <h1 class="t deck-title">From flattened patch to embedding</h1>
+  <div class="planb-stage"><canvas id="cv"></canvas></div>
+  <div class="lead planb-cap" id="cap"></div>
+</div>
+<div class="planb-dots" id="dots"></div>
+<script>
+const CAPS = ['',
+  'Inputs: 64 vectors of 192 numbers',
+  'Patch 1 goes through a small network with learned weights',
+  'Out comes its embedding vector',
+  'The same network, for every patch',
+  'Each embedding is one token, like a word in a sentence'];
+const NOTES = [
+  "(draft) Title only. We could feed these raw pixel values in directly, but the video, like the paper, first turns each one into an embedding.",
+  "(draft) Here is our row of inputs again: 64 vectors, 192 normalized pixel values each.",
+  "(draft) Take patch 1 and pass it through a small neural network. In the paper this is a single linear layer, a learned matrix that every patch shares, so that the 192 numbers become D numbers. For the base model in the paper, D is 768.",
+  "(draft) What comes out is the embedding of patch 1: a vector the network has learned to make useful. It goes into a new row, the embeddings. The embeddings here are drawn plain, as a schematic: we have no trained network on this slide.",
+  "(draft) Then we do the same for patch 2, patch 3, and so on, always with the same network, until every patch has its embedding.",
+  "(draft) From here on, a Vision Transformer treats these embeddings exactly like a language model treats word embeddings. Each patch is one token, and the image is a sentence of 64 tokens."
+];
+planbScene('planbEmbed', {
+  notes: NOTES, caps: CAPS, durs: [0, 800, 1800, 2000, 2800, 1200],
+  draw({ctx, W, H, beat, t, e, cat}){
+    const cols = PB.colsCanvas(cat), fs = Math.max(15, H * .045);
+    const inR = {x: W * PB.ROWX[0], y: H * .02, w: W * (PB.ROWX[1] - PB.ROWX[0]), h: H * .30};
+    const emR = {x: inR.x, y: H * .40, w: inR.w, h: H * .20};
+    // inputs row
+    ctx.save(); ctx.imageSmoothingEnabled = false; ctx.globalAlpha = beat === 1 ? e : 1;
+    for(let k = 0; k < 64; k++){ const [x, y, w, h] = PB.slot(inR, k); ctx.drawImage(cols, k, 0, 1, 192, x, y, w, h); }
+    ctx.restore();
+    PB.rowLabel(ctx, W, inR, 'Inputs', fs);
+    [[0, '1'], [63, '64']].forEach(([k, s]) => { const [x, y, w, h] = PB.slot(inR, k); PB.text(ctx, s, x + w / 2, y + h + fs * .55, fs * .8, {w: 700}); });
+    if(beat < 2) return;
+    // the network
+    const net = {x1: W * .40, x2: W * .54, cy: H * .83, n1: 6, n2: 5, dy: H * .052};
+    const netA = beat === 2 ? PB.seg(t, 300, 1000) : beat === 5 ? 1 - e : 1;
+    const node = (x, i, n) => [x, net.cy + (i - (n - 1) / 2) * net.dy];
+    if(netA > 0){
+      ctx.save(); ctx.globalAlpha = netA;
+      const pulse = beat === 3 ? Math.max(0, 1 - Math.abs(t - 300) / 300) : 0;
+      ctx.strokeStyle = pulse > 0 ? `rgba(79,109,154,${.25 + .6 * pulse})` : 'rgba(100,116,139,.35)'; ctx.lineWidth = 1;
+      ctx.beginPath();
+      for(let i = 0; i < net.n1; i++) for(let j = 0; j < net.n2; j++){
+        if(i === 3 || j === 2) continue;
+        const [a, b] = node(net.x1, i, net.n1), [c, d] = node(net.x2, j, net.n2); ctx.moveTo(a, b); ctx.lineTo(c, d); }
+      ctx.stroke();
+      const r = H * .017;
+      [[net.x1, net.n1, 3, ['x₁', 'x₂', 'x₃', '', 'x₁₉₁', 'x₁₉₂']], [net.x2, net.n2, 2, ['y₁', 'y₂', '', 'y_D−1', 'y_D']]].forEach(([x, n, gap, lab]) => {
+        for(let i = 0; i < n; i++){
+          const [cx, cy] = node(x, i, n);
+          if(i === gap){ PB.text(ctx, '⋮', cx, cy, fs, {w: 700}); continue; }
+          ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = PB.INK; ctx.lineWidth = 1.4; ctx.stroke();
+        }
+      });
+      PB.text(ctx, 'linear layer', (net.x1 + net.x2) / 2, H * .655, fs * .85, {w: 700});
+      PB.text(ctx, '192 in → D out', (net.x1 + net.x2) / 2, H * .995, fs * .75, {color: PB.MUTE, base: 'bottom'});
+      ctx.restore();
+    }
+    // patch 1 travels down into the network
+    const [sx, sy, sw, sh] = PB.slot(inR, 0);
+    const inBox = [W * .30, net.cy - H * .13, W * .014, H * .26];
+    const outBox = [W * .62, net.cy - H * .10, W * .014, H * .20];
+    ctx.strokeStyle = PB.ACC; ctx.lineWidth = 2.5; ctx.strokeRect(sx - 1.5, sy - 1.5, sw + 3, sh + 3);
+    if(beat <= 4){
+      const m = beat === 2 ? PB.seg(t, 0, 900) : 1, a = beat === 4 ? 1 - PB.seg(t, 2300, 2800) : 1;
+      ctx.save(); ctx.imageSmoothingEnabled = false; ctx.globalAlpha = a;
+      ctx.drawImage(cols, 0, 0, 1, 192, PB.lerp(sx, inBox[0], m), PB.lerp(sy, inBox[1], m), PB.lerp(sw, inBox[2], m), PB.lerp(sh, inBox[3], m));
+      ctx.restore();
+      if(m > .95 && a > 0){ ctx.globalAlpha = a; PB.arrow(ctx, inBox[0] + inBox[2] + 6, net.cy, net.x1 - H * .03, net.cy); ctx.globalAlpha = 1; }
+    }
+    // embeddings row label and slots
+    PB.rowLabel(ctx, W, emR, 'Embeddings', fs);
+    if(beat >= 3){
+      const [ex, ey, ew, eh] = PB.slot(emR, 0);
+      const appear = beat === 3 ? PB.seg(t, 500, 800) : 1, fly = beat === 3 ? PB.seg(t, 1000, 1800) : 1;
+      if(beat <= 4 && netA > 0){ ctx.globalAlpha = netA; PB.arrow(ctx, net.x2 + H * .03, net.cy, outBox[0] - 6, net.cy); ctx.globalAlpha = 1; }
+      if(beat === 3 && fly < 1){
+        ctx.globalAlpha = appear; ctx.fillStyle = PB.ACC; ctx.fillRect(outBox[0], outBox[1], outBox[2], outBox[3]); ctx.globalAlpha = 1;
+      }
+      const n = beat === 3 ? 1 : 64;
+      for(let k = 0; k < n; k++){
+        let a = 1;
+        if(k === 0 && beat === 3) a = fly > 0 ? 1 : 0;
+        if(beat === 4 && k > 0) a = PB.seg(t, 200 + k * 36, 450 + k * 36);
+        if(a <= 0) continue;
+        const [x, y, w, h] = PB.slot(emR, k);
+        if(k === 0 && beat === 3){
+          ctx.fillStyle = PB.ACC; ctx.fillRect(PB.lerp(outBox[0], x, fly), PB.lerp(outBox[1], y, fly), PB.lerp(outBox[2], w, fly), PB.lerp(outBox[3], h, fly));
+          continue;
+        }
+        ctx.globalAlpha = a; ctx.fillStyle = PB.ACC; ctx.fillRect(x, y, w, h);
+        ctx.strokeStyle = PB.LINE; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x + w / 2, inR.y + inR.h + 3); ctx.lineTo(x + w / 2, y - 3); ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+      if(beat === 4){                                   // the input currently being embedded
+        const k = Math.min(63, Math.max(1, Math.floor((t - 200) / 36)));
+        if(t < 200 + 64 * 36){ const [x, y, w, h] = PB.slot(inR, k); ctx.strokeStyle = PB.ACC; ctx.lineWidth = 2.5; ctx.strokeRect(x - 1.5, y - 1.5, w + 3, h + 3); }
+      }
+    }
+    if(beat === 5){                                     // brace: 64 tokens
+      const y = emR.y + emR.h + H * .05, x0 = emR.x, x1 = emR.x + emR.w;
+      ctx.save(); ctx.globalAlpha = e; ctx.strokeStyle = PB.INK; ctx.lineWidth = 2; ctx.beginPath();
+      ctx.moveTo(x0, y - H * .02); ctx.lineTo(x0, y); ctx.lineTo(x1, y); ctx.lineTo(x1, y - H * .02);
+      ctx.moveTo((x0 + x1) / 2, y); ctx.lineTo((x0 + x1) / 2, y + H * .03); ctx.stroke(); ctx.restore();
+      PB.text(ctx, '64 tokens', (x0 + x1) / 2, y + H * .09, fs * 1.1, {w: 700, alpha: e});
+      const words = ['a', 'white', 'cat', 'with', 'odd', 'eyes'];
+      const wy = y + H * .2, wfs = fs * .95; ctx.font = PB.font(wfs, 400);
+      const ws = words.map(w => ctx.measureText(w).width + wfs * 1.2), tot = ws.reduce((a, b) => a + b, 0) + (words.length - 1) * wfs * .5;
+      let x = (x0 + x1) / 2 - tot / 2;
+      PB.text(ctx, 'like the words of a sentence:', x - wfs * .6, wy, wfs, {align: 'right', alpha: e, color: PB.MUTE});
+      words.forEach((w, i) => { PB.box(ctx, x, wy - wfs * .8, ws[i], wfs * 1.6, {stroke: PB.INK, alpha: e});
+        PB.text(ctx, w, x + ws[i] / 2, wy, wfs, {alpha: e}); x += ws[i] + wfs * .5; });
+    }
+  }
+});
+</script>
+</body>
+</html>

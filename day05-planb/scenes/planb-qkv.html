@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Query, key and value</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<script>document.write(`<link rel="stylesheet" href="planb-scene.css?v=${Date.now()}"><script src="planb-lib.js?v=${Date.now()}"><\/script>`);</script>
+</head>
+<body>
+<!-- Owner: day05-planb. Video 1:15 to 1:38: one embedding is copied three times and multiplied by the
+     query, key and value matrices; every embedding can be processed in parallel. Schematic. -->
+<div class="planb-wrap">
+  <h1 class="t deck-title">Query, key and value</h1>
+  <div class="planb-stage"><canvas id="cv"></canvas></div>
+  <div class="lead planb-cap" id="cap"></div>
+</div>
+<div class="planb-dots" id="dots"></div>
+<script>
+const CAPS = ['',
+  'Take the embedding of patch 1',
+  'Make three copies',
+  'Multiply each copy by its own learned matrix',
+  'Out come a query, a key and a value',
+  'Every patch at once, in parallel'];
+const NOTES = [
+  "(draft) Title only. Now the tokens go into attention. Attention needs three things from every token: a query, a key and a value.",
+  "(draft) Take the embedding of patch 1.",
+  "(draft) Make three copies of it.",
+  "(draft) Multiply each copy by its own matrix: W Q for the query, W K for the key, W V for the value. These three matrices are learned during training, and they are the same for every patch.",
+  "(draft) Out come three new vectors: the query, the key and the value of patch 1. A rough way to think of them: the query is what this patch is looking for, the key is what it offers to others, and the value is the information it passes on. That reading is ours, not the video's.",
+  "(draft) Nothing in this step depends on the other patches, so all 64 patches can do it at the same time, in parallel. That is what makes transformers fast on modern hardware. But it raises a problem, which is the next slide: if every patch is processed the same way at the same time, how does the model know which patch is which?"
+];
+const QKV = [['W_Q', 'query', 'Queries', '#334155'], ['W_K', 'key', 'Keys', '#64748b'], ['W_V', 'value', 'Values', '#a3b1c2']];
+planbScene('planbQkv', {
+  noImage: true, notes: NOTES, caps: CAPS, durs: [0, 1000, 1100, 900, 1100, 1800],
+  draw({ctx, W, H, beat, t, e}){
+    const fs = Math.max(15, H * .045);
+    const emR = {x: W * PB.ROWX[0], y: H * .02, w: W * (PB.ROWX[1] - PB.ROWX[0]), h: H * .20};
+    for(let k = 0; k < 64; k++){ const [x, y, w, h] = PB.slot(emR, k); ctx.fillStyle = PB.ACC; ctx.fillRect(x, y, w, h); }
+    PB.rowLabel(ctx, W, emR, 'Embeddings', fs);
+    const [sx, sy, sw, sh] = PB.slot(emR, 0);
+    const fade = beat === 5 ? 1 - PB.seg(t, 0, 500) : 1;
+    if(beat < 5){ ctx.strokeStyle = PB.INK; ctx.lineWidth = 2.5; ctx.strokeRect(sx - 2, sy - 2, sw + 4, sh + 4); }
+    if(fade > 0){
+      ctx.save(); ctx.globalAlpha = fade;
+      const bw = W * .12, bh = H * .055, ex = W * .06, ey = H * .62;
+      const rows = [H * .40, H * .62, H * .84];
+      const m1 = beat === 1 ? e : 1;
+      // the embedding of patch 1 drops down and lies flat
+      if(beat === 1){
+        ctx.fillStyle = PB.ACC; ctx.fillRect(PB.lerp(sx, ex, m1), PB.lerp(sy, ey - bh / 2, m1), PB.lerp(sw, bw, m1), PB.lerp(sh, bh, m1));
+      } else {
+        ctx.fillStyle = PB.ACC; ctx.fillRect(ex, ey - bh / 2, bw, bh);
+      }
+      PB.text(ctx, 'patch 1', ex + bw / 2, ey + bh, fs * .8, {color: PB.MUTE, base: 'top', alpha: m1});
+      if(beat >= 2){
+        const m2 = beat === 2 ? e : 1, cx = W * .26;
+        rows.forEach(ry => { ctx.fillStyle = PB.ACC; ctx.fillRect(PB.lerp(ex, cx, m2), PB.lerp(ey, ry, m2) - bh / 2, bw, bh); });
+      }
+      if(beat >= 3){
+        const a = beat === 3 ? e : 1, bx = W * .43, bwid = W * .09, bht = H * .15;
+        rows.forEach((ry, i) => {
+          PB.text(ctx, '×', W * .405, ry, fs * 1.2, {w: 700, alpha: a});
+          PB.box(ctx, bx, ry - bht / 2, bwid, bht, {fill: '#fff', stroke: PB.INK, lw: 2, alpha: a});
+          const sub = QKV[i][0].split('_');
+          PB.text(ctx, sub[0], bx + bwid / 2 - fs * .25, ry, fs * 1.15, {w: 700, alpha: a});
+          PB.text(ctx, sub[1], bx + bwid / 2 + fs * .32, ry + fs * .3, fs * .75, {w: 700, alpha: a});
+        });
+      }
+      if(beat >= 4){
+        const ox = W * .62;
+        rows.forEach((ry, i) => {
+          const a = beat === 4 ? PB.seg(t, i * 200, 500 + i * 200) : 1;
+          PB.text(ctx, '=', W * .575, ry, fs * 1.2, {w: 700, alpha: a});
+          ctx.globalAlpha = fade * a; ctx.fillStyle = QKV[i][3]; ctx.fillRect(ox, ry - bh / 2, bw, bh); ctx.globalAlpha = fade;
+          PB.text(ctx, QKV[i][1] + ' of patch 1', ox + bw + W * .015, ry, fs, {align: 'left', w: 700, alpha: a});
+        });
+      }
+      ctx.restore();
+    }
+    if(beat === 5){                                     // all patches: three rows
+      const rs = [H * .32, H * .54, H * .76].map(y => ({x: emR.x, y, w: emR.w, h: H * .17}));
+      rs.forEach((r, i) => {
+        const a = PB.seg(t, 500 + i * 250, 1100 + i * 250);
+        ctx.globalAlpha = a;
+        for(let k = 0; k < 64; k++){ const [x, y, w, h] = PB.slot(r, k); ctx.fillStyle = QKV[i][3]; ctx.fillRect(x, y, w, h); }
+        ctx.globalAlpha = 1;
+        PB.text(ctx, QKV[i][2], W * .005, r.y + r.h / 2, fs, {w: 700, align: 'left', alpha: a});
+      });
+      const a = PB.seg(t, 400, 900);
+      ctx.strokeStyle = `rgba(203,213,225,${a})`; ctx.lineWidth = 1; ctx.beginPath();
+      for(let k = 0; k < 64; k++){ const [x, y, w, h] = PB.slot(emR, k); ctx.moveTo(x + w / 2, y + h + 2); ctx.lineTo(x + w / 2, H * .32 - 2); }
+      ctx.stroke();
+    }
+  }
+});
+</script>
+</body>
+</html>

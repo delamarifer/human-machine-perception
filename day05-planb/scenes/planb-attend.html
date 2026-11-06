@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>What attention does</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<script>document.write(`<link rel="stylesheet" href="planb-scene.css?v=${Date.now()}"><script src="planb-lib.js?v=${Date.now()}"><\/script>`);</script>
+</head>
+<body>
+<!-- Owner: day05-planb. Video 2:53 to 3:17: the first patch's attention with all other patches; the same for
+     every patch; so the model relates parts of the image to one another. Lines show which pairs are
+     computed, not how strong the attention is (no trained model here). -->
+<div class="planb-wrap">
+  <h1 class="t deck-title">What attention does</h1>
+  <div class="planb-stage"><canvas id="cv"></canvas></div>
+  <div class="lead planb-cap" id="cap"></div>
+  <div class="cite" id="credit"></div>
+</div>
+<div class="planb-dots" id="dots"></div>
+<script>
+document.getElementById('credit').textContent = PB.CREDIT;
+const CAPS = ['',
+  'Take the first patch',
+  'Compute its attention with every other patch',
+  'Then the same for every patch',
+  'Every part related to every other part: the whole image'];
+const NOTES = [
+  "(draft) Title only. So what is attention doing for an image? Let us go back to the photo.",
+  "(draft) Take the first patch, the top-left corner.",
+  "(draft) Attention compares it with every other patch in the image, all 63 of them. The lines show which pairs are compared; they are not attention strengths, since we have no trained model here. This tells the model how the first patch relates to the rest of the image.",
+  "(draft) Then the same for patch 2, patch 3, and so on, for every patch.",
+  "(draft) In the end every patch has been related to every other patch: 64 times 64, or 4,096 comparisons, in every layer. This is how the model builds an understanding of the image as a whole, from how its parts relate. We will come back to that number, 4,096."
+];
+planbScene('planbAttend', {
+  notes: NOTES, caps: CAPS, durs: [0, 800, 2000, 3400, 1500],
+  draw({ctx, W, H, beat, t, e, cat}){
+    const S = Math.min(H * .98, W * .5), ix = (W - S) / 2 - W * .12, iy = (H - S) / 2, c = S / 8;
+    const ctr = k => [ix + (k % 8 + .5) * c, iy + (Math.floor(k / 8) + .5) * c];
+    PB.drawImageSquare(ctx, cat.im, ix, iy, S, false);
+    ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(ix, iy, S, S);
+    const gridC = beat === 4 ? `rgba(79,109,154,${.6 + .4 * e})` : 'rgba(255,255,255,.95)';
+    PB.grid(ctx, ix, iy, S, 8, gridC, beat === 4 ? 2.5 : 2);
+    for(let k = 0; k < 64; k++){ const [x, y] = ctr(k); ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fillStyle = 'rgba(15,23,42,.6)'; ctx.fill(); }
+    const fan = (src, prog, alpha, lw = 1.6) => {
+      const [sx, sy] = ctr(src); ctx.save(); ctx.strokeStyle = `rgba(15,23,42,${alpha})`; ctx.lineWidth = lw; ctx.beginPath();
+      for(let j = 0; j < 64; j++){ if(j === src) continue;
+        const m = PB.clamp(prog * 64 - j); if(m <= 0) continue;
+        const [x, y] = ctr(j); ctx.moveTo(sx, sy); ctx.lineTo(PB.lerp(sx, x, m), PB.lerp(sy, y, m)); }
+      ctx.stroke(); ctx.restore(); };
+    const box = (k, col = PB.ACC, lw = 4) => { const x = ix + (k % 8) * c, y = iy + Math.floor(k / 8) * c; ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.strokeRect(x + 1, y + 1, c - 2, c - 2); };
+    const fsR = Math.max(16, H * .05), rx = ix + S + W * .04;
+    if(beat <= 2){
+      ctx.globalAlpha = beat === 1 ? e : 1; box(0); ctx.globalAlpha = 1;
+      PB.text(ctx, 'patch 1', rx, iy + c * .5, fsR, {w: 700, align: 'left', alpha: beat === 1 ? e : 1});
+      if(beat === 2){ fan(0, PB.clamp(t / 1800), .55);
+        PB.text(ctx, '1 × 63 comparisons', rx, iy + c * 1.4, fsR, {align: 'left', alpha: PB.seg(t, 1500, 2000)}); }
+      return;
+    }
+    if(beat === 3){
+      const T = 3000, cur = Math.min(63, Math.floor(PB.clamp(t / T) * 64));
+      for(let k = 0; k < cur; k++) box(k, 'rgba(79,109,154,.85)', 2.5);
+      if(t < T){ fan(cur, 1, .35, 1.2); box(cur); PB.text(ctx, 'patch ' + (cur + 1), rx, iy + c * .5, fsR, {w: 700, align: 'left'}); }
+      else { for(let k = 0; k < 64; k++) box(k, 'rgba(79,109,154,.85)', 2.5); PB.text(ctx, 'all 64 patches', rx, iy + c * .5, fsR, {w: 700, align: 'left'}); }
+      return;
+    }
+    // beat 4: every pair, faintly
+    ctx.save(); ctx.strokeStyle = `rgba(15,23,42,${.07 * e})`; ctx.lineWidth = 1; ctx.beginPath();
+    for(let a = 0; a < 64; a++) for(let b = a + 1; b < 64; b++){ const [x1, y1] = ctr(a), [x2, y2] = ctr(b); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); }
+    ctx.stroke(); ctx.restore();
+    PB.text(ctx, 'all 64 patches', rx, iy + c * .5, fsR, {w: 700, align: 'left'});
+    PB.text(ctx, '64 × 64 = 4,096', rx, iy + c * 1.5, fsR, {w: 700, align: 'left', alpha: e});
+    PB.text(ctx, 'comparisons per layer', rx, iy + c * 2.1, fsR, {align: 'left', alpha: e});
+  }
+});
+</script>
+</body>
+</html>

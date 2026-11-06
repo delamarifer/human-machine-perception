@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Texture or shape?</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<script>document.write(`<link rel="stylesheet" href="planb-scene.css?v=${Date.now()}"><script src="planb-lib.js?v=${Date.now()}"><\/script>`);</script>
+</head>
+<body>
+<!-- Owner: day05-planb. Video 3:40 to 4:10: local features such as texture vs global features such as shape.
+     The video says its own two images are illustrations, not taken from real models. Here both images are
+     computed from the photo: the 64 patches shuffled (seeded), and an edge map (Sobel on luminance). -->
+<div class="planb-wrap">
+  <h1 class="t deck-title">Texture or shape?</h1>
+  <div class="planb-stage"><canvas id="cv"></canvas></div>
+  <div class="lead planb-cap" id="cap"></div>
+  <div class="cite" id="credit"></div>
+</div>
+<div class="planb-dots" id="dots"></div>
+<script>
+document.getElementById('credit').textContent = PB.CREDIT + ' · findings: Geirhos et al. (2019); Tuli et al. (2021)';
+const CAPS = ['',
+  'The photo',
+  'Shuffle the patches: the local texture survives, the shape does not',
+  'Keep only the outlines: the shape survives, the texture does not',
+  'CNNs trained on ImageNet lean on texture',
+  'Vision Transformers lean more on shape'];
+const NOTES = [
+  "(draft) Title only. The video draws one consequence of local versus global receptive fields: what the network pays attention to when it decides what an object is.",
+  "(draft) Our photo again.",
+  "(draft) Shuffle its 64 patches. Every local detail is still there: the white fur, the whiskers, the blue of the eye. What is gone is the shape of the cat. A model that relies on local features could still find fur here.",
+  "(draft) Now the opposite: keep only the outlines, computed from the photo with a simple edge filter. The texture is gone, but you still see the shape of a cat's head.",
+  "(draft) The video says that CNNs, with their local receptive fields, may classify an object by its texture. There is evidence for this: Geirhos and colleagues, 2019, showed that CNNs trained on ImageNet are biased toward texture, for example calling a cat-shaped image with elephant skin an elephant. Note that the video's own images for this point are illustrations, as it says itself; the two images here are computed from the photo and are illustrations too.",
+  "(draft) Vision Transformers, with a global receptive field, rely more on global shape. Tuli and colleagues, 2021, found Vision Transformers more shape-biased than CNNs on the same kind of test, though still less than people. Fernanda: these two citations are ours, added for evidence; please check them before class."
+];
+const SHUF = PB.shuffle(64, 5);
+let edges = null;
+function makeEdges(im){
+  const n = 256, c = document.createElement('canvas'); c.width = c.height = n;
+  const g = c.getContext('2d'); g.drawImage(im, 0, 0, n, n);
+  const d = g.getImageData(0, 0, n, n), L = new Float32Array(n * n);
+  for(let i = 0; i < n * n; i++) L[i] = .299 * d.data[4 * i] + .587 * d.data[4 * i + 1] + .114 * d.data[4 * i + 2];
+  const out = g.createImageData(n, n), at = (x, y) => L[Math.min(n - 1, Math.max(0, y)) * n + Math.min(n - 1, Math.max(0, x))];
+  for(let y = 0; y < n; y++) for(let x = 0; x < n; x++){
+    const gx = -at(x - 1, y - 1) - 2 * at(x - 1, y) - at(x - 1, y + 1) + at(x + 1, y - 1) + 2 * at(x + 1, y) + at(x + 1, y + 1);
+    const gy = -at(x - 1, y - 1) - 2 * at(x, y - 1) - at(x + 1, y - 1) + at(x - 1, y + 1) + 2 * at(x, y + 1) + at(x + 1, y + 1);
+    const m = Math.min(1, Math.hypot(gx, gy) / 160), v = Math.round(255 * (1 - m)), i = 4 * (y * n + x);
+    out.data[i] = out.data[i + 1] = out.data[i + 2] = v; out.data[i + 3] = 255;
+  }
+  g.putImageData(out, 0, 0); return c;
+}
+planbScene('planbTexture', {
+  notes: NOTES, caps: CAPS, durs: [0, 800, 2000, 1200, 800, 800],
+  draw({ctx, W, H, beat, t, e, cat}){
+    edges = edges || makeEdges(cat.im);
+    const S = Math.min(W * .29, H * .80), gap = (W - 3 * S) / 4, y0 = H * .02, fs = Math.max(16, H * .05);
+    const X = [gap, 2 * gap + S, 3 * gap + 2 * S];
+    ctx.globalAlpha = beat === 1 ? e : 1; PB.drawImageSquare(ctx, cat.im, X[0], y0, S, false); ctx.globalAlpha = 1;
+    if(beat >= 2){
+      const c = S / 8, src = cat.im.naturalWidth / 8;
+      for(let k = 0; k < 64; k++){
+        const m = beat === 2 ? PB.seg(t, 200 + k * 14, 1000 + k * 14) : 1, d = SHUF[k];
+        const fx = X[0] + (k % 8) * c, fy = y0 + Math.floor(k / 8) * c, tx = X[1] + (d % 8) * c, ty = y0 + Math.floor(d / 8) * c;
+        ctx.drawImage(cat.im, (k % 8) * src, Math.floor(k / 8) * src, src, src, PB.lerp(fx, tx, m), PB.lerp(fy, ty, m), c, c);
+      }
+      PB.drawImageSquare(ctx, cat.im, X[0], y0, S, false);
+    }
+    if(beat >= 3){ ctx.globalAlpha = beat === 3 ? e : 1; ctx.drawImage(edges, X[2], y0, S, S); ctx.strokeStyle = PB.LINE; ctx.lineWidth = 1; ctx.strokeRect(X[2], y0, S, S); ctx.globalAlpha = 1; }
+    const ly = y0 + S + fs * 1.1;
+    if(beat >= 4) PB.text(ctx, 'texture: local', X[1] + S / 2, ly, fs, {w: 700, alpha: beat === 4 ? e : 1});
+    if(beat >= 4) PB.text(ctx, 'what CNNs tend to use', X[1] + S / 2, ly + fs * 1.15, fs * .9, {alpha: beat === 4 ? e : 1});
+    if(beat >= 5){ PB.text(ctx, 'shape: global', X[2] + S / 2, ly, fs, {w: 700, alpha: e});
+      PB.text(ctx, 'what ViTs use more', X[2] + S / 2, ly + fs * 1.15, fs * .9, {alpha: e}); }
+  }
+});
+</script>
+</body>
+</html>

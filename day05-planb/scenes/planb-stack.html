@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Through the attention blocks</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<script>document.write(`<link rel="stylesheet" href="planb-scene.css?v=${Date.now()}"><script src="planb-lib.js?v=${Date.now()}"><\/script>`);</script>
+</head>
+<body>
+<!-- Owner: day05-planb. Video 2:08 to 2:25: the final input goes through several attention blocks and
+     comes out as one vector per patch. Schematic. -->
+<div class="planb-wrap">
+  <h1 class="t deck-title">Through the attention blocks</h1>
+  <div class="planb-stage"><canvas id="cv"></canvas></div>
+  <div class="lead planb-cap" id="cap"></div>
+</div>
+<div class="planb-dots" id="dots"></div>
+<script>
+const CAPS = ['',
+  'The final input: 64 tokens, each with its position',
+  'An attention block relates the patches to one another',
+  'Stack several blocks',
+  'Out comes one vector per patch'];
+const NOTES = [
+  "(draft) Title only. Now the data is ready for attention.",
+  "(draft) Our final input: 64 tokens, each one a patch embedding plus its position vector.",
+  "(draft) They go into an attention block. This is where the patches build relationships with one another: every token is updated using information from all the other tokens. We look inside on the next slides.",
+  "(draft) A Vision Transformer does not use one block but a stack of them, each one feeding the next. The video draws three; the base model in the paper has twelve. Beyond the video: each block in the paper also contains a small MLP applied to every token, layer normalization, and skip connections.",
+  "(draft) At the top we again have one vector per patch, 64 of them. But now each vector has mixed in information from the whole image."
+];
+planbScene('planbStack', {
+  noImage: true, notes: NOTES, caps: CAPS, durs: [0, 800, 1300, 1300, 1200],
+  draw({ctx, W, H, beat, t, e}){
+    const posC = PB._pos || (PB._pos = PB.posCanvas(65, 48));
+    const fs = Math.max(15, H * .045), X = W * PB.ROWX[0], RW = W * (PB.ROWX[1] - PB.ROWX[0]);
+    const inR = {x: X, y: H * .02, w: RW, h: H * .17};
+    const blocks = [H * .27, H * .44, H * .61], bh = H * .11;
+    const outR = {x: X, y: H * .80, w: RW, h: H * .17};
+    const a1 = beat === 1 ? e : 1;
+    ctx.save(); ctx.imageSmoothingEnabled = false; ctx.globalAlpha = a1;
+    for(let k = 0; k < 64; k++){ const [x, y, w, h] = PB.slot(inR, k);
+      ctx.fillStyle = PB.ACC; ctx.fillRect(x, y, w, h); ctx.globalAlpha = a1 * .45; ctx.drawImage(posC, k + 1, 0, 1, 48, x, y, w, h); ctx.globalAlpha = a1; }
+    ctx.restore();
+    PB.text(ctx, 'Final input', W * .005, inR.y + inR.h / 2, fs, {w: 700, align: 'left', alpha: a1});
+    if(beat < 2) return;
+    blocks.forEach((by, i) => {
+      const a = i === 0 ? (beat === 2 ? e : 1) : (beat === 3 ? PB.seg(t, (i - 1) * 450, 600 + (i - 1) * 450) : beat > 3 ? 1 : 0);
+      if(a <= 0) return;
+      ctx.save(); ctx.globalAlpha = a;
+      const prevBottom = i === 0 ? inR.y + inR.h : blocks[i - 1] + bh;
+      ctx.strokeStyle = PB.LINE; ctx.lineWidth = 1; ctx.beginPath();
+      for(let k = 0; k < 64; k += 3){ const [x, , w] = PB.slot(inR, k); ctx.moveTo(x + w / 2, prevBottom + 3); ctx.lineTo(x + w / 2, by - 3); }
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(79,109,154,.18)'; ctx.beginPath();          // every token to every token, inside the block
+      for(let k = 0; k < 64; k += 4) for(let j = 2; j < 64; j += 7){ const [x1, , w1] = PB.slot(inR, k), [x2, , w2] = PB.slot(inR, j);
+        ctx.moveTo(x1 + w1 / 2, by + 4); ctx.lineTo(x2 + w2 / 2, by + bh - 4); }
+      ctx.stroke();
+      PB.box(ctx, X, by, RW, bh, {stroke: PB.INK, lw: 2, r: 10});
+      ctx.fillStyle = '#fff'; ctx.font = PB.font(fs * 1.05, 700); const tw = ctx.measureText('Attention block').width;
+      ctx.fillRect(X + RW / 2 - tw / 2 - 12, by + bh / 2 - fs * .7, tw + 24, fs * 1.4);
+      PB.text(ctx, 'Attention block', X + RW / 2, by + bh / 2, fs * 1.05, {w: 700});
+      ctx.restore();
+    });
+    if(beat < 4) return;
+    ctx.save(); ctx.globalAlpha = e;
+    ctx.strokeStyle = PB.LINE; ctx.lineWidth = 1; ctx.beginPath();
+    for(let k = 0; k < 64; k += 3){ const [x, , w] = PB.slot(outR, k); ctx.moveTo(x + w / 2, blocks[2] + bh + 3); ctx.lineTo(x + w / 2, outR.y - 3); }
+    ctx.stroke();
+    for(let k = 0; k < 64; k++){ const [x, y, w, h] = PB.slot(outR, k); ctx.fillStyle = '#2c3e5c'; ctx.fillRect(x, y, w, h); }
+    ctx.restore();
+    PB.text(ctx, 'Outputs', W * .005, outR.y + outR.h / 2, fs, {w: 700, align: 'left', alpha: e});
+  }
+});
+</script>
+</body>
+</html>

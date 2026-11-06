@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cut the image into patches</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<script>document.write(`<link rel="stylesheet" href="planb-scene.css?v=${Date.now()}"><script src="planb-lib.js?v=${Date.now()}"><\/script>`);</script>
+</head>
+<body>
+<!-- Owner: day05-planb. Video 0:00 to 0:42: the image is cut into patches; one patch is its pixel values;
+     three channels; values normalized to 0..1. Every number is read from the photo at 64 x 64. -->
+<div class="planb-wrap">
+  <h1 class="t deck-title">Cut the image into patches</h1>
+  <div class="planb-stage"><canvas id="cv"></canvas></div>
+  <div class="lead planb-cap" id="cap"></div>
+  <div class="cite" id="credit"></div>
+</div>
+<div class="planb-dots" id="dots"></div>
+<script>
+document.getElementById('credit').textContent = PB.CREDIT;
+const CAPS = ['',
+  'An image: 64 × 64 pixels',
+  'Cut it into an 8 × 8 grid: 64 patches',
+  'One patch: 8 × 8 pixels',
+  'Each pixel is three numbers, red, green and blue, from 0 to 255',
+  'Normalize: divide by 255, so every value lies between 0 and 1'];
+const NOTES = [
+  "(draft) Title only. This part follows a short explainer video, Vision Transformer by AGI Lambda on YouTube. We rebuild its animations step by step. The first step: a Vision Transformer does not look at pixels one at a time. It cuts the image into patches.",
+  "(draft) Here is our image. To keep the numbers readable, it is small: 64 by 64 pixels. The cat is a real photo, credited at the bottom.",
+  "(draft) We lay a grid over it, 8 by 8, so we get 64 patches, each one 8 by 8 pixels. The video uses the same 8 by 8 grid of 64 patches, for clarity. The original paper, Dosovitskiy and colleagues, uses patches of 16 by 16 pixels; we come back to that size at the end.",
+  "(draft) Take one patch, here the one with the blue eye, and blow it up. A patch is nothing more than the pixels in that part of the image.",
+  "(draft) And a pixel is numbers. This is a color image, so each pixel has three values, red, green and blue, each between 0 and 255. So one patch is not one 8 by 8 table but three of them, one per channel. These are the real values from this patch: notice the blue table is highest where the eye is.",
+  "(draft) Values from 0 to 255 are awkward for a network, so we normalize them: divide by 255, and every value now lies between 0 and 1. The image is now ready to go into the Vision Transformer."
+];
+const E = PB.EYE.row * 8 + PB.EYE.col;
+planbScene('planbPatches', {
+  notes: NOTES, caps: CAPS, durs: [0, 900, 1200, 1300, 1400, 900],
+  draw({ctx, W, H, beat, e, cat}){
+    const S = Math.min(H * .96, W * .34), ix = W * .01, iy = (H - S) / 2;
+    ctx.globalAlpha = beat === 1 ? e : 1;
+    PB.drawImageSquare(ctx, cat.small, ix, iy, S);
+    ctx.globalAlpha = 1;
+    if(beat >= 2) PB.grid(ctx, ix, iy, S, 8, 'rgba(255,255,255,.95)', 2, beat === 2 ? e : 1);
+    if(beat < 3) return;
+    const [px, py, pc] = PB.cellRect(ix, iy, S, 8, E);
+    ctx.strokeStyle = PB.ACC; ctx.lineWidth = 4; ctx.strokeRect(px, py, pc, pc);
+    const RX = W * .40, RW = W * .59;
+    const v = PB.patchVector(cat, E);
+    if(beat === 3){                                     // the patch, enlarged, grows out of its place
+      const P = Math.min(H * .82, RW * .5), tx = RX + (RW - P) / 2, ty = (H - P) / 2;
+      const x = PB.lerp(px, tx, e), y = PB.lerp(py, ty, e), s = PB.lerp(pc, P, e);
+      ctx.save(); ctx.strokeStyle = PB.LINE; ctx.lineWidth = 1.2; ctx.beginPath();
+      ctx.moveTo(px + pc, py); ctx.lineTo(x, y); ctx.moveTo(px + pc, py + pc); ctx.lineTo(x, y + s); ctx.stroke(); ctx.restore();
+      for(let k = 0; k < 64; k++){
+        const c = s / 8, cx = x + (k % 8) * c, cy = y + Math.floor(k / 8) * c;
+        ctx.fillStyle = `rgb(${v[k]},${v[64 + k]},${v[128 + k]})`; ctx.fillRect(cx, cy, c + .5, c + .5);
+      }
+      ctx.strokeStyle = PB.ACC; ctx.lineWidth = 3; ctx.strokeRect(x, y, s, s);
+      if(e > .9) PB.grid(ctx, x, y, s, 8, 'rgba(255,255,255,.6)', 1);
+      return;
+    }
+    // beats 4-5: three channel tables with the real numbers
+    const gap = RW * .035, G = Math.min((RW - 2 * gap) / 3, H * .7), y0 = (H - G) / 2;
+    const P = Math.min(H * .82, RW * .5), sx = RX + (RW - P) / 2, sy = (H - P) / 2;
+    const k4 = beat === 4 ? e : 1;
+    ctx.save(); ctx.strokeStyle = PB.LINE; ctx.lineWidth = 1.2; ctx.beginPath();
+    const gx0 = RX + (RW - 3 * G - 2 * gap) / 2;
+    ctx.moveTo(px + pc, py); ctx.lineTo(gx0, y0); ctx.moveTo(px + pc, py + pc); ctx.lineTo(gx0, y0 + G); ctx.stroke(); ctx.restore();
+    for(let ch = 0; ch < 3; ch++){
+      const tx = gx0 + ch * (G + gap), x = PB.lerp(sx, tx, k4), y = PB.lerp(sy, y0, k4), s = PB.lerp(P, G, k4), c = s / 8;
+      for(let k = 0; k < 64; k++){
+        const val = v[ch * 64 + k], cx = x + (k % 8) * c, cy = y + Math.floor(k / 8) * c;
+        ctx.fillStyle = PB.chanColor(ch, val); ctx.fillRect(cx, cy, c + .5, c + .5);
+        if(k4 > .7){
+          const light = val < 150, col = light ? PB.INK : '#fff';
+          const a = PB.clamp((k4 - .7) / .3);
+          if(beat === 4) PB.text(ctx, String(val), cx + c / 2, cy + c / 2, c * .36, {color: col, alpha: a});
+          else {
+            PB.text(ctx, String(val), cx + c / 2, cy + c / 2, c * .36, {color: col, alpha: 1 - e});
+            PB.text(ctx, (val / 255).toFixed(2), cx + c / 2, cy + c / 2, c * .32, {color: col, alpha: e});
+          }
+        }
+      }
+      PB.grid(ctx, x, y, s, 8, 'rgba(255,255,255,.7)', 1);
+      ctx.strokeStyle = PB.INK; ctx.lineWidth = 1.2; ctx.strokeRect(x, y, s, s);
+      PB.text(ctx, ['Red', 'Green', 'Blue'][ch], x + s / 2, y - H * .045, Math.max(14, H * .045), {w: 700, alpha: k4});
+    }
+  }
+});
+</script>
+</body>
+</html>

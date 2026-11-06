@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Where was each patch?</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<script>document.write(`<link rel="stylesheet" href="planb-scene.css?v=${Date.now()}"><script src="planb-lib.js?v=${Date.now()}"><\/script>`);</script>
+</head>
+<body>
+<!-- Owner: day05-planb. Video 1:31 to 2:11: processing in parallel loses the order; word order changes a
+     sentence's meaning, patch order changes the picture; so a position code is added to each embedding.
+     The position code drawn is the sinusoidal one (Vaswani et al., 2017), computed here. -->
+<div class="planb-wrap">
+  <h1 class="t deck-title">Where was each patch?</h1>
+  <div class="planb-stage"><canvas id="cv"></canvas></div>
+  <div class="lead planb-cap" id="cap"></div>
+  <div class="cite" id="credit"></div>
+</div>
+<div class="planb-dots" id="dots"></div>
+<script>
+document.getElementById('credit').textContent = PB.CREDIT;
+const CAPS = ['',
+  'In parallel, nothing says which patch is first, tenth or last',
+  'In a sentence, order matters',
+  'Same words, different order, different meaning',
+  'Same patches, different order, a different picture',
+  'So we add a position vector to each embedding'];
+const NOTES = [
+  "(draft) Title only. Here is the problem that parallel processing creates.",
+  "(draft) Every embedding goes through attention the same way, at the same time. Nothing in the computation says that this token is the first patch, this one the tenth, this one the last.",
+  "(draft) Think of a sentence first. Here is one.",
+  "(draft) Swap two words. Exactly the same words, but the meaning is reversed. Order carries meaning.",
+  "(draft) Images are the same. Here are the same 64 patches of our photo, only in a different order. Every patch is still there, but it is no longer a cat's face. The arrangement of the patches is part of what the image shows.",
+  "(draft) So, before attention, we add to each embedding a position vector: one vector for position 1, another for position 2, and so on. The sum is the final input. The stripes drawn here are the sinusoidal code from the original Transformer paper, Vaswani and colleagues, 2017; the Vision Transformer paper instead learns one position vector per patch during training. The video just calls it positional encoding."
+];
+const SHUF = PB.shuffle(64, 11);
+const S1 = ['the', 'dog', 'bit', 'the', 'man'], S2 = ['the', 'man', 'bit', 'the', 'dog'];
+let posC = null;
+planbScene('planbPosition', {
+  notes: NOTES, caps: CAPS, durs: [0, 900, 800, 1300, 2000, 2400],
+  draw({ctx, W, H, beat, t, e, cat}){
+    posC = posC || PB.posCanvas(65, 48);
+    const fs = Math.max(15, H * .045);
+    const emR = {x: W * PB.ROWX[0], y: H * .02, w: W * (PB.ROWX[1] - PB.ROWX[0]), h: H * .20};
+    const drawEmb = (r, a = 1) => { ctx.globalAlpha = a;
+      for(let k = 0; k < 64; k++){ const [x, y, w, h] = PB.slot(r, k); ctx.fillStyle = PB.ACC; ctx.fillRect(x, y, w, h); }
+      ctx.globalAlpha = 1; };
+    drawEmb(emR);
+    PB.rowLabel(ctx, W, emR, 'Embeddings', fs);
+    if(beat <= 4){                                      // question marks under first, tenth, last
+      const a = beat === 1 ? e : 1;
+      [0, 9, 63].forEach(k => { const [x, y, w, h] = PB.slot(emR, k); PB.text(ctx, '?', x + w / 2, y + h + fs * .7, fs * 1.1, {w: 700, alpha: a}); });
+    }
+    const lower = beat === 5 ? 1 - PB.seg(t, 0, 500) : 1;
+    if(beat >= 2 && lower > 0){                         // the sentence
+      ctx.save(); ctx.globalAlpha = lower;
+      const wfs = fs * 1.15, y = H * .40; ctx.font = PB.font(wfs, 400);
+      const wid = w => ctx.measureText(w).width + wfs * 1.1, gap = wfs * .5;
+      const lay = ws => { const ww = ws.map(wid), tot = ww.reduce((a, b) => a + b, 0) + gap * (ws.length - 1); let x = W * .55 - tot / 2;
+        return ww.map(w => { const r = [x, w]; x += w + gap; return r; }); };
+      const L1 = lay(S1), L2 = lay(S2), m = beat === 3 ? e : beat > 3 ? 1 : 0;
+      S1.forEach((w, i) => {
+        const j = i === 1 ? 4 : i === 4 ? 1 : i;          // where this word ends up
+        const x = PB.lerp(L1[i][0] + L1[i][1] / 2, L2[j][0] + L2[j][1] / 2, m);
+        const lift = (i === 1 || i === 4) ? Math.sin(Math.PI * m) * H * .07 * (i === 1 ? -1 : 1) : 0;
+        const bw = L1[i][1];
+        PB.box(ctx, x - bw / 2, y - wfs * .85 + lift, bw, wfs * 1.7, {stroke: (i === 1 || i === 4) && m > 0 ? PB.ACC : PB.INK, lw: (i === 1 || i === 4) && m > 0 ? 3 : 1.5});
+        PB.text(ctx, w, x, y + lift, wfs);
+      });
+      ctx.restore();
+    }
+    if(beat >= 4 && lower > 0){                         // same patches, shuffled
+      ctx.save(); ctx.globalAlpha = lower;
+      const S = H * .48, y0 = H * .50, xL = W * .30, xR = W * .62;
+      const a = beat === 4 ? PB.seg(t, 0, 500) : 1;
+      ctx.globalAlpha = lower * a; PB.drawImageSquare(ctx, cat.small, xL, y0, S); PB.grid(ctx, xL, y0, S, 8, 'rgba(255,255,255,.9)', 1.5);
+      PB.arrow(ctx, xL + S + W * .02, y0 + S / 2, xR - W * .02, y0 + S / 2, PB.MUTE, 2.5, 12);
+      const c = S / 8;
+      ctx.imageSmoothingEnabled = false;
+      for(let k = 0; k < 64; k++){
+        const dst = SHUF[k], m = beat === 4 ? PB.seg(t, 500 + k * 12, 1300 + k * 12) : 1;
+        const fx = xL + (k % 8) * c, fy = y0 + Math.floor(k / 8) * c, tx = xR + (dst % 8) * c, ty = y0 + Math.floor(dst / 8) * c;
+        ctx.drawImage(cat.small, (k % 8) * 8, Math.floor(k / 8) * 8, 8, 8, PB.lerp(fx, tx, m), PB.lerp(fy, ty, m), c, c);
+      }
+      PB.grid(ctx, xR, y0, S, 8, 'rgba(255,255,255,.9)', 1.5);
+      ctx.restore();
+    }
+    if(beat === 5){                                     // embeddings + position = final input
+      const poR = {x: emR.x, y: H * .36, w: emR.w, h: H * .20}, fiR = {x: emR.x, y: H * .72, w: emR.w, h: H * .20};
+      const a1 = PB.seg(t, 400, 1000), a2 = PB.seg(t, 1200, 1900);
+      ctx.save(); ctx.imageSmoothingEnabled = false;
+      ctx.globalAlpha = a1;
+      for(let k = 0; k < 64; k++){ const [x, y, w, h] = PB.slot(poR, k); ctx.drawImage(posC, k + 1, 0, 1, 48, x, y, w, h); }
+      ctx.globalAlpha = a2;
+      for(let k = 0; k < 64; k++){ const [x, y, w, h] = PB.slot(fiR, k);
+        ctx.fillStyle = PB.ACC; ctx.fillRect(x, y, w, h);
+        ctx.globalAlpha = a2 * .45; ctx.drawImage(posC, k + 1, 0, 1, 48, x, y, w, h); ctx.globalAlpha = a2; }
+      ctx.restore();
+      PB.text(ctx, 'Position', W * .005, poR.y + poR.h / 2, fs, {w: 700, align: 'left', alpha: a1});
+      PB.text(ctx, '+', W * .055, (emR.y + emR.h + poR.y) / 2, fs * 1.5, {w: 700, alpha: a1});
+      PB.text(ctx, 'Final input', W * .005, fiR.y + fiR.h / 2, fs, {w: 700, align: 'left', alpha: a2});
+      PB.text(ctx, '=', W * .055, (poR.y + poR.h + fiR.y) / 2, fs * 1.5, {w: 700, alpha: a2});
+      [[0, '1'], [9, '10'], [63, '64']].forEach(([k, s]) => { const [x, y, w, h] = PB.slot(poR, k); PB.text(ctx, s, x + w / 2, y + h + fs * .55, fs * .8, {w: 700, alpha: a1}); });
+    }
+  }
+});
+</script>
+</body>
+</html>
