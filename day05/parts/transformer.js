@@ -274,7 +274,7 @@ st(`
   ${cite('Vaswani et al. (2017) · MIT Vision Book, Eq. 26.6, where d<sub>k</sub> is written m')}
 `);
 
-/* The same function as the lab's section 2 solution. No output here: Exercise 2 asks students to predict the shape. */
+/* The same function as the Build a Transformer notebook, section 2. */
 st(`
   <h1 class="t">Attention by hand</h1>
   <div class="transformer-col" style="flex:1 1 auto;gap:2.2vh">
@@ -290,7 +290,6 @@ st(`
     return output, weights`, 1)}
     <div class="lead b" data-step="2" style="text-align:center"><b>Compare, scale, softmax, mix.</b></div>
   </div>
-  ${cite('Same function as the lab: notebooks/day05-lab-build-a-transformer.ipynb, section 2')}
 `);
 
 trExercise({

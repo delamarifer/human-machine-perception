@@ -169,3 +169,6 @@ At Shreya's request, both Day 5 notebooks now show solutions and answers in coll
 
 ### Exercise 3 removed · 2026-11-06
 The in-lecture "change one token" exercise is removed from the deck and the exercises notebook; the lab's section 4 keeps that check. The multi-head exercise is now Exercise 3. Exercises are slides 13, 18 and 24.
+
+### Site and deck end · 2026-11-06
+The deck ends at the Transformer Explainer checkpoint: the pipeline and backup parts are not loaded. The course page lists one Day 5 lab, Transformer exercises (Shreya: only the lab the lecture walks through). "Fine-tune a language model" is removed from the page. `notebooks/day05-lab-build-a-transformer.ipynb` stays in the repo, not linked.

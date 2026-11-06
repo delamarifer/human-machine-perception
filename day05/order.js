@@ -9,13 +9,11 @@ const ORDER = [
   ['transformer',         'Four questions: tokenization, attention, self-attention, multi-head, with four exercises, then the block'],
   ['vision-transformer',  'How a Vision Transformer works'],
   ['explore-transformer', 'Checkpoint: Transformer Explainer'],
-  ['pipeline',            'Closing: from an image to a Transformer'],
-  ['backup',              'Backup for questions: CNN vs ViT table, encoder blocks, patch tokens scene'],
 ];
 const PARTS = ORDER.map(r => r[0]);
 
 /* Minutes per section (the progress bar). 45-minute lecture plus the 12-minute quiz and the recap.
-   Not loaded, files kept: opening, vit, transformer-v1, cnn-limits-demo, return-to-cat, and the parts from embeddings onward. */
+   Not loaded, files kept: pipeline, backup, opening, vit, transformer-v1, cnn-limits-demo, return-to-cat, and the parts from embeddings onward. */
 const SEC_MINUTES = {
   '1. Start': 19,
   '2. From CNNs': 3,
@@ -24,5 +22,4 @@ const SEC_MINUTES = {
   '5. Self-attention': 7,
   '6. Multi-head': 5,
   '7. Full picture': 5,
-  'Backup': 1,
 };
