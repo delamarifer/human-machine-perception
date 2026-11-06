@@ -79,6 +79,10 @@
   .pill{ display:inline-block; padding:.08em .55em; margin-right:.5em; border-radius:6px; font-size:.7rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; vertical-align:2px; }
   .p-assigned{ color:var(--bg); background:var(--cyan); box-shadow:0 0 10px rgba(94,234,212,.5); }
   .p-optional{ color:var(--amber); border:1px solid rgba(251,191,36,.45); }
+  /* Day 5: an optional reading folded away under the assigned one. */
+  details.reads-opt summary{ cursor:pointer; color:var(--mute); }
+  details.reads-opt summary:hover{ color:var(--text); }
+  details.reads-opt[open] summary{ margin-bottom:.4em; }
   .p-bank{ color:var(--violet); border:1px solid rgba(167,139,250,.45); }
   .p-student{ color:var(--pink); border:1px solid rgba(244,114,182,.45); }
   .later{ color:var(--mute); font-size:.93rem; }
@@ -170,6 +174,17 @@
           <p class="d-title">Homework, for Day 5</p>
           <ul class="reads">
             <li><span class="pill p-assigned">Assigned</span><a href="https://konklab.fas.harvard.edu/Papers/Konkle_2022_NatComm.pdf">A self-supervised domain-general learning framework for human ventral stream representation</a><span class="src">Talia Konkle &amp; George A. Alvarez, Nature Communications, 2022</span></li>
+          </ul>
+        </div>
+      </article>
+      <article class="day" style="--c:var(--cyan)">
+        <div class="d-num"><small>Day</small>5</div>
+        <div>
+          <p class="d-title">Homework, for Day 6</p>
+          <ul class="reads">
+            <li><span class="pill p-assigned">Assigned</span><a href="https://arxiv.org/abs/2207.09238">Formal Algorithms for Transformers</a><span class="src">Mary Phuong &amp; Marcus Hutter, 2022 · <a href="https://arxiv.org/pdf/2207.09238">PDF</a> · <a href="http://www.hutter1.net/publ/transalg.pdf">latest version, on Hutter's site</a></span></li>
+            <li><details class="reads-opt"><summary><span class="pill p-optional">Optional</span>One more reading, if you want to go further</summary>
+              <a href="https://arxiv.org/abs/2108.08810">Do Vision Transformers See Like Convolutional Neural Networks?</a><span class="src">Maithra Raghu et al., NeurIPS 2021 · <a href="https://papers.neurips.cc/paper_files/paper/2021/file/652cf38361a209088302ba2b8b7f51e0-Paper.pdf">NeurIPS PDF</a></span></details></li>
           </ul>
         </div>
       </article>

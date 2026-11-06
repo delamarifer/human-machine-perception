@@ -110,6 +110,16 @@
   .lab2-part span{ color:var(--mute); font-size:.95rem; }
   .lab2-part .badge{ display:block; margin-top:12px; height:20px; }
   .lab2-soon b{ font-weight:500; font-size:1.05rem; color:var(--mute); }
+  /* Day 5 homework card: a reading with extra links, and an optional reading that folds open. */
+  .hw5-read b a{ color:var(--text); text-decoration:none; }
+  .hw5-read b a:hover, .hw5-links a:hover{ text-decoration:underline; }
+  .lab2-part .hw5-links{ display:block; margin-top:.3em; font-size:.9rem; }
+  .hw5-links a{ color:var(--k); text-decoration:none; }
+  details.hw5-opt{ margin:6px -12px 0; padding:10px 12px 4px; border-top:1px solid var(--line); }
+  details.hw5-opt summary{ cursor:pointer; color:var(--mute); font-size:.95rem; }
+  details.hw5-opt summary:hover{ color:var(--text); }
+  details.hw5-opt[open] summary{ margin-bottom:.2em; }
+  details.hw5-opt .lab2-part{ margin:0; padding:6px 0; }
 
   .card.empty{ position:relative; display:block; padding:20px 20px 18px; border:1px dashed var(--line); border-radius:18px; background:rgba(18,24,39,.5); }
   .card.empty small{ display:block; font-size:.72rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--k); margin-bottom:.4em; }
@@ -217,6 +227,21 @@
           <img class="badge" src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"></a>
         <a class="card" href="https://konklab.fas.harvard.edu/Papers/Konkle_2022_NatComm.pdf" style="--k:var(--violet)"><small>Homework / Readings</small><b>Self-supervised learning and the ventral stream</b>
           <span>Read Konkle &amp; Alvarez (Nature Communications, 2022); you write a short response on it by hand at the start of next class.</span></a>
+      </div>
+    </section>
+    <section class="day" id="day-5" style="--c:var(--amber)">
+      <h3>Day 5</h3>
+      <div class="cards">
+        <div class="card lab2" style="--k:var(--violet)"><small>Homework / Readings</small>
+          <div class="lab2-part hw5-read"><em>Read</em><b><a href="https://arxiv.org/abs/2207.09238">Formal Algorithms for Transformers</a></b>
+            <span>Phuong &amp; Hutter (2022).</span>
+            <span class="hw5-links"><a href="https://arxiv.org/abs/2207.09238">arXiv</a> · <a href="https://arxiv.org/pdf/2207.09238">PDF</a> · <a href="http://www.hutter1.net/publ/transalg.pdf">latest version, on Hutter's site</a></span></div>
+          <details class="hw5-opt"><summary>Optional reading</summary>
+            <div class="lab2-part hw5-read"><b><a href="https://arxiv.org/abs/2108.08810">Do Vision Transformers See Like Convolutional Neural Networks?</a></b>
+              <span>Raghu et al. (NeurIPS 2021).</span>
+              <span class="hw5-links"><a href="https://arxiv.org/abs/2108.08810">arXiv</a> · <a href="https://papers.neurips.cc/paper_files/paper/2021/file/652cf38361a209088302ba2b8b7f51e0-Paper.pdf">NeurIPS PDF</a></span></div>
+          </details>
+        </div>
       </div>
     </section>
   </section>
