@@ -1,10 +1,8 @@
 """Builds notebooks/day05-lab-clip-embeddings.ipynb: the Day 5 lab for Fernanda's hour (hour 2).
-Two parts, done in two blocks that alternate with slides:
+Lab part 1 (part 2, views and RSA, is its own notebook since 2026-11-06: build/day05_lab_part2.py, day05-s9-10).
   Part 1 (step by step with the slides, each concept followed by its code): embed images and captions with CLIP,
   cosine similarity, the contrastive loss (InfoNCE), zero-shot classification, your own captions. Your turn 1-4.
   Cells a slide links to have fixed ids: turn-N, plus embed (section 1) and try-classes (see CELL_IDS).
-  Part 2 (after the Konkle & Alvarez 2022 reading): views and instance discrimination (the reading's objective,
-  tested on CLIP), then dissimilarity matrices and RSA. Your turn 5-7.
 Model: CLIP ViT-B/32 (OpenAI) from Hugging Face, openai/clip-vit-base-patch32. Data: CIFAR-10 test set
 (Krizhevsky, 2009) downloaded by torchvision. No API keys, no GPU needed.
 See nbtools.py for how to build and check it."""
@@ -66,7 +64,7 @@ KONKLE = 'https://konklab.fas.harvard.edu/Papers/Konkle_2022_NatComm.pdf'
 md(f"""
 {badge(FILE)}
 
-# Day 5 lab · CLIP embeddings: similarity, views, and representations
+# Day 5 lab, part 1 · CLIP embeddings: similarity, the contrastive loss, zero-shot
 
 **Human-Machine Perception** · Day 5, hour 2 · Fernanda & Shreya
 
@@ -74,26 +72,24 @@ In this hour we asked what a network can learn **without labels**, and how to us
 CLIP is a good place to try it: it was trained with contrastive learning on images and their captions,
 never on the class labels we use here.
 
-The lab has two parts, done in two blocks with slides in between:
+The lab has two parts, with slides in between:
 
 - **Part 1 · CLIP similarity** (step by step with the slides). Sections 1 to 3.
-- **Part 2 · Views and representations** (after the reading, Konkle & Alvarez 2022). Sections 4 and 5.
+- **Part 2 · Views and representations** (after the reading, Konkle & Alvarez 2022) is its own notebook,
+  linked at the end of this one.
 
 By the end you will be able to:
 
 1. turn images and captions into **embeddings** with CLIP, and compare them with **cosine similarity**
 2. compute CLIP's **contrastive loss** (InfoNCE) and see what the temperature does
 3. classify images **zero-shot**, from class names written as captions, and see how the words matter
-4. make **views** of an image (crops, color changes) and test whether each view is closest to its own image,
-   the objective in today's reading
-5. build **dissimilarity matrices** (RDMs) and compare representations with **RSA**
 
 **How to use this notebook.** Click a gray code cell and press **Shift + Enter** to run it. Run the
 cells in order. Cells marked **Your turn** are for you: they run as they are (if you leave one blank,
 the notebook uses the course's answer so later cells still work), and use your version once you fill
 it in. We go over the solutions together in class.
 
-**Time.** About 15 minutes for each part. No GPU needed. The first run downloads CLIP (about 600 MB)
+**Time.** About 15 minutes in all, in short steps between slides. No GPU needed. The first run downloads CLIP (about 600 MB)
 and the CIFAR-10 test images (about 170 MB), which takes a minute or two on Colab. A GPU
 (*Runtime → Change runtime type → T4 GPU*) makes the embedding steps faster but is optional.
 """)
