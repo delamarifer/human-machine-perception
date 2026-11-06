@@ -14,34 +14,35 @@ Preview: `python3 -m http.server 8171` from the repo root, then `day05-planb/dec
 |---|---|---|---|
 | 0:00 | Divide the image into patches | grid laid over a cat photo | 2, click 2 |
 | 0:07 | A patch is its pixel values | one patch pulled out to a grid of numbers | 2, click 3 |
-| 0:14 | RGB: three channels per patch | the grid splits into red, green, blue grids | 2, click 4 |
+| 0:15 | RGB: three channels per patch | the grid splits into red, green, blue grids | 2, click 4 |
 | 0:22 | Normalize 0 to 255 into 0 to 1 | numbers change in place | 2, click 5 |
 | 0:33 | 8 x 8 = 64 patches for clarity; paper uses 16 x 16 | text beside the grid, patches numbered | 2 click 2 (notes), 3 click 1 |
 | 0:42 | Flatten the three channels into one vector, for every patch | channels unroll into a strip; strips for all patches | 3, clicks 2 and 3 |
 | 0:54 | Rearrange the vectors | strips lined up in a row ("Inputs") | 3, click 4 |
 | 0:57 | Each vector through a neural network: embedding | small network, one patch at a time, "Embeddings" row | 4, clicks 1 to 4 |
-| 1:13 | Embeddings act like word embeddings | (narration) | 4, click 5 |
+| 1:14 | Embeddings act like word embeddings | (narration) | 4, click 5 |
 | 1:17 | Three copies into query, key, value matrices | one vector, three copies, x Q, K, V boxes, three outputs | 5, clicks 1 to 4 |
 | 1:31 | Processed in parallel | highlight along the row | 5, click 5 |
 | 1:36 | Problem: which patch is first, tenth, last? | (narration) | 6, click 1 |
 | 1:42 | Word order changes meaning | a sentence with two words swapped | 6, clicks 2 and 3 (our own sentence) |
 | 1:52 | Patch position matters for the image | cat grid beside the sentences | 6, click 4 (patches shuffled) |
 | 2:03 | Add positional encoding to each embedding | "Pos" row, plus signs, "Final input" row | 6, click 5 |
-| 2:11 | Several attention blocks, then outputs | stacked "Attention" bars, output row | 7 |
+| 2:12 | Several attention blocks, then outputs | stacked "Attention" bars, output row | 7 |
 | 2:25 | Classifier network with softmax at the end | small network under the outputs | 8, click 1 |
 | 2:30 | Option: last patch's output, as in next-token generation | last output token to the classifier | 8, click 2 |
 | 2:36 | Extra learnable embedding (class token) gathers information | extra token at the front; curve gathering the outputs | 8, clicks 3 to 5 |
 | 2:55 | Attention of the first patch with all others; then every patch | lines fan out from patch 1; then the whole grid lights up | 9 |
-| 3:17 | First and last patch: global receptive field | the two corner patches boxed | 11, clicks 1 to 3 |
-| 3:33 | CNNs: local receptive fields, built-in inductive bias | (narration) | 11, clicks 4 to 6 |
-| 3:40 | CNNs may use texture, ViTs global shape | two illustrative edge images (the video says they are not from real models) | 12 |
-| 4:10 | Fixed 16 x 16 patches; 128, 256, 512, 2048 px images; attention count per layer | the grid gets finer, counts beside it | 13, clicks 1 to 5 |
-| 4:47 | "What is an alternative?" (asked, not answered) | (narration) | 13, click 6 |
-| 4:51 | ViTs need large datasets to compete with CNNs | (narration) | 14 |
+| 3:17 | First and last patch: global receptive field | the two corner patches boxed | 12, clicks 1 to 3 |
+| 3:33 | CNNs: local receptive fields, built-in inductive bias | (narration) | 12, clicks 4 to 6 |
+| 3:40 | CNNs may use texture, ViTs global shape | two illustrative edge images (the video says they are not from real models) | 13 |
+| 4:10 | Fixed 16 x 16 patches; 128, 256, 512, 2048 px images; attention count per layer | the grid gets finer, counts beside it | 14, clicks 1 to 5 |
+| 4:47 | "What is an alternative?" (asked, not answered) | (narration) | 14, click 6 |
+| 4:51 | ViTs need large datasets to compete with CNNs | (narration) | 15 |
 
-Not in the video, added (each marked in its notes): slide 10, the attention score computation
-(q.k / sqrt d, softmax, weighted sum of values); the evidence citations on slide 12; the human-vision
-question on slide 14; the recap, slide 15.
+Not in the video, added (each marked in its notes): slide 10, Shreya's "Query, key, value" slide (Day 5 slide 15, copied at
+Fernanda's request, on-screen wording unchanged); slide 11, the attention score computation
+(q.k / sqrt d, softmax, weighted sum of values); the evidence citations on slide 13; the human-vision
+question on slide 15; the recap, slide 16.
 
 Not in the video and not in the deck: multi-head attention, the MLP, layer norm and skip connections
 inside the block (one sentence in the notes of slide 7), training.
@@ -56,13 +57,13 @@ inside the block (one sentence in the notes of slide 7), training.
 - Softmax bars on slide 8: schematic, labeled "schematic" on screen and in the notes.
 
 ## Questions for Fernanda
-- [ ] Slide 10 (attention score) goes beyond the video. Keep it, move it to backup, or cut it?
+- [ ] Slides 10 (Shreya's query, key, value) and 11 (attention score) go beyond the video. Keep it, move it to backup, or cut it?
 - [ ] Multi-head attention is not in the video. Add a slide, or leave it out of Plan B?
-- [ ] Slide 12 cites Geirhos et al. (2019) and Tuli et al. (2021) as evidence for texture vs shape. Please
+- [ ] Slide 13 cites Geirhos et al. (2019) and Tuli et al. (2021) as evidence for texture vs shape. Please
       confirm you are happy citing them (the video itself shows only illustrations).
-- [ ] Slide 14 ends with a question of ours, "What might this say about how people learn to see?" Keep?
+- [ ] Slide 15 ends with a question of ours, "What might this say about how people learn to see?" Keep?
 - [ ] The photo is the odd-eyed cat from day05/assets/cnn-limits (copied, square crop). OK, or another image?
-- [ ] Length: about 45 minutes as written (71 clicks). For a 2-hour class it would need a lab or discussion
+- [ ] Length: about 45 minutes as written (76 clicks). For a 2-hour class it would need a lab or discussion
       block after it. Anything to add?
 - [ ] Colors: embeddings use the deck accent (#4f6d9a); R, G, B are used only for the three channels;
       the class token is solid ink. No new course-wide color meanings. OK?
