@@ -22,19 +22,23 @@ const CSS = `<style>
     font-weight:700; font-size:clamp(1rem, 1.5vw, 1.4rem); color:var(--ink); text-decoration:none; }
   .fclip-sol{ margin-top:1vh; }
   .fclip-sol summary{ cursor:pointer; color:var(--mute); font-size:clamp(.8rem, 1vw, 1rem); }
-  .fclip-sol[open]{ position:relative; z-index:5; }
-  .fclip-sol .fclip-pre{ max-height:52vh; overflow:auto; background:#fffbeb; }
+  .fclip-sol-pop{ position:fixed; left:50%; top:52%; transform:translate(-50%, -50%); z-index:50; width:min(92vw, 70rem);
+    max-height:78vh; overflow:auto; background:#fff; border:2px solid var(--ink); border-radius:12px; padding:1.4vh 1.2vw;
+    box-shadow:0 10px 40px rgba(0,0,0,.18); }
+  .fclip-sol-pop .fclip-pre{ background:#fffbeb; overflow:visible; }
+  .fclip-sol-pop .fclip-pre:empty{ display:none; }
+  .fclip-sol-pop .fclip-ans{ margin-top:1vh; line-height:1.4; }
 </style>`;
 // Teacher-only solution: open the deck on localhost with ?teacher (e.g. deck.html?teacher). If
 // notebooks/teacher/day05-lab-solutions.json exists (written by `day05_lab.py --teacher`, git-ignored), a collapsed
 // Solution block appears under each Your-turn code. Never on the public site (no file there, and no fetch).
-const solBox = cell => `<details class="fclip-sol" data-fclip-sol="${cell}" hidden onclick="event.stopPropagation()"><summary>Solution (teacher copy)</summary><pre class="fclip-pre"></pre><div class="label fclip-ans"></div></details>`;
+const solBox = cell => `<details class="fclip-sol" data-fclip-sol="${cell}" hidden onclick="event.stopPropagation()"><summary>Solution (teacher copy)</summary><div class="fclip-sol-pop" title="click to close" onclick="this.parentNode.open = false"><pre class="fclip-pre"></pre><div class="label fclip-ans"></div></div></details>`;
 if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) && new URLSearchParams(location.search).has('teacher'))
   fetch('../notebooks/teacher/day05-lab-solutions.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(sol => {
     if (!sol) return;
     const fill = () => document.querySelectorAll('[data-fclip-sol]').forEach(d => {
-      const k = d.dataset.fclipSol; if (!sol[k]) return;
-      d.querySelector('pre').textContent = sol[k]; d.querySelector('.fclip-ans').textContent = sol[k + '-answer'] || ''; d.hidden = false; });
+      const k = d.dataset.fclipSol; if (!sol[k] && !sol[k + '-answer']) return;
+      d.querySelector('pre').textContent = sol[k] || ''; d.querySelector('.fclip-ans').textContent = sol[k + '-answer'] || ''; d.hidden = false; });
     fill(); setTimeout(fill, 1500);
   }).catch(() => {});
 
