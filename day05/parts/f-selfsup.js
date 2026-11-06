@@ -19,7 +19,24 @@ const CSS = `<style>
     white-space:pre; overflow:hidden; background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding:1.4vh 1.2vw; }
   .fselfsup-open{ align-self:flex-start; border:3px solid var(--ink); border-radius:999px; padding:1vh 1.6vw;
     font-weight:700; font-size:clamp(1rem, 1.5vw, 1.4rem); color:var(--ink); text-decoration:none; }
+  .fselfsup-sol{ margin-top:1vh; }
+  .fselfsup-sol summary{ cursor:pointer; color:var(--mute); font-size:clamp(.8rem, 1vw, 1rem); }
+  .fselfsup-sol[open]{ position:relative; z-index:5; }
+  .fselfsup-sol .fselfsup-pre{ max-height:52vh; overflow:auto; background:#fffbeb; }
 </style>`;
+// Teacher-only solution: open the deck on localhost with ?teacher (e.g. deck.html?teacher). If
+// notebooks/teacher/day05-lab-solutions.json exists (written by `day05_lab.py --teacher`, git-ignored), a collapsed
+// Solution block appears under each Your-turn code. Never on the public site (no file there, and no fetch).
+const solBox = cell => `<details class="fselfsup-sol" data-fselfsup-sol="${cell}" hidden onclick="event.stopPropagation()"><summary>Solution (teacher copy)</summary><pre class="fselfsup-pre"></pre><div class="label fselfsup-ans"></div></details>`;
+if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) && new URLSearchParams(location.search).has('teacher'))
+  fetch('../notebooks/teacher/day05-lab-solutions.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(sol => {
+    if (!sol) return;
+    const fill = () => document.querySelectorAll('[data-fselfsup-sol]').forEach(d => {
+      const k = d.dataset.fselfsupSol; if (!sol[k]) return;
+      d.querySelector('pre').textContent = sol[k]; d.querySelector('.fselfsup-ans').textContent = sol[k + '-answer'] || ''; d.hidden = false; });
+    fill(); setTimeout(fill, 1500);
+  }).catch(() => {});
+
 
 st(`
   <h1 class="t">Self-supervised: the data makes its own labels</h1>
@@ -105,7 +122,7 @@ st(`
       <div class="card hi b" data-step="5"><div class="k">Try it</div><div class="label">Change the temperature: 0.01, 0.07, 0.5, 1.0. Compare true pairs, shifted pairs and guessing.</div></div>
       <a class="fselfsup-open b" data-step="6" href="${LAB_NB}#scrollTo=turn-2" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open Your turn 2 in Colab ↗</a>
     </div>
-    <div class="fselfsup-codebox b" data-step="4"><pre class="fselfsup-pre">${esc(turn2)}</pre></div>
+    <div class="fselfsup-codebox b" data-step="4"><pre class="fselfsup-pre">${esc(turn2)}</pre>${solBox('turn-2')}</div>
   </div>${CSS}
 `, { notes: [
   "(draft) Your turn 2. You already have the matrix that this loss is computed on.",

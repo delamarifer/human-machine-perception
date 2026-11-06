@@ -20,7 +20,24 @@ const CSS = `<style>
     white-space:pre; overflow:hidden; background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding:1.4vh 1.2vw; }
   .fclip-open{ align-self:flex-start; border:3px solid var(--ink); border-radius:999px; padding:1vh 1.6vw;
     font-weight:700; font-size:clamp(1rem, 1.5vw, 1.4rem); color:var(--ink); text-decoration:none; }
+  .fclip-sol{ margin-top:1vh; }
+  .fclip-sol summary{ cursor:pointer; color:var(--mute); font-size:clamp(.8rem, 1vw, 1rem); }
+  .fclip-sol[open]{ position:relative; z-index:5; }
+  .fclip-sol .fclip-pre{ max-height:52vh; overflow:auto; background:#fffbeb; }
 </style>`;
+// Teacher-only solution: open the deck on localhost with ?teacher (e.g. deck.html?teacher). If
+// notebooks/teacher/day05-lab-solutions.json exists (written by `day05_lab.py --teacher`, git-ignored), a collapsed
+// Solution block appears under each Your-turn code. Never on the public site (no file there, and no fetch).
+const solBox = cell => `<details class="fclip-sol" data-fclip-sol="${cell}" hidden onclick="event.stopPropagation()"><summary>Solution (teacher copy)</summary><pre class="fclip-pre"></pre><div class="label fclip-ans"></div></details>`;
+if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) && new URLSearchParams(location.search).has('teacher'))
+  fetch('../notebooks/teacher/day05-lab-solutions.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(sol => {
+    if (!sol) return;
+    const fill = () => document.querySelectorAll('[data-fclip-sol]').forEach(d => {
+      const k = d.dataset.fclipSol; if (!sol[k]) return;
+      d.querySelector('pre').textContent = sol[k]; d.querySelector('.fclip-ans').textContent = sol[k + '-answer'] || ''; d.hidden = false; });
+    fill(); setTimeout(fill, 1500);
+  }).catch(() => {});
+
 // Concept cues on the left (one click each), then the notebook cell on the right, then "Try it", then the link.
 const codeSlide = ({ title, cues, code, tryIt, cell, label, notes }) => {
   const n = cues.length;
@@ -32,7 +49,7 @@ const codeSlide = ({ title, cues, code, tryIt, cell, label, notes }) => {
       <div class="card hi b" data-step="${n + 2}"><div class="k">Try it</div><div class="label">${tryIt}</div></div>
       <a class="fclip-open b" data-step="${n + 3}" href="${LAB_NB}#scrollTo=${cell}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${label} ↗</a>
     </div>
-    <div class="fclip-codebox b" data-step="${n + 1}"><pre class="fclip-pre">${esc(code)}</pre></div>
+    <div class="fclip-codebox b" data-step="${n + 1}"><pre class="fclip-pre">${esc(code)}</pre>${cell.startsWith('turn-') ? solBox(cell) : ''}</div>
   </div>${CSS}
 `, { notes });
 };

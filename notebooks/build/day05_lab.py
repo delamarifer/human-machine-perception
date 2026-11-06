@@ -21,6 +21,7 @@ FILE = 'day05-lab-clip-embeddings.ipynb'
 
 # Fixed ids for the non-exercise cells a slide links to (<notebook url>#scrollTo=<id>), matched by the cell's
 # first line. nbtools gives exercise cells turn-N on its own.
+import os
 import nbtools
 CELL_IDS = {'# 1 · Ten images': 'embed', '# TRY IT · Leave classes out': 'try-classes'}
 _nbtools_build = nbtools.build
@@ -31,7 +32,32 @@ def _build_with_ids(*args, **kwargs):
             if cell.source.startswith(first_line):
                 cell.id = name
                 cell.metadata['id'] = name
+    if (args[0] if args else kwargs.get('mode')) == 'teacher':
+        _write_slide_solutions(nb)
     return nb
+
+def _write_slide_solutions(nb):
+    """Teacher build only: notebooks/teacher/day05-lab-solutions.json (git-ignored, never committed), the
+    solution under each exercise keyed by the exercise's cell id (turn-N; a talk-it-over answer is turn-N-answer).
+    On Fernanda's machine the Day 5 code slides read it (localhost only) and show a collapsed Solution block;
+    on the public site the file does not exist and nothing shows."""
+    import json
+    out = {}
+    for k, cell in enumerate(nb.cells[:-1]):
+        name = cell.get('id', '')
+        if not name.startswith('solution-'):
+            continue
+        n = name[len('solution-'):]
+        if n.endswith('-answer') or (cell.cell_type == 'markdown' and cell.source.strip() != '#### Solution'):
+            text = cell.source.replace('#### Solution', '', 1).strip()
+            out['turn-' + n.replace('-answer', '') + '-answer'] = text
+        elif nb.cells[k + 1].cell_type == 'code':
+            out['turn-' + n] = nb.cells[k + 1].source
+    os.makedirs(nbtools.TEACHER_DIR, exist_ok=True)
+    path = os.path.join(nbtools.TEACHER_DIR, 'day05-lab-solutions.json')
+    with open(path, 'w') as f:
+        json.dump(out, f, indent=1)
+    print('wrote', path, '(slide solutions, git-ignored)')
 nbtools.build = _build_with_ids
 BOOK = 'https://visionbook.mit.edu'
 KONKLE = 'https://konklab.fas.harvard.edu/Papers/Konkle_2022_NatComm.pdf'
