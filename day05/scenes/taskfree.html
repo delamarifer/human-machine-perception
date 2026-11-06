@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>From task to task-free</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: Day 5, Fernanda. Pattern B. Everything is computed here: toy images (3 shapes x 4 colors, jittered),
+     the same tiny network trained twice (on shape labels; as an autoencoder with no labels), a 2-number embedding,
+     and linear readouts of shape and color on held-out images. The shape colors are data, not emphasis. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 5vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .taskfree-line{ position:absolute; left:6vw; right:6vw; top:42%; text-align:center; opacity:0; transition:opacity .9s; }
+  .cite{ transition:opacity .9s; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">From task to task-free</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+</div>
+<div class="cite">after Torralba, Isola &amp; Freeman, <i>Foundations of Computer Vision</i>, Sec. 30.1, 30.3, 30.11</div>
+<div class="statement taskfree-line" id="line">Learn the structure first.<br>Choose the task later.</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE      (0):   the title alone
+   ACT 1  IMAGES     (1):   toy images: 3 shapes x 4 colors, each drawn with a little jitter
+   ACT 2  TASK       (2-3): train on shape labels; the 2-number embedding plays live; then read out shape and color
+   ACT 3  TASK-FREE  (4-5): same network, no labels: compress to 2 numbers and rebuild the image; then read out both
+   ACT 4  LINE       (6):   learn the structure first, choose the task later
+   Training runs in this page in small chunks from the moment it loads (seeded, so every run is the same);
+   beats 2 and 4 play the recorded training at a fixed pace and wait if the computation is not there yet. */
+const FONT = "Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif";
+function rng(seed){ return () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const gauss = r => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r());
+
+/* ---- toy images: 12 x 12 RGB; filled circle, square or triangle; 4 colors; jitter in position (±0.5 px), size,
+   color (sd 0.06) and pixel noise (sd 0.03) ---- */
+const N = 12, PIX = N * N * 3, BG = [.92, .92, .92];
+const COLORS = [[.85, .2, .17], [.93, .72, .1], [.18, .62, .3], [.16, .38, .82]];
+function inside(s, x, y){ if(s === 0) return x * x + y * y < 1; if(s === 1) return Math.abs(x) < .82 && Math.abs(y) < .82; return y < .75 && y > -.95 + 1.7 * Math.abs(x); }
+function toy(s, c, r){
+  const rad = N * (.3 + .05 * r()), cx = N / 2 + (r() - .5), cy = N / 2 + (r() - .5), cj = COLORS[c].map(v => Math.min(1, Math.max(0, v + .06 * gauss(r))));
+  const im = new Float32Array(PIX);
+  for(let y = 0; y < N; y++) for(let x = 0; x < N; x++){
+    let cov = 0; for(let j = 0; j < 3; j++) for(let i = 0; i < 3; i++) cov += inside(s, (x + (i + .5) / 3 - cx) / rad, (y + (j + .5) / 3 - cy) / rad) ? 1 : 0; cov /= 9;
+    for(let k = 0; k < 3; k++) im[3 * (y * N + x) + k] = Math.min(1, Math.max(0, BG[k] * (1 - cov) + cj[k] * cov + .03 * gauss(r)));
+  }
+  return im;
+}
+function makeData(seed, per){ const r = rng(seed), D = []; for(let n = 0; n < per; n++) for(let s = 0; s < 3; s++) for(let c = 0; c < 4; c++) D.push({s, c, im: toy(s, c, r)}); return D; }
+const TRAIN = makeData(11, 10), TEST = makeData(12, 5);      /* 120 training images, 60 held-out test images */
+
+/* ---- the network: 432 pixels -> 32 (ReLU) -> 2 numbers (the embedding).
+   Task:      2 numbers -> 3 shape labels, softmax cross-entropy.
+   Task-free: 2 numbers -> 32 (ReLU) -> 432 pixels, squared error against the input (an autoencoder).
+   Same encoder size, same seed, Adam (lr 0.003), batches of 16, 3000 steps each. ---- */
+const H = 32, DZ = 2, STEPS = 3000, SNAP = 25, LR = .003, SEED = 2;
+function layer(r, i, o){ const sd = Math.sqrt(2 / i); return {W: Float32Array.from({length: i * o}, () => sd * gauss(r)), b: new Float32Array(o), i, o}; }
+function fwdL(L, x, relu){ const y = new Float32Array(L.o); for(let j = 0; j < L.o; j++){ let s = L.b[j]; const off = j * L.i; for(let k = 0; k < L.i; k++) s += L.W[off + k] * x[k]; y[j] = relu && s < 0 ? 0 : s; } return y; }
+function bwdL(L, G, x, gy){ const gx = new Float32Array(L.i); for(let j = 0; j < L.o; j++){ const g = gy[j]; if(g === 0) continue; G.b[j] += g; const off = j * L.i; for(let k = 0; k < L.i; k++){ G.W[off + k] += g * x[k]; gx[k] += g * L.W[off + k]; } } return gx; }
+const zeroG = L => ({W: new Float32Array(L.W.length), b: new Float32Array(L.b.length)});
+function adam(Ls, Gs, st){ st.t++; Ls.forEach((L, a) => ['W', 'b'].forEach(key => { const p = L[key], g = Gs[a][key], id = a + key;
+  st.m[id] = st.m[id] || new Float32Array(p.length); st.v[id] = st.v[id] || new Float32Array(p.length); const m = st.m[id], v = st.v[id];
+  for(let i = 0; i < p.length; i++){ m[i] = .9 * m[i] + .1 * g[i]; v[i] = .999 * v[i] + .001 * g[i] * g[i]; p[i] -= LR * (m[i] / (1 - .9 ** st.t)) / (Math.sqrt(v[i] / (1 - .999 ** st.t)) + 1e-8); } })); }
+function makeNet(kind){
+  const r = rng(SEED), enc1 = layer(r, PIX, H), enc2 = layer(r, H, DZ);
+  const head = kind === 'task' ? [layer(r, DZ, 3)] : [layer(r, DZ, H), layer(r, H, PIX)];
+  const Ls = [enc1, enc2, ...head], st = {t: 0, m: {}, v: {}}, rb = rng(SEED + 100);
+  const embed = im => fwdL(enc2, fwdL(enc1, im, true), false);
+  function step(){ const Gs = Ls.map(zeroG), B = 16; let loss = 0;
+    for(let n = 0; n < B; n++){ const ex = TRAIN[Math.floor(rb() * TRAIN.length)], x = ex.im, h = fwdL(enc1, x, true), z = fwdL(enc2, h, false); let gz;
+      if(kind === 'task'){ const l = fwdL(head[0], z, false), mx = Math.max(...l), e = l.map(v => Math.exp(v - mx)), Z = e.reduce((a, b) => a + b);
+        loss += -(l[ex.s] - mx - Math.log(Z)); gz = bwdL(head[0], Gs[2], z, e.map((v, j) => (v / Z - (j === ex.s ? 1 : 0)) / B)); }
+      else { const h2 = fwdL(head[0], z, true), xh = fwdL(head[1], h2, false), gx = new Float32Array(PIX);
+        for(let i = 0; i < PIX; i++){ const d = xh[i] - x[i]; loss += d * d / PIX; gx[i] = 2 * d / PIX / B; }
+        const gh2 = bwdL(head[1], Gs[3], h2, gx); for(let i = 0; i < H; i++) if(h2[i] <= 0) gh2[i] = 0; gz = bwdL(head[0], Gs[2], z, gh2); }
+      const gh = bwdL(enc2, Gs[1], h, gz); for(let i = 0; i < H; i++) if(h[i] <= 0) gh[i] = 0; bwdL(enc1, Gs[0], x, gh); }
+    adam(Ls, Gs, st); return loss / B; }
+  return {step, embed};
+}
+/* ---- a linear readout: softmax regression on the 2 embedding numbers (standardized), fit on the 120 training images'
+   labels, scored on the 60 test images ---- */
+function readout(Ztr, ytr, Zte, yte, C){
+  const mu = [0, 0], sd = [0, 0]; Ztr.forEach(z => z.forEach((v, i) => mu[i] += v / Ztr.length)); Ztr.forEach(z => z.forEach((v, i) => sd[i] += (v - mu[i]) ** 2 / Ztr.length));
+  const nz = Z => Z.map(z => z.map((v, i) => (v - mu[i]) / (Math.sqrt(sd[i]) + 1e-6))), A = nz(Ztr), B = nz(Zte), W = Array.from({length: C}, () => [0, 0, 0]);
+  const logits = z => W.map(w => w[2] + w[0] * z[0] + w[1] * z[1]);
+  for(let it = 0; it < 400; it++){ const G = W.map(() => [0, 0, 0]);
+    A.forEach((z, n) => { const l = logits(z), mx = Math.max(...l), e = l.map(v => Math.exp(v - mx)), Z = e.reduce((a, b) => a + b);
+      for(let c = 0; c < C; c++){ const g = (e[c] / Z - (c === ytr[n] ? 1 : 0)) / A.length; G[c][0] += g * z[0]; G[c][1] += g * z[1]; G[c][2] += g; } });
+    W.forEach((w, c) => w.forEach((_, i) => w[i] -= G[c][i])); }
+  let ok = 0; B.forEach((z, n) => { const l = logits(z); if(l.indexOf(Math.max(...l)) === yte[n]) ok++; }); return ok / B.length;
+}
+
+/* ---- run both trainings in small chunks; record the test embedding every SNAP steps ---- */
+const RUNS = ['task', 'free'].map(kind => ({kind, net: makeNet(kind), t: 0, snaps: [], loss: 0, acc: null}));
+RUNS.forEach(R => R.snaps.push(TEST.map(e => Array.from(R.net.embed(e.im)))));
+function finishRun(R){ const Ztr = TRAIN.map(e => Array.from(R.net.embed(e.im))), Zte = R.snaps[R.snaps.length - 1];
+  R.acc = {shape: readout(Ztr, TRAIN.map(e => e.s), Zte, TEST.map(e => e.s), 3), color: readout(Ztr, TRAIN.map(e => e.c), Zte, TEST.map(e => e.c), 4)}; }
+function work(R){ R.loss = R.net.step(); R.t++; if(R.t % SNAP === 0) R.snaps.push(TEST.map(e => Array.from(R.net.embed(e.im)))); if(R.t === STEPS) finishRun(R); }
+function pump(){ const t = performance.now();
+  for(const R of RUNS){ while(R.t < STEPS && performance.now() - t < 40) work(R); if(R.t < STEPS) break; }
+  if(RUNS[1].t < STEPS) setTimeout(pump, 0); }
+setTimeout(pump, 50);
+
+/* ---- drawing ---- */
+function rgbCanvas(im){ const c = document.createElement('canvas'); c.width = c.height = N; const x = c.getContext('2d'), d = x.createImageData(N, N);
+  for(let i = 0; i < N * N; i++){ for(let k = 0; k < 3; k++) d.data[4 * i + k] = Math.round(255 * im[3 * i + k]); d.data[4 * i + 3] = 255; }
+  x.putImageData(d, 0, 0); return c; }
+const TESTC = TEST.map(e => rgbCanvas(e.im)), GRID = [0, 1].map(n => TRAIN.slice(12 * n, 12 * n + 12).map(e => rgbCanvas(e.im)));
+
+const CAPS = ['', 'toy images: 3 shapes × 4 colors, each drawn a little differently',
+  'task: train on shape labels', 'a second task: read out color from the same 2 numbers',
+  'task-free: no labels; squeeze each image into 2 numbers, rebuild it', 'read out both tasks', ''];
+const NOTES = [
+  "(draft) Everything so far has been trained for a task. Here is the alternative, as a small experiment computed live in this page.",
+  "(draft) Toy images, 12 by 12 pixels, made in code. Each one is a circle, a square or a triangle, in one of four colors, and every image is drawn a little differently: a bit shifted, a bit bigger or smaller, a slightly different shade, some pixel noise. 120 of them to train on, and 60 new ones we only use to test. So each image carries two properties, shape and color.",
+  "(draft) First, the usual recipe: train for a task. The task here is shape: the label says circle, square or triangle, and nothing about color. The network squeezes each image into just two numbers, so we can plot every test image as a point, and then it predicts the shape from those two numbers. Watch it train. The circles, the squares and the triangles pull apart into three groups, and inside each group the colors are mixed together. The network keeps what the labels need.",
+  "(draft) Now a second task, from the same two numbers: color. We fit a simple linear readout on the training images and score it on the new ones. Shape reads out almost perfectly. Color is close to chance, which is one in four. Nothing in the labels asked for color, so the network threw it away. That is the book's point: a representation that is good for one task can be bad for another. And with real data, someone has to label every image, and the labels decide what is kept.",
+  "(draft) Now the same network, with no labels at all. The only job is compression: squeeze each image into two numbers, and then rebuild the whole image from those two numbers, 432 pixel values. You cannot keep everything in two numbers, so what survives has to be the regular structure of the images. This is an autoencoder, the first of the book's two answers, compression. The other answer is prediction: hide part of the data and predict it, the missing patch, the color of a gray photo, the next frame. Watch the same test images: now they arrange by color, and within each color the shapes still separate partly.",
+  "(draft) Read out both tasks from these two numbers, the same way. Color comes out well, and shape comes out well above chance, which is one in three, though below the network that was trained on shape. An honest caveat: this is one run. I ran six random starts: the shape-trained network read out shape 98 to 100 percent and color 18 to 32 percent; the autoencoder read out shape 63 to 77 percent and color 82 to 100 percent. So the specialist wins its own task, and the label-free network keeps more of both.",
+  "(draft) Learn the structure first, choose the task later. The book puts the trade-off simply: a good representation for one task may be a bad one for another, so the goal is a general-purpose representation that serves many of the tasks we care about. What comes out of the encoder is an embedding: one vector per image, in a space where close means similar. The next slide builds one."
+];
+const NB = NOTES.length - 1;
+let beat = 0, t0 = 0;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+const capEl = document.querySelector('.cite'), stEl = document.getElementById('line');
+function go(b, jump){ beat = b; t0 = performance.now() - (jump ? 1e9 : 0);
+  capEl.style.opacity = b ? 1 : 0; stEl.style.opacity = b === NB ? 1 : 0;
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join(''); }
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H2 = 0;
+function size(){ const d = devicePixelRatio || 1; W = cv.clientWidth; H2 = cv.clientHeight; cv.width = W * d; cv.height = H2 * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+const txt = (t, x, y, sz, bold, align = 'center', base = 'middle', col = '#0f172a') => { ctx.fillStyle = col; ctx.font = `${bold ? 700 : 400} ${sz}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(t, x, y); };
+function img(c, x, y, s, edge = true){ ctx.imageSmoothingEnabled = false; ctx.drawImage(c, x, y, s, s); if(edge){ ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1; ctx.strokeRect(x, y, s, s); } }
+
+/* which snapshot to show for a run; training plays on its own beat at MS_PER_SNAP, otherwise holds the end */
+const MS_PER_SNAP = 45, NSNAP = STEPS / SNAP;
+function snapIndex(R, playing, now){ const k = playing ? Math.floor(Math.max(0, now - t0 - 500) / MS_PER_SNAP) : NSNAP; return Math.min(R.snaps.length - 1, k); }
+/* each panel scales its points to the current snapshot's spread, smoothed so the view does not jump */
+const VIEW = RUNS.map(() => null);
+/* each axis is scaled on its own to the 5th-95th percentile of the points (the two numbers have no common unit) */
+function target(Z){ const q = d => { const v = Z.map(z => z[d]).sort((a, b) => a - b), lo = v[Math.floor(.05 * (v.length - 1))], hi = v[Math.ceil(.95 * (v.length - 1))]; return [(lo + hi) / 2, Math.max(hi - lo, 1e-6)]; };
+  const [mx, sx] = q(0), [my, sy] = q(1); return [mx, my, sx, sy]; }
+
+function panel(ri, x, y, w, now, alpha, head, sub, playing, showAcc){
+  const R = RUNS[ri]; ctx.globalAlpha = alpha;
+  txt(head, x + w / 2, y, fsz(), true, 'center', 'bottom');
+  txt(sub, x + w / 2, y + fsz() * 1.25, fsz() * .9, false, 'center', 'bottom', '#475569');
+  const bx = x, by = y + fsz() * 1.9, bs = w;
+  ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1; ctx.strokeRect(bx, by, bs, bs);
+  const k = snapIndex(R, playing, now), Z = R.snaps[k], tg = target(Z);
+  if(!VIEW[ri] || !playing) VIEW[ri] = tg.slice(); else VIEW[ri] = VIEW[ri].map((v, i) => v + (tg[i] - v) * .15);
+  const [mx, my, sx, sy] = VIEW[ri], th = bs * .065, half = bs / 2 - th * .7, clamp = v => Math.max(-half, Math.min(half, v));
+  Z.forEach(([zx, zy], i) => img(TESTC[i], bx + bs / 2 + clamp((zx - mx) / sx * bs * .72) - th / 2, by + bs / 2 - clamp((zy - my) / sy * bs * .72) - th / 2, th, false));
+  const done = k === NSNAP && R.acc;
+  txt(done && !playing ? 'trained: 3000 steps' : `training step ${k * SNAP}`, x + w / 2, by + bs + fsz() * .3, fsz() * .85, false, 'center', 'top', '#475569');
+  if(showAcc > 0 && done){ ctx.globalAlpha = alpha * showAcc;
+    const rows = [['shape', R.acc.shape, 1 / 3], ['color', R.acc.color, 1 / 4]], ry = by + bs + fsz() * 1.7, rh = fsz() * 1.15;
+    ctx.font = `400 ${fsz() * .9}px ${FONT}`; const lw = ctx.measureText('read out color').width + 10;
+    rows.forEach(([name, acc, ch], j) => { const yy = ry + j * rh * 1.35;
+      txt(`read out ${name}`, x, yy + rh / 2, fsz() * .9, false, 'left');
+      const x0 = x + lw, ww = w - lw - fsz() * 2.6;
+      ctx.fillStyle = '#f1f5f9'; ctx.fillRect(x0, yy, ww, rh);
+      ctx.fillStyle = '#64748b'; ctx.fillRect(x0, yy, ww * acc * Math.min(1, showAcc * 1.2), rh);
+      ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(x0 + ww * ch, yy - 4); ctx.lineTo(x0 + ww * ch, yy + rh + 4); ctx.stroke(); ctx.setLineDash([]);
+      txt(`${Math.round(acc * 100)}%`, x0 + ww + 6, yy + rh / 2, fsz() * .95, true, 'left'); });
+    txt('dashed line: chance; scored on 60 new images', x + w / 2, ry + rh * 2.8, fsz() * .8, false, 'center', 'top', '#475569');
+  }
+  ctx.globalAlpha = 1;
+}
+let fsz = () => 16;
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H2) size();
+  const p = Math.min(1, (now - t0) / 900), A = b => beat > b ? 1 : beat === b ? ease(p) : 0;
+  ctx.clearRect(0, 0, W, H2);
+  const big = Math.max(20, W * .019); fsz = () => Math.max(14, W * .0125);
+  const dim = 1 - .82 * A(6), top = H2 * .06;
+  /* ACT 1: the images (two rows of 12 training images: rows = examples, a sample) */
+  if(A(1) > 0){ ctx.globalAlpha = A(1) * dim; const gw = W * .24, cell = gw / 4 * .8, gap = gw / 4 * .2;
+    txt('the images', gw / 2, top, fsz(), true, 'center', 'bottom');
+    for(let n = 0; n < 2; n++) GRID[n].forEach((c, i) => { const e = TRAIN[12 * n + i], col = e.c, row = e.s + 3 * n;
+      img(c, col * (cell + gap), top + fsz() * .9 + row * (cell * .62 + gap * .62) * 1.0, cell * .62); });
+    txt('shape and color: two properties', gw / 2, top + fsz() * .9 + 6 * (cell * .62 + gap * .62) + 4, fsz() * .9, false, 'center', 'top', '#475569');
+    ctx.globalAlpha = 1; }
+  /* ACT 2-3: the two panels */
+  const pw = Math.min(W * .3, H2 - top - fsz() * 10.5 - big * 1.6), px = [W * .3, W * .3 + pw + W * .07];
+  if(A(2) > 0) panel(0, px[0], top, pw, now, A(2) * dim, 'task: shape labels', 'image → 2 numbers → circle, square or triangle', beat === 2, A(3));
+  if(A(4) > 0) panel(1, px[1], top, pw, now, A(4) * dim, 'task-free: no labels', 'image → 2 numbers → the image again', beat === 4, A(5));
+  ctx.globalAlpha = beat && beat < NB ? Math.min(1, p * 2) : 0; txt(CAPS[beat], 0, H2 - big * .2, big, true, 'left', 'bottom'); ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+
+window.taskfreeScene = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+  notes: NOTES,
+  /* for testing: finish both runs now, synchronously */
+  finish(){ for(const R of RUNS) while(R.t < STEPS) work(R); },
+  debug: () => RUNS.map(R => ({kind: R.kind, steps: R.t, loss: R.loss, acc: R.acc}))
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) taskfreeScene.advance(); if(e.key === 'ArrowLeft') taskfreeScene.back(); });
+  addEventListener('click', () => taskfreeScene.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
