@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Does it match the ventral stream?</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: Fernanda (Day 5 part 2, f-versa). Pattern B. Voxel-wise encoding RSA (veRSA, Konkle & Alvarez 2022,
+     Fig. 1e) on a toy: 12 SIMULATED voxels, the 8 Gabor units of the shared toy set as the model layer, least
+     squares fit on 18 training images, prediction for 12 new images, predicted vs "measured" RDM. All computed
+     here. Only the closing quote comes from the paper (Results, word for word). */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Does it match the ventral stream?</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+  <div class="cite" id="cite" style="opacity:0;transition:opacity .6s">Voxel-wise encoding RSA (veRSA): Konkle &amp; Alvarez, 2022, <i>Nature Communications</i> 13, 491, Fig. 1e (CC BY 4.0) · toy: voxels simulated here, not brain data</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE    (0):   the title alone
+   ACT 1  DATA     (1-2): simulated voxels' responses to 18 training images; the model units' responses to the same images
+   ACT 2  ENCODE   (3-5): fit one voxel as a weighted sum of units (least squares); all voxels; predict 12 new images
+   ACT 3  COMPARE  (6-7): predicted RDM next to the measured RDM; their correlation
+   ACT 4  PAPER    (8):   the paper's result, quoted
+   No data colors: darker = stronger response / more different. */
+/* ---- shared toy set (the same block is pasted into each Day 5 scene, so each scene stays self-contained) ----
+   Images are made here, seeded: 6 kinds of 32x32 gray texture. The "embedding" is a hand-designed Gabor
+   filter bank (4 orientations x 2 scales, as on Day 3), standing in for a network layer: each filter's
+   energy map is averaged over the image, giving 8 numbers. */
+const FONT = "Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif";
+function rng(seed){ return () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const gauss = r => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r());
+const KINDS = ['horizontal stripes', 'vertical stripes', 'diagonal stripes', 'checkers', 'dots', 'rings'];
+function toyImage(kind, r, n = 32){
+  const f = .09 + .07 * r(), ph = 6.2832 * r(), ph2 = 6.2832 * r(), c = .32 + .12 * r(), cx = n * (.3 + .4 * r()), cy = n * (.3 + .4 * r());
+  const im = new Float32Array(n * n), T = 2 * Math.PI * f;
+  for(let y = 0; y < n; y++) for(let x = 0; x < n; x++){
+    let v;
+    if(kind === 0) v = Math.sin(T * y + ph);
+    else if(kind === 1) v = Math.sin(T * x + ph);
+    else if(kind === 2) v = Math.sin(T * (x + y) * Math.SQRT1_2 + ph);
+    else if(kind === 3) v = Math.sign(Math.sin(T * x + ph) * Math.sin(T * y + ph2));
+    else if(kind === 4) v = Math.sin(T * x + ph) * Math.sin(T * y + ph2) > .55 ? 1 : -.6;
+    else v = Math.sin(T * Math.hypot(x - cx, y - cy) + ph);
+    im[y * n + x] = Math.max(0, Math.min(1, .5 + c * v + .05 * gauss(r)));
+  }
+  return im;
+}
+/* the filter bank: even and odd Gabors; theta 0 responds to vertical stripes */
+const BANK = [];
+for(const [lam, sig] of [[4, 1.8], [8, 3.4]]) for(let o = 0; o < 4; o++){
+  const th = o * Math.PI / 4, R = Math.ceil(2.2 * sig), size = 2 * R + 1, ev = new Float32Array(size * size), od = new Float32Array(size * size);
+  for(let v = 0; v < size; v++) for(let u = 0; u < size; u++){
+    const x = u - R, y = v - R, xr = x * Math.cos(th) + y * Math.sin(th), g = Math.exp(-(x * x + y * y) / (2 * sig * sig));
+    ev[v * size + u] = g * Math.cos(2 * Math.PI * xr / lam); od[v * size + u] = g * Math.sin(2 * Math.PI * xr / lam);
+  }
+  const m = ev.reduce((a, b) => a + b) / ev.length; ev.forEach((_, i) => ev[i] -= m);
+  for(const k of [ev, od]){ const s = Math.hypot(...k); k.forEach((_, i) => k[i] /= s); }
+  BANK.push({R, size, ev, od, th, lam, name: `${o * 45}°, ${lam === 4 ? 'fine' : 'coarse'}`});
+}
+function energyMap(im, n, b, stride = 1){
+  const m = Math.ceil(n / stride), out = new Float32Array(m * m);
+  for(let j = 0; j < m; j++) for(let i = 0; i < m; i++){
+    const y0 = j * stride, x0 = i * stride; let e = 0, o = 0;
+    for(let v = 0; v < b.size; v++){ let yy = y0 + v - b.R; yy = yy < 0 ? 0 : yy >= n ? n - 1 : yy;
+      for(let u = 0; u < b.size; u++){ let xx = x0 + u - b.R; xx = xx < 0 ? 0 : xx >= n ? n - 1 : xx;
+        const p = im[yy * n + xx] - .5, k = v * b.size + u; e += b.ev[k] * p; o += b.od[k] * p; } }
+    out[j * m + i] = Math.hypot(e, o);
+  }
+  return out;
+}
+const embedRaw = (im, n = 32) => BANK.map(b => { const m = energyMap(im, n, b, 2); return m.reduce((a, v) => a + v, 0) / m.length; });
+/* the standard set: 8 images of each kind, seed 100 + i */
+function toySet(per = 8){ const S = []; for(let k = 0; k < KINDS.length; k++) for(let i = 0; i < per; i++){ const im = toyImage(k, rng(100 + k * 50 + i)); S.push({kind: k, im, raw: embedRaw(im)}); } return S; }
+/* standardize each embedding dimension over a set; cosine similarity; Pearson correlation */
+function standardizer(rows){ const d = rows[0].length, mu = Array(d).fill(0), sd = Array(d).fill(0);
+  rows.forEach(r => r.forEach((v, i) => mu[i] += v / rows.length)); rows.forEach(r => r.forEach((v, i) => sd[i] += (v - mu[i]) ** 2 / rows.length));
+  return r => r.map((v, i) => (v - mu[i]) / (Math.sqrt(sd[i]) || 1)); }
+const dot = (a, b) => a.reduce((s, v, i) => s + v * b[i], 0);
+const cosine = (a, b) => dot(a, b) / (Math.sqrt(dot(a, a) * dot(b, b)) || 1);
+function pearson(a, b){ const n = a.length, ma = a.reduce((s, v) => s + v, 0) / n, mb = b.reduce((s, v) => s + v, 0) / n;
+  let sab = 0, saa = 0, sbb = 0; for(let i = 0; i < n; i++){ const x = a[i] - ma, y = b[i] - mb; sab += x * y; saa += x * x; sbb += y * y; } return sab / Math.sqrt(saa * sbb); }
+/* draw a gray image (values 0..1) into a box */
+function grayCanvas(im, n){ const c = document.createElement('canvas'); c.width = c.height = n; const x = c.getContext('2d'), d = x.createImageData(n, n);
+  for(let i = 0; i < n * n; i++){ const g = Math.round(255 * im[i]); d.data[4 * i] = d.data[4 * i + 1] = d.data[4 * i + 2] = g; d.data[4 * i + 3] = 255; }
+  x.putImageData(d, 0, 0); return c; }
+/* ---- end of shared toy set ---- */
+
+/* ---- the toy veRSA ----
+   Model layer: the 8 Gabor units (standardized). Simulated voxels: each is a hidden weighted sum of the units, plus a
+   per-kind offset the units do not carry, plus noise. So the model can explain part, not all, of each voxel. */
+const ALL = toySet(8), Zs = standardizer(ALL.map(s => s.raw));
+const TRAIN = ALL.filter((_, i) => i % 8 < 3), TEST = ALL.filter((_, i) => i % 8 >= 3 && i % 8 < 5);   // 18 and 12, kind order
+const NV = 12, NU = 8, R0 = rng(7);
+const WTRUE = [...Array(NV)].map(() => [...Array(NU)].map(() => gauss(R0)));
+const KIND = [...Array(NV)].map(() => KINDS.map(() => 1.6 * gauss(R0)));
+const voxel = (s, v, r) => dot(WTRUE[v], Zs(s.raw)) + KIND[v][s.kind] + 1.0 * gauss(r);
+const RN = rng(11);
+const U_TR = TRAIN.map(s => Zs(s.raw)), U_TE = TEST.map(s => Zs(s.raw));
+const V_TR = TRAIN.map(s => [...Array(NV)].map((_, v) => voxel(s, v, RN)));
+const V_TE = TEST.map(s => [...Array(NV)].map((_, v) => voxel(s, v, RN)));      // the "measured" responses to new images
+/* ordinary least squares with an intercept, by the normal equations (Gaussian elimination with pivoting) */
+function solve(A, b){ const n = b.length, M = A.map((r, i) => [...r, b[i]]);
+  for(let c = 0; c < n; c++){ let p = c; for(let r = c + 1; r < n; r++) if(Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r; [M[c], M[p]] = [M[p], M[c]];
+    for(let r = 0; r < n; r++) if(r !== c){ const f = M[r][c] / M[c][c]; for(let k = c; k <= n; k++) M[r][k] -= f * M[c][k]; } }
+  return M.map((r, i) => r[n] / r[i]); }
+function lstsq(X, y){ const Xa = X.map(r => [1, ...r]), d = Xa[0].length;
+  const A = [...Array(d)].map((_, i) => [...Array(d)].map((_, j) => Xa.reduce((s, r) => s + r[i] * r[j], 0)));
+  return solve(A, [...Array(d)].map((_, i) => Xa.reduce((s, r, k) => s + r[i] * y[k], 0))); }
+const col = (M, v) => M.map(r => r[v]);
+const W = [...Array(NV)].map((_, v) => lstsq(U_TR, col(V_TR, v)));          // W[v] = [intercept, w1..w8]
+const predict = u => W.map(w => w[0] + dot(w.slice(1), u));
+const FIT_TR = U_TR.map(predict), P_TE = U_TE.map(predict);
+const R_FIT1 = pearson(col(FIT_TR, 0), col(V_TR, 0)), R_NEW1 = pearson(col(P_TE, 0), col(V_TE, 0));
+const n = TEST.length;
+const rdm = X => X.map(a => X.map(b => 1 - pearson(a, b)));
+const RD_P = rdm(P_TE), RD_M = rdm(V_TE);
+const upper = R => { const v = []; for(let i = 0; i < n; i++) for(let j = i + 1; j < n; j++) v.push(R[i][j]); return v; };
+const ranks = v => { const o = v.map((x, i) => [x, i]).sort((a, b) => a[0] - b[0]), r = Array(v.length); let i = 0;
+  while(i < o.length){ let j = i; while(j + 1 < o.length && o[j + 1][0] === o[i][0]) j++; for(let k = i; k <= j; k++) r[o[k][1]] = (i + j) / 2; i = j + 1; } return r; };
+const UP = upper(RD_P), UM = upper(RD_M);
+const RHO = pearson(ranks(UP), ranks(UM));
+const f2 = v => (v < 0 ? '−' : '') + Math.abs(v).toFixed(2);
+
+const CAPS = ['', '12 simulated voxels × 18 images', 'a model layer: 8 units × the same 18 images',
+  'voxel 1 = a weighted sum of the units', 'one set of weights per voxel', 'new images: units × weights = predicted voxels',
+  'predicted RDM vs measured RDM', 'correlate the two RDMs', 'the paper: no labels, on par with categories'];
+const NOTES = [
+  "(draft) Title only. Konkle and Alvarez compare their network with the brain using RSA, with one step added. Here is that step, on a toy. Everything on this slide is simulated in the browser, except the last line, which is quoted from the paper.",
+  "(draft) Start with the brain side. Each column is a voxel, a small cube of cortex in fMRI; each row is an image. Darker means a stronger response. These twelve voxels are simulated, not brain data: I made each one respond to the images in its own way, plus noise.",
+  "(draft) Now the model side: one layer of a network, here eight filter units, shown the same eighteen images. Same rows, different columns. The question is how to line the units up with the voxels, when there is no one-to-one match between a unit and a voxel.",
+  (`(draft) Their answer: fit each voxel separately, as a weighted sum of the units. For voxel 1, least squares finds the eight weights that best reproduce its responses on these training images. The bars are the weights; the fit correlates ${f2(R_FIT1)} with the voxel on the training images. The paper used ridge regression, which shrinks the weights, and held out one image at a time; I use plain least squares and a single split.`),
+  "(draft) Do the same for every voxel, each on its own. Now we have one set of weights per voxel: filled squares are positive weights, outlined squares negative, and size is the strength. Together they are an encoding model of this patch of cortex, built from the network's features.",
+  (`(draft) Then use it on images the fit never saw. Twelve new images go through the network; the weights turn their unit responses into predicted voxel responses. That is a predicted brain pattern for each new image. For voxel 1, the prediction correlates ${f2(R_NEW1)} with its simulated response to the new images.`),
+  "(draft) Now RSA, as in the last scene. From the predicted patterns, a dissimilarity matrix for the twelve new images: one minus the correlation of their patterns across the voxels. And next to it the same matrix from the measured responses, here our simulated voxels. Darker means more different.",
+  (`(draft) Correlate the two matrices, pair by pair. Each dot is one pair of new images: how different the model predicts they are, against how different the voxels say they are. The rank correlation is ${f2(RHO)}. In the paper, that number, for each layer and each brain region, is the measure of how well a layer fits the region.`),
+  "(draft) And their result, in their words: in 56 of 60 comparisons, the network trained without labels fits as well as, or not significantly worse than, the same network trained on the categories. Early layers fit early visual cortex best; later layers fit the later regions."
+];
+const NB = NOTES.length - 1;
+let beat = 0, t0 = 0;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+function go(b, jump){ beat = b; t0 = performance.now() - (jump ? 1e9 : 0); document.getElementById('cite').style.opacity = b >= 1 ? 1 : 0;
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join(''); }
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W_ = 0, H = 0;
+function size(){ const d = devicePixelRatio || 1; W_ = cv.clientWidth; H = cv.clientHeight; cv.width = W_ * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+const txt = (t, x, y, sz, bold, align = 'center', base = 'middle', ital) => { ctx.fillStyle = '#0f172a'; ctx.font = `${ital ? 'italic ' : ''}${bold ? 700 : 400} ${sz}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(t, x, y); };
+function wrap(t, x, y, maxW, sz, lh, ital){ ctx.font = `${ital ? 'italic ' : ''}400 ${sz}px ${FONT}`; let line = '', yy = y;
+  for(const w of t.split(' ')){ const tst = line ? line + ' ' + w : w; if(ctx.measureText(tst).width > maxW && line){ txt(line, x, yy, sz, false, 'left', 'top', ital); line = w; yy += lh; } else line = tst; }
+  if(line) txt(line, x, yy, sz, false, 'left', 'top', ital); return yy + lh; }
+const TH_TR = TRAIN.map(s => grayCanvas(s.im, 32)), TH_TE = TEST.map(s => grayCanvas(s.im, 32));
+/* response matrices: each column scaled to its own range over the shown rows; darker = stronger */
+function scaled(M, ref){ const R = ref || M; const lo = [], hi = [];
+  for(let j = 0; j < M[0].length; j++){ const c = col(R, j); lo.push(Math.min(...c)); hi.push(Math.max(...c)); }
+  return M.map(r => r.map((v, j) => Math.max(0, Math.min(1, (v - lo[j]) / (hi[j] - lo[j] || 1))))); }
+const S_VTR = scaled(V_TR), S_UTR = scaled(U_TR), S_UTE = scaled(U_TE, U_TR), S_PTE = scaled(P_TE, V_TR);
+function grid(S, x, y, c, a, hiCol = -1){ ctx.globalAlpha = a;
+  for(let i = 0; i < S.length; i++) for(let j = 0; j < S[0].length; j++){ const g = Math.round(245 - 215 * S[i][j]); ctx.fillStyle = `rgb(${g},${g},${g})`; ctx.fillRect(x + j * c, y + i * c, c - 1, c - 1); }
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1; ctx.strokeRect(x - .5, y - .5, S[0].length * c, S.length * c);
+  if(hiCol >= 0){ ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2.5; ctx.strokeRect(x + hiCol * c - 2, y - 2, c + 3, S.length * c + 3); }
+  ctx.globalAlpha = 1; }
+function thumbs(T, x, y, c, a){ ctx.globalAlpha = a; ctx.imageSmoothingEnabled = false; T.forEach((t, i) => ctx.drawImage(t, x, y + i * c, c - 1, c - 1)); ctx.globalAlpha = 1; }
+/* RDMs as rank percentiles of the off-diagonal values, as in the RSA scene; darker = more different */
+const pctRank = R => { const v = upper(R), rk = ranks(v), P = R.map(row => row.map(() => 0)); let k = 0;
+  for(let i = 0; i < n; i++) for(let j = i + 1; j < n; j++){ P[i][j] = P[j][i] = rk[k++] / (v.length - 1); } return P; };
+const SH_P = pctRank(RD_P), SH_M = pctRank(RD_M);
+function matrix(R, x, y, m, a){ const c = m / n; ctx.globalAlpha = a;
+  for(let i = 0; i < n; i++) for(let j = 0; j < n; j++){ const g = Math.round(255 * (1 - R[i][j])); ctx.fillStyle = `rgb(${g},${g},${g})`; ctx.fillRect(x + j * c, y + i * c, c + .5, c + .5); }
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1; ctx.strokeRect(x, y, m, m);
+  ctx.strokeStyle = 'rgba(148,163,184,.8)'; for(let k = 2; k < n; k += 2){ ctx.beginPath(); ctx.moveTo(x + k * c, y); ctx.lineTo(x + k * c, y + m); ctx.moveTo(x, y + k * c); ctx.lineTo(x + m, y + k * c); ctx.stroke(); }
+  ctx.globalAlpha = 1; }
+const WMAX = Math.max(...W.flatMap(w => w.slice(1).map(Math.abs)));
+
+function frame(now){
+  if(cv.clientWidth !== W_ || cv.clientHeight !== H) size();
+  const p = Math.min(1, (now - t0) / 900), A = b => beat > b ? 1 : beat === b ? ease(p) : 0, only = (b, e) => beat >= b && beat < e ? (beat === b ? ease(p) : 1) : 0;
+  ctx.clearRect(0, 0, W_, H);
+  const fs = Math.max(15, W_ * .0135), big = Math.max(20, W_ * .019);
+  const out = 1 - A(6);                                   // the fitting layout fades when the RDMs come in
+  /* ---- fitting layout: [train thumbs | voxels 12 | units 8]   right: fit / weights / new images ---- */
+  const top = fs * 3.4; ctx.font = `700 ${fs * .95}px ${FONT}`; const gapX = ctx.measureText('× weights').width + fs * 1.2;
+  const c = Math.min((H - top - big * 2.2) / 18, (W_ - gapX) / 47);
+  const xT = 0, xV = xT + c + c * .4, xU = xV + NV * c + c * .9, xR = xU + NU * c + c * 2.2;
+  if(out > 0){
+    if(A(1) > 0){ const a = A(1) * out; thumbs(TH_TR, xT, top, c, a); grid(S_VTR, xV, top, c, a, beat >= 3 && beat < 5 ? 0 : -1);
+      ctx.globalAlpha = a; txt('simulated voxels', xV + NV * c / 2, top - fs * 1.5, fs, true); txt('training images', xT, top - fs * 2.6, fs * .85, false, 'left');
+      for(let v = 0; v < NV; v++) txt(String(v + 1), xV + v * c + c / 2, top - fs * .5, fs * .7, false);
+      txt('darker = stronger response', xT, top + 18 * c + fs * .9, fs * .85, false, 'left'); ctx.globalAlpha = 1; }
+    if(A(2) > 0){ const a = A(2) * out; grid(S_UTR, xU, top, c, a);
+      ctx.globalAlpha = a; txt('model units', xU + NU * c / 2, top - fs * 1.5, fs, true);
+      for(let u = 0; u < NU; u++) txt(String(u + 1), xU + u * c + c / 2, top - fs * .5, fs * .7, false); ctx.globalAlpha = 1; }
+    const rw = W_ - xR;
+    /* beat 3: voxel 1's weights as bars */
+    const a3 = only(3, 4) * out;
+    if(a3 > 0){ ctx.globalAlpha = a3; const w = W[0].slice(1), bx = xR + rw * .42, bw = rw * .5, bh = Math.min(c * 1.6, (H - top - fs * 8) / NU);
+      txt('voxel 1 ≈ w₁·unit 1 + w₂·unit 2 + … + w₈·unit 8', xR, top - fs * .5, fs * 1.15, true, 'left');
+      txt('least squares, on the 18 training images', xR, top + fs * 1.1, fs, false, 'left', 'middle', true);
+      const y0 = top + fs * 2.6;
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(bx, y0 - 4); ctx.lineTo(bx, y0 + NU * bh); ctx.stroke();
+      w.forEach((v, i) => { const L = v / WMAX * bw * .5 * Math.min(1, p * 1.4); ctx.fillStyle = '#334155';
+        ctx.fillRect(Math.min(bx, bx + L), y0 + i * bh + bh * .18, Math.abs(L), bh * .64);
+        txt(`unit ${i + 1}: ${BANK[i].name}`, xR, y0 + i * bh + bh / 2, fs * .85, false, 'left');
+        txt(f2(v), bx + (v >= 0 ? -6 : 6), y0 + i * bh + bh / 2, fs * .8, false, v >= 0 ? 'right' : 'left'); });
+      txt(`fit vs voxel 1 on the training images: r = ${f2(R_FIT1)}`, xR, y0 + NU * bh + fs * 1.3, fs * 1.05, true, 'left');
+      ctx.globalAlpha = 1; }
+    /* beat 4: all weights, Hinton style (filled = positive, outlined = negative) */
+    const a4 = only(4, 5) * out;
+    if(a4 > 0){ ctx.globalAlpha = a4; const cw = Math.min(rw / (NV + 4), (H - top) / (NU + 4)), gx = xR + cw * 3.2, gy = top + fs * .6;
+      txt('weights: one column per voxel', gx + NV * cw / 2, top - fs * 1.5, fs, true);
+      for(let v = 0; v < NV; v++) txt(String(v + 1), gx + v * cw + cw / 2, top - fs * .5 + fs * .4, fs * .7, false);
+      for(let u = 0; u < NU; u++){ txt(`unit ${u + 1}`, gx - cw * .3, gy + u * cw + cw / 2, fs * .8, false, 'right');
+        for(let v = 0; v < NV; v++){ const w = W[v][u + 1], s = Math.sqrt(Math.abs(w) / WMAX) * cw * .86, cx = gx + v * cw + cw / 2, cy = gy + u * cw + cw / 2;
+          ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1; ctx.strokeRect(gx + v * cw, gy + u * cw, cw, cw);
+          if(w >= 0){ ctx.fillStyle = '#334155'; ctx.fillRect(cx - s / 2, cy - s / 2, s, s); } else { ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.5; ctx.strokeRect(cx - s / 2, cy - s / 2, s, s); } } }
+      txt('filled = positive, outlined = negative, size = strength', gx, gy + NU * cw + fs * 1.2, fs * .85, false, 'left');
+      ctx.globalAlpha = 1; }
+    /* beat 5: new images -> units -> predicted voxels */
+    const a5 = only(5, 9) * out;
+    if(a5 > 0){ ctx.globalAlpha = a5; const x1 = xR, x2 = x1 + c * 1.4, x3 = x2 + NU * c + gapX, y1 = top;
+      thumbs(TH_TE, x1, y1, c, a5); grid(S_UTE, x2, y1, c, a5); grid(S_PTE, x3, y1, c, a5);
+      ctx.globalAlpha = a5; txt('new images', x1, top - fs * 2.6, fs * .85, false, 'left'); txt('units', x2 + NU * c / 2, top - fs * 1.5, fs, true);
+      txt('predicted voxels', x3 + NV * c / 2, top - fs * 1.5, fs, true); txt('× weights', (x2 + NU * c + x3) / 2, y1 + 6 * c, fs * .95, true);
+      txt('not used in the fit', x1, y1 + n * c + fs * .9, fs * .85, false, 'left', 'middle', true);
+      txt(`voxel 1, predicted vs simulated on new images: r = ${f2(R_NEW1)}`, x1, y1 + n * c + fs * 2.5, fs, false, 'left'); ctx.globalAlpha = 1; }
+  }
+  /* ---- compare layout: predicted RDM | measured RDM | scatter / quote ---- */
+  if(A(6) > 0){
+    const th = Math.min((H - fs * 6) / (n + 1), W_ * .25 / n), m = th * n, t2 = fs * 2.4 + th, gap = W_ * .05;
+    const X1 = th + 6, X2 = X1 + m + gap + th, X3 = X2 + m + gap;
+    const a = A(6); ctx.globalAlpha = a; ctx.imageSmoothingEnabled = false;
+    for(const X of [X1, X2]) TH_TE.forEach((t, i) => { ctx.drawImage(t, X + i * th, t2 - th - 3, th - 1, th - 1); ctx.drawImage(t, X - th - 3, t2 + i * th, th - 1, th - 1); });
+    ctx.globalAlpha = 1; matrix(SH_P, X1, t2, m, a); matrix(SH_M, X2, t2, m, a);
+    ctx.globalAlpha = a; txt('predicted from the model', X1 + m / 2, fs * .7, fs, true); txt('measured (simulated voxels)', X2 + m / 2, fs * .7, fs, true);
+    txt('12 new images · darker = more different', X1 - th, t2 + m + fs * 1.2, fs * .85, false, 'left'); ctx.globalAlpha = 1;
+    const sw = W_ - X3, sh = Math.min(m, sw);
+    const a7 = only(7, 8);
+    if(a7 > 0){ ctx.globalAlpha = a7; const sx = X3 + fs * 1.4, sy = t2, S = Math.min(sh, sw - fs * 1.4);
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1; ctx.strokeRect(sx, sy, S, S);
+      const rp = ranks(UP), rm = ranks(UM), N = UP.length - 1;
+      ctx.fillStyle = '#334155'; rp.forEach((v, i) => { ctx.beginPath(); ctx.arc(sx + 4 + (v / N) * (S - 8), sy + S - 4 - (rm[i] / N) * (S - 8), Math.max(2, S * .012), 0, 7); ctx.fill(); });
+      txt('predicted (rank)', sx + S / 2, sy + S + fs * .9, fs * .85, false);
+      ctx.save(); ctx.translate(sx - fs * .7, sy + S / 2); ctx.rotate(-Math.PI / 2); txt('measured (rank)', 0, 0, fs * .85, false); ctx.restore();
+      txt('each dot: one pair of images', sx + S / 2, fs * .7, fs, true);
+      txt(`Spearman correlation: ${f2(RHO)}`, sx + S / 2, sy + S + fs * 2.6, big, true); ctx.globalAlpha = 1; }
+    const a8 = A(8);
+    if(a8 > 0){ ctx.globalAlpha = a8; const qx = X3 + fs * .4, qw = W_ - qx;
+      txt('In the paper (Results):', qx, t2, fs * 1.1, true, 'left', 'top');
+      const yEnd = wrap('“in 56/60 comparisons, the cross-validated max correlation for the IPCL models is greater than or not significantly different from category-supervised models”', qx, t2 + fs * 2, qw, big, big * 1.3, false);
+      txt('IPCL: trained with no labels', qx, yEnd + fs * .8, fs * .9, false, 'left', 'top', true);
+      ctx.globalAlpha = 1; }
+  }
+  ctx.globalAlpha = beat ? Math.min(1, p * 2) : 0; txt(CAPS[beat], W_, H - big * .4, big, true, 'right', 'bottom'); ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+
+window.versaScene = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+  notes: NOTES,
+  debug: () => ({R_FIT1, R_NEW1, RHO})
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) versaScene.advance(); if(e.key === 'ArrowLeft') versaScene.back(); });
+  addEventListener('click', () => versaScene.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
