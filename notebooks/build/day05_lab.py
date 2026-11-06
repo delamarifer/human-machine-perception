@@ -1,9 +1,10 @@
 """Builds notebooks/day05-lab-clip-embeddings.ipynb: the Day 5 lab for Fernanda's hour (hour 2).
 Two parts, done in two blocks that alternate with slides:
-  Part 1 (after the CLIP slide): embed images and captions with CLIP, cosine similarity, zero-shot classification,
-  your own captions. Your turn 1-3.
+  Part 1 (step by step with the slides, each concept followed by its code): embed images and captions with CLIP,
+  cosine similarity, the contrastive loss (InfoNCE), zero-shot classification, your own captions. Your turn 1-4.
+  Cells a slide links to have fixed ids: turn-N, plus embed (section 1) and try-classes (see CELL_IDS).
   Part 2 (after the Konkle & Alvarez 2022 reading): views and instance discrimination (the reading's objective,
-  tested on CLIP), then dissimilarity matrices and RSA. Your turn 4-6.
+  tested on CLIP), then dissimilarity matrices and RSA. Your turn 5-7.
 Model: CLIP ViT-B/32 (OpenAI) from Hugging Face, openai/clip-vit-base-patch32. Data: CIFAR-10 test set
 (Krizhevsky, 2009) downloaded by torchvision. No API keys, no GPU needed.
 See nbtools.py for how to build and check it."""
@@ -17,6 +18,21 @@ except ImportError:
     SOL, ANSWERS = {}, {}
 
 FILE = 'day05-lab-clip-embeddings.ipynb'
+
+# Fixed ids for the non-exercise cells a slide links to (<notebook url>#scrollTo=<id>), matched by the cell's
+# first line. nbtools gives exercise cells turn-N on its own.
+import nbtools
+CELL_IDS = {'# 1 · Ten images': 'embed', '# TRY IT · Leave classes out': 'try-classes'}
+_nbtools_build = nbtools.build
+def _build_with_ids(*args, **kwargs):
+    nb = _nbtools_build(*args, **kwargs)
+    for cell in nb.cells:
+        for first_line, name in CELL_IDS.items():
+            if cell.source.startswith(first_line):
+                cell.id = name
+                cell.metadata['id'] = name
+    return nb
+nbtools.build = _build_with_ids
 BOOK = 'https://visionbook.mit.edu'
 KONKLE = 'https://konklab.fas.harvard.edu/Papers/Konkle_2022_NatComm.pdf'
 
@@ -34,16 +50,17 @@ never on the class labels we use here.
 
 The lab has two parts, done in two blocks with slides in between:
 
-- **Part 1 · CLIP similarity** (after the CLIP slide). Sections 1 to 3.
+- **Part 1 · CLIP similarity** (step by step with the slides). Sections 1 to 3.
 - **Part 2 · Views and representations** (after the reading, Konkle & Alvarez 2022). Sections 4 and 5.
 
 By the end you will be able to:
 
 1. turn images and captions into **embeddings** with CLIP, and compare them with **cosine similarity**
-2. classify images **zero-shot**, from class names written as captions, and see how the words matter
-3. make **views** of an image (crops, color changes) and test whether each view is closest to its own image,
+2. compute CLIP's **contrastive loss** (InfoNCE) and see what the temperature does
+3. classify images **zero-shot**, from class names written as captions, and see how the words matter
+4. make **views** of an image (crops, color changes) and test whether each view is closest to its own image,
    the objective in today's reading
-4. build **dissimilarity matrices** (RDMs) and compare representations with **RSA**
+5. build **dissimilarity matrices** (RDMs) and compare representations with **RSA**
 
 **How to use this notebook.** Click a gray code cell and press **Shift + Enter** to run it. Run the
 cells in order. Cells marked **Your turn** are for you: they run as they are (if you leave one blank,
@@ -71,6 +88,8 @@ import torchvision
 import torchvision.transforms as T
 import transformers
 from transformers import CLIPModel, CLIPProcessor
+import torch.nn.functional as F
+from collections import Counter
 from scipy.stats import spearmanr
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -180,6 +199,10 @@ def upper(m):
 def course_similarity(image_emb, text_emb):
     return image_emb @ text_emb.T
 
+def course_infonce(logits):
+    partners = torch.arange(len(logits))
+    return F.cross_entropy(logits, partners), F.cross_entropy(logits.T, partners)
+
 def course_predictions(sims):
     return sims.argmax(dim=1)
 
@@ -196,6 +219,9 @@ print("helpers ready")
 md(f"""
 # Part 1 · CLIP similarity
 
+Part 1 goes step by step with the slides: each section matches one idea from class. Run it when the
+slide shows its code, try the small change it suggests, then come back to the slides.
+
 ## 1 · Embed images and captions
 
 CLIP has two encoders. The **image encoder** (a Vision Transformer, ViT-B/32) turns an image into 512
@@ -206,7 +232,9 @@ We take one test image from each of the ten CIFAR-10 classes. The images are tin
 processor scales them up to 224 × 224.
 """)
 code("""
-ten = first_of_each_class(per_class=1)
+# 1 · Ten images, one per class, and ten captions
+start = 0    # TRY IT: start = 100 or 5000 picks ten other test images
+ten = first_of_each_class(per_class=1, start=start)
 ten_images = [cifar[i][0] for i in ten]
 ten_labels = [CLASSES[cifar.targets[i]] for i in ten]
 show_images(ten_images, ten_labels)
@@ -214,8 +242,10 @@ show_images(ten_images, ten_labels)
 captions = [f"a photo of a {c}" for c in CLASSES]
 image_emb = embed_images(ten_images)
 text_emb = embed_texts(captions)
-print("image embeddings:", tuple(image_emb.shape), "  text embeddings:", tuple(text_emb.shape))
+print("image embeddings:", tuple(image_emb.shape))
+print("text embeddings: ", tuple(text_emb.shape))
 print("length of the first image embedding:", round(image_emb[0].norm().item(), 3))
+print("its first five numbers:", image_emb[0, :5].numpy().round(3))
 """)
 
 md("""
@@ -224,7 +254,8 @@ between image *i* and caption *j* is just their dot product. Compute all of them
 with one row per image and one column per caption. (Hint: a matrix product with a transpose.)
 """)
 turn("""
-# YOUR TURN 1 · A 10 x 10 matrix: similarity[i, j] = cosine similarity of image i and caption j.
+# YOUR TURN 1 · A 10 x 10 matrix:
+# similarity[i, j] = cosine similarity of image i and caption j.
 similarity = None    # replace None, using image_emb and text_emb
 
 if similarity is None:
@@ -239,10 +270,68 @@ md("""
 If CLIP works, the **diagonal** is darkest: each image is most similar to its own caption. Look at the
 off-diagonal cells too. Which wrong caption comes closest for each image? Do the mistakes make sense
 (cat and dog, automobile and truck)?
+
+**Try it.** In section 1, set `start = 100`, run it, then run Your turn 1 again. Ten new images: is the
+diagonal still darkest? The individual numbers mean nothing on their own; only the comparisons do.
+
+**Back to the slides** for self-supervised learning and the contrastive loss.
 """)
 
 md("""
-## 2 · Zero-shot classification
+## 2 · The contrastive loss
+
+CLIP was trained with a contrastive loss on exactly this kind of matrix: a batch of images and their
+captions, every image against every caption. Each **row** is a guessing game: here is image *i*, which of
+the ten captions is its partner? The answer is caption *i*.
+
+1. Divide the similarities by a **temperature** (a small number, so the differences get bigger). These are the *logits*.
+2. A softmax over each row turns them into probabilities, one per caption.
+3. The loss for that row is the cross-entropy: minus the log of the probability given to the partner.
+   It is low when the partner wins clearly.
+
+CLIP plays the game both ways: each image picks its caption (the rows) and each caption picks its image
+(the columns). The loss is the average of the two. This is **InfoNCE**.
+""")
+md("""
+**Your turn 2 · InfoNCE.** `F.cross_entropy(logits, partners)` does steps 2 and 3 for every row at once
+and averages them. Compute the loss for the images (rows) and for the captions (columns).
+""")
+turn("""
+# YOUR TURN 2 · CLIP's contrastive loss (InfoNCE) on the 10 x 10 matrix.
+# Row i: image i against every caption. Its partner is caption i.
+temperature = 0.07    # TRY IT: 0.01, 0.07, 0.5, 1.0
+logits = similarity / temperature
+partners = torch.arange(10)
+
+loss_images = None      # replace None: each image (row) vs its partner
+loss_captions = None    # replace None: each caption (column) vs its partner
+
+if loss_images is None or loss_captions is None:
+    print("Your turn 2 is blank: using the course's answer.")
+    loss_images, loss_captions = course_infonce(logits)
+loss = (loss_images + loss_captions) / 2
+shifted = sum(course_infonce(logits.roll(1, dims=1))) / 2    # wrong partners
+print(f"temperature {temperature}")
+print(f"  loss, true pairs:     {loss:.3f}")
+print(f"  loss, shifted pairs:  {shifted:.3f}")
+print(f"  loss, pure guessing:  {np.log(10):.3f}   (log 10)")
+clip_temperature = 1 / model.logit_scale.exp().item()
+print(f"CLIP's own temperature, learned in training: {clip_temperature:.3f}")
+""", SOL.get(2, ""))
+resources(('Sec. 30.10, Contrastive learning', f'{BOOK}/representation_learning.html#sec-representation_learning-contrastive_learning'),
+          ('torch.nn.functional.cross_entropy', 'https://pytorch.org/docs/stable/generated/torch.nn.functional.cross_entropy.html'),
+          ('Ch. 51.3, CLIP', f'{BOOK}/VLMs.html'))
+md("""
+The loss with the true pairs is far below pure guessing, and the shifted pairs are far above it: the loss
+is low only when partners are the most similar. **Try it:** change the temperature. With a large
+temperature (1.0) all the scores look alike and even the true pairs barely beat guessing; with a small one
+the partner wins by a mile. During training, the loss pulls partners together and pushes the rest apart.
+
+**Back to the slides** for what the views decide, and for how CLIP was trained.
+""")
+
+md("""
+## 3 · Zero-shot classification, and the words
 
 Now classify 500 test images, with **no training at all**: for each image, pick the caption it is most
 similar to. That caption's class is the prediction.
@@ -257,20 +346,20 @@ print(f"embedded {N} images in {time.time() - t0:.0f} s")
 test_sims = course_similarity(test_emb, text_emb)      # (500, 10): every image x every caption
 """)
 md("""
-**Your turn 2 · Predictions.** `test_sims` has one row per image and one column per caption. The
+**Your turn 3 · Predictions.** `test_sims` has one row per image and one column per caption. The
 prediction for each image is the column with the **largest** similarity. Compute all 500 predictions in one
 line.
 """)
 turn("""
-# YOUR TURN 2 · One predicted class index per image (a tensor of 500 integers).
+# YOUR TURN 3 · One predicted class index per image (500 integers).
 predictions = None    # replace None, using test_sims
 
 if predictions is None:
-    print("Your turn 2 is blank: using the course's answer.")
+    print("Your turn 3 is blank: using the course's answer.")
     predictions = course_predictions(test_sims)
 accuracy = (predictions == test_labels).float().mean().item()
 print(f"zero-shot accuracy on {N} images: {accuracy:.1%}   (chance: 10%)")
-""", SOL.get(2, ""))
+""", SOL.get(3, ""))
 resources(('torch.argmax', 'https://pytorch.org/docs/stable/generated/torch.argmax.html'),
           ('Ch. 51.3: zero-shot classification with text prompts', f'{BOOK}/VLMs.html'))
 md("""
@@ -281,15 +370,33 @@ wrong = [i for i in range(N) if predictions[i] != test_labels[i]][:20]
 show_images([test_images[i] for i in wrong],
             [f"{CLASSES[predictions[i]]}\\n(true: {CLASSES[test_labels[i]]})" for i in wrong])
 """)
-
 md("""
-## 3 · The words are part of the classifier
+**Try it.** Zero-shot can only choose among the captions you write. Delete one or two class names from
+the list below and run it: where do the images of the missing classes go?
+""")
+code("""
+# TRY IT · Leave classes out: delete one or two names from this list, then run.
+offered = ["airplane", "automobile", "bird", "cat", "deer",
+           "dog", "frog", "horse", "ship", "truck"]
 
+offered_emb = embed_texts([f"a photo of a {c}" for c in offered])
+picks = (test_emb @ offered_emb.T).argmax(dim=1)
+for c in CLASSES:
+    if c not in offered:
+        mine = test_labels == CLASSES.index(c)          # the images of class c
+        went = Counter(offered[p] for p in picks[mine].tolist())
+        top = ", ".join(f"{name} {n}" for name, n in went.most_common(3))
+        print(f"the {int(mine.sum())} {c} images now go to: {top}")
+if len(offered) == len(CLASSES):
+    print("All ten classes are offered: delete one or two names and run again.")
+""")
+md("""
 The captions decide what each class "looks like" to CLIP. Change the words and the classifier changes.
 """)
 turn("""
-# YOUR TURN 3 · Write your own caption template. {} is where the class name goes.
-# Try a few: "{}", "a blurry photo of a {}.", "a drawing of a {}.", "a photo of a small {}.", ...
+# YOUR TURN 4 · Write your own caption template. {} is where the class goes.
+# Try a few: "{}", "a blurry photo of a {}.", "a drawing of a {}.",
+# "a photo of a small {}.", ...
 my_template = None    # for example "a blurry photo of a {}."
 
 baseline = (zero_shot(test_emb, "a photo of a {}") == test_labels).float().mean().item()
@@ -298,8 +405,8 @@ if my_template is not None:
     mine = (zero_shot(test_emb, my_template) == test_labels).float().mean().item()
     print(f'"{my_template}"  ->  {mine:.1%}')
 else:
-    print("Your turn 3 is blank: write a template above and run the cell again.")
-""", SOL.get(3, ""))
+    print("Your turn 4 is blank: write a template above and run it again.")
+""", SOL.get(4, ""))
 resources(('Ch. 51.3: zero-shot classification with text prompts', f'{BOOK}/VLMs.html'),
           ('Python str.format', 'https://docs.python.org/3/library/stdtypes.html#str.format'))
 md("""
@@ -308,7 +415,7 @@ caption help? Keep a note of your best template for the class discussion.
 
 **End of Part 1.** Back to the slides for the reading.
 """)
-answer(ANSWERS.get(3, ""))
+answer(ANSWERS.get(4, ""))
 
 # ---------------------------------------------------------------------------------------------
 md(f"""
@@ -374,7 +481,7 @@ for kind, emb in view_emb.items():
         note = ""
     print(f"{kind:6s} views: instance accuracy {float(acc):.0%}{note}")
 """, SOL.get(4, ""))
-resources(('Ch. 30.10, Contrastive learning', f'{BOOK}/representation_learning.html'),
+resources(('Ch. 30.10, Contrastive learning', f'{BOOK}/representation_learning.html#sec-representation_learning-contrastive_learning'),
           ('Konkle & Alvarez 2022, Results: instance-prototype contrastive learning', KONKLE),
           ('Boolean comparison and .float().mean() in PyTorch', 'https://pytorch.org/docs/stable/generated/torch.eq.html'))
 
