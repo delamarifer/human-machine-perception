@@ -98,18 +98,6 @@ st(`
   "(draft) The link opens Your turn 2. A few minutes, then back to the slides: training pushes this number down, and what it learns depends on the views."
 ]});
 
-st(`
-  <h1 class="t">The views decide what is kept</h1>
-  <div class="cols">
-    <div class="card b"><div class="k">Crops only</div><div class="label">In the book's toy shapes, the embedding groups by color.</div></div>
-    <div class="card b"><div class="k">Crops + color changes</div><div class="label">Now color varies between partners. The embedding ignores it and groups by shape.</div></div>
-    <div class="card hi b"><div class="k">The design choice</div><div class="label">Whatever the two views differ in, the embedding learns to ignore.</div></div>
-  </div>
-  ${cite('<i>Foundations of Computer Vision</i>, Sec. 30.10.2, experiment on a toy dataset of colored shapes')}
-`, { notes: [
-  "(draft) Here is the catch, and it matters for the reading. The views are a choice we make.",
-  "(draft) The book trains a small contrastive network on toy images of colored shapes. If the two views differ only by cropping, the embedding groups the images by color: color is the easiest thing to keep that tells images apart.",
-  "(draft) Add random changes of hue, brightness and saturation to the views. Now two partners can have different colors, so color stops helping. The embedding becomes blind to color and groups by shape instead.",
-  "(draft) So contrastive learning is not free of assumptions. Whatever the two views are allowed to differ in, the embedding learns to ignore. Keep that in mind when we read how Konkle and Alvarez chose theirs."
-]});
+/* The text slide 'The views decide what is kept' is replaced by the views scene (scenes/views.html, 2026-11-06). */
+sc('viewsScene', 'scenes/views.html');
 }
