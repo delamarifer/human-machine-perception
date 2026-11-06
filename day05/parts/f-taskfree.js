@@ -16,33 +16,8 @@ st(`
   "(draft) We go from training a network for one task to letting it learn the structure of images themselves."
 ]});
 
-st(`
-  <h1 class="t">From task to task-free</h1>
-  <div class="cols">
-    <div class="card b"><div class="k">Task</div><div class="label">Image → one of 1,000 labels. The network keeps what the labels need.</div></div>
-    <div class="card b"><div class="k">The cost</div><div class="label">Someone labels every image, and the labels decide what is kept.</div></div>
-    <div class="card hi b"><div class="k">Task-free</div><div class="label">Learn the structure of the images themselves. Choose the task later.</div></div>
-  </div>
-  ${cite('Torralba, Isola &amp; Freeman, <i>Foundations of Computer Vision</i>, Ch. 30, Representation Learning')}
-`, { notes: [
-  "(draft) Everything so far has been trained for a task. Here is the alternative.",
-  "(draft) The usual recipe: show the network an image, and ask for one of a thousand labels, the ImageNet categories. Whatever it learns, it learns because the labels need it.",
-  "(draft) That has two costs. Someone has to label every image. And the labels decide what the network keeps: ImageNet has three kinds of crab and about ninety dog breeds as separate labels, so it learns to tell those apart, whether or not that matters for anything else. Konkle and Alvarez make this point in today's reading.",
-  "(draft) Task-free learning flips it. Learn the structure of the images first, with no labels, and choose the task later. The book puts the trade-off simply: a good representation for one task may be a bad one for another, so the goal is a representation that serves many of the tasks people care about."
-]});
+/* The text slides 'From task to task-free' and 'Learning the underlying patterns' are replaced by the
+   task-free scene (scenes/taskfree.html, 2026-11-06). */
+sc('taskfreeScene', 'scenes/taskfree.html');
 
-st(`
-  <h1 class="t">Learning the underlying patterns</h1>
-  <div class="cols">
-    <div class="card b"><div class="k">Compress</div><div class="label">Keep far fewer numbers than pixels. What survives has to be the structure.</div></div>
-    <div class="card b"><div class="k">Predict</div><div class="label">Fill in a hidden part, the color, the next frame. To predict it, you need the pattern.</div></div>
-    <div class="card hi b"><div class="k">An embedding</div><div class="label">What comes out: one vector per image, in a space where close means similar.</div></div>
-  </div>
-  ${cite('<i>Foundations of Computer Vision</i>, Sec. 30.2–30.3: problem setting; compression and prediction')}
-`, { notes: [
-  "(draft) Without a label, what tells the network it is doing well? The book gives two answers.",
-  "(draft) Compression. Squeeze the image into far fewer numbers than it has pixels. You cannot keep everything, so what survives has to be the regular structure, not the noise.",
-  "(draft) Prediction. Hide part of the data and predict it: the missing patch, the color of a gray photo, the next frame of a video. You can only predict well if you have picked up the pattern.",
-  "(draft) Either way, what we keep is the encoder's output: an embedding, one vector per image, in a space that is smaller and better organized than pixels, where close means similar. The next slide builds one, step by step."
-]});
 }
