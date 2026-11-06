@@ -58,10 +58,7 @@ inside the block (one sentence in the notes of slide 7), training.
 - Softmax bars on slide 8: schematic, labeled "schematic" on screen and in the notes.
 
 ## Questions for Fernanda
-- [ ] "Slides 15-18" of the live Day 5 deck: I used the numbers shown on screen (15 Query, key, value; 16 Attention in
-      four steps; 17 Attention by hand; 18A-C Exercise 2), which matches your earlier "slide 15 = query, key, value".
-      Counting positions instead gives 13B (Exercise 1, second screen), 14 (How does a token gather relevant
-      information?), 15 and 16. Want 13B and 14 added too?
+- [x] "Slides 15-18" of the live Day 5 deck: confirmed by Fernanda (starting at deck.html#17, Query, key, value).
 - [ ] Overlap: slide 11 (ours, Inside one attention score) and slide 12 (Shreya's Attention in four steps) teach the
       same computation, for one patch vs for the whole matrix. Keep both, or drop 11 (recommended if time is short)?
 - [ ] Shreya's slides count 196 tokens (224-pixel image, 16-pixel patches); the rest of Plan B uses 64. The notes say so.
