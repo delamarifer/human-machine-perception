@@ -213,8 +213,28 @@ twenty_images = [cifar[i][0] for i in twenty]
 n_views = 5
 
 example = twenty_images[0]
-for kind, tf in VIEWS.items():
-    show_images([example] + [tf(example) for _ in range(n_views)],
+
+# Crop views: each crop keeps 40 to 100% of the image and is scaled back up to 32 x 32, so it looks like a zoom.
+# Top row: the box shows which part of the original each crop kept. Bottom row: the crop view itself.
+import torchvision.transforms.functional as TF
+from matplotlib.patches import Rectangle
+crop = VIEWS["crop"]
+fig, axes = plt.subplots(2, n_views, figsize=(n_views * 1.8, 3.9))
+for k in range(n_views):
+    top, left, height, width = crop.get_params(example, crop.scale, crop.ratio)
+    axes[0, k].imshow(example)
+    axes[0, k].add_patch(Rectangle((left - 0.5, top - 0.5), width, height, fill=False, edgecolor="red", linewidth=2))
+    axes[0, k].set_title(f"crop {k + 1}: {width * height / 32**2:.0%} of the image", fontsize=8)
+    axes[1, k].imshow(TF.resized_crop(example, top, left, height, width, [32, 32]))
+    axes[1, k].set_title(f"crop view {k + 1}", fontsize=8)
+for ax in axes.ravel():
+    ax.axis("off")
+plt.tight_layout()
+plt.show()
+
+# Color views and both together
+for kind in ["color", "both"]:
+    show_images([example] + [VIEWS[kind](example) for _ in range(n_views)],
                 ["original"] + [f"{kind} view {k + 1}" for k in range(n_views)], cols=6, size=1.4)
 """)
 md("""
