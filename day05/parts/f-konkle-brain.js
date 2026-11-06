@@ -20,8 +20,29 @@ const KONKLE_LAB_CSS = `<style>
   .konkle-lab-code{ margin:0; font-family:Menlo, Consolas, monospace; font-size:clamp(.72rem, 1.02vw, 1.02rem); line-height:1.38;
     white-space:pre; overflow:hidden; background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding:.8vh .9vw; }
   .konkle-lab-go{ grid-column:1 / -1; text-align:center; }
+  .konkle-lab-sol{ margin-top:.6vh; }
+  .konkle-lab-sol summary{ cursor:pointer; color:var(--mute); font-size:clamp(.8rem, 1vw, 1rem); }
+  .konkle-lab-go .konkle-lab-sol{ display:inline-block; margin:0 0 0 1vw; }
+  .konkle-lab-sol-pop{ position:fixed; left:50%; top:52%; transform:translate(-50%, -50%); z-index:50; width:min(92vw, 70rem);
+    max-height:78vh; overflow:auto; background:#fff; border:2px solid var(--ink); border-radius:12px; padding:1.4vh 1.2vw;
+    box-shadow:0 10px 40px rgba(15,23,42,.18); text-align:left; }
+  .konkle-lab-sol-pop .konkle-lab-code{ background:#fffbeb; overflow:visible; }
+  .konkle-lab-sol-pop .konkle-lab-code:empty{ display:none; }
+  .konkle-lab-sol-pop .konkle-lab-ans{ line-height:1.4; }
 </style>`;
 const codeBox = (src, code) => `<div><div class="konkle-lab-src">${src}</div><pre class="konkle-lab-code">${esc(code)}</pre></div>`;
+// Teacher-only solution (same mechanism as f-clip, day05-s7-8): open the deck on localhost with ?teacher. If
+// notebooks/teacher/day05-lab-solutions.json exists (written by `day05_lab.py --teacher`, git-ignored), a collapsed
+// Solution block appears under the Your-turn code. Never on the public site (no file there, and no fetch).
+const solBox = cell => `<details class="konkle-lab-sol" data-konkle-sol="${cell}" hidden onclick="event.stopPropagation()"><summary>Solution (teacher copy)</summary><div class="konkle-lab-sol-pop"><pre class="konkle-lab-code"></pre><div class="label konkle-lab-ans"></div></div></details>`;
+if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) && new URLSearchParams(location.search).has('teacher'))
+  fetch('../notebooks/teacher/day05-lab-solutions.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(sol => {
+    if (!sol) return;
+    const fill = () => document.querySelectorAll('[data-konkle-sol]').forEach(d => {
+      const k = d.dataset.konkleSol; if (!sol[k] && !sol[k + '-answer']) return;
+      d.querySelector('pre').textContent = sol[k] || ''; d.querySelector('.konkle-lab-ans').textContent = sol[k + '-answer'] || ''; d.hidden = false; });
+    fill(); setTimeout(fill, 1500);
+  }).catch(() => {});
 
 st(`${KONKLE_LAB_CSS}
   <h1 class="t">In the lab: RDMs and RSA on CLIP</h1>
@@ -43,7 +64,7 @@ rdm_category = (hundred_labels[:, None] != hundred_labels[None, :]).astype(float
     <div class="card hi b" data-step="3"><div class="k">Your turn 7</div><div class="label">RSA: the rank correlation of two RDMs. CLIP vs the category model, then pixels vs the category model.</div></div>
     <div class="b" data-step="3">${codeBox('Your turn 7 · you write it', `# YOUR TURN 7 · Spearman correlation between the upper triangles of two RDMs.
 def rsa(rdm_a, rdm_b):
-    return None    # replace None: use upper(...) and spearmanr(...).correlation`)}</div>
+    return None    # replace None: use upper(...) and spearmanr(...).correlation`)}${solBox('turn-7')}</div>
     <div class="label konkle-lab-go b" data-step="4">
       <a href="${LAB_NB}#scrollTo=turn-7" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open Your turn 7 in Colab ↗</a> · then back to the reading
     </div>
