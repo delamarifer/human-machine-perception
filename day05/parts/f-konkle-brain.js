@@ -40,12 +40,12 @@ rdm_category = (hundred_labels[:, None] != hundred_labels[None, :]).astype(float
     m = np.asarray(m)
     i, j = np.triu_indices(len(m), k=1)
     return m[i, j]`)}</div>
-    <div class="card hi b" data-step="3"><div class="k">Your turn 6</div><div class="label">RSA: the rank correlation of two RDMs. CLIP vs the category model, then pixels vs the category model.</div></div>
-    <div class="b" data-step="3">${codeBox('Your turn 6 · you write it', `# YOUR TURN 6 · Spearman correlation between the upper triangles of two RDMs.
+    <div class="card hi b" data-step="3"><div class="k">Your turn 7</div><div class="label">RSA: the rank correlation of two RDMs. CLIP vs the category model, then pixels vs the category model.</div></div>
+    <div class="b" data-step="3">${codeBox('Your turn 7 · you write it', `# YOUR TURN 7 · Spearman correlation between the upper triangles of two RDMs.
 def rsa(rdm_a, rdm_b):
     return None    # replace None: use upper(...) and spearmanr(...).correlation`)}</div>
     <div class="label konkle-lab-go b" data-step="4">
-      <a href="${LAB_NB}#scrollTo=turn-6" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open Your turn 6 in Colab ↗</a> · then back to the reading
+      <a href="${LAB_NB}#scrollTo=turn-7" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open Your turn 7 in Colab ↗</a> · then back to the reading
     </div>
   </div>
   ${cite('Notebook: day05-lab-clip-embeddings, Part 2 · CLIP ViT-B/32 · CIFAR-10 test images (Krizhevsky, 2009)')}
@@ -53,8 +53,8 @@ def rsa(rdm_a, rdm_b):
   "(draft) Now the same comparison in the notebook, on real images and a real network.",
   "(draft) A hundred CIFAR images, ten from each class. Three dissimilarity matrices, given in the notebook: one minus the cosine similarity of the CLIP embeddings, one minus the correlation of the raw pixels, and the category model, zero for two images of the same class and one otherwise. Like the scene, that last one is a hypothesis, not a measurement.",
   "(draft) The matrix is symmetric and its diagonal is zero, so each pair counts once: the helper upper keeps only the numbers above the diagonal, as one long vector.",
-  "(draft) Your turn 6 is RSA itself: the Spearman rank correlation between two of those vectors. Compare CLIP with the category model, and the pixels with the category model. CLIP never saw these ten labels.",
-  "(draft) The link opens Your turn 6. Then we come back to see how Konkle and Alvarez did this with brain data."
+  "(draft) Your turn 7 is RSA itself: the Spearman rank correlation between two of those vectors. Compare CLIP with the category model, and the pixels with the category model. CLIP never saw these ten labels.",
+  "(draft) The link opens Your turn 7. Then we come back to see how Konkle and Alvarez did this with brain data."
 ]});
 
 st(`

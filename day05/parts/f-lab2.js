@@ -1,7 +1,7 @@
 /* PART: f-lab2 (Day 5). Owner: Fernanda. Hour 2, lab block 2 of 2, after the reading.
-   Notebook: notebooks/day05-lab-clip-embeddings.ipynb, Part 2 (Your turn 4-6): views and instance
+   Notebook: notebooks/day05-lab-clip-embeddings.ipynb, Part 2 (Your turn 5-7): views and instance
    discrimination (the reading's objective, tested on CLIP), then an RDM and RSA on 100 images.
-   NOT LOADED since 2026-11-06: the lab is no longer left for the end; concept + code slides for Your turn 4-6 sit
+   NOT LOADED since 2026-11-06: the lab is no longer left for the end; concept + code slides for Your turn 5-7 sit
    inside section 9 (f-konkle after IPCL, f-konkle-brain after the RSA scene). File kept. */
 {
 section('10. Lab: views');
@@ -18,7 +18,7 @@ st(`
     <div class="step b" data-step="3"><b>Compare spaces</b><span class="label">dissimilarity matrices: CLIP, pixels, categories</span></div>
   </div>
   <div class="label b" data-step="4" style="text-align:center">
-    <a href="${LAB_NB2}#scrollTo=turn-4" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open part 2 in Colab ↗</a> · about 15 minutes
+    <a href="${LAB_NB2}#scrollTo=turn-5" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open part 2 in Colab ↗</a> · about 15 minutes
   </div>
 `, { notes: [
   "(draft) Lab, part two. You test the reading's idea on CLIP.",

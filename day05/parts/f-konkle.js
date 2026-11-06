@@ -72,12 +72,12 @@ st(`${KONKLE_LAB_CSS}
     sims = emb @ emb.T
     sims.fill_diagonal_(-2)
     return sims.argmax(dim=1)`)}</div>
-    <div class="card hi b" data-step="3"><div class="k">Your turn 4</div><div class="label">Score it: the fraction of views whose neighbor comes from the same image. Chance is about 4%.</div></div>
-    <div class="b" data-step="3">${codeBox('Your turn 4 · you write it', `# YOUR TURN 4 · The fraction of views whose nearest other view comes from the same image.
+    <div class="card hi b" data-step="3"><div class="k">Your turn 5</div><div class="label">Score it: the fraction of views whose neighbor comes from the same image. Chance is about 4%.</div></div>
+    <div class="b" data-step="3">${codeBox('Your turn 5 · you write it', `# YOUR TURN 5 · The fraction of views whose nearest other view comes from the same image.
 def instance_accuracy(emb, owner):
     return None    # replace None: use nearest_other(emb) and owner`)}</div>
     <div class="label konkle-lab-go b" data-step="4">
-      <a href="${LAB_NB}#scrollTo=turn-4" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open Your turn 4 in Colab ↗</a> · then talk it over (Your turn 5) · then back to the reading
+      <a href="${LAB_NB}#scrollTo=turn-5" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open Your turn 5 in Colab ↗</a> · then talk it over (Your turn 6) · then back to the reading
     </div>
   </div>
   ${cite('Notebook: day05-lab-clip-embeddings, Part 2 · CLIP ViT-B/32 · CIFAR-10 test images (Krizhevsky, 2009)')}
@@ -85,8 +85,8 @@ def instance_accuracy(emb, owner):
   "(draft) Before the results, let's try their objective ourselves. Not on their network: on CLIP, the model from the first lab.",
   "(draft) First, views, the way Konkle and Alvarez made them. In the notebook this is given: a random crop that keeps 40 to 100 percent of the image area and scales it back up, a color change, or both at once. Each image gets five views of each kind.",
   "(draft) Their objective becomes a test. For every view, find the most similar other view among all the views. If it is a view of the same image, the embedding kept what makes that image itself. The helper nearest_other does the search: a similarity matrix, the diagonal pushed down so a view cannot pick itself, then the largest in each row.",
-  "(draft) Your turn 4 is the score: what fraction of views have a neighbor from their own image. Twenty images, five views each, so chance is four out of ninety-nine, about four percent. Run it for crops, for color, and for both.",
-  "(draft) The link opens Your turn 4. Then Your turn 5, talk it over with your neighbor: which views does CLIP tolerate, and what would a network trained on color changes be blind to? Then we come back for the paper's results."
+  "(draft) Your turn 5 is the score: what fraction of views have a neighbor from their own image. Twenty images, five views each, so chance is four out of ninety-nine, about four percent. Run it for crops, for color, and for both.",
+  "(draft) The link opens Your turn 5. Then Your turn 6, talk it over with your neighbor: which views does CLIP tolerate, and what would a network trained on color changes be blind to? Then we come back for the paper's results."
 ]});
 
 st(`

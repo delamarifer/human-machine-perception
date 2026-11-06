@@ -355,13 +355,13 @@ print(f"embedded {sum(len(v) for v in view_emb.values())} views in {time.time() 
 print("owner of the first 12 views:", owner[:12].tolist())
 """)
 md("""
-**Your turn 4 · Instance accuracy.** For one kind of view, `nearest_other(emb)` gives, for each view, the
+**Your turn 5 · Instance accuracy.** For one kind of view, `nearest_other(emb)` gives, for each view, the
 index of its most similar other view. The view's partner is correct when `owner` of that neighbor equals the
 view's own `owner`. Write the fraction of views whose nearest neighbor is a view of the same image. Chance is
 4 out of 99, about 4%.
 """)
 turn("""
-# YOUR TURN 4 · The fraction of views whose nearest other view comes from the same image.
+# YOUR TURN 5 · The fraction of views whose nearest other view comes from the same image.
 def instance_accuracy(emb, owner):
     return None    # replace None: use nearest_other(emb) and owner
 
@@ -369,24 +369,24 @@ for kind, emb in view_emb.items():
     acc = instance_accuracy(emb, owner)
     if acc is None:
         acc = course_instance_accuracy(emb, owner)
-        note = "  (Your turn 4 is blank: course's answer)"
+        note = "  (Your turn 5 is blank: course's answer)"
     else:
         note = ""
     print(f"{kind:6s} views: instance accuracy {float(acc):.0%}{note}")
-""", SOL.get(4, ""))
+""", SOL.get(5, ""))
 resources(('Ch. 30.10, Contrastive learning', f'{BOOK}/representation_learning.html'),
           ('Konkle & Alvarez 2022, Results: instance-prototype contrastive learning', KONKLE),
           ('Boolean comparison and .float().mean() in PyTorch', 'https://pytorch.org/docs/stable/generated/torch.eq.html'))
 
 md("""
-### Your turn 5 · Talk it over
+### Your turn 6 · Talk it over
 
 Which kind of view does CLIP tolerate best, and which worst? CLIP was trained to match images with
 captions, not to match crops of one image. In the book's toy experiment (Ch. 30.10.2), whatever the two
 views differ in, the embedding learns to ignore. Konkle and Alvarez put color changes in their views: what
 would their network then be blind to? Would you want that in a model of human vision?
 """)
-answer(ANSWERS.get(5, ""))
+answer(ANSWERS.get(6, ""))
 
 md("""
 ## 5 · Comparing representations with RSA
@@ -421,12 +421,12 @@ for ax, (name, rdm) in zip(axes, [("CLIP", rdm_clip), ("pixels", rdm_pixels), ("
 plt.tight_layout(); plt.show()
 """)
 md("""
-**Your turn 6 · RSA.** Two RDMs agree when the same pairs are close in both. Take the numbers above the
+**Your turn 7 · RSA.** Two RDMs agree when the same pairs are close in both. Take the numbers above the
 diagonal of each matrix (`upper(rdm)`, each pair once) and compute their **Spearman rank correlation**
 with `spearmanr`. Compare CLIP with the category model, and the pixels with the category model.
 """)
 turn("""
-# YOUR TURN 6 · Spearman correlation between the upper triangles of two RDMs.
+# YOUR TURN 7 · Spearman correlation between the upper triangles of two RDMs.
 def rsa(rdm_a, rdm_b):
     return None    # replace None: use upper(...) and spearmanr(...).correlation
 
@@ -434,11 +434,11 @@ for name, rdm in [("CLIP", rdm_clip), ("pixels", rdm_pixels)]:
     r = rsa(rdm, rdm_category)
     if r is None:
         r = course_rsa(rdm, rdm_category)
-        note = "  (Your turn 6 is blank: course's answer)"
+        note = "  (Your turn 7 is blank: course's answer)"
     else:
         note = ""
     print(f"{name:6s} vs category model: Spearman r = {r:.2f}{note}")
-""", SOL.get(6, ""))
+""", SOL.get(7, ""))
 resources(('scipy.stats.spearmanr', 'https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.spearmanr.html'),
           ('numpy.triu_indices', 'https://numpy.org/doc/stable/reference/generated/numpy.triu_indices.html'),
           ('Konkle & Alvarez 2022, Results: relationship to human brain responses', KONKLE))
