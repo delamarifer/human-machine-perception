@@ -32,17 +32,18 @@ Preview: `python3 -m http.server 8171` from the repo root, then `day05-planb/dec
 | 2:30 | Option: last patch's output, as in next-token generation | last output token to the classifier | 8, click 2 |
 | 2:36 | Extra learnable embedding (class token) gathers information | extra token at the front; curve gathering the outputs | 8, clicks 3 to 5 |
 | 2:55 | Attention of the first patch with all others; then every patch | lines fan out from patch 1; then the whole grid lights up | 9 |
-| 3:17 | First and last patch: global receptive field | the two corner patches boxed | 12, clicks 1 to 3 |
-| 3:33 | CNNs: local receptive fields, built-in inductive bias | (narration) | 12, clicks 4 to 6 |
-| 3:40 | CNNs may use texture, ViTs global shape | two illustrative edge images (the video says they are not from real models) | 13 |
-| 4:10 | Fixed 16 x 16 patches; 128, 256, 512, 2048 px images; attention count per layer | the grid gets finer, counts beside it | 14, clicks 1 to 5 |
-| 4:47 | "What is an alternative?" (asked, not answered) | (narration) | 14, click 6 |
-| 4:51 | ViTs need large datasets to compete with CNNs | (narration) | 15 |
+| 3:17 | First and last patch: global receptive field | the two corner patches boxed | 15, clicks 1 to 3 |
+| 3:33 | CNNs: local receptive fields, built-in inductive bias | (narration) | 15, clicks 4 to 6 |
+| 3:40 | CNNs may use texture, ViTs global shape | two illustrative edge images (the video says they are not from real models) | 16 |
+| 4:10 | Fixed 16 x 16 patches; 128, 256, 512, 2048 px images; attention count per layer | the grid gets finer, counts beside it | 17, clicks 1 to 5 |
+| 4:47 | "What is an alternative?" (asked, not answered) | (narration) | 17, click 6 |
+| 4:51 | ViTs need large datasets to compete with CNNs | (narration) | 18 |
 
 Not in the video, added (each marked in its notes): slide 10, Shreya's "Query, key, value" slide (Day 5 slide 15, copied at
 Fernanda's request, on-screen wording unchanged); slide 11, the attention score computation
-(q.k / sqrt d, softmax, weighted sum of values); the evidence citations on slide 13; the human-vision
-question on slide 15; the recap, slide 16.
+(q.k / sqrt d, softmax, weighted sum of values); slides 12, 13, 14A-C, Shreya's "Attention in four steps", "Attention by hand" and "Exercise 2"
+(her Day 5 slides 16, 17, 18A-C, copied at Fernanda's request, text unchanged, notes ours); the evidence citations on
+slide 16; the human-vision question on slide 18; the recap, slide 19.
 
 Not in the video and not in the deck: multi-head attention, the MLP, layer norm and skip connections
 inside the block (one sentence in the notes of slide 7), training.
@@ -57,13 +58,20 @@ inside the block (one sentence in the notes of slide 7), training.
 - Softmax bars on slide 8: schematic, labeled "schematic" on screen and in the notes.
 
 ## Questions for Fernanda
+- [ ] "Slides 15-18" of the live Day 5 deck: I used the numbers shown on screen (15 Query, key, value; 16 Attention in
+      four steps; 17 Attention by hand; 18A-C Exercise 2), which matches your earlier "slide 15 = query, key, value".
+      Counting positions instead gives 13B (Exercise 1, second screen), 14 (How does a token gather relevant
+      information?), 15 and 16. Want 13B and 14 added too?
+- [ ] Overlap: slide 11 (ours, Inside one attention score) and slide 12 (Shreya's Attention in four steps) teach the
+      same computation, for one patch vs for the whole matrix. Keep both, or drop 11 (recommended if time is short)?
+- [ ] Shreya's slides count 196 tokens (224-pixel image, 16-pixel patches); the rest of Plan B uses 64. The notes say so.
 - [ ] Slides 10 (Shreya's query, key, value) and 11 (attention score) go beyond the video. Keep it, move it to backup, or cut it?
 - [ ] Multi-head attention is not in the video. Add a slide, or leave it out of Plan B?
-- [ ] Slide 13 cites Geirhos et al. (2019) and Tuli et al. (2021) as evidence for texture vs shape. Please
+- [ ] Slide 16 cites Geirhos et al. (2019) and Tuli et al. (2021) as evidence for texture vs shape. Please
       confirm you are happy citing them (the video itself shows only illustrations).
-- [ ] Slide 15 ends with a question of ours, "What might this say about how people learn to see?" Keep?
+- [ ] Slide 18 ends with a question of ours, "What might this say about how people learn to see?" Keep?
 - [ ] The photo is the odd-eyed cat from day05/assets/cnn-limits (copied, square crop). OK, or another image?
-- [ ] Length: about 45 minutes as written (76 clicks). For a 2-hour class it would need a lab or discussion
+- [ ] Length: about 45 minutes as written (89 clicks). For a 2-hour class it would need a lab or discussion
       block after it. Anything to add?
 - [ ] Colors: embeddings use the deck accent (#4f6d9a); R, G, B are used only for the three channels;
       the class token is solid ink. No new course-wide color meanings. OK?

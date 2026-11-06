@@ -9,7 +9,8 @@ const ORDER = [
   ['qkv',           'Query, key and value from one embedding (1:15 to 1:38)'],
   ['position',      'Why position matters, and adding it (1:38 to 2:11)'],
   ['blocks',        'Attention blocks, classifier, class token (2:11 to 2:53)'],
-  ['attention',     'What attention does, and one score computed (2:53 to 3:17)'],
+  ['attention',     'What attention does, and Shreya query key value, one score computed (2:53 to 3:17)'],
+  ['planb-shreya-attention', 'From Shreya Day 5 deck: attention in four steps, by hand, Exercise 2'],
   ['vs-cnn',        'Global vs local receptive field, texture vs shape (3:17 to 4:10)'],
   ['limits',        'Cost of attention at high resolution, and data hunger (4:10 to 5:05)'],
   ['recap',         'The whole pipeline in one picture'],
@@ -19,7 +20,7 @@ const PARTS = ORDER.map(r => r[0]);
 /* Minutes per section (the progress bar), for a talk of about 45 minutes. */
 const SEC_MINUTES = {
   '1. Image to tokens': 10,
-  '2. Attention': 18,
+  '2. Attention': 28,
   '3. ViT and CNN': 12,
   '4. Recap': 4,
 };
