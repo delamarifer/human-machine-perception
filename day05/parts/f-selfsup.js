@@ -46,24 +46,8 @@ if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) && new URLSearc
    (scenes/pretext.html, 2026-11-06); the text version is in git before this commit. */
 sc('pretext', 'scenes/pretext.html');
 
-st(`
-  <h1 class="t">Contrastive learning</h1>
-  <div class="flow">
-    <div class="step b" data-step="1"><b>Two views</b><span class="label">random crops and color changes of one image</span></div>
-    <div class="arrow b" data-step="2">→</div>
-    <div class="step b" data-step="2"><b>Pull together</b><span class="label">two views of the same image: a positive pair</span></div>
-    <div class="arrow b" data-step="3">→</div>
-    <div class="step b" data-step="3"><b>Push apart</b><span class="label">views of other images: negatives</span></div>
-  </div>
-  <div class="card hi b" data-step="4"><div class="k">On a sphere</div><div class="label">Every embedding is scaled to length 1, so similarity is the cosine of the angle.</div></div>
-  ${cite('<i>Foundations of Computer Vision</i>, Sec. 30.10, Contrastive Learning')}
-`, { notes: [
-  "(draft) The self-supervised idea that took over is contrastive learning. Today's reading uses it, and so does CLIP.",
-  "(draft) Take one image and make two views of it: two random crops, with the colors shifted a little. Same content, different pixels.",
-  "(draft) Ask the network to map the two views close together. They are a positive pair. On its own this fails: the network can map every image to the same point, and every pair is close.",
-  "(draft) So also push the views of other images away. Those are the negatives. Now the only way to win is to keep what makes this image this image.",
-  "(draft) One more detail: every embedding is scaled to length one, so all the points live on a sphere and similarity is just the cosine of the angle between them. Otherwise the network could push negatives infinitely far away."
-]});
+/* The text slide 'Contrastive learning' is replaced by the contrastive scene (scenes/contrastive.html, 2026-11-06). */
+sc('contrastiveScene', 'scenes/contrastive.html');
 
 /* The text slide 'The contrastive loss' is replaced by the InfoNCE guessing-game scene (scenes/infonce.html,
    2026-11-06), right before its code step (Your turn 2). */
