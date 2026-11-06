@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>You can still do a lot with those embeddings</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: Fernanda (Day 5 Part 2, f-uses). 40 toy images in a 2-number embedding; nearest neighbors, K-means,
+     a logistic-regression probe and zero-shot captions are all computed here, at load (seeded). */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">You can still do a lot with those embeddings</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE      (0):   the title alone
+   ACT 1  SPACE      (1):   40 images placed by a 2-number embedding
+   ACT 2  NO LABELS  (2-3): nearest neighbors of one image (image search); K-means finds 5 groups nobody named
+   ACT 3  FEW LABELS (4):   2 labels per kind train a logistic-regression probe; its boundaries grow as it trains
+   ACT 4  WORDS      (5-6): captions become points in the same space, each image goes to its nearest caption;
+                            delete one caption and the boundaries move
+   No data colors: each point is drawn as its own image; boundaries and groups are ink lines. */
+/* ---- shared toy set (the same block is pasted into each Day 5 scene, so each scene stays self-contained) ----
+   Images are made here, seeded: 6 kinds of 32x32 gray texture. The "embedding" is a hand-designed Gabor
+   filter bank (4 orientations x 2 scales, as on Day 3), standing in for a network layer: each filter's
+   energy map is averaged over the image, giving 8 numbers. */
+const FONT = "Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif";
+function rng(seed){ return () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const gauss = r => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r());
+const KINDS = ['horizontal stripes', 'vertical stripes', 'diagonal stripes', 'checkers', 'dots', 'rings'];
+function toyImage(kind, r, n = 32){
+  const f = .09 + .07 * r(), ph = 6.2832 * r(), ph2 = 6.2832 * r(), c = .32 + .12 * r(), cx = n * (.3 + .4 * r()), cy = n * (.3 + .4 * r());
+  const im = new Float32Array(n * n), T = 2 * Math.PI * f;
+  for(let y = 0; y < n; y++) for(let x = 0; x < n; x++){
+    let v;
+    if(kind === 0) v = Math.sin(T * y + ph);
+    else if(kind === 1) v = Math.sin(T * x + ph);
+    else if(kind === 2) v = Math.sin(T * (x + y) * Math.SQRT1_2 + ph);
+    else if(kind === 3) v = Math.sign(Math.sin(T * x + ph) * Math.sin(T * y + ph2));
+    else if(kind === 4) v = Math.sin(T * x + ph) * Math.sin(T * y + ph2) > .55 ? 1 : -.6;
+    else v = Math.sin(T * Math.hypot(x - cx, y - cy) + ph);
+    im[y * n + x] = Math.max(0, Math.min(1, .5 + c * v + .05 * gauss(r)));
+  }
+  return im;
+}
+/* the filter bank: even and odd Gabors; theta 0 responds to vertical stripes */
+const BANK = [];
+for(const [lam, sig] of [[4, 1.8], [8, 3.4]]) for(let o = 0; o < 4; o++){
+  const th = o * Math.PI / 4, R = Math.ceil(2.2 * sig), size = 2 * R + 1, ev = new Float32Array(size * size), od = new Float32Array(size * size);
+  for(let v = 0; v < size; v++) for(let u = 0; u < size; u++){
+    const x = u - R, y = v - R, xr = x * Math.cos(th) + y * Math.sin(th), g = Math.exp(-(x * x + y * y) / (2 * sig * sig));
+    ev[v * size + u] = g * Math.cos(2 * Math.PI * xr / lam); od[v * size + u] = g * Math.sin(2 * Math.PI * xr / lam);
+  }
+  const m = ev.reduce((a, b) => a + b) / ev.length; ev.forEach((_, i) => ev[i] -= m);
+  for(const k of [ev, od]){ const s = Math.hypot(...k); k.forEach((_, i) => k[i] /= s); }
+  BANK.push({R, size, ev, od, th, lam, name: `${o * 45}°, ${lam === 4 ? 'fine' : 'coarse'}`});
+}
+function energyMap(im, n, b, stride = 1){
+  const m = Math.ceil(n / stride), out = new Float32Array(m * m);
+  for(let j = 0; j < m; j++) for(let i = 0; i < m; i++){
+    const y0 = j * stride, x0 = i * stride; let e = 0, o = 0;
+    for(let v = 0; v < b.size; v++){ let yy = y0 + v - b.R; yy = yy < 0 ? 0 : yy >= n ? n - 1 : yy;
+      for(let u = 0; u < b.size; u++){ let xx = x0 + u - b.R; xx = xx < 0 ? 0 : xx >= n ? n - 1 : xx;
+        const p = im[yy * n + xx] - .5, k = v * b.size + u; e += b.ev[k] * p; o += b.od[k] * p; } }
+    out[j * m + i] = Math.hypot(e, o);
+  }
+  return out;
+}
+const embedRaw = (im, n = 32) => BANK.map(b => { const m = energyMap(im, n, b, 2); return m.reduce((a, v) => a + v, 0) / m.length; });
+/* the standard set: 8 images of each kind, seed 100 + i */
+function toySet(per = 8){ const S = []; for(let k = 0; k < KINDS.length; k++) for(let i = 0; i < per; i++){ const im = toyImage(k, rng(100 + k * 50 + i)); S.push({kind: k, im, raw: embedRaw(im)}); } return S; }
+/* standardize each embedding dimension over a set; cosine similarity; Pearson correlation */
+function standardizer(rows){ const d = rows[0].length, mu = Array(d).fill(0), sd = Array(d).fill(0);
+  rows.forEach(r => r.forEach((v, i) => mu[i] += v / rows.length)); rows.forEach(r => r.forEach((v, i) => sd[i] += (v - mu[i]) ** 2 / rows.length));
+  return r => r.map((v, i) => (v - mu[i]) / (Math.sqrt(sd[i]) || 1)); }
+const dot = (a, b) => a.reduce((s, v, i) => s + v * b[i], 0);
+const cosine = (a, b) => dot(a, b) / (Math.sqrt(dot(a, a) * dot(b, b)) || 1);
+function pearson(a, b){ const n = a.length, ma = a.reduce((s, v) => s + v, 0) / n, mb = b.reduce((s, v) => s + v, 0) / n;
+  let sab = 0, saa = 0, sbb = 0; for(let i = 0; i < n; i++){ const x = a[i] - ma, y = b[i] - mb; sab += x * y; saa += x * x; sbb += y * y; } return sab / Math.sqrt(saa * sbb); }
+/* draw a gray image (values 0..1) into a box */
+function grayCanvas(im, n){ const c = document.createElement('canvas'); c.width = c.height = n; const x = c.getContext('2d'), d = x.createImageData(n, n);
+  for(let i = 0; i < n * n; i++){ const g = Math.round(255 * im[i]); d.data[4 * i] = d.data[4 * i + 1] = d.data[4 * i + 2] = g; d.data[4 * i + 3] = 255; }
+  x.putImageData(d, 0, 0); return c; }
+/* ---- end of shared toy set ---- */
+
+/* ---- this scene ----
+   Five kinds (the sixth, rings, sits on top of dots in two dimensions and is left out), 8 images each.
+   The toy image encoder: the Gabor bank's 8 numbers, standardized, then squeezed to 2 numbers by a fixed
+   projection (the first two principal components of these images, each scaled to unit spread). Two numbers, so the space can be drawn. */
+const USE = [0, 1, 2, 3, 4], K = USE.length;
+const SET = toySet(8).filter(s => USE.includes(s.kind)), n = SET.length;
+const Zs = standardizer(SET.map(s => s.raw));
+function pcaFit(X){ const d = X[0].length, mu = Array(d).fill(0); X.forEach(x => x.forEach((v, i) => mu[i] += v / X.length));
+  const C = X.map(x => x.map((v, i) => v - mu[i])), comps = [];
+  for(let c = 0; c < 2; c++){ let v = Array(d).fill(0).map((_, i) => Math.sin(i + 1 + c));
+    for(let it = 0; it < 200; it++){ const w = Array(d).fill(0); C.forEach(x => { const s = dot(x, v); x.forEach((xi, i) => w[i] += s * xi); });
+      comps.forEach(u => { const s = dot(w, u); w.forEach((_, i) => w[i] -= s * u[i]); }); const nn = Math.hypot(...w); v = w.map(x => x / nn); }
+    comps.push(v); }
+  const sd = comps.map(u => Math.sqrt(C.reduce((s, x) => s + dot(x, u) ** 2, 0) / C.length));   /* each output scaled to unit spread */
+  return x => { const c = x.map((v, i) => v - mu[i]); return [dot(c, comps[0]) / sd[0], dot(c, comps[1]) / sd[1]]; }; }
+const PROJ = pcaFit(SET.map(s => Zs(s.raw)));
+const encodeImage = im => PROJ(Zs(embedRaw(im)));
+const E = SET.map(s => PROJ(Zs(s.raw)));
+const NAME = k => KINDS[k];
+
+/* The toy text encoder: one learned 2D vector per word; a caption's point is the sum of its word vectors.
+   The word vectors are fit (ridge regression) on 30 OTHER images with their captions, never on the 40 shown. */
+const WORDS = ['a photo of', 'horizontal', 'vertical', 'diagonal', 'stripes', 'checkers', 'dots'];
+const captionOf = k => 'a photo of ' + NAME(k);
+const bag = cap => WORDS.map(w => w === 'a photo of' ? (cap.startsWith('a photo of') ? 1 : 0) : (cap.replace('a photo of', '').split(' ').includes(w) ? 1 : 0));
+const TRAIN = []; USE.forEach(k => { for(let i = 0; i < 6; i++) TRAIN.push({k, z: encodeImage(toyImage(k, rng(9000 + k * 50 + i)))}); });
+function ridge(X, Y, lam){ const d = X[0].length, A = [...Array(d)].map((_, i) => [...Array(d)].map((_, j) => X.reduce((s, x) => s + x[i] * x[j], 0) + (i === j ? lam : 0)));
+  const B = [0, 1].map(c => [...Array(d)].map((_, i) => X.reduce((s, x, r) => s + x[i] * Y[r][c], 0)));
+  return B.map(b => { const M = A.map((row, i) => [...row, b[i]]);       /* Gauss-Jordan */
+    for(let i = 0; i < d; i++){ let p = i; for(let r = i + 1; r < d; r++) if(Math.abs(M[r][i]) > Math.abs(M[p][i])) p = r; [M[i], M[p]] = [M[p], M[i]];
+      for(let r = 0; r < d; r++) if(r !== i){ const f = M[r][i] / M[i][i]; for(let c = i; c <= d; c++) M[r][c] -= f * M[i][c]; } }
+    return M.map((row, i) => row[d] / row[i]); }); }
+const WV = ridge(TRAIN.map(t => bag(captionOf(t.k))), TRAIN.map(t => t.z), .1);
+const encodeText = cap => { const b = bag(cap); return [dot(b, WV[0]), dot(b, WV[1])]; };
+const CAPZ = USE.map(k => encodeText(captionOf(k)));
+
+/* put images and captions in one unit square (a uniform scale and shift, so distances keep their order) */
+const ALL = E.concat(CAPZ), xs = ALL.map(a => a[0]), ys = ALL.map(a => a[1]);
+const cx0 = (Math.min(...xs) + Math.max(...xs)) / 2, cy0 = (Math.min(...ys) + Math.max(...ys)) / 2, SC = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
+const U = ([x, y]) => [(x - cx0) / SC * .9 + .5, (y - cy0) / SC * .9 + .5];
+const P = E.map(U), CP = CAPZ.map(U);
+const KI = i => USE.indexOf(SET[i].kind);          /* 0..4 */
+const dist2 = (a, b) => a.reduce((s, v, i) => s + (v - b[i]) ** 2, 0);
+const pct = v => `${Math.round(v * 100)}%`;
+
+/* nearest neighbors */
+const knn = (X, i, k) => X.map((x, j) => [j, dist2(X[i], x)]).filter(([j]) => j !== i).sort((a, b) => a[1] - b[1]).slice(0, k).map(([j]) => j);
+const QI = 2 * 8 + 5, NN = knn(P, QI, 5), NNsame = NN.filter(j => KI(j) === KI(QI)).length;
+
+/* K-means (k-means++ init, seeded), keeping each iteration */
+function kmeans(X, k, seed){ const r = rng(seed), C = [X[Math.floor(r() * X.length)]];
+  while(C.length < k){ const d = X.map(x => Math.min(...C.map(c => dist2(x, c)))), s = d.reduce((a, b) => a + b); let t = r() * s, i = 0; while(t > d[i]){ t -= d[i]; i++; } C.push(X[i]); }
+  const steps = []; let lab = [];
+  for(let it = 0; it < 25; it++){ const nl = X.map(x => { let b = 0; C.forEach((c, j) => { if(dist2(x, c) < dist2(x, C[b])) b = j; }); return b; });
+    steps.push(nl); if(nl.join() === lab.join()) break; lab = nl;
+    for(let j = 0; j < k; j++){ const m = X.filter((_, i) => lab[i] === j); if(m.length) C[j] = m[0].map((_, q) => m.reduce((s, x) => s + x[q], 0) / m.length); } }
+  return steps; }
+const KM = kmeans(P, K, 4), KMF = KM[KM.length - 1];
+const PUR = (() => { let s = 0; for(let j = 0; j < K; j++){ const c = Array(K).fill(0); KMF.forEach((l, i) => { if(l === j) c[KI(i)]++; }); s += Math.max(...c); } return s / n; })();
+
+/* logistic-regression probe: 2 labeled images per kind (picked by the seeded RNG), softmax, gradient descent */
+const LAB = (() => { const r = rng(21), out = []; for(let k = 0; k < K; k++){ const ids = [...Array(8)].map((_, i) => k * 8 + i);
+  for(let t = 0; t < 2; t++) out.push(ids.splice(Math.floor(r() * ids.length), 1)[0]); } return out; })();
+const softmaxClass = (W, x) => { let b = 0, bv = -1e9; W.forEach((w, k) => { const v = w[0] * x[0] + w[1] * x[1] + w[2]; if(v > bv){ bv = v; b = k; } }); return b; };
+const PROBE = (() => { let W = [...Array(K)].map(() => [0, 0, 0]); const snaps = [], ctr = x => [(x[0] - .5) * 6, (x[1] - .5) * 6];
+  for(let it = 0; it < 400; it++){ const G = W.map(() => [0, 0, 0]);
+    LAB.forEach(i => { const x = ctr(P[i]), z = W.map(w => w[0] * x[0] + w[1] * x[1] + w[2]), m = Math.max(...z), e = z.map(v => Math.exp(v - m)), s = e.reduce((a, b) => a + b);
+      e.forEach((v, k) => { const g = v / s - (k === KI(i) ? 1 : 0); G[k][0] += g * x[0]; G[k][1] += g * x[1]; G[k][2] += g; }); });
+    W = W.map((w, k) => w.map((v, q) => v - .5 * (G[k][q] / LAB.length + (q < 2 ? .01 * v : 0))));
+    if(it % 4 === 3) snaps.push(W.map(w => [w[0] * 6, w[1] * 6, w[2] - 3 * w[0] - 3 * w[1]]));   /* back to unit-square coords */
+  }
+  return snaps; })();
+const PW = PROBE[PROBE.length - 1], REST = SET.map((_, i) => i).filter(i => !LAB.includes(i));
+const PROBE_OK = REST.filter(i => softmaxClass(PW, P[i]) === KI(i)).length;
+
+/* zero-shot: each image goes to its nearest caption */
+const nearestCap = (x, offered) => offered.reduce((b, k) => dist2(x, CP[k]) < dist2(x, CP[b]) ? k : b, offered[0]);
+const ALLCAP = [...Array(K)].map((_, k) => k), ZS = P.map(x => nearestCap(x, ALLCAP)), ZS_OK = ZS.filter((c, i) => c === KI(i)).length;
+const DEL = 3;                                        /* the caption we delete: checkers */
+const LEFT = ALLCAP.filter(k => k !== DEL), ZS2 = P.map(x => nearestCap(x, LEFT));
+const WENT = (() => { const c = {}; SET.forEach((_, i) => { if(KI(i) === DEL) c[ZS2[i]] = (c[ZS2[i]] || 0) + 1; });
+  return Object.entries(c).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${NAME(USE[k])} ${v}`).join(', '); })();
+
+const CAPS = ['', '40 images, each placed by its embedding: 2 numbers', `image search: the 5 nearest images (${NNsame} of 5 same kind)`,
+  `K-means, 5 groups nobody named: ${pct(PUR)} agree with the kinds`, `10 labels, a linear classifier: ${PROBE_OK} of the other 30 right`,
+  `captions in the same space: ${ZS_OK} of 40 go to their own caption, no labels`, `delete “${NAME(USE[DEL])}”: its images still go somewhere`];
+const NOTES = [
+  "(draft) No task during training. So what is the embedding good for afterwards? A lot.",
+  "(draft) Here are 40 toy images, five kinds of texture, eight of each. A small fixed encoder turns each image into just two numbers, so we can draw the space: each image sits at its embedding. CLIP does the same with 512 numbers per image.",
+  (`(draft) Nearest neighbors: give it an image, get back the most similar images. That is image search. Here ${NNsame} of the 5 nearest images are the same kind as the query, and nobody told the encoder what the kinds are.`),
+  (`(draft) Clustering: groups appear that nobody labeled. K-means places 5 centers, gives each image to the nearest center, moves the centers, and repeats. ${pct(PUR)} of the images end up in a group dominated by their own kind.`),
+  (`(draft) A small classifier trained on top of the frozen embedding. With a good embedding, a handful of labels is enough. Here two labeled images per kind, the boxed ones, train a logistic regression, and you see its boundaries settle as it trains. It gets ${PROBE_OK} of the other 30 images right.`),
+  (`(draft) And now the CLIP trick. CLIP has a text encoder too, so a caption is a point in the same space. Write each class as a caption, a photo of dots, a photo of checkers, and give each image to its closest caption. No labeled images at all: ${ZS_OK} of 40 go to their own caption. Our toy text encoder is one vector per word, learned from 30 other images and their captions. In the lab run, real CLIP did this on 500 CIFAR-10 test images and got 90.6 percent.`),
+  (`(draft) The classes are the captions you write. Delete the checkers caption and the boundaries move: the checkers images still have to go somewhere, here ${WENT}. Zero-shot never says none of these. In our lab run, with cat deleted, 42 of the 49 cat images went to dog. That is the experiment in the next cell.`)
+];
+const NB = NOTES.length - 1;
+const DUR = b => b === 3 ? 3000 : b === 4 ? 3500 : b === 6 ? 1800 : 900;
+let beat = 0, t0 = 0;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+function go(b, jump){ beat = b; t0 = performance.now() - (jump ? 1e9 : 0);
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join(''); }
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const d = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+const txt = (t, x, y, sz, bold, align = 'center', base = 'middle') => { ctx.fillStyle = '#0f172a'; ctx.font = `${bold ? 700 : 400} ${sz}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(t, x, y); };
+const fit = (t, sz, maxW, bold) => { ctx.font = `${bold ? 700 : 400} ${sz}px ${FONT}`; const w = ctx.measureText(t).width; return w > maxW ? sz * maxW / w : sz; };
+const tfit = (t, x, y, sz, maxW, bold, base = 'middle') => txt(t, x, y, fit(t, sz, maxW, bold), bold, 'left', base);
+const THUMB = SET.map(s => grayCanvas(s.im, 32));
+function hull(pts){ pts = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]); if(pts.length < 3) return pts;
+  const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]), lo = [], up = [];
+  for(const p of pts){ while(lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); }
+  for(const p of pts.slice().reverse()){ while(up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], p) <= 0) up.pop(); up.push(p); }
+  return lo.slice(0, -1).concat(up.slice(0, -1)); }
+/* boundaries of a classifier over the unit square: stroke the grid edges where the class changes */
+const GR = 140;
+function classGrid(f){ const g = new Int8Array(GR * GR); for(let j = 0; j < GR; j++) for(let i = 0; i < GR; i++) g[j * GR + i] = f([(i + .5) / GR, (j + .5) / GR]); return g; }
+const G_ZS = classGrid(x => nearestCap(x, ALLCAP)), G_ZS2 = classGrid(x => nearestCap(x, LEFT));
+function drawBounds(g, X0, Y0, S, alpha){ const c = S / GR; ctx.globalAlpha = alpha; ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2; ctx.beginPath();
+  for(let j = 0; j < GR; j++) for(let i = 0; i < GR; i++){ const v = g[j * GR + i];
+    if(i < GR - 1 && g[j * GR + i + 1] !== v){ ctx.moveTo(X0 + (i + 1) * c, Y0 + j * c); ctx.lineTo(X0 + (i + 1) * c, Y0 + (j + 1) * c); }
+    if(j < GR - 1 && g[(j + 1) * GR + i] !== v){ ctx.moveTo(X0 + i * c, Y0 + (j + 1) * c); ctx.lineTo(X0 + (i + 1) * c, Y0 + (j + 1) * c); } }
+  ctx.stroke(); ctx.globalAlpha = 1; }
+function regionCenters(g){ const s = [...Array(K)].map(() => [0, 0, 0]);
+  for(let j = 0; j < GR; j++) for(let i = 0; i < GR; i++){ const k = g[j * GR + i]; s[k][0] += i; s[k][1] += j; s[k][2]++; }
+  return s.map(([a, b, c]) => c ? [(a / c + .5) / GR, (b / c + .5) / GR] : null); }
+
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();
+  const p = Math.min(1, (now - t0) / DUR(beat)), A = b => beat > b ? 1 : beat === b ? ease(Math.min(1, (now - t0) / 900)) : 0;
+  ctx.clearRect(0, 0, W, H);
+  const fs = Math.max(16, W * .015), big = Math.max(20, W * .019);
+  const S = Math.min(H * .94, W * .56), th = Math.max(18, S * .055), pad = th * .6, X0 = 0, Y0 = 0, SI = S - 2 * pad;
+  const M = ([x, y]) => [X0 + pad + x * SI, Y0 + pad + y * SI];
+  const rx = S + W * .05, rw = W - rx;
+  if(beat >= 1){
+    ctx.globalAlpha = A(1); ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1; ctx.strokeRect(X0, Y0, S, S); ctx.globalAlpha = 1;
+    /* beat 3: K-means outlines, one iteration at a time */
+    if(beat === 3){ const lab = KM[Math.min(KM.length - 1, Math.floor(p * KM.length))];
+      for(let j = 0; j < K; j++){ const o = th / 2 + 6, h = hull(P.filter((_, i) => lab[i] === j).map(M).flatMap(([u, v]) => [[u - o, v - o], [u + o, v - o], [u - o, v + o], [u + o, v + o]])); if(h.length < 2) continue;
+        ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2; ctx.setLineDash([7, 5]); ctx.beginPath(); h.forEach((q, k) => k ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.stroke(); ctx.setLineDash([]); } }
+    /* beat 4: the probe's boundaries, snapshot by snapshot as it trains */
+    if(beat === 4){ const Wt = PROBE[Math.min(PROBE.length - 1, Math.floor(p * PROBE.length))], g = classGrid(x => softmaxClass(Wt, x));
+      drawBounds(g, X0 + pad, Y0 + pad, SI, A(4));
+      if(p >= 1) regionCenters(g).forEach((c, k) => { if(!c) return; const [u, v] = M(c); ctx.globalAlpha = .55; txt(NAME(USE[k]), u, v, fs * .9, false); ctx.globalAlpha = 1; }); }
+    /* beats 5-6: zero-shot regions around the caption points */
+    if(beat === 5) drawBounds(G_ZS, X0 + pad, Y0 + pad, SI, A(5));
+    if(beat === 6){ const q = ease(Math.min(1, p / .6)); drawBounds(G_ZS, X0 + pad, Y0 + pad, SI, 1 - q); drawBounds(G_ZS2, X0 + pad, Y0 + pad, SI, q); }
+    /* beat 2: neighbor lines */
+    if(beat === 2){ const [qx, qy] = M(P[QI]); ctx.globalAlpha = A(2); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2.5;
+      NN.forEach(j => { const [u, v] = M(P[j]); ctx.beginPath(); ctx.moveTo(qx, qy); ctx.lineTo(u, v); ctx.stroke(); }); ctx.globalAlpha = 1; }
+    /* the images */
+    ctx.imageSmoothingEnabled = false;
+    P.forEach((q, i) => { const [u, v] = M(q); let dim = 1;
+      if(beat === 2 && i !== QI && !NN.includes(i)) dim = 1 - .65 * A(2);
+      if(beat === 6 && KI(i) !== DEL) dim = 1 - .55 * ease(Math.min(1, p / .6));
+      ctx.globalAlpha = A(1) * dim; ctx.drawImage(THUMB[i], u - th / 2, v - th / 2, th, th); ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1; ctx.strokeRect(u - th / 2, v - th / 2, th, th); });
+    ctx.globalAlpha = 1;
+    if(beat === 2){ const [u, v] = M(P[QI]); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 4; ctx.strokeRect(u - th / 2 - 4, v - th / 2 - 4, th + 8, th + 8); }
+    if(beat === 4){ ctx.globalAlpha = A(4); LAB.forEach(i => { const [u, v] = M(P[i]); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 3; ctx.strokeRect(u - th / 2 - 3, v - th / 2 - 3, th + 6, th + 6); }); ctx.globalAlpha = 1; }
+    /* caption points: a filled diamond and its words */
+    if(beat >= 5) CP.forEach((c, k) => { let a = A(5); if(beat === 6 && k === DEL) a = 1 - ease(Math.min(1, p / .6)); if(a <= 0) return;
+      const [u, v] = M(c), r = th * .32; ctx.globalAlpha = a; ctx.fillStyle = '#0f172a'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(u, v - r); ctx.lineTo(u + r, v); ctx.lineTo(u, v + r); ctx.lineTo(u - r, v); ctx.closePath(); ctx.fill(); ctx.stroke();
+      const t = `“${captionOf(USE[k])}”`, f3 = fs * .78; ctx.font = `700 ${f3}px ${FONT}`; const tw = ctx.measureText(t).width;
+      const left = Math.max(X0 + 4, Math.min(X0 + S - tw - 4, u - tw / 2)), ty = v - r - f3 * .75;   /* the words sit just above the point */
+      ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillRect(left - 3, ty - f3 * .6, tw + 6, f3 * 1.2); txt(t, left, ty, f3, true, 'left');
+      if(beat === 6 && k === DEL){ ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(left - 2, ty); ctx.lineTo(left + tw + 2, ty); ctx.stroke(); }
+      ctx.globalAlpha = 1; });
+  }
+  /* right side */
+  if(beat === 2){ ctx.globalAlpha = A(2); const b2 = Math.min(rw / 6.6, H * .16);
+    txt('query', rx, H * .08, fs, true, 'left'); ctx.drawImage(THUMB[QI], rx, H * .08 + fs, b2, b2);
+    txt('its 5 nearest images', rx, H * .08 + fs * 2 + b2 + H * .04, fs, true, 'left');
+    NN.forEach((j, k) => ctx.drawImage(THUMB[j], rx + k * b2 * 1.12, H * .08 + fs * 3 + b2 + H * .04, b2, b2)); ctx.globalAlpha = 1; }
+  if(beat === 5 || beat === 6){ const f2 = Math.min(fs, rw / 24);
+    ctx.globalAlpha = A(5); tfit('each image goes to its nearest caption', rx, H * .08, f2, rw, true); ctx.globalAlpha = 1;
+    if(beat === 6){ ctx.globalAlpha = ease(Math.min(1, Math.max(0, p - .4) / .6));
+      tfit(`the 8 ${NAME(USE[DEL])} images now go to:`, rx, H * .08 + f2 * 2, f2, rw, false); tfit(WENT, rx, H * .08 + f2 * 3.3, f2, rw, true); ctx.globalAlpha = 1; }
+    /* the lab's real numbers, quoted from our run */
+    const ly = H * .5; ctx.globalAlpha = A(5); ctx.fillStyle = '#e2e8f0'; ctx.fillRect(rx, ly - f2, 3, f2 * (beat === 6 ? 5.6 : 3.4));
+    tfit('our lab run: CLIP ViT-B/32, 500 CIFAR-10 test images', rx + 14, ly, f2 * .9, rw - 14, true);
+    tfit('zero-shot with “a photo of a …”: 90.6% right', rx + 14, ly + f2 * 1.4, f2 * .9, rw - 14, false);
+    if(beat === 6){ ctx.globalAlpha = ease(Math.min(1, Math.max(0, p - .4) / .6)); tfit('“cat” deleted: 42 of the 49 cat images went to dog', rx + 14, ly + f2 * 2.8, f2 * .9, rw - 14, false); }
+    ctx.globalAlpha = 1; }
+  ctx.globalAlpha = beat ? Math.min(1, (now - t0) / 450) : 0; tfit(CAPS[beat], rx, H - big * .4, big, rw, true, 'bottom'); ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+
+window.usesScene = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+  notes: NOTES,
+  debug: () => ({NNsame, PUR, kmIters: KM.length, PROBE_OK, ZS_OK, WENT, CP, LAB})
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) usesScene.advance(); if(e.key === 'ArrowLeft') usesScene.back(); });
+  addEventListener('click', () => usesScene.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
