@@ -6,9 +6,23 @@
    Every number below is from the paper's text (Results). Split in two: f-konkle (question, model, categories)
    and f-konkle-brain (brain fit, accuracy vs brain, discussion), with the RSA scene (f-rsa) between them. */
 {
-section('9. Reading');
+section('9. Reading + lab');
 
 const KONKLE_CITE = 'Konkle &amp; Alvarez, 2022, <i>Nature Communications</i> 13, 491 (CC BY 4.0)';
+
+/* Concept next to code (Fernanda, 2026-11-06: "don't leave the lab for the end"). The code panels are copied
+   verbatim from notebooks/day05-lab-clip-embeddings.ipynb (contiguous lines, no edits; checked by script).
+   Exercise cells show only the blank student version: the deck is public, solutions stay in the teacher copy. */
+const LAB_NB = 'https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day05-lab-clip-embeddings.ipynb';
+const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const KONKLE_LAB_CSS = `<style>
+  .konkle-lab{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:.85fr 1.4fr; gap:1.6vh 2.4vw; align-content:center; align-items:start; }
+  .konkle-lab-src{ font-size:clamp(.75rem, .95vw, .95rem); color:var(--mute); letter-spacing:.03em; text-transform:uppercase; margin-bottom:.3vh; }
+  .konkle-lab-code{ margin:0; font-family:Menlo, Consolas, monospace; font-size:clamp(.72rem, 1.02vw, 1.02rem); line-height:1.38;
+    white-space:pre; overflow:hidden; background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding:.8vh .9vw; }
+  .konkle-lab-go{ grid-column:1 / -1; text-align:center; }
+</style>`;
+const codeBox = (src, code) => `<div><div class="konkle-lab-src">${src}</div><pre class="konkle-lab-code">${esc(code)}</pre></div>`;
 
 st(`
   <h1 class="t">Reading: do categories have to be taught?</h1>
@@ -40,6 +54,39 @@ st(`
   "(draft) Five views, not two. So instead of pulling pairs together, they pull all five toward their average, the instance prototype, the green star in the middle.",
   "(draft) And the negatives are the embeddings of the 4,096 most recent images, kept in a memory queue. Notice what they are asking for: tell every image apart from every other image. Nothing about categories.",
   "(draft) One question to keep: which views did they choose, and what does that make the network ignore? Color changes are in the list."
+]});
+
+st(`${KONKLE_LAB_CSS}
+  <h1 class="t">In the lab: their views, on CLIP</h1>
+  <div class="konkle-lab">
+    <div class="card b" data-step="1"><div class="k">Views</div><div class="label">Each kind of view changes the image in one way: a crop, a color change, or both.</div></div>
+    <div class="b" data-step="1">${codeBox('Section 4 · given', `VIEWS = {
+    "crop":  T.RandomResizedCrop(32, scale=(0.4, 1.0)),
+    "color": T.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.8, hue=0.3),
+    "both":  T.Compose([T.RandomResizedCrop(32, scale=(0.4, 1.0)),
+                        T.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.8, hue=0.3)]),
+}`)}</div>
+    <div class="card b" data-step="2"><div class="k">The instance test</div><div class="label">For each view, find the most similar other view. Is it from the same image?</div></div>
+    <div class="b" data-step="2">${codeBox('Helper code · given', `def nearest_other(emb):
+    """For each row, the index of the most similar OTHER row (by cosine similarity)."""
+    sims = emb @ emb.T
+    sims.fill_diagonal_(-2)
+    return sims.argmax(dim=1)`)}</div>
+    <div class="card hi b" data-step="3"><div class="k">Your turn 4</div><div class="label">Score it: the fraction of views whose neighbor comes from the same image. Chance is about 4%.</div></div>
+    <div class="b" data-step="3">${codeBox('Your turn 4 · you write it', `# YOUR TURN 4 · The fraction of views whose nearest other view comes from the same image.
+def instance_accuracy(emb, owner):
+    return None    # replace None: use nearest_other(emb) and owner`)}</div>
+    <div class="label konkle-lab-go b" data-step="4">
+      <a href="${LAB_NB}#scrollTo=turn-4" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open Your turn 4 in Colab ↗</a> · then talk it over (Your turn 5) · then back to the reading
+    </div>
+  </div>
+  ${cite('Notebook: day05-lab-clip-embeddings, Part 2 · CLIP ViT-B/32 · CIFAR-10 test images (Krizhevsky, 2009)')}
+`, { notes: [
+  "(draft) Before the results, let's try their objective ourselves. Not on their network: on CLIP, the model from the first lab.",
+  "(draft) First, views, the way Konkle and Alvarez made them. In the notebook this is given: a random crop that keeps 40 to 100 percent of the image area and scales it back up, a color change, or both at once. Each image gets five views of each kind.",
+  "(draft) Their objective becomes a test. For every view, find the most similar other view among all the views. If it is a view of the same image, the embedding kept what makes that image itself. The helper nearest_other does the search: a similarity matrix, the diagonal pushed down so a view cannot pick itself, then the largest in each row.",
+  "(draft) Your turn 4 is the score: what fraction of views have a neighbor from their own image. Twenty images, five views each, so chance is four out of ninety-nine, about four percent. Run it for crops, for color, and for both.",
+  "(draft) The link opens Your turn 4. Then Your turn 5, talk it over with your neighbor: which views does CLIP tolerate, and what would a network trained on color changes be blind to? Then we come back for the paper's results."
 ]});
 
 st(`

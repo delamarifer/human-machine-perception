@@ -1,6 +1,8 @@
 /* PART: f-lab2 (Day 5). Owner: Fernanda. Hour 2, lab block 2 of 2, after the reading.
    Notebook: notebooks/day05-lab-clip-embeddings.ipynb, Part 2 (Your turn 4-6): views and instance
-   discrimination (the reading's objective, tested on CLIP), then an RDM and RSA on 100 images. */
+   discrimination (the reading's objective, tested on CLIP), then an RDM and RSA on 100 images.
+   NOT LOADED since 2026-11-06: the lab is no longer left for the end; concept + code slides for Your turn 4-6 sit
+   inside section 9 (f-konkle after IPCL, f-konkle-brain after the RSA scene). File kept. */
 {
 section('10. Lab: views');
 

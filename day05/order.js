@@ -30,10 +30,10 @@ const ORDER = [
   ['f-selfsup',           '7. Self-supervised, contrastive learning, the contrastive loss, the views decide'],
   ['f-clip',              '7. What embeddings are good for; one example: CLIP similarity'],
   ['f-lab1',              '8. Lab part 1: CLIP similarity and zero-shot classification'],
-  ['f-konkle',            '9. Reading, Konkle and Alvarez 2022: the question, IPCL, categories emerge'],
+  ['f-konkle',            '9. Reading, Konkle and Alvarez 2022: the question, IPCL, lab code for views (Your turn 4-5), categories emerge'],
   ['f-rsa',               '9. Scene: RDMs and RSA'],
-  ['f-konkle-brain',      '9. Reading: brain fit, accuracy vs brain, discussion'],
-  ['f-lab2',              '10. Lab part 2: views, instance discrimination, RSA'],
+  ['f-konkle-brain',      '9. Reading: lab code for RDMs and RSA (Your turn 6), brain fit, accuracy vs brain, discussion'],
+  // f-lab2 (the lab part 2 overview slide) is not loaded since 2026-11-06: its code slides sit inside section 9.
   ['f-homework',          'Homework (copy of s-homework, labs updated): proposal tonight, detailed proposal Monday, labs, readings'],
 ];
 const PARTS = ORDER.map(r => r[0]);
@@ -50,7 +50,6 @@ const SEC_MINUTES = {
   'Lab: LLM': 20,
   '7. Task-free': 15,
   '8. Lab: CLIP': 15,
-  '9. Reading': 15,
-  '10. Lab: views': 12,
+  '9. Reading + lab': 27,
   'Homework': 3,
 };

@@ -6,9 +6,56 @@
    from the ImageNet baseline < 0.044, faces-only the outlier; Fig. 4: top-1 from 26 to 73% across models, no
    gain in brain fit, gap to the noise ceiling in aOTC for Inanimate Objects (noise ceiling r = 0.60). */
 {
-section('9. Reading');
+section('9. Reading + lab');
 
 const KONKLE_CITE2 = 'Konkle &amp; Alvarez, 2022, <i>Nature Communications</i> 13, 491 (CC BY 4.0)';
+
+/* Concept next to code, after the RSA scene (same rules as the views slide in f-konkle: code copied verbatim from
+   the student notebook, checked by script; the exercise shows only its blank version). */
+const LAB_NB = 'https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day05-lab-clip-embeddings.ipynb';
+const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const KONKLE_LAB_CSS = `<style>
+  .konkle-lab{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:.85fr 1.4fr; gap:1.6vh 2.4vw; align-content:center; align-items:start; }
+  .konkle-lab-src{ font-size:clamp(.75rem, .95vw, .95rem); color:var(--mute); letter-spacing:.03em; text-transform:uppercase; margin-bottom:.3vh; }
+  .konkle-lab-code{ margin:0; font-family:Menlo, Consolas, monospace; font-size:clamp(.72rem, 1.02vw, 1.02rem); line-height:1.38;
+    white-space:pre; overflow:hidden; background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding:.8vh .9vw; }
+  .konkle-lab-go{ grid-column:1 / -1; text-align:center; }
+</style>`;
+const codeBox = (src, code) => `<div><div class="konkle-lab-src">${src}</div><pre class="konkle-lab-code">${esc(code)}</pre></div>`;
+
+st(`${KONKLE_LAB_CSS}
+  <h1 class="t">In the lab: RDMs and RSA on CLIP</h1>
+  <div class="konkle-lab">
+    <div class="card b" data-step="1"><div class="k">Three RDMs</div><div class="label">The same 100 images: 1 − cosine similarity in CLIP, 1 − correlation of the pixels, and a model: same class or not.</div></div>
+    <div class="b" data-step="1">${codeBox('Section 5 · given', `clip_emb = embed_images(hundred_images).numpy()
+rdm_clip = 1 - clip_emb @ clip_emb.T
+
+pixels = np.stack([np.asarray(im, dtype=float).ravel() for im in hundred_images])
+rdm_pixels = 1 - np.corrcoef(pixels)
+
+rdm_category = (hundred_labels[:, None] != hundred_labels[None, :]).astype(float)`)}</div>
+    <div class="card b" data-step="2"><div class="k">Each pair once</div><div class="label">An RDM is symmetric: keep only the numbers above the diagonal.</div></div>
+    <div class="b" data-step="2">${codeBox('Helper code · given', `def upper(m):
+    """The numbers above the diagonal of a square matrix, as one long vector (each pair once)."""
+    m = np.asarray(m)
+    i, j = np.triu_indices(len(m), k=1)
+    return m[i, j]`)}</div>
+    <div class="card hi b" data-step="3"><div class="k">Your turn 6</div><div class="label">RSA: the rank correlation of two RDMs. CLIP vs the category model, then pixels vs the category model.</div></div>
+    <div class="b" data-step="3">${codeBox('Your turn 6 · you write it', `# YOUR TURN 6 · Spearman correlation between the upper triangles of two RDMs.
+def rsa(rdm_a, rdm_b):
+    return None    # replace None: use upper(...) and spearmanr(...).correlation`)}</div>
+    <div class="label konkle-lab-go b" data-step="4">
+      <a href="${LAB_NB}#scrollTo=turn-6" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open Your turn 6 in Colab ↗</a> · then back to the reading
+    </div>
+  </div>
+  ${cite('Notebook: day05-lab-clip-embeddings, Part 2 · CLIP ViT-B/32 · CIFAR-10 test images (Krizhevsky, 2009)')}
+`, { notes: [
+  "(draft) Now the same comparison in the notebook, on real images and a real network.",
+  "(draft) A hundred CIFAR images, ten from each class. Three dissimilarity matrices, given in the notebook: one minus the cosine similarity of the CLIP embeddings, one minus the correlation of the raw pixels, and the category model, zero for two images of the same class and one otherwise. Like the scene, that last one is a hypothesis, not a measurement.",
+  "(draft) The matrix is symmetric and its diagonal is zero, so each pair counts once: the helper upper keeps only the numbers above the diagonal, as one long vector.",
+  "(draft) Your turn 6 is RSA itself: the Spearman rank correlation between two of those vectors. Compare CLIP with the category model, and the pixels with the category model. CLIP never saw these ten labels.",
+  "(draft) The link opens Your turn 6. Then we come back to see how Konkle and Alvarez did this with brain data."
+]});
 
 st(`
   <h1 class="t">Does it match the ventral stream?</h1>
