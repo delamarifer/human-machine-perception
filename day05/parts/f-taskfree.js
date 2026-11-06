@@ -10,10 +10,17 @@ section('7. Task-free');
 
 st(`
   <h1 class="t">Part 2 · Learning without labels</h1>
-  <div class="label b" style="font-size:1.4em">From a task to the structure of images</div>
+  <ul class="frag">
+    <li class="b">Labels are expensive: people labeled each of ImageNet's 1.28 million training images</li>
+    <li class="b">Labels are narrow: one word per image, chosen for one task</li>
+    <li class="b">Images are everywhere, unlabeled. Can the images be the teacher?</li>
+  </ul>
+  ${cite('Russakovsky et al., 2015, ImageNet Large Scale Visual Recognition Challenge')}
 `, { notes: [
   "(draft) Part 2. In the first hour we built a transformer. Now the question is what it should learn, and whether it needs labels at all.",
-  "(draft) We go from training a network for one task to letting it learn the structure of images themselves."
+  "(draft) Every network so far learned from labels. The ImageNet challenge set has about 1.28 million training images in 1,000 classes, and people labeled every one of them, through crowdsourcing.",
+  "(draft) And a label is narrow: one word per image, picked for one task. The network keeps what that word needs. ImageNet's thousand classes include about ninety dog breeds, so a network learns dog breeds, whether or not that matters for anything else.",
+  "(draft) Meanwhile there are vastly more images with no labels at all. So the question for this hour: can the images themselves be the teacher? That is self-supervised learning."
 ]});
 
 /* The text slides 'From task to task-free' and 'Learning the underlying patterns' are replaced by the
