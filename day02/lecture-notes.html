@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Day 2 Lecture Notes · Computer Vision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0d16; --surface:#121827; --surface2:#171f33; --line:#25304a;
+    --text:#e9edf6; --mute:#9aa5bd;
+    --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{ margin:0; background:var(--bg); color:var(--text);
+    font:16.5px/1.65 Inter, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif; }
+  a{ color:var(--cyan); }
+
+  .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
+  .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;
+    font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
+  .spine b{ color:var(--text); font-weight:500; }
+  .page{ margin-left:44px; }
+
+  .hero{ position:relative; overflow:hidden; border-bottom:1px solid var(--line);
+    background:radial-gradient(120% 90% at 78% 40%, #121a33 0%, var(--bg) 60%); }
+  .hero-in{ position:relative; max-width:46rem; margin:0 auto; padding:8vh 24px 4vh; }
+  .back{ margin:0 0 2.2em; font-size:.95rem; display:flex; align-items:center; gap:1.2em; flex-wrap:wrap; }
+  .back a{ color:var(--mute); text-decoration:none; }
+  .back a:hover{ color:var(--text); }
+  .back button{ margin-left:auto; font:600 .85rem/1 'Space Grotesk', sans-serif; color:var(--bg);
+    background:var(--cyan); border:0; border-radius:999px; padding:.45em .9em; cursor:pointer; }
+  .back button:hover{ filter:brightness(1.08); }
+  .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--cyan); }
+  h1{ margin:0 0 .35em; font:700 clamp(2.2rem, 6vw, 3.8rem)/.95 'Space Grotesk', sans-serif; text-transform:uppercase;
+    background:linear-gradient(90deg, #fff 0%, #c7fff4 55%, #e4d8ff 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lead{ max-width:42rem; color:#d3d9e6; font-size:1.05rem; margin:0 0 1.2em; }
+  .toc{ display:flex; flex-wrap:wrap; gap:8px; margin:0; padding:0; list-style:none; }
+  .toc a{ color:var(--mute); text-decoration:none; font:500 .88rem/1 'Space Grotesk', sans-serif;
+    border:1px solid var(--line); border-radius:999px; padding:.35em .75em; }
+  .toc a:hover{ color:var(--text); border-color:var(--cyan); }
+
+  main{ max-width:46rem; margin:28px auto 72px; padding:36px 40px 56px;
+    background:#fff; color:#1c1917; border-radius:18px;
+    box-shadow:0 18px 50px rgba(0,0,0,.35); }
+  main a{ color:#0f766e; }
+  main a:hover{ color:#115e59; }
+  main h2, main h3, main strong{ color:#1c1917; }
+  main li::marker{ color:#a8a29e; }
+  main .callout, main .cardish{ background:#f5f5f4; border-color:#e7e5e4; color:#1c1917; }
+  main figcaption, main .src{ color:#57534e; }
+  section{ padding-top:2.4em; scroll-margin-top:1.25rem; }
+  #today{ --c:var(--cyan); } #plan{ --c:var(--violet); } #promise{ --c:var(--amber); }
+  #fail{ --c:var(--pink); } #humans{ --c:var(--sky); } #project{ --c:var(--violet); }
+  #lab{ --c:var(--amber); } #research{ --c:var(--cyan); } #papers{ --c:var(--pink); } #after{ --c:var(--sky); }
+  h2{ margin:0 0 .7em; font:700 1.45rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
+  h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
+  h3{ margin:1.3em 0 .35em; font:700 1.08rem/1.3 'Space Grotesk', sans-serif; }
+  p{ margin:0 0 .75em; }
+  ul, ol{ margin:0 0 .9em; padding-left:1.2em; }
+  li{ margin:.28em 0; }
+
+  .callout{ margin:1em 0 1.15em; padding:14px 16px; border-radius:14px; background:var(--surface);
+    border:1px solid var(--line); border-left:4px solid var(--c, var(--cyan)); }
+  .callout p{ margin:0; }
+
+  figure.fig{ margin:1em 0 1.2em; }
+  figure img, .grid3 img, .pair img{ display:block; width:100%; max-width:100%; height:auto; background:#fff; border-radius:12px; }
+  figcaption{ margin-top:.45em; color:var(--mute); font-size:.9rem; line-height:1.45; }
+  .pair{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:start; margin:1em 0 1.2em; }
+  .pair figure, .grid3 figure{ margin:0; min-width:0; }
+  .grid3{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin:1em 0 1.15em; }
+  .grid3 img{ aspect-ratio:1; object-fit:cover; }
+  .grid3 figcaption, .pair figcaption{ font-size:.82rem; }
+  .src{ color:var(--mute); font-size:.92rem; }
+
+  @media (max-width:700px){
+    .spine{ display:none; } .page{ margin-left:0; }
+    .hero-in{ padding:5vh 16px 3vh; }
+    main{ margin:16px 16px 48px; padding:24px 18px 40px; }
+    .pair, .grid3{ grid-template-columns:1fr; }
+    .back button{ margin-left:0; }
+  }
+  @media print{
+    body, .page, .hero, main{ background:#fff; color:#1c1917; box-shadow:none; }
+    .spine, .back{ display:none; }
+    .page{ margin:0; }
+    main{ margin:0; max-width:none; }
+    h1{ color:#1c1917; background:none; -webkit-text-fill-color:#1c1917; }
+    .lead, .src, figcaption{ color:#444; }
+    a{ color:#1c1917; }
+    .callout{ background:#fff; border-color:#ccc; }
+    h2::before{ box-shadow:none; }
+    figure, .callout{ break-inside:avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="spine" aria-hidden="true"><span><b>Computer Vision</b> &nbsp;/&nbsp; Day 2 notes</span></div>
+<div class="page">
+
+<header class="hero">
+  <div class="hero-in">
+    <div class="back"><a href="../index.html">← Home</a><a href="deck.html">Slides</a><a href="../metamers.html">Homework</a>
+      <button type="button" onclick="window.print()" title="Opens the print dialog. Choose Save as PDF.">Download PDF</button></div>
+    <p class="kicker">Day 2 · Fernanda de la Torre · Shreya Pandit</p>
+    <h1>Lecture notes</h1>
+    <p class="lead">Computer vision: promise, pitfalls, and your place in it. These notes follow the Day 2 lecture, from what current systems can do, through where they fail, to the simple vision system you build by hand.</p>
+    <nav class="toc" aria-label="On this page">
+      <a href="#today">Today</a>
+      <a href="#plan">The plan</a>
+      <a href="#promise">What it can do</a>
+      <a href="#fail">Where it fails</a>
+      <a href="#humans">Why humans</a>
+      <a href="#project">Your project</a>
+      <a href="#lab">A simple system</a>
+      <a href="#research">Research</a>
+      <a href="#papers">Reading a paper</a>
+      <a href="#after">After class</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section id="today">
+    <h2>Today</h2>
+    <p>By the end of the day you can say what today’s vision systems do well and where they fail, and explain why we look to human vision to get past those limits. You know what a project can look like. You recover the 3D shape of a simple scene from one image by writing its assumptions as equations. And you can tell a research question from a building project, and read a paper efficiently.</p>
+    <ol>
+      <li>Five minutes on the plan for the next three weeks, and how you are graded.</li>
+      <li>About thirty minutes of motivation: what works, and where it still fails.</li>
+      <li>Ten minutes on your project.</li>
+      <li>About an hour on the lab.</li>
+      <li>Twenty minutes to close: research versus building, how to read a paper, then Pizlo.</li>
+    </ol>
+  </section>
+
+  <section id="plan">
+    <h2>The next three weeks</h2>
+    <p>Everything lives on the course website.</p>
+    <ul>
+      <li><strong>Week one, understanding images.</strong> How images encode visual information, and how we pull structure out of pixels.</li>
+      <li><strong>Week two, learning visual representations.</strong> Neural networks, transfer learning, embeddings, and vision-language models like CLIP.</li>
+      <li><strong>Week three, building vision systems.</strong> Foundation models, detection and segmentation, multimodal systems, image generation, and how to evaluate where a system fails. Then the final project.</li>
+    </ul>
+    <p>Each day has a question, what you will be able to do by the end, a reading, a lab, and a link to human vision. The schedule may shift a little as we go.</p>
+    <h3>How you are graded</h3>
+    <ul>
+      <li><strong>Final project, 45%.</strong> The proposal, the write-up, and the presentation on the last day.</li>
+      <li><strong>Daily response papers, 24%.</strong> Twelve of them. Each has one question about the day’s paper and three about the take-home lab. You write the response by hand, in the first few minutes of class.</li>
+      <li><strong>Two assignments, 15% each.</strong></li>
+      <li><strong>1%</strong> for one short question on the last day.</li>
+    </ul>
+    <p>Assignments go through Google Forms: your name, your AIMS email, and one file, a notebook or a PDF.</p>
+  </section>
+
+  <section id="promise">
+    <h2>What computer vision can do now</h2>
+    <p>The course does not teach each of these tools. It teaches the fundamentals they are built on, so you can understand them, use them, and see where they break. The failures later in the lecture are open problems you could work on.</p>
+    <h3>From photos to 3D · VGGT</h3>
+    <p>VGGT, from Meta AI and Oxford (CVPR 2025), turns a few photos of a scene into where each camera was, the depth of every pixel, and a 3D point cloud, typically in under a second. Before this, getting 3D from a set of photos meant a long chain: match points between images, solve for the cameras, then refine everything with an optimization that could take minutes. VGGT does it in one pass of one network. The ideas underneath, image geometry and matching points across images, are week one.</p>
+    <h3>Learning to see without labels · DINOv3</h3>
+    <p>DINOv3 learns visual features from images alone, with no labels. Trained on satellite images, those features map the height of the world’s trees (Canopy Height Maps, Meta and the World Resources Institute). Before, each new task needed its own pile of labeled examples. Learned features and transfer learning are week two.</p>
+    <h3>An embedding of the planet · AlphaEarth</h3>
+    <p>AlphaEarth Foundations (Google DeepMind, 2025) summarizes every 10&nbsp;m square of land, each year, as 64 numbers, combining satellite, radar, 3D laser, and climate data. Mapping projects used to start over from raw satellite images, full of clouds and gaps. Embeddings, comparing things by their learned summaries, are also week two.</p>
+    <h3>Segment anything you can name · SAM 3</h3>
+    <p>SAM 3 (Meta, 2025) finds, outlines, and tracks every object that matches a short text phrase, in images and in video. Earlier segmentation models knew a fixed list of categories, or needed a click on each object. Detection and segmentation are week three.</p>
+    <h3>Images and language</h3>
+    <p>MedGemma 1.5 (Google, 2026) is an open model that reads medical images, including 3D CT and MRI and pathology slides, together with text. Before, medical imaging AI meant a narrow model for each kind of scan and each question.</p>
+    <p>Gemini Robotics 1.5 (Google DeepMind, 2025) looks at a scene, plans a task in steps, and controls a robot to carry it out. Skills learned on one robot transfer to robots with different bodies. Vision and language together are week three.</p>
+    <h3>Generating worlds · Genie 4</h3>
+    <p>Genie 4 (Google DeepMind, 2026) generates an interactive world from a text prompt, frame by frame as you move through it, with sound. A video generator makes a clip you watch. A world model makes a world you can move through and change. Image generation is week three.</p>
+    <div class="callout">
+      <p><strong>The fundamentals, not the tools.</strong> Week one is image geometry and feature matching, underneath VGGT. Week two is learned features, transfer, and embeddings, underneath DINOv3 and AlphaEarth. Week three is detection, segmentation, vision and language, and generation, underneath SAM 3, MedGemma, Gemini Robotics, and Genie. The next tool will be out before the course ends. These fundamentals are how you pick it up.</p>
+    </div>
+  </section>
+
+  <section id="fail">
+    <h2>Where it still fails</h2>
+    <h3>An elephant, called a triceratops</h3>
+    <p>Most people, shown this photo, say an elephant, a statue of an elephant. ResNet-18, trained on ImageNet’s 1,000 categories, says triceratops at 29%, cowboy boot at 27%, then shield, chain mail, and armor. ImageNet does include elephants. Indian elephant comes ninth, at about 1%. This photo was chosen because the model gets it wrong. It is one example, not a failure rate.</p>
+    <figure class="fig">
+      <img src="assets/human-vs-machine/crop.jpg" alt="A statue of an elephant. ResNet-18’s top guess is triceratops.">
+      <figcaption>Photo: Carlos Valenzuela, CC BY-SA 4.0, via Wikimedia Commons, cropped. ResNet-18 top guess: triceratops, 28.7%.</figcaption>
+    </figure>
+
+    <h3>Questions a person gets right</h3>
+    <p>Models that combine images and language can describe a photo in detail. Rahmanzadehgervi and colleagues, in “Vision language models are blind” (ACCV 2024), asked questions a child can answer: do two circles overlap, how many times do these lines cross, which letter is circled. Four of the best models of 2024 got 58% right on average. The best one got 78%. A person is expected to get all of them. Whether today’s models still fail, and why, is a question you could study.</p>
+
+    <h3>A panda that becomes a gibbon</h3>
+    <p>An adversarial perturbation is a small change to the input, optimized to change the network’s decision. Here it is about one step of an 8-bit image, 0.007, shown amplified so you can see it. Added to the panda, people still see a panda. The network goes from a correct classification to “gibbon,” with high confidence (Szegedy et al., 2013; Goodfellow et al., 2015). The same thing happens in sound: a perturbation about 56&nbsp;dB below a spoken word leaves people hearing “director,” and the network says “center.” Tiny changes people cannot perceive change the model’s behavior. These oddities show up across many kinds of networks.</p>
+    <div class="pair">
+      <figure>
+        <img src="assets/adversarial/adv-panda.png" alt="A photo of a panda">
+        <figcaption>The network says panda.</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/adversarial/adv-panda-gibbon.png" alt="The same panda after a tiny adversarial perturbation">
+        <figcaption>After a tiny added perturbation, the network says gibbon. People still see a panda.</figcaption>
+      </figure>
+    </div>
+
+    <h3>Texture, not shape</h3>
+    <p>Geirhos and colleagues showed that networks trained on ImageNet recognize objects mostly by texture, while people, tested on the same images, go mostly by shape. Training the same network to rely on shape made it more accurate and more robust.</p>
+    <p>A quick version on our own photos, with the same ResNet-18: cut the image into pieces and shuffle them. The shape is gone. The texture is still there. Intact, the coffee is espresso at 86%. Shuffled into 16 pieces, the model says toilet tissue. Into 64 pieces, wardrobe. The elephant, intact, is triceratops. Shuffled into 16 pieces, sock, with cowboy boot still second. Into 64, wine bottle, then barrel and quilt. The guesses follow patterns on the surface. This is two photos and one shuffle, not a measurement. Testing it properly, on many images, against people, is the kind of question a project could take on.</p>
+    <div class="grid3">
+      <figure><img src="assets/shuffle/coffee/intact.png" alt="A cup of coffee, intact"><figcaption>Coffee, intact · espresso 85.9%</figcaption></figure>
+      <figure><img src="assets/shuffle/coffee/shuffled-4.png" alt="The coffee photo cut into 16 pieces and shuffled"><figcaption>16 pieces · toilet tissue 30.5%</figcaption></figure>
+      <figure><img src="assets/shuffle/elephant/shuffled-4.png" alt="The elephant photo cut into 16 pieces and shuffled"><figcaption>Elephant, 16 pieces · sock 40.7%</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="humans">
+    <h2>Why look to human vision</h2>
+    <p>People still see better. Every failure above, you get right at a glance: the elephant, the panda, the scrambled coffee, and the questions about circles and lines. Seeing feels effortless, but the brain solves problems that are still unmatched by any artificial system.</p>
+    <p>Many of the tools in this course came from studying the brain. Color images with three channels. Filters modeled on cells in visual cortex that respond to spots and to edges at particular orientations. Neural networks themselves. Attention. You build some of these filters on Day 3.</p>
+    <p>Human perception also shows what to build, and how to test it. You can see a white triangle where none is drawn: the visual system groups the pieces and completes the shape. Principles like this shaped methods such as image segmentation, and they give tests for models. Does a vision model see the triangle?</p>
+    <h3>Why the class is built around projects</h3>
+    <p>The goal is to help you get from an idea to meaningful progress on that idea. Topics are covered at a high level, to inspire you, and so that you can harness them for your own purposes.</p>
+  </section>
+
+  <section id="project">
+    <h2>Where you are starting</h2>
+    <p>Fourteen people answered the Day 1 survey. Most are comfortable, or have some experience, with CNNs and image classification. Almost everyone has heard of image and video generation, vision transformers, and models like CLIP, and few have used them. That is where weeks two and three go.</p>
+    <p>You could pick more than one focus. Eleven want to understand the theory and methods. Ten want to build practical applications. Ten want to do research and exploration. Four want creative experimentation. The project is where all four meet.</p>
+    <p>The ideas you sent include climate and the environment (flood mapping, waste in the ocean, downscaling climate data), medical images, assistive and creative tools, going from 2D to 3D, and a video generator. These are projects you could build in three weeks with the tools the course covers.</p>
+  </section>
+
+  <section id="lab">
+    <h2>A simple vision system</h2>
+    <p>In the lab you recover the 3D shape of a simple scene from one image, by writing its assumptions as equations. The lab follows Chapter 2 of Torralba, Isola, and Freeman, <em>Foundations of Computer Vision</em>. Open <a href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-lab-simple-vision-system.ipynb">the notebook in Colab</a>.</p>
+    <figure class="fig">
+      <img src="assets/simple-system/world.png" alt="Colored boxes standing on a white floor">
+      <figcaption>Our world, as the camera sees it: a white floor, and colored boxes standing on it.</figcaption>
+    </figure>
+
+    <h3>A summer project that was harder than it looked</h3>
+    <p>In 1966, Seymour Papert at MIT proposed building a significant part of a visual system as a summer project, split among students (MIT AI Memo 100). It turned out to be much harder than anyone expected. Sixty years later we are still working on it. Early systems made the world simple first. Larry Roberts, in 1963, worked in a blocks world of simple geometric solids. Ours is in the same spirit: colored boxes on a white floor, simple enough to build a whole vision system by hand.</p>
+
+    <h3>What the image throws away</h3>
+    <p>The camera looks down at the floor at an angle θ of 35°. Light travels along parallel lines of sight and hits the image plane. A point at height <em>Y</em> and depth <em>Z</em> lands at</p>
+    <p><em>x</em> = <em>X</em>, &nbsp; <em>y</em> = cos θ · <em>Y</em> − sin θ · <em>Z</em>.</p>
+    <p>Point 1, at height 20 and depth 0, lands at <em>y</em> = 16.38. Point 2, ten units higher and 14.28 nearer the camera, lands on exactly the same pixel. Every point on that line of sight does. Height and depth are mixed into one number. The image alone cannot tell us where things are. The problem is ill-posed. Recovering 3D means adding assumptions about the world. That projection is the first assumption, about the camera.</p>
+
+    <h3>From the image to edges</h3>
+    <p>To the computer the image is an array: rows, columns, and three color values. Average the colors and you get brightness. An edge is where brightness changes fast. With pixels, a derivative is the difference between neighbors: one subtraction of two shifted copies of the image. Red means brightness goes down to the right. Blue means it goes up. White means no change. Edges that run left to right nearly vanish in the horizontal derivative. They need the vertical one.</p>
+    <p>Combine both derivatives into an edge strength, and keep the pixels above a threshold you choose. Too low and you get noise. Too high and you lose the faint edges between two faces of the same box. Your turn 2 is one line: the image without its first column, minus the image without its last column. The result has one column fewer than the image.</p>
+    <div class="grid3">
+      <figure><img src="assets/simple-system/gray.png" alt="The boxes world as a grayscale image"><figcaption>Brightness</figcaption></figure>
+      <figure><img src="assets/simple-system/dx.png" alt="Horizontal differences between neighboring pixels"><figcaption>Horizontal derivative</figcaption></figure>
+      <figure><img src="assets/simple-system/edge-pixels.png" alt="Pixels where the edge strength is above a threshold"><figcaption>Edge pixels</figcaption></figure>
+    </div>
+
+    <h3>From assumptions to 3D</h3>
+    <p>Each assumption becomes an equation about the unknown height of every pixel.</p>
+    <ul>
+      <li>The camera uses parallel projection.</li>
+      <li>The floor is white.</li>
+      <li>Boxes rest on the floor: floor pixels and contact edges are at height zero.</li>
+      <li>Generic view: no lucky angle. Vertical edges rise. Horizontal edges keep their height.</li>
+      <li>Faces are flat, which carries what we know at the edges into the plain regions in between.</li>
+    </ul>
+    <p>That is about 45,000 equations for 33,000 unknown heights. They cannot all hold exactly, so we find the heights that break them the least: least squares. The tallest box is 70 units tall. The system recovered 68.6. The typical error on the boxes is about 3 units.</p>
+    <div class="pair">
+      <figure>
+        <img src="assets/simple-system/recovered-front.png" alt="The recovered 3D boxes, seen from the front">
+        <figcaption>Recovered from a viewpoint the camera never had.</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/simple-system/recovered-behind.png" alt="The same reconstruction seen from behind the boxes">
+        <figcaption>From behind: the backs are missing.</figcaption>
+      </figure>
+    </div>
+    <p>Each box is a shell with no back face. The white patches are floor the boxes hid from the camera. Nothing was recovered there. We only recover what the camera saw. The system has a height for every pixel, and no idea that the scene is made of boxes. It cannot count them, and it cannot guess the back of one from its front.</p>
+
+    <h3>Priors: how the brain fills the gap</h3>
+    <p>The system filled the gap with assumptions. The brain does the same. Helmholtz, in the 1860s, called ordinary seeing unconscious inference.</p>
+    <p>Look at shaded disks and most people see bumps. The image alone cannot decide. A bump lit from above and a dent lit from below make the same picture. Those two explanations fit the image equally well. That is the likelihood. The brain also knows that light usually comes from above. That is a prior: before you look, light from above is much more likely than light from below. Likelihood times prior, and one explanation wins: bumps, lit from above. Turn the picture upside down and the same prior says dents.</p>
+    <p>The box system works the same way. A white floor, boxes resting on it, a generic view, flat faces: those are its priors, written by hand. They let it pick one 3D world out of all the ones that fit the image. Like any prior, they can be wrong. A floating box comes out far too low, and nothing tells the system it is wrong.</p>
+    <figure class="fig">
+      <img src="assets/simple-system/floating-box.png" alt="A box floating above the floor, recovered as if it rested on the floor">
+      <figcaption>Break the “boxes rest on the floor” assumption and the system is confidently wrong.</figcaption>
+    </figure>
+
+    <h3>A world simulator</h3>
+    <p>You knew the back of each box was there. The system did not. One idea from the brain: look at a tower of blocks and you can say, in a fraction of a second, whether it will fall. Your eyes give a slightly uncertain picture, so the brain considers many towers that could be out there, and runs each one forward, like a physics engine. The answer is a probability, not a yes or no. Battaglia, Hamrick, and Tenenbaum proposed this kind of intuitive physics engine in 2013. People’s judgments about towers followed a simulator with noisy perception. A world model like that knows that boxes are solid and need support, which our box system never knew.</p>
+    <div class="callout">
+      <p><strong>What you built.</strong> Going from 3D to a 2D image loses a dimension. That is Day 1’s figure: many different 3D shapes give the same picture. Assumptions fill the gap. Together they are a world model, written by hand. Outside the world it was designed for, the system can be confidently wrong. A better world model can come from better assumptions, from more data, from learning, or from a model someone else trained. The rest of the course is about the last two. The questions stay the same: what does the system assume, and what happens when the world disagrees?</p>
+    </div>
+  </section>
+
+  <section id="research">
+    <h2>A research question, or a building project</h2>
+    <ul>
+      <li><strong>Mathematical or theoretical.</strong> How do we change the way these systems learn? Training on images where texture is unreliable, so the network learns shape, is an example. Shuffle the coffee photo and the network stops saying espresso.</li>
+      <li><strong>Exploring a limitation, or finding a new one.</strong> In which settings do these tools fail? “Vision language models are blind” is a paper of this kind: 58% on average, 78% for the best model, on questions a person gets right.</li>
+      <li><strong>Application.</strong> What is a useful way to apply these tools? Mapping tree height across the planet from satellite images is one.</li>
+    </ul>
+    <p>On your project, building a useful application is the demo track. Exploring or overcoming a limitation, and answering with a measurement, is the experiment track.</p>
+  </section>
+
+  <section id="papers">
+    <h2>How to read a paper</h2>
+    <p>One method, from S. Keshav, has three passes.</p>
+    <ol>
+      <li><strong>Five to ten minutes.</strong> Title, abstract, introduction, section headings, and conclusions. Skip everything else. You should know what kind of paper it is and what it claims. Often that is enough to decide whether to read on.</li>
+      <li><strong>Up to an hour,</strong> for an experienced reader. Read carefully, look hard at the figures, and follow the argument. Skip details such as proofs.</li>
+      <li><strong>For the papers that matter most.</strong> Virtually re-implement the paper, making the same assumptions as the authors, and see where you would have done something different.</li>
+    </ol>
+    <p>Each daily response paper starts with one high-level question about the day’s paper. You write it by hand at the start of class. A good second pass is enough for that.</p>
+    <h3>Perception as an inverse problem</h3>
+    <p>Zygmunt Pizlo, “Perception viewed as an inverse problem,” <em>Vision Research</em>, 2001.</p>
+    <p>Perception is an inverse problem because the image does not determine the scene. Day 1’s line drawing fits infinitely many 3D shapes. In the box world, a small box nearby and a bigger one further away can make the same picture along a line of sight.</p>
+    <figure class="fig">
+      <img src="assets/research/world-crop.png" alt="One image of the boxes world">
+      <figcaption>One image. Along each line of sight, a small near box or a bigger far box can make the same picture.</figcaption>
+    </figure>
+    <p>If the image is not enough, the missing information comes from constraints the visual system brings, a priori. Pizlo argues that those constraints matter at least as much as the image itself. With them, one image gives one 3D scene, like the one the lab recovered.</p>
+    <p>The simple vision system used a flat floor, objects resting on it, a generic view, and flat faces. The floating box is what happens when one of those constraints is false.</p>
+  </section>
+
+  <section id="after">
+    <h2>After class</h2>
+    <ul>
+      <li>Finish the <a href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-lab-simple-vision-system.ipynb">simple vision system notebook</a>, or go further: extend it to a world of your own and see where it breaks.</li>
+      <li>Read the <a href="../metamers.html">primer on metamers</a>. Things that are physically different can look exactly the same, which says something about what your visual system throws away. The primer sets up tomorrow. Your response paper on it is written by hand at the start of next class.</li>
+      <li>By Friday night, send your general project ideas through the form. The link is on the <a href="../templates.html">project templates</a> page.</li>
+    </ul>
+  </section>
+
+</main>
+</div>
+</body>
+</html>
