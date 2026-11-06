@@ -21,6 +21,10 @@ const CSS = `<style>
     white-space:pre; overflow:hidden; background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding:1.4vh 1.2vw; }
   .flab1-open{ align-self:flex-start; border:3px solid var(--ink); border-radius:999px; padding:1vh 1.6vw;
     font-weight:700; font-size:clamp(1rem, 1.5vw, 1.4rem); color:var(--ink); text-decoration:none; }
+  .flab1-out{ position:absolute; inset:0; z-index:6; background:var(--bg, #fff); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:1.2vh; padding:5vh 4vw; }
+  .flab1-out img{ display:block; max-width:88vw; object-fit:contain; }
+  .flab1-out .flab1-pre{ background:#fff; font-size:clamp(.95rem, 1.45vw, 1.45rem); overflow:visible; }
   .flab1-sol{ margin-top:1vh; }
   .flab1-sol summary{ cursor:pointer; color:var(--mute); font-size:clamp(.8rem, 1vw, 1rem); }
   .flab1-sol-pop{ position:fixed; left:50%; top:52%; transform:translate(-50%, -50%); z-index:50; width:min(92vw, 70rem);
@@ -30,6 +34,9 @@ const CSS = `<style>
   .flab1-sol-pop .flab1-pre:empty{ display:none; }
   .flab1-sol-pop .flab1-ans{ margin-top:1vh; line-height:1.4; }
 </style>`;
+// Output of a notebook cell, from a run of the solved notebook (see assets/lab1/SOURCES.md): the last click.
+const outBox = (step, title, inner) => `<div class="flab1-out b" data-step="${step}"><div class="label"><b>${title}</b> · output from a run of the notebook</div>${inner}</div>`;
+const outText = t => `<pre class="flab1-pre">${esc(t)}</pre>`;
 // Teacher-only solution: open the deck on localhost with ?teacher (e.g. deck.html?teacher). If
 // notebooks/teacher/day05-lab-solutions.json exists (written by `day05_lab.py --teacher`, git-ignored), a collapsed
 // Solution block appears under each Your-turn code. Never on the public site (no file there, and no fetch).
@@ -44,7 +51,7 @@ if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) && new URLSearc
   }).catch(() => {});
 
 // Concept cues on the left (one click each), then the notebook cell on the right, then "Try it", then the link.
-const codeSlide = ({ title, cues, code, tryIt, cell, label, notes }) => {
+const codeSlide = ({ title, cues, code, tryIt, cell, label, notes, out }) => {
   const n = cues.length;
   st(`
   <h1 class="t">${title}</h1>
@@ -55,7 +62,7 @@ const codeSlide = ({ title, cues, code, tryIt, cell, label, notes }) => {
       <a class="flab1-open b" data-step="${n + 3}" href="${LAB_NB}#scrollTo=${cell}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${label} ↗</a>
     </div>
     <div class="flab1-codebox b" data-step="${n + 1}"><pre class="flab1-pre">${esc(code)}</pre>${cell.startsWith('turn-') ? solBox(cell) : ''}</div>
-  </div>${CSS}
+  </div>${out ? outBox(n + 4, out.title, out.html) : ''}${CSS}
 `, { notes });
 };
 
@@ -78,6 +85,7 @@ accuracy = (predictions == test_labels).float().mean().item()
 print(f"zero-shot accuracy on {N} images: {accuracy:.1%}   (chance: 10%)")`,
   tryIt: 'Run the next cell too: it shows the images CLIP got wrong. Which mistakes would a person make?',
   cell: 'turn-3', label: 'Open Your turn 3 in Colab',
+  out: { title: 'Your turn 3 · zero-shot accuracy, and some mistakes', html: `${outText(String.raw`zero-shot accuracy on 500 images: 90.6%   (chance: 10%)`)}<img src="assets/lab1/zero-shot-wrong.png" alt="Twenty CIFAR-10 test images that CLIP classified wrongly, each with its guess and the true class" style="max-height:52vh">` },
   notes: [
     "(draft) Your turn 3. Zero-shot classification, on five hundred images.",
     "(draft) The cell before it embeds the first five hundred test images and scores every one against the same ten captions: a five hundred by ten matrix.",
@@ -85,7 +93,8 @@ print(f"zero-shot accuracy on {N} images: {accuracy:.1%}   (chance: 10%)")`,
     "(draft) No training happened. The ten class names, written as captions, are the whole classifier.",
     "(draft) Here is the cell. The accuracy prints against chance, which is ten percent with ten classes. In our run it is 90.6 percent, with no training on these classes.",
     "(draft) The cell after it shows twenty images CLIP got wrong, with its guess. Look at them: these images are tiny, and some of the mistakes are ones a person could make.",
-    "(draft) The link opens Your turn 3."
+    "(draft) The link opens Your turn 3.",
+    "(draft) From our run: 90.6 percent on five hundred images, with no training on these classes. And twenty of the mistakes, with CLIP's guess and the true class. Many are ones a person could make on images this small."
   ]
 });
 
@@ -108,13 +117,16 @@ if len(offered) == len(CLASSES):
     print("All ten classes are offered: delete one or two names and run again.")`,
   tryIt: 'Delete “cat”, then “truck”. Do their images go where you expected?',
   cell: 'try-classes', label: 'Open this cell in Colab',
+  out: { title: 'Leave classes out · cat and truck deleted', html: outText(String.raw`the 49 cat images now go to: dog 42, deer 3, horse 3
+the 56 truck images now go to: automobile 55, ship 1`) },
   notes: [
     "(draft) A small experiment, no code to write: just delete words.",
     "(draft) Zero-shot can only pick among the captions you give it. It never says none of these.",
     "(draft) So take a class away. Its images still have to go somewhere, and where they go tells you what CLIP thinks they are closest to.",
     "(draft) Here is the cell. The list of class names is the only thing you change.",
     "(draft) Delete cat and run it. Then put cat back and delete truck. Before you run, guess where they will go. In our run, 42 of the 49 cat images went to dog, and 55 of the 56 trucks went to automobile.",
-    "(draft) The link opens this cell."
+    "(draft) The link opens this cell.",
+    "(draft) From our run, with cat and truck deleted: the cat images go mostly to dog, 42 of 49, and the trucks almost all to automobile, 55 of 56. Zero-shot never says none of these; it picks the closest caption it has."
   ]
 });
 
@@ -135,13 +147,19 @@ else:
     print("Your turn 4 is blank: write a template above and run it again.")`,
   tryIt: 'CIFAR-10 images are tiny and blurry. Does saying so in the caption help? Keep your best template.',
   cell: 'turn-4', label: 'Open Your turn 4 in Colab',
+  out: { title: 'Your turn 4 · one template per line', html: outText(String.raw`"a photo of a {}"  ->  90.6%
+"a blurry photo of a {}."  ->  89.8%
+"{}"  ->  88.0%
+"a drawing of a {}."  ->  92.0%
+"a low resolution photo of a {}."  ->  90.8%`) },
   notes: [
     "(draft) Your turn 4, the last one in part one.",
     "(draft) Same images, same model. The only thing you change is the sentence the class name goes into: just the word cat, a blurry photo of a cat, a drawing of a cat.",
     "(draft) Each template is a different classifier, and the accuracy moves.",
     "(draft) Here is the cell. Write a template with curly braces where the class name goes, and it prints your accuracy next to a photo of a.",
     "(draft) These images are tiny and blurry. Does saying so in the caption help? Try a few and keep your best one for the discussion. In our run the templates we tried ranged from 88 percent, for the bare class name, to 92 percent, for a drawing of, against 90.6 for a photo of. Small differences, but the words alone move it.",
-    "(draft) The link opens Your turn 4."
+    "(draft) The link opens Your turn 4.",
+    "(draft) From our run of the course's answer: from 88 percent for the bare class name to 92 for a drawing of, with a photo of at 90.6. Same images, same model; only the sentence changed."
   ]
 });
 

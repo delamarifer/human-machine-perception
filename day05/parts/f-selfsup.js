@@ -19,6 +19,10 @@ const CSS = `<style>
     white-space:pre; overflow:hidden; background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding:1.4vh 1.2vw; }
   .fselfsup-open{ align-self:flex-start; border:3px solid var(--ink); border-radius:999px; padding:1vh 1.6vw;
     font-weight:700; font-size:clamp(1rem, 1.5vw, 1.4rem); color:var(--ink); text-decoration:none; }
+  .fselfsup-out{ position:absolute; inset:0; z-index:6; background:var(--bg, #fff); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:1.2vh; padding:5vh 4vw; }
+  .fselfsup-out img{ display:block; max-width:88vw; object-fit:contain; }
+  .fselfsup-out .fselfsup-pre{ background:#fff; font-size:clamp(.95rem, 1.45vw, 1.45rem); overflow:visible; }
   .fselfsup-sol{ margin-top:1vh; }
   .fselfsup-sol summary{ cursor:pointer; color:var(--mute); font-size:clamp(.8rem, 1vw, 1rem); }
   .fselfsup-sol-pop{ position:fixed; left:50%; top:52%; transform:translate(-50%, -50%); z-index:50; width:min(92vw, 70rem);
@@ -28,6 +32,9 @@ const CSS = `<style>
   .fselfsup-sol-pop .fselfsup-pre:empty{ display:none; }
   .fselfsup-sol-pop .fselfsup-ans{ margin-top:1vh; line-height:1.4; }
 </style>`;
+// Output of a notebook cell, from a run of the solved notebook (see assets/lab1/SOURCES.md): the last click.
+const outBox = (step, title, inner) => `<div class="fselfsup-out b" data-step="${step}"><div class="label"><b>${title}</b> · output from a run of the notebook</div>${inner}</div>`;
+const outText = t => `<pre class="fselfsup-pre">${esc(t)}</pre>`;
 // Teacher-only solution: open the deck on localhost with ?teacher (e.g. deck.html?teacher). If
 // notebooks/teacher/day05-lab-solutions.json exists (written by `day05_lab.py --teacher`, git-ignored), a collapsed
 // Solution block appears under each Your-turn code. Never on the public site (no file there, and no fetch).
@@ -87,7 +94,21 @@ st(`
       <a class="fselfsup-open b" data-step="6" href="${LAB_NB}#scrollTo=turn-2" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open Your turn 2 in Colab ↗</a>
     </div>
     <div class="fselfsup-codebox b" data-step="4"><pre class="fselfsup-pre">${esc(turn2)}</pre>${solBox('turn-2')}</div>
-  </div>${CSS}
+  </div>${outBox(7, 'Your turn 2 · the loss at three temperatures', outText(String.raw`temperature 0.01
+  loss, true pairs:     0.275
+  loss, shifted pairs:  6.589
+  loss, pure guessing:  2.303   (log 10)
+
+temperature 0.07
+  loss, true pairs:     1.594
+  loss, shifted pairs:  2.496
+  loss, pure guessing:  2.303   (log 10)
+
+temperature 1.0
+  loss, true pairs:     2.249
+  loss, shifted pairs:  2.312
+  loss, pure guessing:  2.303   (log 10)
+CLIP's own temperature, learned in training: 0.010`))}${CSS}
 `, { notes: [
   "(draft) Your turn 2. You already have the matrix that this loss is computed on.",
   "(draft) The similarity matrix from Your turn 1 is a batch of ten images and their ten captions. Each row is one round of the guessing game: here is image i, which caption is its partner? The answer is caption i.",
@@ -95,7 +116,8 @@ st(`
   "(draft) CLIP plays it both ways. Each image picks its caption, along the rows, and each caption picks its image, down the columns. The loss is the average of the two.",
   "(draft) Here is the cell. You fill in the two losses; PyTorch's cross_entropy does the softmax and the log for every row at once. The cell then prints three numbers: the loss for the true pairs, the loss if every image were paired with the wrong caption, and the loss of pure guessing, the log of ten.",
   "(draft) Then change the temperature. At 0.07, in our run, the true pairs give 1.59 against 2.30 for guessing, and the shifted pairs 2.50: below and above, but not by much, because CLIP's cosine similarities are all close together. At 1.0 all three sit near 2.3. At 0.01, which is the temperature CLIP itself learned, the true pairs drop to 0.28 and the shifted pairs jump to 6.59. The temperature decides how much small differences in similarity count.",
-  "(draft) The link opens Your turn 2. A few minutes, then back to the slides: training pushes this number down, and what it learns depends on the views."
+  "(draft) The link opens Your turn 2. A few minutes, then back to the slides: training pushes this number down, and what it learns depends on the views.",
+  "(draft) From our run, the same cell at three temperatures. At 0.01, the true pairs give a loss of 0.28 and the shifted pairs 6.59, far apart. At 0.07, 1.59 and 2.50. At 1.0, both sit near guessing, 2.30. And the last line: 0.01 is the temperature CLIP itself learned. Small differences in cosine only count when the temperature is small."
 ]});
 
 /* The text slide 'The views decide what is kept' is replaced by the views scene (scenes/views.html, 2026-11-06). */
