@@ -4,7 +4,7 @@ dissimilarity matrices and RSA. Your turn 1-3. Standalone: its own setup, so it 
 without part 1 (notebooks/day05-lab-clip-embeddings.ipynb, built by day05_lab.py, owned by the s7-8 session).
 The setup cell and the helpers it needs are copied from day05_lab.py; keep them in step if CLIP loading changes.
 Model: CLIP ViT-B/32 (OpenAI) from Hugging Face, openai/clip-vit-base-patch32. Data: CIFAR-10 test set
-(Krizhevsky, 2009) downloaded by torchvision. No API keys, no GPU needed.
+(Krizhevsky, 2009), the Hugging Face copy uoft-cs/cifar10 (24 MB, original order; the original server is slow). No API keys, no GPU needed.
 Build: python3 notebooks/build/day05_lab_part2.py [--teacher | --solved out.ipynb]. --teacher also writes
 notebooks/teacher/day05-lab-part2-solutions.json (git-ignored), which slides 25 and 28 read with ?teacher on localhost."""
 import os
@@ -67,7 +67,7 @@ order. Cells marked **Your turn** are for you: they run as they are (if you leav
 course's answer so later cells still work), and use your version once you fill it in.
 
 **Time.** About 15 minutes. No GPU needed. The first run downloads CLIP (about 600 MB) and the CIFAR-10 test
-images (about 170 MB), which takes a minute or two on Colab. This notebook stands on its own: you don't need to
+images (24 MB), which takes about a minute on Colab. This notebook stands on its own: you don't need to
 have run part 1.
 """)
 
@@ -78,14 +78,16 @@ Run the next two cells. The first loads the libraries, CLIP, and the images. The
 **helper code**, folded away; you don't need to read it.
 """)
 code("""
-import sys, time
+import sys, time, io
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import torch
-import torchvision
 import torchvision.transforms as T
 import transformers
 from transformers import CLIPModel, CLIPProcessor
+from huggingface_hub import hf_hub_download
+from PIL import Image
 from scipy.stats import spearmanr
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -99,7 +101,17 @@ MODEL_NAME = "openai/clip-vit-base-patch32"
 model = CLIPModel.from_pretrained(MODEL_NAME).to(device).eval()
 processor = CLIPProcessor.from_pretrained(MODEL_NAME)
 
-cifar = torchvision.datasets.CIFAR10(root="data", train=False, download=True)
+# The CIFAR-10 test set (Krizhevsky, 2009): 10,000 images, 32 x 32 pixels, in the original order. We take the
+# Hugging Face copy (one 24 MB file) because the original server is slow.
+class CIFAR10Test(list):
+    # a list of (image, label) pairs, with .classes and .targets like torchvision's CIFAR10
+    classes = ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
+
+table = pd.read_parquet(hf_hub_download("uoft-cs/cifar10", "plain_text/test-00000-of-00001.parquet",
+                                        repo_type="dataset"))
+cifar = CIFAR10Test((Image.open(io.BytesIO(img["bytes"])).convert("RGB"), int(label))
+                    for img, label in zip(table["img"], table["label"]))
+cifar.targets = [label for _, label in cifar]
 CLASSES = cifar.classes
 N = 500    # part 1 used the first 500 test images; part 2 uses images after them
 print(f"\\nCLIP and {len(cifar):,} CIFAR-10 test images loaded in {time.time() - t0:.0f} s")
