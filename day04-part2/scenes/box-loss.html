@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The localization loss</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="or-scene.css">
+<style>
+  #cv{ border-radius:8px; opacity:0; transition:opacity .6s ease; } #cv.on{ opacity:1; }
+  .bl-eq{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:600; text-align:center;
+    font-size:clamp(1.3rem, 2.4vw, 2.3rem); }
+  .bl-eq span{ padding:.08em .3em; border-radius:8px; border:3px solid transparent; transition:border-color .4s ease, opacity .4s ease; }
+  .bl-eq span.hot{ border-color:#d97706; }
+  .bl-eq span.off{ opacity:.25; text-decoration:line-through; }
+</style>
+</head>
+<body>
+<div class="or-wrap">
+  <h1 class="t deck-title">The localization loss: two terms</h1>
+  <div class="bl-eq" data-from="1">L = <span id="t1">L<sub>cls</sub></span> + λ · <span id="t3">1(y ≠ 0)</span> · <span id="t2">L<sub>loc</sub></span></div>
+  <div class="or-split">
+    <div class="or-fig"><canvas id="cv" width="640" height="360"></canvas></div>
+    <div class="or-side"><div class="lead" id="head"></div><div class="label" id="body"></div><div class="or-big" id="big"></div></div>
+  </div>
+  <div class="cite" data-from="1">Generated street. The predicted boxes are toy boxes; the IoU is computed</div>
+</div>
+<script src="or-scene.js"></script>
+<script src="or-world.js"></script>
+<script>
+const G = WORLD.bbox(2), P = [G[0] + 22, G[1] - 14, G[2] + 30, G[3] - 8], SKY = [520, 40, 610, 120];
+const iou = WORLD.iou(G, P), cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const $ = id => document.getElementById(id);
+function draw(b){
+  cv.classList.toggle('on', b >= 1);
+  WORLD.photo(ctx);
+  if(b >= 1) WORLD.box(ctx, P, '#d97706', b === 1 ? 'car?' : 'car', 4);
+  if(b >= 2){
+    const x0 = Math.max(G[0], P[0]), y0 = Math.max(G[1], P[1]), x1 = Math.min(G[2], P[2]), y1 = Math.min(G[3], P[3]);
+    ctx.fillStyle = 'rgba(217,119,6,.28)'; ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+    ctx.setLineDash([9, 6]); WORLD.box(ctx, G, '#0f172a', '', 3); ctx.setLineDash([]);
+  }
+  if(b >= 3) WORLD.box(ctx, SKY, '#d97706', 'nothing', 4);
+  $('t1').classList.toggle('hot', b === 1);
+  $('t2').classList.toggle('hot', b === 2);
+  $('t3').classList.toggle('hot', b === 3);
+  $('t2').classList.toggle('off', b === 3);
+  const T = [['', '', ''],
+    ['Is it the right class?', 'Cross-entropy over the classes', ''],
+    ['Is it in the right place?', 'Dashed: the true box. Shaded: the overlap', `1 − IoU = ${(1 - iou).toFixed(2)}`],
+    ['A box on nothing', 'Class term only: no true box to match', 'y = 0']][b];
+  $('head').textContent = T[0]; $('body').textContent = T[1]; $('big').textContent = T[2];
+}
+orScene('boxLoss', [
+  "(draft) To train a detector end to end we need one loss. It has two terms, and lambda balances them.",
+  "(draft) Take a predicted box on this car. The first term asks whether the class is right. It is cross-entropy over the classes, just as in classification.",
+  `(draft) The second term asks whether the box is in the right place. The dashed box is the truth and the shaded area is the overlap. The book uses one minus IoU, which is ${(1 - iou).toFixed(2)} for this toy box.`,
+  "(draft) Now take a box on nothing. It has no true box to match, so the indicator switches the localization term off. Only the class term applies, and it pushes the score for this box down."
+], draw);
+</script>
+</body>
+</html>

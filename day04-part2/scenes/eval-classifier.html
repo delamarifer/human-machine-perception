@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>How good is a classifier?</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="or-scene.css">
+<style>
+  .ev-pic{ width:100%; max-height:60vh; object-fit:contain; border-radius:8px; display:block; }
+  .ev-row{ display:grid; grid-template-columns:7em 1fr 3em; gap:.7vw; align-items:center; padding:.5vh .4vw; border-radius:8px; border:3px solid transparent;
+    transition:border-color .4s ease; }
+  .ev-row.hot{ border-color:#d97706; }
+  .ev-bar{ height:2.4vh; background:#38506e; border-radius:3px; }
+  .ev-p{ text-align:right; font-variant-numeric:tabular-nums; }
+  .ev-cm text{ font-family:var(--font); }
+  .ev-pane{ flex:1 1 auto; min-height:0; }
+</style>
+</head>
+<body>
+<div class="or-wrap">
+  <h1 class="t deck-title">How good is a classifier?</h1>
+  <div class="or-split ev-pane" data-from="1" data-to="3">
+    <img class="ev-pic" src="../../day04/assets/photos/street.jpg" alt="Tom Mboya Street, Nairobi">
+    <div class="or-side">
+      <div id="bars"></div>
+      <div class="lead" id="verdict"></div>
+    </div>
+  </div>
+  <div class="or-split ev-pane" data-from="4" data-to="99">
+    <div class="or-fig"><svg id="cm" class="ev-cm" viewBox="0 0 470 470"></svg></div>
+    <div class="or-side">
+      <div class="lead"><b>Confusion matrix</b></div>
+      <div class="label" id="cmsub"></div>
+      <div class="lead" data-from="5" id="cmhit"></div>
+    </div>
+  </div>
+  <div class="cite" id="cit"></div>
+</div>
+<script src="or-scene.js"></script>
+<script src="../../day04/assets/result.js"></script>
+<script>
+const T = D4.resnet.top5_street, $ = id => document.getElementById(id), pc = p => Math.round(p * 100) + '%';
+const TRUE = 'minibus', rank = T.findIndex(t => t.label === TRUE);
+$('bars').innerHTML = T.map((t, k) => `<div class="ev-row label" id="r${k}"><span>${t.label}</span><div><div class="ev-bar" style="width:${t.p / T[0].p * 100}%"></div></div><span class="ev-p">${pc(t.p)}</span></div>`).join('');
+
+/* Toy numbers, out of 100 images per class. The cat and dog mix-up follows the chapter's example. */
+const K = ['cat', 'dog', 'horse', 'car'], M = [[82, 14, 3, 1], [11, 84, 4, 1], [3, 5, 90, 2], [1, 1, 1, 97]];
+const C = 90, O = 92;
+let worst = {n: 0, t: 0, p: 0};
+M.forEach((row, t) => row.forEach((n, p) => { if(t !== p && n > worst.n) worst = {n, t, p}; }));
+function cm(b){
+  let s = `<text x="${O + 180}" y="24" text-anchor="middle" font-size="20" fill="#0f172a">predicted</text>
+    <text x="16" y="${O + 180}" text-anchor="middle" font-size="20" fill="#0f172a" transform="rotate(-90 16 ${O + 180})">true class</text>`;
+  K.forEach((k, i) => {
+    s += `<text x="${O + i * C + C / 2}" y="${O - 12}" text-anchor="middle" font-size="19" fill="#0f172a">${k}</text>
+      <text x="${O - 10}" y="${O + i * C + C / 2 + 6}" text-anchor="end" font-size="19" fill="#0f172a">${k}</text>`;
+  });
+  M.forEach((row, t) => row.forEach((n, p) => {
+    const diag = t === p, fill = diag ? '#38506e' : n >= 10 ? '#f3c98b' : '#f1f5f9';
+    s += `<rect x="${O + p * C}" y="${O + t * C}" width="${C - 3}" height="${C - 3}" rx="5" fill="${fill}"/>
+      <text x="${O + p * C + C / 2 - 1}" y="${O + t * C + C / 2 + 8}" text-anchor="middle" font-size="24" font-weight="700" fill="${diag ? '#fff' : '#0f172a'}">${n}</text>`;
+  }));
+  if(b >= 5) s += `<rect x="${O + worst.p * C - 3}" y="${O + worst.t * C - 3}" width="${C + 3}" height="${C + 3}" rx="7" fill="none" stroke="#d97706" stroke-width="5"/>`;
+  $('cm').innerHTML = s;
+}
+$('cmsub').textContent = 'Rows: the true class. Columns: the prediction. Toy numbers, 100 images per class';
+$('cmhit').textContent = `Biggest mix-up: ${K[worst.t]} read as ${K[worst.p]}`;
+
+function draw(b){
+  T.forEach((t, k) => $('r' + k).classList.toggle('hot', (b === 2 && k === 0) || (b === 3 && k === rank)));
+  $('verdict').textContent = b === 2 ? `Top-1: ${T[0].label} ✗` : b === 3 ? `Top-5: ${TRUE} is in the list ✓` : '';
+  cm(b);
+  $('cit').textContent = b >= 4 ? 'Toy example, not real results. Cats and dogs follow the example in Ch. 50'
+    : b >= 1 ? 'ResNet-18 on Tom Mboya Street, Nairobi. Bahnfrend, CC BY-SA 4.0. "Minibus" is our label for the main object' : '';
+}
+orScene('evalClassifier', [
+  "(draft) We have a classifier. How do we score it? Three common answers.",
+  `(draft) Here is what ResNet-18 really says about our street: its five best guesses, with ${T[0].label} on top.`,
+  `(draft) Top-1 asks whether the single best guess is right. If we call the main object a minibus, ${T[0].label} is wrong. That label is our call, and labels are often debatable like this.`,
+  `(draft) Top-5 asks whether the right label is among the five best guesses. ${TRUE} is number ${rank + 1}, at ${pc(T[rank].p)}. This helps when labels are ambiguous, or when an image could have several labels.`,
+  "(draft) The confusion matrix shows how often true class i is classified as class j. These numbers are a toy example, not real results. The diagonal is correct. Everything off the diagonal is a mistake.",
+  `(draft) So it tells us which classes get mixed up, not just how many mistakes there are. Here the biggest mix-up is ${K[worst.t]} read as ${K[worst.p]}, ${worst.n} times out of 100. The chapter uses the same example: cats are most often confused with dogs.`
+], draw);
+</script>
+</body>
+</html>

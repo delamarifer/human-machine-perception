@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>IoU versus L2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="or-scene.css">
+</head>
+<body>
+<div class="or-wrap">
+  <h1 class="t deck-title">Which box loss? IoU versus L2</h1>
+  <div class="or-split">
+    <div class="or-fig" data-from="2"><svg id="plot" viewBox="0 0 560 400"></svg></div>
+    <div class="or-side">
+      <div data-from="1"><svg id="boxes" viewBox="0 0 400 190" style="width:100%;max-height:26vh"></svg></div>
+      <div class="lead" id="head"></div>
+      <div class="label" id="body"></div>
+    </div>
+  </div>
+</div>
+<script src="or-scene.js"></script>
+<script>
+/* Two axis-aligned squares of side s, the second moved right by d. Boxes are (x1, y1, x2, y2). */
+const iou = (d, s) => { const I = Math.max(0, s - d) * s; return I / (2 * s * s - I); };
+const lossIoU = (d, s) => 1 - iou(d, s);
+const lossL2 = d => 2 * d * d;                     // squared differences of the corner coordinates
+const X = d => 70 + d / 2 * 460, Y = v => 340 - v / 2 * 300;
+const path = f => { let p = ''; for(let i = 0; i <= 200; i++){ const d = i / 100, v = f(d); if(v > 2.02) break; p += (i ? 'L' : 'M') + X(d).toFixed(1) + ' ' + Y(v).toFixed(1); } return p; };
+const fmt = v => v.toFixed(2);
+function plot(b){
+  let s = `<line x1="70" y1="340" x2="530" y2="340" stroke="#0f172a" stroke-width="2"/><line x1="70" y1="340" x2="70" y2="30" stroke="#0f172a" stroke-width="2"/>
+    <text x="300" y="385" text-anchor="middle" font-size="21" fill="#0f172a">displacement of a unit square</text>
+    <text x="24" y="190" text-anchor="middle" font-size="21" fill="#0f172a" transform="rotate(-90 24 190)">loss</text>`;
+  for(const t of [0, 1, 2]){ s += `<text x="${X(t)}" y="362" text-anchor="middle" font-size="18" fill="#0f172a">${t}</text><text x="60" y="${Y(t) + 6}" text-anchor="end" font-size="18" fill="#0f172a">${t}</text>`; }
+  if(b >= 4) s += `<rect x="${X(1)}" y="30" width="${X(2) - X(1)}" height="310" fill="#f1f5f9"/><text x="${X(1.5)}" y="60" text-anchor="middle" font-size="19" fill="#0f172a">no overlap</text>`;
+  s += `<path d="${path(d => lossIoU(d, 1))}" fill="none" stroke="#38506e" stroke-width="5"/><text x="${X(1.72)}" y="${Y(1) - 12}" text-anchor="middle" font-size="20" fill="#0f172a">1 − IoU</text>`;
+  if(b >= 3) s += `<path d="${path(lossL2)}" fill="none" stroke="#d97706" stroke-width="5"/><text x="${X(.84)}" y="${Y(1.75)}" font-size="20" fill="#0f172a" text-anchor="end">L2</text>`;
+  document.getElementById('plot').innerHTML = s;
+}
+function pair(k, d, s, x){ const u = k * s; return `<rect x="${x}" y="${170 - u}" width="${u}" height="${u}" fill="none" stroke="#0f172a" stroke-width="3"/>
+  <rect x="${x + k * d}" y="${170 - u}" width="${u}" height="${u}" fill="none" stroke="#d97706" stroke-width="3"/>`; }
+function draw(b){
+  plot(b);
+  const bx = document.getElementById('boxes'), H = document.getElementById('head'), T = document.getElementById('body');
+  bx.innerHTML = b >= 5 ? pair(70, .5, 1, 10) + pair(70, 1, 2, 130) : pair(120, .5, 1, 60);
+  const scale = lossL2(1) / lossL2(.5);
+  const txt = [['', ''],
+    ['IoU = overlap / union', `Unit squares, moved by 0.5: IoU = ${fmt(iou(.5, 1))}`],
+    ['Loss = 1 − IoU', `Displacement 0.5: loss = ${fmt(lossIoU(.5, 1))}`],
+    ['L2 on the box corners', `Displacement 0.5: loss = ${fmt(lossL2(.5))}`],
+    ['No overlap, no gradient', `Displacement 1.0 and 1.5 both give 1 − IoU = ${fmt(lossIoU(1, 1))}`],
+    ['Scale: IoU stays, L2 grows', `Double box and displacement: 1 − IoU stays ${fmt(lossIoU(1, 2))}, L2 is ×${scale}`]][b];
+  H.textContent = txt[0]; T.textContent = txt[1];
+}
+orScene('iouL2', [
+  "(draft) Which loss should compare a predicted box with the true box? This reproduces the comparison in Figure 50.18 of the book, computed here from the formulas.",
+  "(draft) IoU is the area of the overlap divided by the area of the union. It lies between 0 and 1. For two unit squares moved by half a side, the IoU is one third.",
+  "(draft) The localization loss is one minus IoU. It rises as the boxes separate.",
+  "(draft) The alternative is L2: squared differences of the corner coordinates. It keeps growing with distance.",
+  "(draft) Here is the catch for IoU. Once the boxes stop overlapping, the loss sits at 1, however far apart they are. The curve is flat, so backpropagation gets no gradient.",
+  "(draft) And here is the catch for L2. Double the box and the displacement. IoU does not change, because it is scale invariant. L2 is four times larger, so big boxes dominate the loss. Neither loss is simply better."
+], draw);
+</script>
+</body>
+</html>

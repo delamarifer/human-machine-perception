@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Evaluating a detector</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="or-scene.css">
+<style>.or-split{ grid-template-columns:1.1fr 1fr; } td.res{ font-weight:700; }</style>
+</head>
+<body>
+<div class="or-wrap">
+  <h1 class="t deck-title">Evaluating a detector: precision, recall, AP</h1>
+  <div class="or-split">
+    <div data-from="1"><table class="or-t" id="tb"></table></div>
+    <div class="or-fig" data-from="4"><svg id="plot" viewBox="0 0 460 400"></svg></div>
+  </div>
+  <div class="cite" data-from="1" id="cit"></div>
+</div>
+<script src="or-scene.js"></script>
+<script>
+/* Toy example. Six true boxes of side 100. Each detection is a true box shifted by dx (made up),
+   or a box on nothing. IoU, matching, precision, recall and AP below are computed. */
+const NGT = 6, THR = .5;
+const D = [[.95, 0, 4], [.91, 1, 10], [.84, 2, 6], [.78, 1, 18], [.71, null, 0], [.66, 3, 14], [.58, 4, 45], [.49, null, 0], [.41, 4, 8]];
+const iou = dx => { const I = Math.max(0, 100 - dx) * 100; return I / (20000 - I); };
+const used = new Set(); let tp = 0;
+const R = D.map(([s, g, dx], k) => {
+  const v = g == null ? 0 : iou(dx), ok = g != null && v > THR && !used.has(g);
+  if(ok){ used.add(g); tp++; }
+  return {s, v, ok, dup: g != null && v > THR && !ok, P: tp / (k + 1), Rc: tp / NGT};
+});
+let AP = 0, prev = 0; R.forEach(r => { AP += (r.Rc - prev) * r.P; prev = r.Rc; });
+const missed = NGT - used.size;
+document.getElementById('cit').textContent = `Toy detections, ${NGT} true boxes, IoU threshold ${THR}. PASCAL protocol, as described in Ch. 50`;
+
+const X = r => 70 + r * 360, Y = p => 340 - p * 300;
+function plot(b){
+  let s = `<line x1="70" y1="340" x2="440" y2="340" stroke="#0f172a" stroke-width="2"/><line x1="70" y1="340" x2="70" y2="30" stroke="#0f172a" stroke-width="2"/>
+    <text x="250" y="388" text-anchor="middle" font-size="21" fill="#0f172a">recall</text>
+    <text x="22" y="190" text-anchor="middle" font-size="21" fill="#0f172a" transform="rotate(-90 22 190)">precision</text>`;
+  for(const t of [0, .5, 1]){ s += `<text x="${X(t)}" y="362" text-anchor="middle" font-size="18" fill="#0f172a">${t}</text><text x="60" y="${Y(t) + 6}" text-anchor="end" font-size="18" fill="#0f172a">${t}</text>`; }
+  let line = `M${X(0)} ${Y(R[0].P)}`, area = `M${X(0)} ${Y(0)}L${X(0)} ${Y(R[0].P)}`, pr = 0;
+  R.forEach(r => { line += `L${X(pr)} ${Y(r.P)}L${X(r.Rc)} ${Y(r.P)}`; area += `L${X(pr)} ${Y(r.P)}L${X(r.Rc)} ${Y(r.P)}`; pr = r.Rc; });
+  area += `L${X(pr)} ${Y(0)}Z`;
+  if(b >= 5) s += `<path d="${area}" fill="#dbe4ef"/><text x="${X(.32)}" y="${Y(.35)}" text-anchor="middle" font-size="28" font-weight="700" fill="#0f172a">AP = ${AP.toFixed(2)}</text>`;
+  s += `<path d="${line}" fill="none" stroke="#38506e" stroke-width="4"/>`;
+  document.getElementById('plot').innerHTML = s;
+}
+function draw(b){
+  const head = '<tr><th>score</th>' + (b >= 2 ? '<th>best IoU</th><th>match</th>' : '') + (b >= 3 ? '<th>precision</th><th>recall</th>' : '') + '</tr>';
+  document.getElementById('tb').innerHTML = head + R.map(r => '<tr><td>' + r.s.toFixed(2) + '</td>' +
+    (b >= 2 ? `<td>${r.v.toFixed(2)}</td><td class="res">${r.ok ? 'correct' : r.dup ? 'duplicate' : 'wrong'}</td>` : '') +
+    (b >= 3 ? `<td>${r.P.toFixed(2)}</td><td>${r.Rc.toFixed(2)}</td>` : '') + '</tr>').join('');
+  plot(b);
+}
+orScene('prCurve', [
+  "(draft) How do we score a detector? The book follows the PASCAL protocol.",
+  `(draft) Sort all detections by score, highest first. This is a toy list of ${D.length} detections for ${NGT} true boxes. The boxes and scores are made up; everything after this is computed.`,
+  `(draft) Go down the list. Match each detection to the unmatched true box it overlaps most. It counts as correct if IoU is above 0.5, and that true box is then used up. So a second detection of the same object counts as wrong. Here ${missed} true ${missed === 1 ? 'box is' : 'boxes are'} never found.`,
+  "(draft) Now slide a threshold down the list. Precision is the fraction of detections so far that are correct. Recall is the fraction of true boxes found so far.",
+  "(draft) Plot precision against recall as the threshold moves. Precision drops at each wrong detection, and recall rises at each correct one.",
+  `(draft) Average precision is the area under this curve, a number between 0 and 1. For this toy list it is ${AP.toFixed(2)}.`
+], draw);
+</script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Non-maximum suppression</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="or-scene.css">
+<style>#cv{ border-radius:8px; opacity:0; transition:opacity .6s ease; } #cv.on{ opacity:1; }</style>
+</head>
+<body>
+<div class="or-wrap">
+  <h1 class="t deck-title">Non-maximum suppression</h1>
+  <div class="or-split">
+    <div class="or-fig"><canvas id="cv" width="640" height="360"></canvas></div>
+    <div class="or-side">
+      <div class="lead" id="head"></div>
+      <div class="label" id="body"></div>
+    </div>
+  </div>
+  <div class="cite" id="cit">Toy candidate boxes and scores, IoU threshold 0.5</div>
+</div>
+<script src="or-scene.js"></script>
+<script src="or-world.js"></script>
+<script>
+/* Toy candidates: each true box from the generator, shifted by fixed offsets, with made-up scores.
+   The overlaps and the suppression below are computed, not scripted. */
+const G = [1, 2, 3].map(WORLD.bbox), THR = .5;
+const J = [[0, 0, 0, 0, .93], [-14, 8, -8, 6, .81], [12, -6, 16, -4, .74], [26, 10, 30, 8, .52],
+           [0, 0, 0, 0, .88], [10, -8, 14, -6, .77], [-18, 6, -12, 8, .61],
+           [0, 0, 0, 0, .90], [-8, -10, 6, 6, .69]];
+const GT = [0, 0, 0, 0, 1, 1, 1, 2, 2];
+const C = J.map((j, k) => { const g = G[GT[k]]; return {b: [g[0] + j[0], g[1] + j[1], g[2] + j[2], g[3] + j[3]], s: j[4]}; });
+C.push({b: [520, 40, 610, 120], s: .35});
+C.sort((a, b) => b.s - a.s);
+
+/* greedy NMS: every step records what it kept and what it removed */
+const steps = []; let left = C.slice();
+while(left.length){
+  const top = left[0], gone = left.slice(1).filter(c => WORLD.iou(c.b, top.b) > THR);
+  steps.push({top, gone}); left = left.slice(1).filter(c => !gone.includes(c));
+}
+const n = steps.length;
+const notes = ["(draft) A detector proposes many overlapping boxes around each object. We want one box per object.",
+  `(draft) Here are ${C.length} toy candidates with made-up scores. The boxes and scores are invented for this example; the overlaps are computed.`];
+notes.push(`(draft) Take the highest-scoring box and keep it. Remove every other box whose IoU with it is above 0.5. Score ${steps[0].top.s.toFixed(2)} stays, and ${steps[0].gone.length} boxes go.`);
+notes.push(`(draft) Repeat with the best box that is left until the set is empty. We stop with ${n} boxes. Notice the box in the sky survives: nothing overlaps it, so suppression cannot remove it. A score threshold has to do that job.`);
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+function draw(b){
+  cv.classList.toggle('on', b >= 1);
+  document.getElementById('cit').style.opacity = b >= 1 ? 1 : 0;
+  WORLD.photo(ctx);
+  const done = b <= 1 ? 0 : b === 2 ? 1 : n, kept = steps.slice(0, done).map(s => s.top), gone = steps.slice(0, done).flatMap(s => s.gone);
+  if(b >= 1) C.filter(c => !kept.includes(c) && !gone.includes(c)).forEach(c => WORLD.box(ctx, c.b, 'rgba(15,23,42,.65)', '', 2));
+  kept.forEach(c => WORLD.box(ctx, c.b, '#d97706', c.s.toFixed(2), 4));
+  const H = document.getElementById('head'), T = document.getElementById('body');
+  if(b === 0){ H.textContent = ''; T.textContent = ''; }
+  else if(b === 1){ H.textContent = `${C.length} candidate boxes`; T.textContent = 'One object, many boxes'; }
+  else if(b === 2){ const s = steps[0]; H.textContent = `Keep ${s.top.s.toFixed(2)}`; T.textContent = `Remove ${s.gone.length} with IoU > ${THR}`; }
+  else { H.textContent = `${n} boxes left`; T.textContent = 'Isolated false boxes survive'; }
+}
+orScene('nms', notes, draw);
+</script>
+</body>
+</html>
