@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Five object recognition tasks on one image</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: recognition part (Day 4). Illustrates all 5 recognition tasks on the exact same scene. */
+  html, body{ background:#fff; }
+  body.jump *{ transition:none !important; }
+  .wrap{ position:absolute; inset:0; padding:7.5vh 5.5vw 10vh; display:flex; flex-direction:column; gap:1.4vh; }
+  .grid5{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(5, 1fr); gap:1.2vw; align-items:stretch; }
+  .card5{ display:flex; flex-direction:column; background:#f8fafc; border:1px solid var(--line); border-radius:10px; padding:1vh .8vw;
+    opacity:0; transform:translateY(8px); transition:opacity .6s ease, transform .6s ease; }
+  .card5.on{ opacity:1; transform:none; }
+  .card5 canvas{ width:100%; aspect-ratio:4/3; border-radius:6px; border:1px solid #cbd5e1; background:#fff; }
+  .card5 .tname{ font-weight:700; font-size:clamp(.82rem, 1.2vw, 1.12rem); margin-top:.6vh; color:var(--ink); }
+  .card5 .tout{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:clamp(.68rem, .95vw, .88rem);
+    background:#0f172a; color:#f8fafc; padding:.5vh .5vw; border-radius:6px; margin-top:.5vh; line-height:1.35; }
+  .card5 .tdesc{ font-size:clamp(.72rem, 1vw, .95rem); color:#334155; margin-top:.5vh; line-height:1.3; }
+  .explain{ background:#f1f5f9; border-left:4px solid #38506e; border-radius:8px; padding:.9vh 1.2vw;
+    font-size:clamp(.8rem, 1.18vw, 1.08rem); color:var(--ink); }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Five object recognition tasks on the same image</h1>
+  <div class="grid5">
+    <div class="card5" id="tk1">
+      <canvas id="cv1" width="240" height="180"></canvas>
+      <div class="tname">1. Image Classification</div>
+      <div class="tout">y = "person" (p = 0.91)</div>
+      <div class="tdesc"><b>What is in the image?</b> Single category label (or top-k probabilities) for the entire frame.</div>
+    </div>
+    <div class="card5" id="tk2">
+      <canvas id="cv2" width="240" height="180"></canvas>
+      <div class="tname">2. Object Localization</div>
+      <div class="tout">y = ("person", [x, y, w, h])</div>
+      <div class="tdesc"><b>Where is the main object?</b> Single class label plus one axis-aligned bounding box.</div>
+    </div>
+    <div class="card5" id="tk3">
+      <canvas id="cv3" width="240" height="180"></canvas>
+      <div class="tname">3. Object Detection</div>
+      <div class="tout">{("person", b₁), ("person", b₂), ("car", b₃)}</div>
+      <div class="tdesc"><b>What objects are present &amp; where?</b> Variable-length list of classes, boxes, and confidences.</div>
+    </div>
+    <div class="card5" id="tk4">
+      <canvas id="cv4" width="240" height="180"></canvas>
+      <div class="tname">4. Semantic Segmentation</div>
+      <div class="tout">M ∈ {sky, road, person, car}^(H×W)</div>
+      <div class="tdesc"><b>Which category owns each pixel?</b> Dense pixel map; two people share the same class label.</div>
+    </div>
+    <div class="card5" id="tk5">
+      <canvas id="cv5" width="240" height="180"></canvas>
+      <div class="tname">5. Instance Segmentation</div>
+      <div class="tout">{mask₁: person#1, mask₂: person#2, mask₃: car#1}</div>
+      <div class="tdesc"><b>Which pixels belong to each individual object?</b> Separates overlapping instances.</div>
+    </div>
+  </div>
+  <div class="explain" id="exp">Click to step through how each task reformulates the output space on the exact same input image (MIT Vision Book, Ch. 50).</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+const EXPS = [
+  '<b>Same input image, five problem formulations (MIT Vision Book, Ch. 50):</b> Click to compare what each task predicts and what spatial information it keeps.',
+  '<b>1. Image Classification:</b> Collapses the entire <code>H × W × 3</code> image into one probability vector over <code>C</code> classes. Ignores where objects sit or how many instances exist.',
+  '<b>2. Object Localization:</b> Adds a 4-number regression head <code>(x, y, w, h)</code> to locate the primary foreground object.',
+  '<b>3. Object Detection:</b> Predicts a set of bounding boxes and class scores across multiple objects and categories (here: two people and one car).',
+  '<b>4. Semantic Segmentation:</b> Assigns a category label to <i>every pixel</i> (sky, road, person, car), but does not distinguish Person 1 from Person 2.',
+  '<b>5. Instance Segmentation:</b> Combines detection and segmentation—every individual object instance gets its own pixel-accurate mask and identity.'
+];
+const NOTES = [
+  "(draft) Title only. In Chapter 50 of the MIT Vision Book, object recognition is not a single task—it is a family of tasks that share the same visual backbone but ask progressively richer spatial questions.",
+  "(draft) Task 1 is Image Classification: what is in the image? The model outputs a single label or probability vector over categories, such as person with probability 0.91. It discards where the person is and whether there are two people or one.",
+  "(draft) Task 2 is Object Localization: where is the main object? The model outputs the class label plus one bounding box (x, y, w, h).",
+  "(draft) Task 3 is Object Detection: what objects are present, and where? A real street scene has multiple people and vehicles. The detector outputs a variable-length list of bounding boxes, classes, and confidence scores.",
+  "(draft) Task 4 is Semantic Segmentation: which pixels belong to which category? Every pixel in the H by W grid gets a class label—sky, road, person, or car. Notice that both people have the exact same green color: semantic segmentation knows they are 'person' pixels, but cannot tell that there are two separate people.",
+  "(draft) Task 5 is Instance Segmentation: which pixels belong to each individual object? Now Person 1 (amber mask), Person 2 (purple mask), and Car 1 (blue mask) are separated at the pixel level."
+];
+const N = NOTES.length - 1;
+let beat = 0;
+
+/* Draw the shared street scene (240x180) with 2 people and 1 car */
+const W = 240, H = 180;
+function drawBaseScene(ctx, segMode){
+  if(segMode === 'sem' || segMode === 'inst'){
+    // Sky
+    ctx.fillStyle = segMode === 'sem' ? '#cbd5e1' : '#e2e8f0';
+    ctx.fillRect(0, 0, W, 98);
+    // Road
+    ctx.fillStyle = segMode === 'sem' ? '#94a3b8' : '#cbd5e1';
+    ctx.fillRect(0, 98, W, H - 98);
+  } else {
+    const sky = ctx.createLinearGradient(0, 0, 0, 98);
+    sky.addColorStop(0, '#bae6fd'); sky.addColorStop(1, '#e0f2fe');
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, W, 98);
+    ctx.fillStyle = '#64748b'; ctx.fillRect(0, 98, W, H - 98);
+    ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 2; ctx.setLineDash([8, 6]);
+    ctx.beginPath(); ctx.moveTo(0, 142); ctx.lineTo(W, 142); ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  // Helper to draw a person silhouette at (cx, topY, scale)
+  function drawPerson(cx, topY, sc, colBody, colHead){
+    ctx.fillStyle = colHead;
+    ctx.beginPath(); ctx.arc(cx, topY + 12 * sc, 10 * sc, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = colBody;
+    ctx.beginPath();
+    ctx.roundRect(cx - 14 * sc, topY + 24 * sc, 28 * sc, 42 * sc, 6 * sc);
+    ctx.fill();
+    // legs
+    ctx.fillRect(cx - 11 * sc, topY + 64 * sc, 8 * sc, 28 * sc);
+    ctx.fillRect(cx + 3 * sc, topY + 64 * sc, 8 * sc, 28 * sc);
+  }
+
+  // Helper to draw a car at (x0, y0, w, h)
+  function drawCar(x0, y0, colBody, colWheel){
+    ctx.fillStyle = colBody;
+    ctx.beginPath(); ctx.roundRect(x0, y0 + 16, 78, 28, 6); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x0 + 12, y0 + 18); ctx.lineTo(x0 + 24, y0); ctx.lineTo(x0 + 56, y0); ctx.lineTo(x0 + 68, y0 + 18); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = colWheel;
+    ctx.beginPath(); ctx.arc(x0 + 18, y0 + 44, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x0 + 60, y0 + 44, 8, 0, Math.PI * 2); ctx.fill();
+  }
+
+  if(segMode === 'sem'){
+    drawPerson(52, 54, 1.0, '#16a34a', '#16a34a');
+    drawPerson(98, 62, 0.88, '#16a34a', '#16a34a');
+    drawCar(142, 78, '#2563eb', '#2563eb');
+    // Legend labels
+    ctx.fillStyle = '#0f172a'; ctx.font = '700 11px monospace';
+    ctx.fillText('sky', 10, 18); ctx.fillText('road', 10, 168);
+    ctx.fillStyle = '#fff'; ctx.fillText('person', 38, 102); ctx.fillText('car', 168, 108);
+  } else if(segMode === 'inst'){
+    drawPerson(52, 54, 1.0, '#d97706', '#d97706');
+    drawPerson(98, 62, 0.88, '#7c3aed', '#7c3aed');
+    drawCar(142, 78, '#2563eb', '#2563eb');
+    ctx.fillStyle = '#fff'; ctx.font = '700 10px monospace';
+    ctx.fillText('#1', 45, 102); ctx.fillText('#2', 92, 106); ctx.fillText('#3', 173, 108);
+  } else {
+    drawPerson(52, 54, 1.0, '#0f172a', '#d97706');
+    drawPerson(98, 62, 0.88, '#334155', '#d97706');
+    drawCar(142, 78, '#dc2626', '#0f172a');
+  }
+}
+
+function drawBox(ctx, x, y, w, h, col, tag){
+  ctx.strokeStyle = col; ctx.lineWidth = 2.5;
+  ctx.strokeRect(x, y, w, h);
+  ctx.font = '700 10.5px monospace';
+  const tw = ctx.measureText(tag).width + 8;
+  ctx.fillStyle = col; ctx.fillRect(x - 1, y - 15, tw, 15);
+  ctx.fillStyle = '#fff'; ctx.fillText(tag, x + 3, y - 4);
+}
+
+function initCanvases(){
+  const c1 = document.getElementById('cv1').getContext('2d');
+  drawBaseScene(c1, 'rgb');
+
+  const c2 = document.getElementById('cv2').getContext('2d');
+  drawBaseScene(c2, 'rgb');
+  drawBox(c2, 34, 52, 36, 96, '#d97706', 'person');
+
+  const c3 = document.getElementById('cv3').getContext('2d');
+  drawBaseScene(c3, 'rgb');
+  drawBox(c3, 34, 52, 36, 96, '#d97706', 'person 0.96');
+  drawBox(c3, 82, 60, 32, 84, '#16a34a', 'person 0.89');
+  drawBox(c3, 138, 75, 84, 56, '#2563eb', 'car 0.94');
+
+  const c4 = document.getElementById('cv4').getContext('2d');
+  drawBaseScene(c4, 'sem');
+
+  const c5 = document.getElementById('cv5').getContext('2d');
+  drawBaseScene(c5, 'inst');
+}
+initCanvases();
+
+function go(b){
+  beat = b;
+  for(let k = 1; k <= 5; k++){
+    document.getElementById('tk' + k).classList.toggle('on', b >= k);
+  }
+  document.getElementById('exp').innerHTML = EXPS[b] || EXPS[0];
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+}
+
+window.recognitionTasks = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ go(0); },
+  resetToEnd(){ go(N); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) recognitionTasks.advance(); if(e.key === 'ArrowLeft') recognitionTasks.back(); });
+  addEventListener('click', () => recognitionTasks.advance());
+}
+go(0);
+</script>
+</body>
+</html>

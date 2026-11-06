@@ -77,3 +77,24 @@ All notes are `(draft)` or `(to write)`; none are Fernanda's wording yet.
   part of Day 4? Owners are "to decide" in every part header.
 - [ ] Timing: 65 minutes of segments in the plan. The invariance segment has 5 slides for 20 minutes and
   the metamers segment includes the activity in its 15 minutes, which looks tight.
+
+## Open research areas in CNNs (slides 35–36 and 41, part `open-research`, added 2026-11-05)
+
+Slide 35 lists four open questions (attention, calibrated confidence, model metamers, why they generalize).
+Slide 36 is a scene of Griffith, Hess & McDermott (2025): cue → memory → multiplicative feature gains on a
+word-recognition CNN. Slide 37 is a scene of Govindarajan, Alavilli & McDermott (2025): a localization CNN that
+outputs a distribution, trained with maximum likelihood, compared with people's bets. Both scenes are drawn
+schematics (labeled "schematic, not data" / "curves: illustration"); the numbers on screen (800 words, r = 0.90 vs
+0.81) are quoted from the preprints as summarized in the plan. All notes are `(draft)`.
+
+- [ ] Are Ian Griffith and Lakshmi Govindarajan fine being featured in a public lecture deck (the site is public)?
+- [ ] Names as they want them spelled on screen and said aloud (e.g. "Ian Griffith", "Lakshmi Govindarajan";
+  co-authors "Hess", "Alavilli").
+- [ ] Cite the bioRxiv preprints (as now: doi 10.1101/2025.05.28.656682 and 10.1101/2025.10.31.685933) or the
+  conference abstracts (CCN)?
+- [ ] Please check the quoted facts against the papers: 800-word softmax; gains at the cochleagram and before
+  every conv block; the two confirmed predictions (azimuth > elevation; narrower spotlight at the midline); late
+  selection; 5-component von Mises mixture; 50% HPD width as confidence; r = 0.90 vs 0.81; extension to pitch.
+- [ ] Slide 41 notes explain the two-peaked truck distribution as front-back confusion. Is that how Lakshmi
+  describes the paper's Fig. 1 example?
+- [x] Moved (Fernanda, 2026-11-05): the confidence scene is now slide 41, right after "A probability is not a confidence" (slide 40); slide 35 row 2 points to it in Section 5.
