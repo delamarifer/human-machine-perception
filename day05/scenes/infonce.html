@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The contrastive loss as a guessing game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: Day 5, Fernanda (f-infonce). Pattern B. The contrastive loss (InfoNCE) as a guessing game, computed
+     live: toy images made in code, two random views of each, a fixed filter bank plus a linear layer trained
+     here, in the page, with the same loss. Every number on screen is computed below. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 13vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .infonce-cite{ opacity:0; transition:opacity .6s; bottom:4vh; }
+  .infonce-cite.on{ opacity:1; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">The contrastive loss as a guessing game</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+</div>
+<div class="cite infonce-cite" id="cite">Torralba, Isola &amp; Freeman, <i>Foundations of Computer Vision</i>, Sec. 30.10; van den Oord, Li &amp; Vinyals 2018</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE    (0):   the title alone
+   ACT 1  GAME     (1-4): a query view and 8 candidates, one is its partner (the other view of the same image);
+                          cosine similarity with each; divide by the temperature, softmax: probabilities;
+                          loss = -log p(partner)
+   ACT 2  KNOBS    (5-6): a lower temperature sharpens the softmax; before vs after training the embedding
+   ACT 3  CLIP     (7):   the same game, with an image and its caption as the two views
+   No data colors: bars are gray, the partner's bar is ink; before/after are hollow/filled. */
+/* ---- shared toy set (the same block is pasted into each Day 5 scene, so each scene stays self-contained) ----
+   Images are made here, seeded: 6 kinds of 32x32 gray texture. The "embedding" is a hand-designed Gabor
+   filter bank (4 orientations x 2 scales, as on Day 3), standing in for a network layer: each filter's
+   energy map is averaged over the image, giving 8 numbers. */
+const FONT = "Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif";
+function rng(seed){ return () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const gauss = r => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r());
+const KINDS = ['horizontal stripes', 'vertical stripes', 'diagonal stripes', 'checkers', 'dots', 'rings'];
+function toyImage(kind, r, n = 32){
+  const f = .09 + .07 * r(), ph = 6.2832 * r(), ph2 = 6.2832 * r(), c = .32 + .12 * r(), cx = n * (.3 + .4 * r()), cy = n * (.3 + .4 * r());
+  const im = new Float32Array(n * n), T = 2 * Math.PI * f;
+  for(let y = 0; y < n; y++) for(let x = 0; x < n; x++){
+    let v;
+    if(kind === 0) v = Math.sin(T * y + ph);
+    else if(kind === 1) v = Math.sin(T * x + ph);
+    else if(kind === 2) v = Math.sin(T * (x + y) * Math.SQRT1_2 + ph);
+    else if(kind === 3) v = Math.sign(Math.sin(T * x + ph) * Math.sin(T * y + ph2));
+    else if(kind === 4) v = Math.sin(T * x + ph) * Math.sin(T * y + ph2) > .55 ? 1 : -.6;
+    else v = Math.sin(T * Math.hypot(x - cx, y - cy) + ph);
+    im[y * n + x] = Math.max(0, Math.min(1, .5 + c * v + .05 * gauss(r)));
+  }
+  return im;
+}
+/* the filter bank: even and odd Gabors; theta 0 responds to vertical stripes */
+const BANK = [];
+for(const [lam, sig] of [[4, 1.8], [8, 3.4]]) for(let o = 0; o < 4; o++){
+  const th = o * Math.PI / 4, R = Math.ceil(2.2 * sig), size = 2 * R + 1, ev = new Float32Array(size * size), od = new Float32Array(size * size);
+  for(let v = 0; v < size; v++) for(let u = 0; u < size; u++){
+    const x = u - R, y = v - R, xr = x * Math.cos(th) + y * Math.sin(th), g = Math.exp(-(x * x + y * y) / (2 * sig * sig));
+    ev[v * size + u] = g * Math.cos(2 * Math.PI * xr / lam); od[v * size + u] = g * Math.sin(2 * Math.PI * xr / lam);
+  }
+  const m = ev.reduce((a, b) => a + b) / ev.length; ev.forEach((_, i) => ev[i] -= m);
+  for(const k of [ev, od]){ const s = Math.hypot(...k); k.forEach((_, i) => k[i] /= s); }
+  BANK.push({R, size, ev, od, th, lam, name: `${o * 45}°, ${lam === 4 ? 'fine' : 'coarse'}`});
+}
+function energyMap(im, n, b, stride = 1){
+  const m = Math.ceil(n / stride), out = new Float32Array(m * m);
+  for(let j = 0; j < m; j++) for(let i = 0; i < m; i++){
+    const y0 = j * stride, x0 = i * stride; let e = 0, o = 0;
+    for(let v = 0; v < b.size; v++){ let yy = y0 + v - b.R; yy = yy < 0 ? 0 : yy >= n ? n - 1 : yy;
+      for(let u = 0; u < b.size; u++){ let xx = x0 + u - b.R; xx = xx < 0 ? 0 : xx >= n ? n - 1 : xx;
+        const p = im[yy * n + xx] - .5, k = v * b.size + u; e += b.ev[k] * p; o += b.od[k] * p; } }
+    out[j * m + i] = Math.hypot(e, o);
+  }
+  return out;
+}
+const embedRaw = (im, n = 32) => BANK.map(b => { const m = energyMap(im, n, b, 2); return m.reduce((a, v) => a + v, 0) / m.length; });
+/* the standard set: 8 images of each kind, seed 100 + i */
+function toySet(per = 8){ const S = []; for(let k = 0; k < KINDS.length; k++) for(let i = 0; i < per; i++){ const im = toyImage(k, rng(100 + k * 50 + i)); S.push({kind: k, im, raw: embedRaw(im)}); } return S; }
+/* standardize each embedding dimension over a set; cosine similarity; Pearson correlation */
+function standardizer(rows){ const d = rows[0].length, mu = Array(d).fill(0), sd = Array(d).fill(0);
+  rows.forEach(r => r.forEach((v, i) => mu[i] += v / rows.length)); rows.forEach(r => r.forEach((v, i) => sd[i] += (v - mu[i]) ** 2 / rows.length));
+  return r => r.map((v, i) => (v - mu[i]) / (Math.sqrt(sd[i]) || 1)); }
+const dot = (a, b) => a.reduce((s, v, i) => s + v * b[i], 0);
+const cosine = (a, b) => dot(a, b) / (Math.sqrt(dot(a, a) * dot(b, b)) || 1);
+function pearson(a, b){ const n = a.length, ma = a.reduce((s, v) => s + v, 0) / n, mb = b.reduce((s, v) => s + v, 0) / n;
+  let sab = 0, saa = 0, sbb = 0; for(let i = 0; i < n; i++){ const x = a[i] - ma, y = b[i] - mb; sab += x * y; saa += x * x; sbb += y * y; } return sab / Math.sqrt(saa * sbb); }
+/* draw a gray image (values 0..1) into a box */
+function grayCanvas(im, n){ const c = document.createElement('canvas'); c.width = c.height = n; const x = c.getContext('2d'), d = x.createImageData(n, n);
+  for(let i = 0; i < n * n; i++){ const g = Math.round(255 * im[i]); d.data[4 * i] = d.data[4 * i + 1] = d.data[4 * i + 2] = g; d.data[4 * i + 3] = 255; }
+  x.putImageData(d, 0, 0); return c; }
+/* ---- end of shared toy set ---- */
+
+/* ---- views: a random crop (shift), brightness, contrast and noise of a 40x40 image ---- */
+function baseImage(kind, seed){ return toyImage(kind, rng(seed), 40); }
+function view(base, seed){
+  const r = rng(seed), n = 32, ox = Math.floor(9 * r()), oy = Math.floor(9 * r()), con = .55 + .9 * r(), bri = .25 * (r() - .5);
+  const im = new Float32Array(n * n);
+  for(let y = 0; y < n; y++) for(let x = 0; x < n; x++)
+    im[y * n + x] = Math.max(0, Math.min(1, .5 + con * (base[(y + oy) * 40 + x + ox] - .5) + bri + .04 * gauss(r)));
+  return im;
+}
+/* the fixed encoder: the 8 Gabor energies, plus 9 coarse 3x3 block means and the overall contrast (things the
+   views change), 18 numbers; then a linear layer (8 x 18) that is the only part that learns */
+function features(im){ const n = 32, f = embedRaw(im, n);
+  for(let by = 0; by < 3; by++) for(let bx = 0; bx < 3; bx++){ let s = 0, c = 0;
+    for(let y = Math.floor(by * n / 3); y < Math.floor((by + 1) * n / 3); y++) for(let x = Math.floor(bx * n / 3); x < Math.floor((bx + 1) * n / 3); x++){ s += im[y * n + x]; c++; }
+    f.push(s / c); }
+  const m = im.reduce((a, v) => a + v, 0) / im.length; f.push(Math.sqrt(im.reduce((a, v) => a + (v - m) ** 2, 0) / im.length));
+  return f; }
+
+/* training pool: 6 kinds x 10 images, 4 views each (seeds 3000+); the lineup uses other images (seeds 9000+) */
+const POOL = [], NV = 4;
+for(let k = 0; k < KINDS.length; k++) for(let i = 0; i < 10; i++){ const s = 3000 + 100 * k + i, b = baseImage(k, s);
+  POOL.push([...Array(NV)].map((_, v) => features(view(b, s * 7 + v)))); }
+const Z = standardizer(POOL.flat()), PZ = POOL.map(vs => vs.map(Z)), DIN = PZ[0][0].length, DOUT = 8;
+const project = (W, x) => W.map(row => dot(row, x));
+function infonceRow(sims, tau, pos){ const lg = sims.map(s => s / tau), m = Math.max(...lg), e = lg.map(v => Math.exp(v - m)), S = e.reduce((a, b) => a + b);
+  const p = e.map(v => v / S); return {p, loss: -Math.log(p[pos])}; }
+
+/* train the linear layer with InfoNCE: batches of 24 images, two different views each, Adam, 400 steps */
+const TAU_TRAIN = .1;
+const r0 = rng(77), W0 = [...Array(DOUT)].map(() => [...Array(DIN)].map(() => gauss(r0) / Math.sqrt(DIN)));
+function train(W, steps){
+  W = W.map(r => r.slice()); const r = rng(78), B = 24, lr = .02, M = W.map(r => r.map(() => 0)), V = W.map(r => r.map(() => 0));
+  for(let it = 1; it <= steps; it++){
+    const idx = [...Array(PZ.length).keys()].sort(() => r() - .5).slice(0, B);
+    const X = [], Y = [];
+    idx.forEach(i => { const a = Math.floor(r() * NV), b = (a + 1 + Math.floor(r() * (NV - 1))) % NV; X.push(PZ[i][a]); Y.push(PZ[i][b]); });
+    const zx = X.map(x => project(W, x)), zy = Y.map(y => project(W, y)), nx = zx.map(z => Math.hypot(...z)), ny = zy.map(z => Math.hypot(...z));
+    const u = zx.map((z, i) => z.map(v => v / nx[i])), v = zy.map((z, i) => z.map(w => w / ny[i]));
+    const gu = u.map(() => Array(DOUT).fill(0)), gv = v.map(() => Array(DOUT).fill(0));
+    for(let i = 0; i < B; i++){ const {p} = infonceRow(v.map(vj => dot(u[i], vj)), TAU_TRAIN, i);
+      for(let j = 0; j < B; j++){ const g = (p[j] - (i === j)) / (B * TAU_TRAIN);
+        for(let d = 0; d < DOUT; d++){ gu[i][d] += g * v[j][d]; gv[j][d] += g * u[i][d]; } } }
+    const G = W.map(r => r.map(() => 0));
+    const back = (uu, gg, nn, xx) => { const ug = dot(uu, gg); for(let d = 0; d < DOUT; d++){ const gz = (gg[d] - uu[d] * ug) / nn; for(let e = 0; e < DIN; e++) G[d][e] += gz * xx[e]; } };
+    for(let i = 0; i < B; i++){ back(u[i], gu[i], nx[i], X[i]); back(v[i], gv[i], ny[i], Y[i]); }
+    for(let d = 0; d < DOUT; d++) for(let e = 0; e < DIN; e++){ const g = G[d][e];
+      M[d][e] = .9 * M[d][e] + .1 * g; V[d][e] = .999 * V[d][e] + .001 * g * g;
+      W[d][e] -= lr * (M[d][e] / (1 - .9 ** it)) / (Math.sqrt(V[d][e] / (1 - .999 ** it)) + 1e-8); }
+  }
+  return W;
+}
+const W1 = train(W0, 400);
+
+/* the lineup: a held-out image of kind QK gives the query view and the partner view; 7 other images (other kinds)
+   give one view each; the partner's slot is chosen by the seeded RNG */
+const QK = 5, NC = 8, TAU1 = 1, TAU2 = .07;
+const NEGK = [0, 1, 2, 3, 4, 0, 3];
+const qBase = baseImage(QK, 9000), QIM = view(qBase, 9001), PIM = view(qBase, 9002);
+const lr0 = rng(9100), POS = Math.floor(lr0() * NC);
+const CANDS = []; let ni = 0;
+for(let c = 0; c < NC; c++){ if(c === POS){ CANDS.push(PIM); continue; } const k = NEGK[ni], s = 9200 + 10 * ni++; CANDS.push(view(baseImage(k, s), s + 1)); }
+const QX = Z(features(QIM)), CX = CANDS.map(im => Z(features(im)));
+const simsWith = W => { const q = project(W, QX); return CX.map(x => cosine(q, project(W, x))); };
+const SIM = simsWith(W1), SIM0 = simsWith(W0);
+const G1 = infonceRow(SIM, TAU1, POS), G2 = infonceRow(SIM, TAU2, POS), G0 = infonceRow(SIM0, TAU2, POS);
+
+const f2 = v => v.toFixed(2).replace('-', '−');
+const CAPS = ['', 'which one is the other view?', 'cosine similarity', 'divide by τ, softmax: probabilities that add up to 1',
+  'loss = −log p(partner)', 'lower temperature: a sharper softmax', 'before vs after training the embedding', ''];
+const NOTES = [
+  "(draft) Title only. The contrastive loss can be read as a guessing game. Let us play it with real numbers, computed in this page.",
+  "(draft) On the left is one view of a toy image: a random crop, with the brightness and contrast changed. On the right are eight candidates. One of them is its partner, the other view of the same image; the other seven are views of other images. The game: which one is the partner?",
+  "(draft) The encoder turns every image into an embedding, and we score each candidate by the cosine similarity between its embedding and the query's. The partner has the highest score here, " + f2(SIM[POS]) + ".",
+  "(draft) Divide every score by a temperature, here tau equals " + TAU1 + ", and put them through a softmax, the same softmax as a classifier. The bars become probabilities that add up to one. With this temperature they look alike: the partner gets only " + f2(G1.p[POS]) + ".",
+  "(draft) The loss is minus the log of the partner's probability: here " + f2(G1.loss) + ". It is zero only if all the probability goes to the partner. This is InfoNCE, from van den Oord, Li and Vinyals, 2018, written with a temperature as in Torralba, Isola and Freeman, section 30.10.",
+  "(draft) Same similarities, lower temperature: tau equals " + TAU2 + ", the value in the lab. Dividing by a small number stretches the differences, so the softmax gets sharper: the partner now gets " + f2(G2.p[POS]) + " and the loss drops to " + f2(G2.loss) + ".",
+  "(draft) Where do good embeddings come from? Training on this same loss. The hollow bars are the encoder before training, a random linear layer: the partner gets " + f2(G0.p[POS]) + " and the loss is " + f2(G0.loss) + ". The filled bars are after training on other images, in this page: " + f2(G2.p[POS]) + " and " + f2(G2.loss) + ". Training pulls the two views of an image together and pushes other images away.",
+  "(draft) CLIP plays the same game, with an image and its caption as the two views. In the lab you will compute this loss for CLIP on a ten by ten similarity matrix."
+];
+const NB = NOTES.length - 1;
+let beat = 0, t0 = 0;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+function go(b, jump){ beat = b; t0 = performance.now() - (jump ? 1e9 : 0);
+  document.getElementById('cite').classList.toggle('on', b >= 4);
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join(''); }
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const d = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+const txt = (t, x, y, sz, bold, align = 'center', base = 'middle', col = '#0f172a') => { ctx.fillStyle = col; ctx.font = `${bold ? 700 : 400} ${sz}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(t, x, y); };
+const QC = grayCanvas(QIM, 32), CC = CANDS.map(im => grayCanvas(im, 32));
+
+/* bar state per beat: [kind, values]; kind 'cos' is signed around a middle line, 'p' grows from the bottom */
+const barState = b => b <= 1 ? null : b === 2 ? ['cos', SIM] : b <= 4 ? ['p', G1.p] : ['p', G2.p];
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();
+  const p = Math.min(1, (now - t0) / 1100), e = ease(p), A = b => beat > b ? 1 : beat === b ? e : 0;
+  ctx.clearRect(0, 0, W, H);
+  const fs = Math.max(16, W * .015), big = Math.max(20, W * .02);
+  const dim = beat === 7 ? 1 - .82 * e : 1;
+  ctx.globalAlpha = dim * A(1);
+  /* left: the query */
+  const qs = Math.min(H * .34, W * .13), qx = 0, qy = fs * 1.6;
+  if(A(1) > 0){ ctx.imageSmoothingEnabled = false;
+    txt('query', qx + qs / 2, fs * .6, fs, true); ctx.globalAlpha = dim * A(1); ctx.drawImage(QC, qx, qy, qs, qs);
+    ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 3; ctx.strokeRect(qx, qy, qs, qs); }
+  /* right: the lineup */
+  const lx = W * .22, cw = (W - lx) / NC, ts = Math.min(cw * .72, H * .24), ty = qy;
+  const barTop = ty + ts + H * .05, barBot = H * .80, barH = barBot - barTop, barMid = (barTop + barBot) / 2, bw = Math.min(cw * .5, ts * .8);
+  for(let c = 0; c < NC; c++){ const cx = lx + (c + .5) * cw;
+    ctx.globalAlpha = dim * A(1); ctx.drawImage(CC[c], cx - ts / 2, ty, ts, ts);
+    const mark = c === POS && beat >= 2;
+    ctx.strokeStyle = mark ? '#0f172a' : '#cbd5e1'; ctx.lineWidth = mark ? 3 : 1; ctx.strokeRect(cx - ts / 2, ty, ts, ts);
+    if(mark){ ctx.globalAlpha = dim * A(2); txt('partner', cx, fs * .6, fs, true); } }
+  /* bars: interpolate from the previous beat's state to this one */
+  const cur = barState(beat), prev = barState(beat - 1);
+  const ends = (st, c) => !st ? [barMid, barMid] : st[0] === 'cos' ? [barMid, barMid - st[1][c] * barH / 2] : [barBot, barBot - st[1][c] * barH];
+  if(cur && beat < 7 || beat === 7){
+    const st = beat === 7 ? barState(5) : cur, pv = beat === 7 ? st : prev, k = beat === 7 ? 1 : (prev ? e : 1);
+    ctx.globalAlpha = dim * (prev || beat === 7 ? 1 : e);
+    /* axis lines */
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
+    const axY = st[0] === 'cos' && (!pv || pv[0] === 'cos') ? barMid : pv && pv[0] === 'cos' ? barMid + (barBot - barMid) * k : barBot;
+    ctx.beginPath(); ctx.moveTo(lx, axY); ctx.lineTo(W, axY); ctx.stroke();
+    const sixW = beat >= 6 ? A(6) : 0;
+    for(let c = 0; c < NC; c++){ const cx = lx + (c + .5) * cw;
+      const [a0, b0] = ends(pv || st, c), [a1, b1] = ends(st, c), y0 = a0 + (a1 - a0) * k, y1 = b0 + (b1 - b0) * k;
+      const off = sixW * bw * .3, bwN = bw * (1 - .45 * sixW);
+      ctx.fillStyle = c === POS ? '#0f172a' : '#94a3b8';
+      ctx.fillRect(cx - bwN / 2 + off, Math.min(y0, y1), bwN, Math.abs(y1 - y0));
+      if(sixW > 0){ const h0 = G0.p[c] * barH * sixW; ctx.strokeStyle = c === POS ? '#0f172a' : '#64748b'; ctx.lineWidth = 2.5;
+        ctx.strokeRect(cx - bwN / 2 - off, barBot - h0, bwN, h0); }
+      /* the number under the bar */
+      const val = st[0] === 'cos' ? st[1][c] : st[1][c];
+      if(beat < 6) txt(f2(val), cx, barBot + fs * 1.3, fs, c === POS);
+      else { txt(f2(G0.p[c]), cx, barBot + fs * 1.3, fs, c === POS); txt(f2(G2.p[c]), cx, barBot + fs * 2.6, fs, c === POS); }
+    }
+    if(beat >= 6){ txt('before', lx, barBot + fs * 1.3, fs, false, 'right'); txt('after', lx, barBot + fs * 2.6, fs, false, 'right'); }
+  }
+  /* left column, under the query: the knobs and the loss */
+  ctx.globalAlpha = dim;
+  const ly = qy + qs + big * 1.4, step = big * 1.5;
+  if(beat >= 3 && beat <= 5){
+    const tauNow = beat >= 5 ? TAU2 : TAU1, g = beat >= 5 ? G2 : G1;
+    ctx.globalAlpha = dim * (beat === 3 ? e : 1); txt(`τ = ${tauNow}`, qx, ly, big, beat === 5, 'left');
+    txt(`sum = ${f2(g.p.reduce((a, b) => a + b, 0))}`, qx, ly + step, big, false, 'left');
+    if(beat >= 4){ ctx.globalAlpha = dim * (beat === 4 ? e : 1); txt(`p(partner) = ${f2(g.p[POS])}`, qx, ly + 2 * step, big, false, 'left');
+      txt(`loss = ${f2(g.loss)}`, qx, ly + 3 * step, big, true, 'left'); }
+  }
+  if(beat >= 6){ ctx.globalAlpha = beat === 6 ? e : dim;
+    txt(`τ = ${TAU2}`, qx, ly, big, false, 'left');
+    txt('before training', qx, ly + step, fs, true, 'left'); txt(`p = ${f2(G0.p[POS])}, loss = ${f2(G0.loss)}`, qx, ly + step + fs * 1.3, fs, false, 'left');
+    txt('after training', qx, ly + 2.4 * step, fs, true, 'left'); txt(`p = ${f2(G2.p[POS])}, loss = ${f2(G2.loss)}`, qx, ly + 2.4 * step + fs * 1.3, fs, false, 'left');
+    /* legend by shape: hollow = before, filled = after */
+    const lgx = lx, lgy = barTop - fs * .2; ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2; ctx.strokeRect(lgx, lgy - fs * .45, fs * .9, fs * .9);
+    txt('before', lgx + fs * 1.3, lgy, fs, false, 'left'); ctx.fillStyle = '#0f172a'; ctx.fillRect(lgx + fs * 5.2, lgy - fs * .45, fs * .9, fs * .9);
+    txt('after', lgx + fs * 6.5, lgy, fs, false, 'left'); }
+  /* caption */
+  ctx.globalAlpha = beat && beat < 7 ? Math.min(1, p * 2) : 0; txt(CAPS[beat], lx, H - big * .1, big, true, 'left', 'bottom');
+  /* CLIP: one line over the dimmed game */
+  if(beat === 7){ ctx.globalAlpha = .92 * e; ctx.fillStyle = '#fff'; ctx.fillRect(W * .08, H * .40 - big * 2, W * .84, big * 7.6); ctx.globalAlpha = e;
+    txt('CLIP plays the same game:', W / 2, H * .40, big * 1.5, true);
+    txt('an image and its caption are the two views', W / 2, H * .40 + big * 2.2, big * 1.5, true);
+    txt('Radford et al. 2021', W / 2, H * .40 + big * 4.4, fs, false); }
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+
+window.infonce = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+  notes: NOTES,
+  debug: () => ({POS, SIM, SIM0, p1: G1.p, p2: G2.p, p0: G0.p, loss1: G1.loss, loss2: G2.loss, loss0: G0.loss})
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) infonce.advance(); if(e.key === 'ArrowLeft') infonce.back(); });
+  addEventListener('click', () => infonce.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
