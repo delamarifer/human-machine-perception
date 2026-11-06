@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Why attention?</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: Day 5 attention part. Pattern B. A toy image is cut into 64 patches; each patch's features
+     come from the Gabor bank; attention weights are computed for real: softmax(q·k / sqrt(d)).
+     The projections are not trained (query = key = value = the patch features), and the notes say so. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Why attention?</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE      (0):   the title alone
+   ACT 1  LOCAL      (1-2): an image cut into patches; a CNN unit sees only its neighborhood
+   ACT 2  ATTENTION  (3-5): compare one patch with every patch (scores); softmax (weights);
+                            the output is a weighted average of all patches
+   ACT 3  CONTENT    (6):   another patch attends somewhere else
+   No data colors: unattended patches are washed out in white; lines are ink. */
+/* ---- shared toy set (the same block is pasted into each Day 5 scene, so each scene stays self-contained) ----
+   Images are made here, seeded: 6 kinds of 32x32 gray texture. The "embedding" is a hand-designed Gabor
+   filter bank (4 orientations x 2 scales, as on Day 3), standing in for a network layer: each filter's
+   energy map is averaged over the image, giving 8 numbers. */
+const FONT = "Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif";
+function rng(seed){ return () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const gauss = r => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r());
+const KINDS = ['horizontal stripes', 'vertical stripes', 'diagonal stripes', 'checkers', 'dots', 'rings'];
+function toyImage(kind, r, n = 32){
+  const f = .09 + .07 * r(), ph = 6.2832 * r(), ph2 = 6.2832 * r(), c = .32 + .12 * r(), cx = n * (.3 + .4 * r()), cy = n * (.3 + .4 * r());
+  const im = new Float32Array(n * n), T = 2 * Math.PI * f;
+  for(let y = 0; y < n; y++) for(let x = 0; x < n; x++){
+    let v;
+    if(kind === 0) v = Math.sin(T * y + ph);
+    else if(kind === 1) v = Math.sin(T * x + ph);
+    else if(kind === 2) v = Math.sin(T * (x + y) * Math.SQRT1_2 + ph);
+    else if(kind === 3) v = Math.sign(Math.sin(T * x + ph) * Math.sin(T * y + ph2));
+    else if(kind === 4) v = Math.sin(T * x + ph) * Math.sin(T * y + ph2) > .55 ? 1 : -.6;
+    else v = Math.sin(T * Math.hypot(x - cx, y - cy) + ph);
+    im[y * n + x] = Math.max(0, Math.min(1, .5 + c * v + .05 * gauss(r)));
+  }
+  return im;
+}
+/* the filter bank: even and odd Gabors; theta 0 responds to vertical stripes */
+const BANK = [];
+for(const [lam, sig] of [[4, 1.8], [8, 3.4]]) for(let o = 0; o < 4; o++){
+  const th = o * Math.PI / 4, R = Math.ceil(2.2 * sig), size = 2 * R + 1, ev = new Float32Array(size * size), od = new Float32Array(size * size);
+  for(let v = 0; v < size; v++) for(let u = 0; u < size; u++){
+    const x = u - R, y = v - R, xr = x * Math.cos(th) + y * Math.sin(th), g = Math.exp(-(x * x + y * y) / (2 * sig * sig));
+    ev[v * size + u] = g * Math.cos(2 * Math.PI * xr / lam); od[v * size + u] = g * Math.sin(2 * Math.PI * xr / lam);
+  }
+  const m = ev.reduce((a, b) => a + b) / ev.length; ev.forEach((_, i) => ev[i] -= m);
+  for(const k of [ev, od]){ const s = Math.hypot(...k); k.forEach((_, i) => k[i] /= s); }
+  BANK.push({R, size, ev, od, th, lam, name: `${o * 45}°, ${lam === 4 ? 'fine' : 'coarse'}`});
+}
+function energyMap(im, n, b, stride = 1){
+  const m = Math.ceil(n / stride), out = new Float32Array(m * m);
+  for(let j = 0; j < m; j++) for(let i = 0; i < m; i++){
+    const y0 = j * stride, x0 = i * stride; let e = 0, o = 0;
+    for(let v = 0; v < b.size; v++){ let yy = y0 + v - b.R; yy = yy < 0 ? 0 : yy >= n ? n - 1 : yy;
+      for(let u = 0; u < b.size; u++){ let xx = x0 + u - b.R; xx = xx < 0 ? 0 : xx >= n ? n - 1 : xx;
+        const p = im[yy * n + xx] - .5, k = v * b.size + u; e += b.ev[k] * p; o += b.od[k] * p; } }
+    out[j * m + i] = Math.hypot(e, o);
+  }
+  return out;
+}
+const embedRaw = (im, n = 32) => BANK.map(b => { const m = energyMap(im, n, b, 2); return m.reduce((a, v) => a + v, 0) / m.length; });
+/* the standard set: 8 images of each kind, seed 100 + i */
+function toySet(per = 8){ const S = []; for(let k = 0; k < KINDS.length; k++) for(let i = 0; i < per; i++){ const im = toyImage(k, rng(100 + k * 50 + i)); S.push({kind: k, im, raw: embedRaw(im)}); } return S; }
+/* standardize each embedding dimension over a set; cosine similarity; Pearson correlation */
+function standardizer(rows){ const d = rows[0].length, mu = Array(d).fill(0), sd = Array(d).fill(0);
+  rows.forEach(r => r.forEach((v, i) => mu[i] += v / rows.length)); rows.forEach(r => r.forEach((v, i) => sd[i] += (v - mu[i]) ** 2 / rows.length));
+  return r => r.map((v, i) => (v - mu[i]) / (Math.sqrt(sd[i]) || 1)); }
+const dot = (a, b) => a.reduce((s, v, i) => s + v * b[i], 0);
+const cosine = (a, b) => dot(a, b) / (Math.sqrt(dot(a, a) * dot(b, b)) || 1);
+function pearson(a, b){ const n = a.length, ma = a.reduce((s, v) => s + v, 0) / n, mb = b.reduce((s, v) => s + v, 0) / n;
+  let sab = 0, saa = 0, sbb = 0; for(let i = 0; i < n; i++){ const x = a[i] - ma, y = b[i] - mb; sab += x * y; saa += x * x; sbb += y * y; } return sab / Math.sqrt(saa * sbb); }
+/* draw a gray image (values 0..1) into a box */
+function grayCanvas(im, n){ const c = document.createElement('canvas'); c.width = c.height = n; const x = c.getContext('2d'), d = x.createImageData(n, n);
+  for(let i = 0; i < n * n; i++){ const g = Math.round(255 * im[i]); d.data[4 * i] = d.data[4 * i + 1] = d.data[4 * i + 2] = g; d.data[4 * i + 3] = 255; }
+  x.putImageData(d, 0, 0); return c; }
+/* ---- end of shared toy set ---- */
+
+/* the composite image: horizontal stripes everywhere, two far-apart blocks of vertical stripes,
+   one block of dots, one of rings (64x64, 8x8 patches of 8x8 pixels) */
+const N = 64, G = 8, P = 8;
+const LAYERS = [toyImage(0, rng(501), N), toyImage(1, rng(502), N), toyImage(1, rng(503), N), toyImage(4, rng(504), N), toyImage(5, rng(505), N)];
+const BLOCK = {1: [0, 0, 3, 3], 2: [5, 5, 8, 8], 3: [5, 0, 8, 3], 4: [0, 5, 3, 8]};        // layer: [gx0, gy0, gx1, gy1) in patches
+const regionOf = (gx, gy) => { for(const k in BLOCK){ const [a, b, c, d] = BLOCK[k]; if(gx >= a && gx < c && gy >= b && gy < d) return +k; } return 0; };
+const IM = new Float32Array(N * N);
+for(let y = 0; y < N; y++) for(let x = 0; x < N; x++) IM[y * N + x] = LAYERS[regionOf(Math.floor(x / P), Math.floor(y / P))][y * N + x];
+/* patch features: average Gabor energy inside each patch, standardized over the 64 patches */
+const EM = BANK.map(b => energyMap(IM, N, b, 1));
+const RAW = [...Array(G * G)].map((_, t) => { const gx = t % G, gy = Math.floor(t / G);
+  return EM.map(m => { let s = 0; for(let y = gy * P; y < gy * P + P; y++) for(let x = gx * P; x < gx * P + P; x++) s += m[y * N + x]; return s / (P * P); }); });
+const Zp = standardizer(RAW), TOK = RAW.map(Zp), D = TOK[0].length;
+function attend(q){ const sc = TOK.map(k => dot(TOK[q], k) / Math.sqrt(D)), m = Math.max(...sc), e = sc.map(v => Math.exp(v - m)), s = e.reduce((a, b) => a + b);
+  return {sc, w: e.map(v => v / s)}; }
+const Q1 = 1 * G + 1, Q2 = 1 * G + 6;                                    // a patch in the top-left block; one in the dots block
+const A1 = attend(Q1), A2 = attend(Q2);
+const share = (A, reg) => A.w.reduce((s, w, t) => s + (regionOf(t % G, Math.floor(t / G)) === reg ? w : 0), 0);
+const farShare = share(A1, 2), ownShare = share(A1, 1), dotsShare = share(A2, 3);
+const pct = v => `${Math.round(v * 100)}%`;
+
+const CAPS = ['', '64 patches', 'a CNN unit: its neighborhood only', 'compare with every patch: q · k', 'softmax: weights that add up to 1', 'output: a weighted average of all patches', 'another patch looks elsewhere'];
+const NOTES = [
+  "(draft) Title only. Now let's watch attention happen on an image, with real numbers, and see why it is different from a convolution.",
+  "(draft) Here is a toy image made in code: horizontal stripes, two blocks of vertical stripes far apart, a block of dots and a block of rings. We cut it into an 8 by 8 grid of patches.",
+  "(draft) In the first layer of a CNN, a unit looking at this patch sees only its small neighborhood. To relate it to the block in the opposite corner, information has to pass through many layers.",
+  "(draft) Attention does it in one step. Describe each patch by a vector of features, and compare this patch, the query, with every patch, the keys, using a dot product. Darker means more similar. Here the vectors are just the patch's filter responses; in a trained transformer they come from learned projections.",
+  (`(draft) Softmax turns those scores into weights that add up to one. This patch puts ${pct(ownShare)} of its attention on its own block, and ${pct(farShare)} on the matching block in the far corner, even though it is nowhere near.`),
+  "(draft) The output for this patch is the weighted average of every patch's values. So after one step, its description already includes the far-away block that looks like it. That is self-attention: every patch does this at once, for every other patch.",
+  (`(draft) Pick a patch in the dots instead, and the weights move: ${pct(dotsShare)} of its attention goes to the other dots. Where a patch looks is decided by its content, not by a fixed neighborhood. That is the key difference from a convolution.`)
+];
+const NB = NOTES.length - 1;
+let beat = 0, t0 = 0;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+function go(b, jump){ beat = b; t0 = performance.now() - (jump ? 1e9 : 0);
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join(''); }
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const d = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+const txt = (t, x, y, sz, bold, align = 'center', base = 'middle') => { ctx.fillStyle = '#0f172a'; ctx.font = `${bold ? 700 : 400} ${sz}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(t, x, y); };
+const IMC = grayCanvas(IM, N);
+
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();
+  const p = Math.min(1, (now - t0) / 900), A = b => beat > b ? 1 : beat === b ? ease(p) : 0;
+  ctx.clearRect(0, 0, W, H);
+  const fs = Math.max(16, W * .015), big = Math.max(20, W * .019);
+  const S = Math.min(H * .98, W * .5), x0 = 0, y0 = 0, c = S / G;
+  const cen = t => [x0 + (t % G + .5) * c, y0 + (Math.floor(t / G) + .5) * c];
+  if(A(1) > 0){
+    ctx.globalAlpha = A(1); ctx.imageSmoothingEnabled = false; ctx.drawImage(IMC, x0, y0, S, S);
+    /* white wash over patches, by attention (beats 3-6) */
+    const q = beat >= 6 ? Q2 : Q1, Aq = beat >= 6 ? A2 : A1;
+    const useW = beat >= 4, vals = useW ? Aq.w : Aq.sc, mn = Math.min(...vals), mx = Math.max(...vals);
+    const wash = beat >= 3 ? (beat === 3 || beat === 6 ? A(beat) : 1) : 0;
+    if(wash > 0) for(let t = 0; t < G * G; t++){ const r = useW ? vals[t] / mx : (vals[t] - mn) / (mx - mn);
+      ctx.fillStyle = `rgba(255,255,255,${.85 * (1 - r) * wash})`; ctx.fillRect(x0 + (t % G) * c, y0 + Math.floor(t / G) * c, c, c); }
+    /* the grid */
+    ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2;
+    for(let i = 0; i <= G; i++){ ctx.beginPath(); ctx.moveTo(x0 + i * c, y0); ctx.lineTo(x0 + i * c, y0 + S); ctx.moveTo(x0, y0 + i * c); ctx.lineTo(x0 + S, y0 + i * c); ctx.stroke(); }
+    ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1; ctx.strokeRect(x0, y0, S, S);
+    /* the query patch, and (beat 2) its 3x3 neighborhood */
+    if(beat >= 2){ const [qx, qy] = [q % G, Math.floor(q / G)];
+      if(beat === 2){ ctx.globalAlpha = A(2); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 4; ctx.setLineDash([10, 6]);
+        ctx.strokeRect(x0 + (qx - 1) * c, y0 + (qy - 1) * c, 3 * c, 3 * c); ctx.setLineDash([]); }
+      ctx.globalAlpha = 1; ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 5; ctx.strokeRect(x0 + qx * c + 2, y0 + qy * c + 2, c - 4, c - 4); }
+    /* lines from the query to the patches it weights most (beat 5 on) */
+    if(beat >= 5){ const a = beat === 5 ? A(5) : 1, [qx, qy] = cen(q), mxw = Math.max(...Aq.w);
+      Aq.w.map((w, t) => [w, t]).sort((u, v) => v[0] - u[0]).slice(1, 13).forEach(([w, t]) => { const [u, v] = cen(t);
+        ctx.globalAlpha = a; ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1 + 6 * w / mxw; ctx.beginPath(); ctx.moveTo(qx, qy); ctx.lineTo(u, v); ctx.stroke(); }); }
+    ctx.globalAlpha = 1;
+  }
+  /* right side: the numbers */
+  const rx = S + W * .05;
+  if(beat >= 4 && beat < 6){ ctx.globalAlpha = beat === 4 ? A(4) : 1;
+    txt('where this patch looks', rx, H * .14, fs, true, 'left');
+    txt(`own block: ${pct(ownShare)}`, rx, H * .14 + fs * 1.8, big, false, 'left');
+    txt(`matching block, far corner: ${pct(farShare)}`, rx, H * .14 + fs * 3.6, big, false, 'left');
+    txt(`everything else: ${pct(1 - ownShare - farShare)}`, rx, H * .14 + fs * 5.4, big, false, 'left'); ctx.globalAlpha = 1; }
+  if(beat >= 6){ ctx.globalAlpha = A(6); txt('where this patch looks', rx, H * .14, fs, true, 'left');
+    txt(`the dots: ${pct(dotsShare)}`, rx, H * .14 + fs * 1.8, big, false, 'left'); txt(`everything else: ${pct(1 - dotsShare)}`, rx, H * .14 + fs * 3.6, big, false, 'left'); ctx.globalAlpha = 1; }
+  ctx.globalAlpha = beat ? Math.min(1, p * 2) : 0; txt(CAPS[beat], rx, H - big * .4, big, true, 'left', 'bottom'); ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+
+window.attentionScene = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+  notes: NOTES,
+  debug: () => ({ownShare, farShare, dotsShare})
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) attentionScene.advance(); if(e.key === 'ArrowLeft') attentionScene.back(); });
+  addEventListener('click', () => attentionScene.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Self-supervised: the data makes its own labels</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: Day 5, Fernanda (f-pretext). Pattern B. One photo; every pretext target is computed here in canvas:
+     split into halves, grayscale and color-only (YCbCr), rotation. No training: the scene shows how targets are made. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+
+/* Part 2 citations are collapsed (Fernanda, 2026-11-06): a small (i), the full source on hover. */
+.cite{ width:max-content !important; max-width:1.4em !important; white-space:nowrap !important; overflow:hidden !important; cursor:help; transition:max-width .35s; }
+.cite::before{ content:'\24D8\00A0\00A0'; }
+.cite:hover{ max-width:88vw !important; white-space:normal !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Self-supervised: the data makes its own labels</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+</div>
+<div class="cite" id="cite" style="opacity:0;transition:opacity .6s">after <i>Foundations of Computer Vision</i>, Sec. 30.6–30.8 · photo: Douglaseru, CC BY-SA 4.0, Wikimedia Commons</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE    (0):   the title alone
+   ACT 1  TASKS    (1-4): a photo; hide the right half; remove the color; rotate it. Input left, target right.
+   ACT 2  PATTERN  (5-6): the three tasks as rows (input and target both from the image);
+                          the arrows become encoder + head, and the head is thrown away (Sec. 30.5).
+   No data colors: the photo is the only color; everything else is ink. */
+const FONT = "Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif";
+const N = 256;                        // working size: a centered square crop of the photo, N x N pixels
+const PHOTO = '../../day04/assets/photos/kampala-road.jpg';
+
+/* ---- image operations, all in canvas ---- */
+const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+let FULL = null, LEFT = null, RIGHT = null, GRAY = null, CHROMA = null;
+function prepare(img){
+  const s = Math.min(img.naturalWidth, img.naturalHeight);
+  FULL = mk(N, N); FULL.getContext('2d').drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, 0, 0, N, N);
+  LEFT = mk(N / 2, N); LEFT.getContext('2d').drawImage(FULL, 0, 0, N / 2, N, 0, 0, N / 2, N);
+  RIGHT = mk(N / 2, N); RIGHT.getContext('2d').drawImage(FULL, N / 2, 0, N / 2, N, 0, 0, N / 2, N);
+  const src = FULL.getContext('2d').getImageData(0, 0, N, N).data;
+  GRAY = mk(N, N); CHROMA = mk(N, N);
+  const gx = GRAY.getContext('2d'), cx = CHROMA.getContext('2d'), g = gx.createImageData(N, N), c = cx.createImageData(N, N);
+  const clip = v => v < 0 ? 0 : v > 255 ? 255 : v;
+  for(let i = 0; i < N * N * 4; i += 4){
+    const r = src[i], gg = src[i + 1], b = src[i + 2];
+    const Y = .299 * r + .587 * gg + .114 * b, Cb = 128 + (b - Y) * .564, Cr = 128 + (r - Y) * .713;
+    g.data[i] = g.data[i + 1] = g.data[i + 2] = Y;                          // input: brightness only
+    const Y0 = 150, k = 1.8;                                                 // target: the color with brightness held fixed, saturation x1.8 to read on a projector
+    const cb = k * (Cb - 128), cr = k * (Cr - 128);
+    c.data[i] = clip(Y0 + 1.403 * cr); c.data[i + 1] = clip(Y0 - .344 * cb - .714 * cr); c.data[i + 2] = clip(Y0 + 1.773 * cb);
+    g.data[i + 3] = c.data[i + 3] = 255;
+  }
+  gx.putImageData(g, 0, 0); cx.putImageData(c, 0, 0);
+}
+
+const CAPS = ['', 'a photo: no labels', 'hide the right half: predict it from the left', 'remove the color: predict it back',
+  'rotate it: predict the angle', 'input and target both come from the image: no person labels anything',
+  'after training: keep the encoder, throw away the head (Sec. 30.5)'];
+const NOTES = [
+  "(draft) Title only. Without labels, where does a training signal come from? The trick is to make the data label itself.",
+  "(draft) Here is a photo of a road in Kampala. Nobody has written anything about it: no category, no caption, no boxes.",
+  "(draft) First task: cut the image in two. The network sees only the left half, and it has to predict the right half. The answer is not written by anyone: it is the half we hid.",
+  "(draft) Second task: remove the color. The input is the gray image, and the target is the color we took away, shown here with the brightness held fixed. To color a road and a sky correctly, the network has to know what a road and a sky are.",
+  "(draft) Third task: rotate the image by 0, 90, 180 or 270 degrees, and ask which one. To answer, the network has to know, for example, that the sky tends to be on top and the road at the bottom.",
+  "(draft) Here is the pattern. In every row, the input and the target both come from the image itself. We made the question by hiding part of the data, and the hidden part is the answer. No person labels anything, so we can train on as many images as we can collect.",
+  "(draft) And none of these tasks is the goal. The network has two parts: an encoder that turns the image into features, and a small head that answers the task. After training, we throw the head away and keep the encoder. Its features are the embedding we use for everything else."
+];
+const NB = NOTES.length - 1;
+let beat = 0, t0 = 0;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+function go(b, jump){ beat = b; t0 = performance.now() - (jump ? 1e9 : 0);
+  document.getElementById('cite').style.opacity = b >= 1 ? 1 : 0;
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join(''); }
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const d = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+const txt = (t, x, y, sz, bold, align = 'center', base = 'middle') => { ctx.fillStyle = '#0f172a'; ctx.font = `${bold ? 700 : 400} ${sz}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(t, x, y); };
+const lerp = (a, b, t) => a + (b - a) * t;
+function frameBox(x, y, w, h, dashed){ ctx.save(); ctx.strokeStyle = dashed ? '#94a3b8' : '#cbd5e1'; ctx.lineWidth = dashed ? 1.5 : 1;
+  if(dashed) ctx.setLineDash([6, 5]); ctx.strokeRect(x, y, w, h); ctx.restore(); }
+function arrow(x0, y, x1, lw = 3){ ctx.save(); ctx.strokeStyle = '#334155'; ctx.fillStyle = '#334155'; ctx.lineWidth = lw;
+  ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1 - lw * 3, y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x1 - lw * 4, y - lw * 2.5); ctx.lineTo(x1 - lw * 4, y + lw * 2.5); ctx.closePath(); ctx.fill(); ctx.restore(); }
+function rotated(c, x, y, s, deg){ ctx.save(); ctx.translate(x + s / 2, y + s / 2); ctx.rotate(deg * Math.PI / 180); ctx.drawImage(c, -s / 2, -s / 2, s, s); ctx.restore(); }
+
+/* one task, drawn into an input box and a target box of size s */
+function halvesIn(x, y, s){ ctx.drawImage(LEFT, x, y, s / 2, s); frameBox(x + s / 2, y, s / 2, s, true); }
+function halvesOut(x, y, s){ ctx.drawImage(RIGHT, x + s / 2, y, s / 2, s); frameBox(x, y, s / 2, s, true); }
+function angleChoices(x, y, s, fs, pick){   // 2 x 2 choices: 0, 90, 180, 270; the true one outlined
+  const g = s * .06, m = (s - g) / 2;
+  [0, 90, 180, 270].forEach((d, i) => { const xx = x + (i % 2) * (m + g), yy = y + Math.floor(i / 2) * (m + g);
+    ctx.globalAlpha *= d === pick ? 1 : .3; rotated(FULL, xx, yy, m, d);
+    ctx.save(); ctx.font = `700 ${fs * 1.4}px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';   // white halo to read on the photo
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 5; ctx.lineJoin = 'round'; ctx.strokeText(`${d}°`, xx + m / 2, yy + m / 2); ctx.restore();
+    txt(`${d}°`, xx + m / 2, yy + m / 2, fs * 1.4, true);
+    ctx.globalAlpha /= d === pick ? 1 : .3;
+    if(d === pick){ ctx.save(); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 4; ctx.strokeRect(xx - 2, yy - 2, m + 4, m + 4); ctx.restore(); } });
+}
+
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();
+  const p = Math.min(1, (now - t0) / 900), A = b => beat > b ? 1 : beat === b ? ease(p) : 0;
+  ctx.clearRect(0, 0, W, H);
+  const fs = Math.max(15, W * .014), big = Math.max(20, W * .019);
+  if(!FULL){ requestAnimationFrame(frame); return; }
+  ctx.imageSmoothingEnabled = true;
+
+  /* ACT 1: one row, input on the left, target on the right */
+  const S = Math.min(H * .68, W * .28), yT = (H - big * 1.6 - S) / 2 + fs * .8;
+  const xIn = W * .2 - S / 2, xOut = W * .72 - S / 2, xMid = W / 2 - S / 2;
+  const row = 1 - A(5);
+  if(beat >= 1 && row > 0){
+    if(beat === 1){ ctx.globalAlpha = A(1); ctx.drawImage(FULL, xMid, yT, S, S); frameBox(xMid, yT, S, S); }
+    const hd = A(2) * row;
+    if(hd > 0){ ctx.globalAlpha = hd;
+      txt('input', xIn + S / 2, yT - 10, fs, true, 'center', 'bottom'); txt('target', xOut + S / 2, yT - 10, fs, true, 'center', 'bottom');
+      arrow(xIn + S + W * .03, yT + S / 2, xOut - W * .03, 3); txt('predict', (xIn + S + xOut) / 2, yT + S / 2 - 12, fs, false, 'center', 'bottom'); }
+    // halves: the photo splits; the left half goes to the input, the hidden right half to the target
+    if(beat >= 2){ const t = beat === 2 ? A(2) : 1, a = (1 - A(3)) * row;
+      if(a > 0){ ctx.globalAlpha = a;
+        ctx.drawImage(LEFT, lerp(xMid, xIn, t), yT, S / 2, S); ctx.drawImage(RIGHT, lerp(xMid + S / 2, xOut + S / 2, t), yT, S / 2, S);
+        ctx.globalAlpha = a * t; frameBox(xIn + S / 2, yT, S / 2, S, true); frameBox(xOut, yT, S / 2, S, true);
+        txt('left half', xIn + S / 2, yT + S + 10, fs, false, 'center', 'top'); txt('right half', xOut + S / 2, yT + S + 10, fs, false, 'center', 'top'); } }
+    if(beat >= 3){ const a = A(3) * (1 - A(4)) * row;
+      if(a > 0){ ctx.globalAlpha = a; ctx.drawImage(GRAY, xIn, yT, S, S); ctx.drawImage(CHROMA, xOut, yT, S, S);
+        txt('gray', xIn + S / 2, yT + S + 10, fs, false, 'center', 'top'); txt('the color', xOut + S / 2, yT + S + 10, fs, false, 'center', 'top'); } }
+    if(beat >= 4){ const a = A(4) * row;
+      if(a > 0){ ctx.globalAlpha = a; rotated(FULL, xIn, yT, S, 90 * (beat === 4 ? A(4) : 1)); angleChoices(xOut, yT, S, fs, 90);
+        txt('rotated image', xIn + S / 2, yT + S + 10, fs, false, 'center', 'top'); txt('the angle', xOut + S / 2, yT + S + 10, fs, false, 'center', 'top'); } }
+    ctx.globalAlpha = 1;
+  }
+
+  /* ACT 2: the three tasks as rows; then the arrow becomes encoder + head, and the head is thrown away */
+  if(A(5) > 0){
+    const a5 = A(5), a6 = A(6), T = Math.min(H * .21, W * .11), gap = T * .2, y0 = fs * 3.4;
+    const cIn = W * .12, cOut = W * .7, mid0 = cIn + T + W * .03, mid1 = cOut - W * .03;
+    const enc = {x: mid0 + W * .04, w: W * .17}, head = {x: mid0 + W * .27, w: W * .11};
+    ctx.globalAlpha = a5;
+    txt('input', cIn + T / 2, y0 - 10, fs, true, 'center', 'bottom'); txt('target', cOut + T / 2, y0 - 10, fs, true, 'center', 'bottom');
+    for(let r = 0; r < 3; r++){
+      const y = y0 + r * (T + gap), ym = y + T / 2;
+      ctx.globalAlpha = a5;
+      if(r === 0){ halvesIn(cIn, y, T); halvesOut(cOut, y, T); }
+      if(r === 1){ ctx.drawImage(GRAY, cIn, y, T, T); ctx.drawImage(CHROMA, cOut, y, T, T); }
+      if(r === 2){ rotated(FULL, cIn, y, T, 90); txt('90°', cOut + T / 2, ym, fs * 2.2, true); frameBox(cOut, y, T, T, true); }
+      // the plain arrow (beat 5) gives way to encoder -> head (beat 6)
+      ctx.globalAlpha = a5 * (1 - a6); arrow(mid0, ym, mid1, 3);
+      if(a6 > 0){
+        ctx.globalAlpha = a6; arrow(mid0, ym, enc.x - 4, 2.5);
+        // encoder: a trapezoid that narrows, image in, features out
+        ctx.save(); ctx.fillStyle = '#e2e8f0'; ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 3; ctx.beginPath();
+        ctx.moveTo(enc.x, y + T * .08); ctx.lineTo(enc.x + enc.w, y + T * .28); ctx.lineTo(enc.x + enc.w, y + T * .72); ctx.lineTo(enc.x, y + T * .92);
+        ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
+        txt('encoder', enc.x + enc.w * .45, ym, fs, true);
+        arrow(enc.x + enc.w + 4, ym, head.x - 4, 2.5);
+        // head: drawn dashed and faded, crossed out
+        ctx.globalAlpha = a6 * .45; ctx.save(); ctx.strokeStyle = '#334155'; ctx.lineWidth = 2; ctx.setLineDash([6, 5]);
+        ctx.strokeRect(head.x, y + T * .3, head.w, T * .4); ctx.restore(); txt('head', head.x + head.w / 2, ym, fs, false);
+        arrow(head.x + head.w + 4, ym, mid1, 2.5);
+        ctx.globalAlpha = a6; ctx.save(); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 3; ctx.beginPath();
+        ctx.moveTo(head.x - 6, y + T * .22); ctx.lineTo(head.x + head.w + 6, y + T * .78);
+        ctx.moveTo(head.x + head.w + 6, y + T * .22); ctx.lineTo(head.x - 6, y + T * .78); ctx.stroke(); ctx.restore();
+      }
+    }
+    if(a6 > 0){ ctx.globalAlpha = a6;
+      txt('kept', enc.x + enc.w / 2, y0 - 10, fs, true, 'center', 'bottom'); txt('thrown away', head.x + head.w / 2, y0 - 10, fs, true, 'center', 'bottom'); }
+    ctx.globalAlpha = 1;
+  }
+  ctx.globalAlpha = beat ? Math.min(1, p * 2) : 0; txt(CAPS[beat], 0, H - big * .4, big, true, 'left', 'bottom'); ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+
+window.pretext = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+  notes: NOTES,
+  debug: () => ({loaded: !!FULL})
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) pretext.advance(); if(e.key === 'ArrowLeft') pretext.back(); });
+  addEventListener('click', () => pretext.advance());
+}
+const im = new Image(); im.onload = () => prepare(im); im.src = PHOTO;
+go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The views decide what is kept</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: Day 5, Fernanda. Pattern B. Everything is computed here: 12 toy images, random views, a tiny CNN
+     trained with InfoNCE twice (crops only; crops + color changes), and where each image lands on a circle.
+     The shape colors are data (which image is which), not emphasis. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:2vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .views-line{ position:absolute; left:6vw; right:6vw; top:44%; text-align:center; opacity:0; transition:opacity .9s; }
+  .cite{ transition:opacity .9s; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+
+/* Part 2 citations are collapsed (Fernanda, 2026-11-06): a small (i), the full source on hover. */
+.cite{ width:max-content !important; max-width:1.4em !important; white-space:nowrap !important; overflow:hidden !important; cursor:help; transition:max-width .35s; }
+.cite::before{ content:'\24D8\00A0\00A0'; }
+.cite:hover{ max-width:88vw !important; white-space:normal !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">The views decide what is kept</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+</div>
+<div class="cite">after <i>Foundations of Computer Vision</i>, Sec. 30.10.2</div>
+<div class="statement views-line" id="line">Whatever the views differ in,<br>the embedding learns to ignore.</div>
+<div class="dots" id="dots"></div>
+<script>
+/* ACT 0  TITLE   (0):   the title alone
+   ACT 1  SETUP   (1-2): the 12 toy images; two views of one image, crops only
+   ACT 2  TRAIN A (3):   train with crops-only views; each image's point on the circle moves live
+   ACT 3  TRAIN B (4-5): switch the views to crops + color changes; train again from the same start
+   ACT 4  LINE    (6):   whatever the views differ in, the embedding learns to ignore
+   Training runs in this page, in small chunks from the moment it loads (seeded, so every run is the same);
+   the animation on beats 3 and 5 steps through the recorded training at a fixed pace, and waits if the
+   computation has not got there yet. */
+const FONT = "Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif";
+function rng(seed){ return () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const gauss = r => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r());
+const N = 16, BG = [.86, .86, .86];
+const SHAPES = ['circle', 'square', 'triangle'];
+const COLORS = [[.85, .2, .17], [.93, .72, .1], [.18, .62, .3], [.16, .38, .82]];
+const COLOR_NAMES = ['red', 'yellow', 'green', 'blue'];
+function inside(s, x, y){            /* x, y in -1..1 */
+  if(s === 0) return x * x + y * y < 1;
+  if(s === 1) return Math.abs(x) < .84 && Math.abs(y) < .84;
+  return y < .78 && y > -.95 + 1.73 * Math.abs(x) * 1.0 ? true : false;
+}
+/* one toy image: the outline of shape s (inner 62% left empty), color c, radius rad (pixels), centre cx, cy; 4x4 supersampled */
+function toyImage(s, c, rad, cx, cy){
+  const im = new Float32Array(N * N * 3);
+  for(let y = 0; y < N; y++) for(let x = 0; x < N; x++){
+    let cov = 0;
+    for(let j = 0; j < 4; j++) for(let i = 0; i < 4; i++) { const X = (x + (i + .5) / 4 - cx) / rad, Y = (y + (j + .5) / 4 - cy) / rad; cov += inside(s, X, Y) && !inside(s, X / .62, Y / .62) ? 1 : 0; }
+    cov /= 16;
+    for(let k = 0; k < 3; k++) im[3 * (y * N + x) + k] = BG[k] * (1 - cov) + COLORS[c][k] * cov;
+  }
+  return im;
+}
+/* views: a random crop (scale 0.75-1 of the side, anywhere), resized back to N x N; optionally color changes:
+   hue rotation (any angle), brightness x0.6-1.4, saturation x0.3-1.3, applied to the whole image */
+function sampleView(im, r, color){
+  const sc = .75 + .25 * r(), side = sc * N, ox = r() * (N - side), oy = r() * (N - side);
+  const out = new Float32Array(N * N * 3);
+  for(let y = 0; y < N; y++) for(let x = 0; x < N; x++){
+    const fx = Math.min(N - 1.001, Math.max(0, ox + (x + .5) * sc - .5)), fy = Math.min(N - 1.001, Math.max(0, oy + (y + .5) * sc - .5));
+    const x0 = fx | 0, y0 = fy | 0, ax = fx - x0, ay = fy - y0;
+    for(let k = 0; k < 3; k++){
+      const p = (yy, xx) => im[3 * (yy * N + xx) + k];
+      out[3 * (y * N + x) + k] = (1 - ay) * ((1 - ax) * p(y0, x0) + ax * p(y0, x0 + 1)) + ay * ((1 - ax) * p(y0 + 1, x0) + ax * p(y0 + 1, x0 + 1));
+    }
+  }
+  if(color){
+    const h = 2 * Math.PI * r(), br = .6 + .8 * r(), sa = .3 + r(), ch = Math.cos(h), sh = Math.sin(h);
+    for(let i = 0; i < N * N; i++){
+      let R = out[3 * i], G = out[3 * i + 1], B = out[3 * i + 2];
+      const Y = .299 * R + .587 * G + .114 * B, I = .596 * R - .274 * G - .322 * B, Q = .211 * R - .523 * G + .312 * B;
+      const I2 = sa * (I * ch - Q * sh), Q2 = sa * (I * sh + Q * ch), Y2 = Y * br;
+      out[3 * i] = Math.max(0, Math.min(1, Y2 + .956 * I2 + .621 * Q2));
+      out[3 * i + 1] = Math.max(0, Math.min(1, Y2 - .272 * I2 - .647 * Q2));
+      out[3 * i + 2] = Math.max(0, Math.min(1, Y2 - 1.106 * I2 + 1.703 * Q2));
+    }
+  }
+  return out;
+}
+/* the encoder, a tiny CNN, all of it learned: K 3x3 color filters (no bias), ReLU, average over the image (K numbers),
+   then a linear map to 2 numbers, normalized onto the unit circle. The input is each image minus its mean color.
+   Training: InfoNCE (NT-Xent) on 2 views of each of the 12 images per step, temperature TAU, Adam. */
+const K = 8, TAU = .3, LR = .03;
+function makeSet(){
+  const r = rng(51), S = [];
+  for(let s = 0; s < 3; s++) for(let c = 0; c < 4; c++)
+    S.push({s, c, im: toyImage(s, c, N * (.3 + .05 * r()), N / 2 + 1.5 * (r() - .5), N / 2 + 1.5 * (r() - .5))});
+  return S;
+}
+const M2 = N - 2;
+function makeTrainer(S, color, seed){
+  const r = rng(seed);
+  const C = Array.from({length: K}, () => Array.from({length: 27}, () => .3 * gauss(r)));
+  const W = [Array.from({length: K}, () => .3 * gauss(r)), Array.from({length: K}, () => .3 * gauss(r))];
+  const P = [...C, ...W], mom = P.map(p => p.map(() => 0)), vel = P.map(p => p.map(() => 0)); let t = 0;
+  function patches(im){ const out = [], mu = [0, 0, 0];
+    for(let i = 0; i < N * N; i++) for(let k = 0; k < 3; k++) mu[k] += im[3 * i + k] / (N * N);
+    for(let y = 0; y < M2; y++) for(let x = 0; x < M2; x++){ const p = new Float32Array(27); let q = 0;
+      for(let v = 0; v < 3; v++) for(let u = 0; u < 3; u++) for(let k = 0; k < 3; k++) p[q++] = im[3 * ((y + v) * N + x + u) + k] - mu[k];
+      out.push(p); }
+    return out; }
+  function fwd(im){ const pt = patches(im), h = new Array(K).fill(0), act = [];
+    for(let k = 0; k < K; k++){ const w = C[k], a = new Uint8Array(pt.length);
+      for(let i = 0; i < pt.length; i++){ let s = 0; const p = pt[i]; for(let q = 0; q < 27; q++) s += w[q] * p[q]; if(s > 0){ h[k] += s / pt.length; a[i] = 1; } }
+      act.push(a); }
+    const z = [dot(W[0], h), dot(W[1], h)], n = Math.hypot(z[0], z[1]) || 1e-9;
+    return {pt, act, h, n, u: [z[0] / n, z[1] / n]}; }
+  function step(){
+    const B = S.length, Mv = 2 * B, E = [];
+    for(let rep = 0; rep < 2; rep++) for(const x of S) E.push(fwd(sampleView(x.im, r, color)));
+    const gU = E.map(() => [0, 0]); let loss = 0;
+    for(let i = 0; i < Mv; i++){
+      const p = (i + B) % Mv, l = [];
+      for(let j = 0; j < Mv; j++) l.push(j === i ? -Infinity : (E[i].u[0] * E[j].u[0] + E[i].u[1] * E[j].u[1]) / TAU);
+      const mx = Math.max(...l), ex = l.map(v => Math.exp(v - mx)), Z = ex.reduce((a, b) => a + b, 0);
+      loss += (-l[p] + mx + Math.log(Z)) / Mv;
+      for(let j = 0; j < Mv; j++){ if(j === i) continue; const q = ex[j] / Z - (j === p ? 1 : 0);
+        for(let d = 0; d < 2; d++){ gU[i][d] += q * E[j].u[d] / TAU / Mv; gU[j][d] += q * E[i].u[d] / TAU / Mv; } }
+    }
+    const G = P.map(p => p.map(() => 0));
+    for(let i = 0; i < Mv; i++){
+      const {u, n, h, pt, act} = E[i], g = gU[i], gu = g[0] * u[0] + g[1] * u[1], gz = [(g[0] - gu * u[0]) / n, (g[1] - gu * u[1]) / n];
+      for(let k = 0; k < K; k++){ G[K][k] += gz[0] * h[k]; G[K + 1][k] += gz[1] * h[k];
+        const gh = (gz[0] * W[0][k] + gz[1] * W[1][k]) / pt.length, a = act[k], gc = G[k];
+        if(gh === 0) continue;
+        for(let ii = 0; ii < pt.length; ii++) if(a[ii]){ const p = pt[ii]; for(let q = 0; q < 27; q++) gc[q] += gh * p[q]; } }
+    }
+    t++; /* Adam */
+    for(let a = 0; a < P.length; a++) for(let b = 0; b < P[a].length; b++){
+      mom[a][b] = .9 * mom[a][b] + .1 * G[a][b]; vel[a][b] = .999 * vel[a][b] + .001 * G[a][b] ** 2;
+      P[a][b] -= LR * (mom[a][b] / (1 - .9 ** t)) / (Math.sqrt(vel[a][b] / (1 - .999 ** t)) + 1e-8); }
+    return loss;
+  }
+  const embed = () => S.map(x => { const u = fwd(x.im).u; return Math.atan2(u[1], u[0]); });
+  return {step, embed, W, C};
+}
+const dot = (a, b) => a.reduce((s, v, i) => s + v * b[i], 0);
+/* grouping score: for each image, is its nearest neighbor on the circle the same color? the same shape? */
+function grouping(S, ang){
+  let col = 0, shp = 0;
+  S.forEach((x, i) => { let best = -1, bd = 9;
+    S.forEach((y, j) => { if(i === j) return; let d = Math.abs(ang[i] - ang[j]) % (2 * Math.PI); d = Math.min(d, 2 * Math.PI - d); if(d < bd){ bd = d; best = j; } });
+    if(S[best].c === x.c) col++; if(S[best].s === x.s) shp++; });
+  return {color: col / S.length, shape: shp / S.length};
+}
+
+/* ---- the scene ---- */
+const SET = makeSet(), STEPS = 2400, MS_PER_STEP = 2, SEED = 2;
+const RUNS = [false, true].map(color => ({color, T: makeTrainer(SET, color, SEED), snaps: [], loss: []}));
+RUNS.forEach(R => R.snaps.push(R.T.embed()));
+/* compute both runs in small chunks so the page stays responsive; run A first */
+function pump(){
+  const t = performance.now();
+  for(const R of RUNS){ while(R.snaps.length <= STEPS && performance.now() - t < 40){ R.loss.push(R.T.step()); R.snaps.push(R.T.embed()); }
+    if(R.snaps.length <= STEPS) break; }
+  if(RUNS[1].snaps.length <= STEPS) setTimeout(pump, 0);
+}
+setTimeout(pump, 50);
+
+/* the example image and its views (seeded) */
+const EX = SET.findIndex(x => x.s === 2 && x.c === 0);
+const VIEWS = [false, true].map(color => { const r = rng(color ? 902 : 901); return [sampleView(SET[EX].im, r, color), sampleView(SET[EX].im, r, color)]; });
+function rgbCanvas(im){ const c = document.createElement('canvas'); c.width = c.height = N; const x = c.getContext('2d'), d = x.createImageData(N, N);
+  for(let i = 0; i < N * N; i++){ for(let k = 0; k < 3; k++) d.data[4 * i + k] = Math.round(255 * im[3 * i + k]); d.data[4 * i + 3] = 255; }
+  x.putImageData(d, 0, 0); return c; }
+const IMC = SET.map(x => rgbCanvas(x.im)), VC = VIEWS.map(v => v.map(rgbCanvas));
+
+const CAPS = ['', '12 toy images: 3 shapes × 4 colors', 'two views of one image: random crops', 'train: pull the two views together, push the other images away',
+  'new views: crops + color changes', 'train again, from the same start', ''];
+const NOTES = [
+  "(draft) Title only. A toy experiment: the same network, the same images, trained the same way, twice. Only the views change.",
+  "(draft) Here are twelve tiny images, 16 by 16 pixels, made in code: the outlines of three shapes, a circle, a square and a triangle, in four colors.",
+  "(draft) For contrastive learning we make two views of each image. First, the views are random crops: a piece of the image, scaled back up. Same image, different pixels. The colors stay the same.",
+  "(draft) Now we train a tiny network, right here in the browser: a few small filters and then two numbers, so each image becomes a point on a circle. The loss is the contrastive loss we just saw: pull the two views of an image together, push the other images away. Watch where the twelve images go. The images with the same color end up next to each other: for most images, the nearest neighbor on the circle has the same color, and hardly ever the same shape; the line under the circle gives the count. Crops change where the shape is and how big it is, but never its color, so color is the easy thing the two views share.",
+  "(draft) Now change only the views: crops, and also random changes of hue, brightness and saturation. A red triangle can now look blue, or pale, or dark. Color is no longer something the two views share.",
+  "(draft) Train again, from exactly the same starting weights. Now the images regroup by shape: circles with circles, squares with squares, triangles with triangles, whatever their color. The count under the circle: same shape for all 12, same color for none. An honest caveat: this is one run. I tried six random starts: with crops only, the nearest neighbor shared the color about 60 percent of the time and the shape about 10; with color changes, the color about 30 percent and the shape about 50. Chance is about 18 and 27. So the direction is reliable; this run is one of the cleanest.",
+  "(draft) Whatever the views differ in, the embedding learns to ignore. Crops made the network ignore where things are and how big; color changes made it ignore color. This is what the book reports in Section 30.10.2, and our small version shows the same thing. Keep it in mind for the reading: Konkle and Alvarez trained their model with crops and color changes as views. What would their network be blind to?"
+];
+const NB = NOTES.length - 1;
+let beat = 0, t0 = 0;
+const ease = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+const capEl = document.querySelector('.cite'), stEl = document.getElementById('line');
+function go(b, jump){ beat = b; t0 = performance.now() - (jump ? 1e9 : 0);
+  capEl.style.opacity = b ? 1 : 0; stEl.style.opacity = b === NB ? 1 : 0;
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join(''); }
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const d = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+const txt = (t, x, y, sz, bold, align = 'center', base = 'middle') => { ctx.fillStyle = '#0f172a'; ctx.font = `${bold ? 700 : 400} ${sz}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(t, x, y); };
+function img(c, x, y, s){ ctx.imageSmoothingEnabled = false; ctx.drawImage(c, x, y, s, s); ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1; ctx.strokeRect(x, y, s, s); }
+function arrow(x0, y0, x1, y1){ ctx.strokeStyle = '#64748b'; ctx.fillStyle = '#64748b'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  const a = Math.atan2(y1 - y0, x1 - x0), h = 9; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x1 - h * Math.cos(a - .45), y1 - h * Math.sin(a - .45)); ctx.lineTo(x1 - h * Math.cos(a + .45), y1 - h * Math.sin(a + .45)); ctx.fill(); }
+
+/* which angles to show: run A on beats 3-4, run B on 5-6, stepping at MS_PER_STEP on beats 3 and 5; a short tween when B starts */
+const lerpAng = (a, b, p) => { let d = b - a; d = Math.atan2(Math.sin(d), Math.cos(d)); return a + d * p; };
+function shown(now){
+  if(beat < 3) return null;
+  const R = RUNS[beat >= 5 ? 1 : 0], since = now - t0, tween = beat === 5 ? 700 : 0;
+  /* training plays only on beats 3 and 5; beats 4 and 6 hold the end of the run */
+  const k = Math.min(R.snaps.length - 1, beat === 4 || beat === 6 ? STEPS : Math.max(0, Math.floor((since - tween) / MS_PER_STEP)));
+  let ang = R.snaps[k];
+  if(beat === 5 && since < tween){ const A = RUNS[0].snaps, a = A[A.length - 1], p = ease(since / tween); ang = a.map((v, i) => lerpAng(v, R.snaps[0][i], p)); }
+  return {ang, k, done: k === STEPS, R};
+}
+const curLev = SET.map(() => 0);
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();
+  const p = Math.min(1, (now - t0) / 900), A = b => beat > b ? 1 : beat === b ? ease(p) : 0;
+  ctx.clearRect(0, 0, W, H);
+  const fs = Math.max(15, W * .014), big = Math.max(20, W * .019), dim = 1 - .8 * A(6);
+  /* ACT 1: the grid (rows: shapes, columns: colors) */
+  const cell = Math.min(H * .2, W * .07), gap = cell * .22, gx = 0, gy = H * .08;
+  if(A(1) > 0){ ctx.globalAlpha = A(1) * dim;
+    SET.forEach((x, i) => img(IMC[i], gx + x.c * (cell + gap), gy + x.s * (cell + gap), cell));
+    txt('the images', gx + 2 * (cell + gap) - gap / 2, gy - 10, fs, true, 'center', 'bottom'); }
+  /* the example image and its two views */
+  const vc = W * .47, vs = cell * 1.1;
+  if(A(2) > 0){ ctx.globalAlpha = A(2) * dim;
+    const ex = SET[EX]; ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2.5;
+    ctx.strokeRect(gx + ex.c * (cell + gap) - 3, gy + ex.s * (cell + gap) - 3, cell + 6, cell + 6);
+    const cA = A(4), mix = [1 - cA, cA], vy = gy + vs + cell * 1.1, vxs = [vc - vs * 1.25, vc + vs * .25];
+    txt(cA > .5 ? 'views: crops + color changes' : 'views: crops only', vc, gy - 10, fs, true, 'center', 'bottom');
+    img(IMC[EX], vc - vs / 2, gy, vs);
+    for(let j = 0; j < 2; j++){ arrow(vc + (j ? 1 : -1) * vs * .15, gy + vs + 6, vxs[j] + vs / 2, vy - 8);
+      for(const m of [0, 1]) if(mix[m] > 0){ ctx.globalAlpha = A(2) * dim * mix[m]; img(VC[m][j], vxs[j], vy, vs); }
+      ctx.globalAlpha = A(2) * dim; }
+  }
+  /* ACT 2-3: the embedding circle */
+  const S = shown(now);
+  if(S){ const cx = W * .8, cy = H * .54, R = Math.min(W * .085, H * .19), th = Math.min(cell * .62, R * .42), a3 = A(3);
+    ctx.globalAlpha = a3 * dim;
+    txt('the embedding: 2 numbers, a point on a circle', cx, gy - 10, fs, true, 'center', 'bottom');
+    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 2 * Math.PI); ctx.stroke();
+    /* thumbnails outside the circle, stacked outward where points crowd together */
+    const ord = S.ang.map((a, i) => i).sort((i, j) => S.ang[i] - S.ang[j]), placed = [];
+    for(const i of ord){ let L = 0;
+      while(placed.some(q => q.L === L && Math.abs(Math.atan2(Math.sin(q.a - S.ang[i]), Math.cos(q.a - S.ang[i]))) * (R + th * (L + .9)) < th * 1.08)) L++;
+      placed.push({i, a: S.ang[i], L}); curLev[i] += (L - curLev[i]) * .2; }
+    for(const {i, a} of placed){ const ca = Math.cos(a), sa = Math.sin(a), rr = R + th * (.9 + curLev[i] * 1.08);
+      ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx + R * ca, cy + R * sa); ctx.lineTo(cx + (rr - th / 2) * ca, cy + (rr - th / 2) * sa); ctx.stroke();
+      ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.arc(cx + R * ca, cy + R * sa, 3.5, 0, 2 * Math.PI); ctx.fill();
+      img(IMC[i], cx + rr * ca - th / 2, cy + rr * sa - th / 2, th); }
+    const g = grouping(SET, S.ang), n = SET.length;
+    txt(`training step ${S.k}`, cx, cy, fs, false);
+    if(S.done && !(beat === 5 && now - t0 < 700)){ ctx.globalAlpha = a3 * dim * Math.min(1, p * 2);
+      txt(`nearest neighbor: same color ${Math.round(g.color * n)} of ${n}, same shape ${Math.round(g.shape * n)} of ${n}`, cx, H - big * 1.9, fs, false); }
+  }
+  ctx.globalAlpha = beat && beat < NB ? Math.min(1, p * 2) : 0; txt(CAPS[beat], 0, H - big * .4, big, true, 'left', 'bottom'); ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+
+window.viewsScene = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+  notes: NOTES,
+  /* for testing: finish both runs now, synchronously (blocks the page for several seconds) */
+  finish(){ for(const R of RUNS) while(R.snaps.length <= STEPS){ R.loss.push(R.T.step()); R.snaps.push(R.T.embed()); } },
+  debug: () => RUNS.map(R => ({color: R.color, steps: R.snaps.length - 1, loss: R.loss.at(-1), grouping: grouping(SET, R.snaps.at(-1))}))
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) viewsScene.advance(); if(e.key === 'ArrowLeft') viewsScene.back(); });
+  addEventListener('click', () => viewsScene.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+
+</script>
+</body>
+</html>
