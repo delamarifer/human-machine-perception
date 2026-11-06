@@ -323,10 +323,11 @@ resources(('Sec. 30.10, Contrastive learning', f'{BOOK}/representation_learning.
           ('torch.nn.functional.cross_entropy', 'https://pytorch.org/docs/stable/generated/torch.nn.functional.cross_entropy.html'),
           ('Ch. 51.3, CLIP', f'{BOOK}/VLMs.html'))
 md("""
-The loss with the true pairs is far below pure guessing, and the shifted pairs are far above it: the loss
-is low only when partners are the most similar. **Try it:** change the temperature. With a large
-temperature (1.0) all the scores look alike and even the true pairs barely beat guessing; with a small one
-the partner wins by a mile. During training, the loss pulls partners together and pushes the rest apart.
+The loss with the true pairs is below pure guessing, and the shifted pairs are above it: the loss is low
+only when partners are the most similar. **Try it:** change the temperature. CLIP's cosine similarities are
+all close to each other, so with a large temperature (0.5 or 1.0) every caption looks about as good as the
+others and all three numbers sit near guessing. With a small one, like CLIP's own, the partner wins clearly
+and the gap opens up. During training, the loss pulls partners together and pushes the rest apart.
 
 **Back to the slides** for what the views decide, and for how CLIP was trained.
 """)

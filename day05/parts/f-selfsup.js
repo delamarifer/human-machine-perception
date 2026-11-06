@@ -94,7 +94,7 @@ st(`
   "(draft) Divide the similarities by a temperature, a small number that makes the differences bigger. A softmax over the row turns them into probabilities, and the loss is minus the log of the probability on the partner. That is exactly a classifier's cross-entropy, where the classes are the captions in the batch.",
   "(draft) CLIP plays it both ways. Each image picks its caption, along the rows, and each caption picks its image, down the columns. The loss is the average of the two.",
   "(draft) Here is the cell. You fill in the two losses; PyTorch's cross_entropy does the softmax and the log for every row at once. The cell then prints three numbers: the loss for the true pairs, the loss if every image were paired with the wrong caption, and the loss of pure guessing, the log of ten.",
-  "(draft) Then change the temperature. With a big temperature, every score looks alike and even the true pairs barely beat guessing. With a small one, the partner wins by a mile. The last line prints the temperature CLIP itself ended up with after training.",
+  "(draft) Then change the temperature. At 0.07, in our run, the true pairs give 1.59 against 2.30 for guessing, and the shifted pairs 2.50: below and above, but not by much, because CLIP's cosine similarities are all close together. At 1.0 all three sit near 2.3. At 0.01, which is the temperature CLIP itself learned, the true pairs drop to 0.28 and the shifted pairs jump to 6.59. The temperature decides how much small differences in similarity count.",
   "(draft) The link opens Your turn 2. A few minutes, then back to the slides: training pushes this number down, and what it learns depends on the views."
 ]});
 

@@ -126,7 +126,7 @@ show_matrix(similarity, ten_labels, captions, "CLIP: every image x every caption
     "(draft) Do it for every image against every caption at once, and you get a ten by ten matrix, one row per image, one column per caption. One line of code does it.",
     "(draft) If CLIP works, each image is closest to its own caption, so the diagonal stands out. The cells off the diagonal tell you which mistakes are close: cat and dog, car and truck.",
     "(draft) Here is the cell. Replace the None. If you leave it blank, the notebook uses the course's answer, so the rest still runs.",
-    "(draft) Then change start to a hundred in the first cell and run both again. Ten different images. If the diagonal still holds, CLIP is not tied to these pictures.",
+    "(draft) Then change start to a hundred in the first cell and run both again. Ten different images. If the diagonal still holds, CLIP is not tied to these pictures. In our run it does: with start at a hundred, every one of the ten images is still closest to its own caption.",
     "(draft) The link opens Your turn 1. A few minutes, then we come back to ask how a network learns a space like this with no labels."
   ]
 });
