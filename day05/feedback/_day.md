@@ -76,3 +76,96 @@ Name per `notebooks/README.md`: `notebooks/day05-lab-train-a-classifier.ipynb` (
 - Optional: show the first-layer weights as 28x28 images (what the network learned), linking to the human
   connection slides.
 - Runtime budget: whole notebook under about 5 minutes on a free Colab CPU (2-3 epochs of MNIST is enough).
+
+## Round: cnn-limits · 2026-11-06 · CNN-to-Transformer opener (Shreya's session)
+
+New part `cnn-limits` before `vit`: five screens (deck slides 5, 6, 7A, 7B, 8), 22 clicks. All notes are `(draft)`.
+Source: Vision Book section 26.2 and Fig. 26.1, plus the fc-versus-attention comparison in 26.6. Values are in
+`day05/assets/cnn-limits/results.json`, transcribed and rounded from the run log (the raw files were lost).
+
+### Questions
+- [ ] **Time.** Section 2 is budgeted 25 minutes with no room added for these five screens. Raise the budget, or cut elsewhere?
+- [ ] **Overlap.** The "Why not just use a CNN?" card on the first `vit` slide now repeats this part. Keep it as a recap, or remove it?
+- [ ] **Notebook link.** `notebooks/day05-lab-far-apart-patches.ipynb` has no row in `notebooks/README.md` (shared file), and its Colab badge works only once it is on `main`.
+
+### Not verified
+- [ ] The notebook's revised "Your turn" (L = 1, d = 4 and 6) was never run to the end. The sweep supports it at width 32 and 1,000 steps, but the notebook uses width 16 and 400 steps.
+- [ ] Notebook run time is unknown. The last complete run took 585 s while competing with other jobs, with 2 CPU threads. Run it once on Colab before using it live.
+- [ ] Why 29 of the 63 runs inside the limit failed. Longer training was not tested, so the slide and notes leave this open.
+- [ ] Attention is not on an equal budget: 3,000 steps, against 1,000 for the others. The slide citation and notes say so.
+- [ ] Attention without positional embeddings reached 87% in one run, not chance. Possibly a position cue inside the 4-pixel patches, not tested, and not on any slide.
+
+### References to check before class
+- Luo, W., Li, Y., Urtasun, R. & Zemel, R. (2016). Understanding the effective receptive field in deep convolutional neural networks. *NeurIPS*. (cited from memory)
+- Photo: Keith Kissel, "June odd-eyed-cat" (cropped), CC BY 2.0, Wikimedia Commons.
+- ResNet-18's 435-pixel receptive field is computed from its layer sizes, not taken from a paper.
+
+## Round: outline rebuild · 2026-11-06 (Shreya's session)
+
+Day 5 now follows Shreya's Google Slides outline, with tokens moved before attention and ViT after attention. Slide numbers
+in the cnn-limits round above are out of date. Running order: `start`, `cnn-limits`, `transformer`, `vision-transformer`,
+`explore-transformer`, `return-to-cat`, `backup`. `opening`, `vit` and the parts from `embeddings` onward are kept but not loaded.
+The separate brain slide was dropped at Shreya's request; two sentences in the notes carry the human link.
+
+### To fill in
+- [ ] Real images for the CNN gaps on slide 4B. It is text only for now, and the outline asks for examples of failure.
+- [ ] Section minutes in `order.js` are draft proportions. Only the 12-minute quiz comes from the outline.
+
+### To check
+- [ ] Fig. 26.7 and 26.9 are linked, not copied: the book is CC BY-NC-ND, and that license applies to the work in full.
+- [ ] Book notation is used on the self-attention slides (m, W_q, softmax within each row). The `vitTokens` scene still uses d_k.
+- [ ] Beery et al. (ECCV 2018) on slide 4B is cited from memory.
+
+## Round: simplify CNN section · 2026-11-06 (Shreya's session)
+
+Goal from Shreya: slides should not overwhelm, should communicate simply, and should show examples visually. Section 26.2 guided the
+thinking, it is not quoted. Slides 5 to 12 are now one idea per screen, with no notes. The earlier detailed slide moved to backup.
+Slide 5's title is now "Do the two eyes match?"; the outline's title is dropped. Slides 13 onward have not had this pass.
+
+## Round: demo removed · 2026-11-06 (Shreya's session)
+
+The same-four-eyes demonstration is out of the deck at Shreya's request: its three talk slides and two backup slides now sit in
+`parts/cnn-limits-demo.js`, not loaded. `notebooks/day05-lab-far-apart-patches.ipynb` and `assets/cnn-limits/results.json` are unchanged.
+
+## Round: four-question lecture · 2026-11-06 (Shreya's session)
+
+Slides 10 to 30 are rebuilt around four questions: tokenization, attention, self-attention, multi-head attention. 45 minutes after the
+quiz and recap: CNN section 6, roadmap 1, tokenization 8, attention 13, self-attention 7, multi-head 5, full picture 3, checkpoint 2.
+Earlier slide numbers in this file are out of date.
+
+- Exercises: `notebooks/day05-lab-transformer-exercises.ipynb`, built from `notebooks/build/day05_transformer_exercises.py`.
+- Figures: the book is CC BY-NC-ND, so every diagram is an original simplified drawing that links the book's figure.
+- The cat stays only in the CNN section. `transformer-v1`, `return-to-cat` and `cnn-limits-demo` are kept, not loaded.
+
+### To do
+- [ ] The Colab link needs the notebook on `main`, and `assets/metamers/coffee.jpg` is already there.
+- [ ] `notebooks/README.md` (shared) needs a row for the new notebook.
+- [ ] Timing is an estimate. Try a run-through, especially with four exercises in 45 minutes.
+
+### Book figure on slide 14 · 2026-11-06
+- Fig. 26.7 is reproduced unmodified with full credit and a license link, at Shreya's decision (`assets/transformer/visionbook-fig-26-7.webp`, from her screenshot). Keep the file uncropped and unedited. The book notes that its license does not cover components included with permission, so the photo inside the figure may have its own terms.
+
+### CNN recap slides · 2026-11-06
+Slide 4A uses the book's Figs. 24.1 and 24.5, unmodified, in `assets/visionbook-ch24/`, with the credit line Shreya specified plus a license link. Fig. 24.1 credits its photo to Fredo Durand.
+Slide 4B is plain written strengths and gaps (Shreya's request), after two worked examples proved too specific.
+- [ ] `day04/scenes/cue-conflict.html` gives ResNet-50 as 21.4% shape. The paper's text says 22.1% shape vs. 77.9% texture. Day 5 uses 22.1; check the Day 4 scene (Fernanda's day).
+
+### Four questions pipeline · 2026-11-06
+"Connect everything" is removed (kept unloaded in `parts/cnn-limits-demo.js`). The Four questions slide is now an animated pipeline, one stage per click, drawn for this deck.
+
+### Position · 2026-11-06
+Position sits with tokenization, before Exercise 1 (Shreya's decision, after trying it later): why tokens need a position, then Fig. 26.20, unmodified and credited. The book concatenates the code onto each token; the ViT adds a learned code; the deck follows the ViT. The shuffle check stays at the end of the notebook. Exercises are slides 13, 18, 23 and 25.
+
+### Build-a-Transformer lab · 2026-11-06
+`notebooks/day05-lab-build-a-transformer.ipynb`, from `notebooks/build/day05_build_transformer.py`: image to tokens, attention by hand, attention module, self-attention, encoder block, full Vision Transformer. Modules and shapes only: nothing is trained (Shreya's decision). The attention module takes two inputs; slides 18A and 18B and the exercises notebook match it.
+- [ ] Needs a row in `notebooks/README.md` (shared), and the notebook on `main` for its Colab badge.
+- [ ] Decide whether the four in-lecture exercises stay as previews of this lab.
+
+### Generic photo · 2026-11-06
+The cafe photo is replaced by "Goats feeding on leaves in the bush in Kuria East Kenya" by Elite Jac, CC BY-SA 4.0 (already on `main` at `day04/assets/photos/goats.jpg`), in the slides and both notebooks. `assets/transformer/` images are regenerated from it, so the shuffled and attention-map images are adaptations under the same license.
+
+### Notebook solutions · 2026-11-06
+At Shreya's request, both Day 5 notebooks now show solutions and answers in collapsed dropdowns, so they are public once on `main`, and there is no separate teacher copy. Blank exercise cells raise `NotImplementedError`, so "Run all" stops at the first blank. That differs from the `notebooks/README.md` rule that blank exercises run without errors.
+
+### Exercise 3 removed · 2026-11-06
+The in-lecture "change one token" exercise is removed from the deck and the exercises notebook; the lab's section 4 keeps that check. The multi-head exercise is now Exercise 3. Exercises are slides 13, 18 and 24.
