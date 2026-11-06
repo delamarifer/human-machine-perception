@@ -49,16 +49,8 @@ if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) && new URLSearc
   }).catch(() => {});
 
 
-/* The text slide 'Self-supervised: the data makes its own labels' is replaced by the pretext-tasks scene
-   (scenes/pretext.html, 2026-11-06); the text version is in git before this commit. */
-sc('pretext', 'scenes/pretext.html');
-
-/* The text slide 'Contrastive learning' is replaced by the contrastive scene (scenes/contrastive.html, 2026-11-06). */
-sc('contrastiveScene', 'scenes/contrastive.html');
-
-/* The text slide 'The contrastive loss' is replaced by the InfoNCE guessing-game scene (scenes/infonce.html,
-   2026-11-06), right before its code step (Your turn 2). */
-sc('infonce', 'scenes/infonce.html');
+/* The pretext, contrastive and InfoNCE scenes moved to f-ssl-scenes (2026-11-06, Fernanda: go straight from the
+   embedding scene to self-supervised learning; CLIP and Your turn 1 come after the guessing game). */
 
 const turn2 = String.raw`# YOUR TURN 2 · CLIP's contrastive loss (InfoNCE) on the 10 x 10 matrix.
 # Row i: image i against every caption. Its partner is caption i.

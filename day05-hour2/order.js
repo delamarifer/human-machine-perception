@@ -18,8 +18,9 @@ const ORDER = [
   // ---- Hour 2 · Fernanda: learning without labels ----
   ['f-taskfree',          '7. Part 2 divider, from task to task-free, learning the underlying patterns'],
   ['f-embedding',         '7. Scene: from feature maps to an embedding'],
+  ['f-ssl-scenes',        '7. Scenes: self-supervised pretext tasks, contrastive learning on a circle, the loss as a guessing game'],
   ['f-clip',              '7. CLIP, the model we use; code: embed images and captions, Your turn 1 cosine similarity'],
-  ['f-selfsup',           '7. Self-supervised, contrastive learning, the contrastive loss, code: Your turn 2 InfoNCE, the views decide'],
+  ['f-selfsup',           '7. Code: Your turn 2 InfoNCE, then the views scene'],
   ['f-lab1',              '8. What embeddings are good for, how CLIP was trained; code: Your turn 3 zero-shot, leave classes out, Your turn 4 captions'],
   ['f-konkle',            '9. Reading, Konkle and Alvarez 2022: the question, IPCL, lab code for views (Your turn 4-5), categories emerge'],
   ['f-rsa',               '9. Scene: RDMs and RSA'],
