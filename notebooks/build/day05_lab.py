@@ -4,7 +4,7 @@ Lab part 1 (part 2, views and RSA, is its own notebook since 2026-11-06: build/d
   cosine similarity, the contrastive loss (InfoNCE), zero-shot classification, your own captions. Your turn 1-4.
   Cells a slide links to have fixed ids: turn-N, plus embed (section 1) and try-classes (see CELL_IDS).
 Model: CLIP ViT-B/32 (OpenAI) from Hugging Face, openai/clip-vit-base-patch32. Data: CIFAR-10 test set
-(Krizhevsky, 2009) downloaded by torchvision. No API keys, no GPU needed.
+(Krizhevsky, 2009), the Hugging Face copy uoft-cs/cifar10 (same images and order as torchvision's). No API keys, no GPU needed.
 See nbtools.py for how to build and check it."""
 from nbtools import md, code, hidden, turn, answer, resources, badge, main
 
@@ -90,7 +90,7 @@ the notebook uses the course's answer so later cells still work), and use your v
 it in. We go over the solutions together in class.
 
 **Time.** About 15 minutes in all, in short steps between slides. No GPU needed. The first run downloads CLIP (about 600 MB)
-and the CIFAR-10 test images (about 170 MB), which takes a minute or two on Colab. A GPU
+and the CIFAR-10 test images (about 24 MB), which takes a minute or two on Colab. A GPU
 (*Runtime → Change runtime type → T4 GPU*) makes the embedding steps faster but is optional.
 """)
 
@@ -102,7 +102,7 @@ lab's **helper code** (plots, and the course's answers that a blank *Your turn* 
 folded away; you don't need to read it.
 """)
 code("""
-import sys, time
+import io, sys, time
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
@@ -110,6 +110,9 @@ import torchvision
 import torchvision.transforms as T
 import transformers
 from transformers import CLIPModel, CLIPProcessor
+import pandas as pd
+from huggingface_hub import hf_hub_download
+from PIL import Image
 import torch.nn.functional as F
 from collections import Counter
 from scipy.stats import spearmanr
@@ -125,7 +128,17 @@ MODEL_NAME = "openai/clip-vit-base-patch32"
 model = CLIPModel.from_pretrained(MODEL_NAME).to(device).eval()
 processor = CLIPProcessor.from_pretrained(MODEL_NAME)
 
-cifar = torchvision.datasets.CIFAR10(root="data", train=False, download=True)
+# CIFAR-10 test set, the Hugging Face copy (24 MB, a few seconds): the same 10,000 images and labels, in the
+# same order, as torchvision's download from the Toronto server, which can be very slow.
+class CIFAR10Test(list):
+    # a list of (image, label) pairs, with .classes and .targets like torchvision's CIFAR10
+    classes = ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
+
+table = pd.read_parquet(hf_hub_download("uoft-cs/cifar10", "plain_text/test-00000-of-00001.parquet",
+                                        repo_type="dataset"))
+cifar = CIFAR10Test((Image.open(io.BytesIO(img["bytes"])).convert("RGB"), int(label))
+                    for img, label in zip(table["img"], table["label"]))
+cifar.targets = [label for _, label in cifar]
 CLASSES = cifar.classes
 print(f"\\nCLIP and {len(cifar):,} CIFAR-10 test images loaded in {time.time() - t0:.0f} s")
 print("classes:", CLASSES)
