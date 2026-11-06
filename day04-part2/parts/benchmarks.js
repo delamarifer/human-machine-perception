@@ -71,7 +71,7 @@ const agree = (t, v) => `<div class="or-bar or-bar-w label"><span>${t}</span><i 
 st(`
   <h1 class="t">A dataset may not capture what we meant to test</h1>
   <div class="or-split">
-    <div class="or-list b" data-step="1" style="align-self:center">
+    <div class="or-list b" data-step="1" style="height:auto;align-self:center">
       <div class="lead" style="text-align:center">Is cue conflict a clean test of shape vs. texture?</div>
     </div>
     <div class="or-list">
