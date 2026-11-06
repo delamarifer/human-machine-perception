@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>From image patches to self-attention in a Vision Transformer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: vit part (Day 5). Interactive walkthrough of ViT patchification, [CLS] + pos embeddings, and QKV self-attention. */
+  html, body{ background:#fff; }
+  body.jump *{ transition:none !important; }
+  .wrap{ position:absolute; inset:0; padding:7.5vh 5.5vw 10vh; display:flex; flex-direction:column; gap:1.4vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .explain{ background:#f8fafc; border:1px solid #cbd5e1; border-left:4px solid #38506e;
+    border-radius:10px; padding:1vh 1.3vw; font-size:clamp(.8rem, 1.18vw, 1.08rem); line-height:1.36; color:#0f172a; }
+  .explain code{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; background:#e2e8f0;
+    padding:.06em .34em; border-radius:4px; font-size:.92em; font-weight:600; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">How a Vision Transformer turns an image into contextual tokens</h1>
+  <div class="stagebox">
+    <canvas id="cv"></canvas>
+  </div>
+  <div class="explain" id="exp"></div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+const EXPS = [
+  '<b>Vision Transformer (ViT-Base/16) pipeline (Dosovitskiy et al., 2021; MIT Vision Book Ch. 26):</b> Click to trace how a <code>224×224×3</code> image becomes a sequence of tokens.',
+  '<b>Step 1 · Split into non-overlapping patches:</b> A <code>224×224×3</code> image is cut into a <code>14×14</code> grid of <code>N = 196</code> patches, each of size <code>16×16×3 = 768</code> values.',
+  '<b>Step 2 · Flatten &amp; linear projection <code>E</code>:</b> Each flattened patch <code>x_p ∈ ℝ^768</code> is multiplied by a learned projection matrix <code>E ∈ ℝ^(768×768)</code> to produce a patch embedding <code>z_0^p ∈ ℝ^768</code>.',
+  '<b>Step 3 · Prepend <code>[CLS]</code> token &amp; add positional embeddings <code>E_pos</code>:</b> Prepend a learnable classification token <code>z_0^0 = x_class</code> (giving <code>197</code> tokens) and add 1D/2D positional embeddings <code>E_pos ∈ ℝ^(197×768)</code> so the sequence knows where each patch came from.',
+  '<b>Step 4 · Scaled dot-product self-attention:</b> Every token projects to a <b>Query</b> <code>q_i</code>, <b>Key</b> <code>k_i</code>, and <b>Value</b> <code>v_i</code>. Attention weights <code>A_ij = softmax(q_i · k_j / √d_k)</code> let a query patch (amber) attend directly to distant patches (blue) in Layer 1!'
+];
+const NOTES = [
+  "(draft) Title only. Let's trace the exact geometry and dimensions of a standard Vision Transformer, ViT-Base/16, following Chapter 26 of the MIT Vision Book.",
+  "(draft) Step 1: start with a 224 by 224 RGB image. Instead of sliding a 3x3 kernel pixel by pixel, we partition the image into a non-overlapping 14 by 14 grid of 16 by 16 pixel patches. That gives N = 14 * 14 = 196 patches, and each patch contains 16 * 16 * 3 = 768 raw numbers.",
+  "(draft) Step 2: flatten each 16x16x3 patch into a 768-dimensional vector x_p and multiply by a learnable linear projection matrix E of shape 768 by D (where D = 768 for ViT-Base). Note that this is equivalent to a single 16x16 convolution with stride 16 and 768 output channels.",
+  "(draft) Step 3: prepend a special learnable token called the [CLS] token at index 0, bringing the sequence length from 196 to 197. Because self-attention is permutation-equivariant—it has no built-in notion of 2D grid order—we add a learnable positional embedding vector E_pos[i] to each of the 197 tokens. The input tensor Z_0 entering the Transformer encoder has shape 197 by 768.",
+  "(draft) Step 4: inside each Transformer block, every token i computes a Query q_i, Key k_i, and Value v_i. The scaled dot-product q_i dot k_j divided by sqrt(d_k), passed through softmax, determines how much patch i attends to patch j. Look at the query patch on the sphere (marked in amber): even in a single self-attention layer, it can exchange information with distant patches across the entire image—unlike a small 3x3 CNN kernel."
+];
+const N = NOTES.length - 1;
+let beat = 0;
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){
+  const d = devicePixelRatio || 1;
+  W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = W * d; cv.height = H * d;
+  ctx.setTransform(d, 0, 0, d, 0, 0);
+}
+addEventListener('resize', () => { size(); draw(); });
+
+/* Pre-render a 112x112 synthetic scene to slice into a 4x4 illustrative grid (representing the 14x14 patches) */
+const S0 = 112;
+const sceneCan = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = S0;
+  const g = c.getContext('2d');
+  const sky = g.createLinearGradient(0, 0, 0, S0);
+  sky.addColorStop(0, '#bae6fd'); sky.addColorStop(1, '#e0f2fe');
+  g.fillStyle = sky; g.fillRect(0, 0, S0, S0);
+  g.fillStyle = '#16a34a'; g.fillRect(0, 72, S0, 40);
+  g.fillStyle = '#cbd5e1'; g.fillRect(18, 42, 42, 32);
+  g.fillStyle = '#b91c1c'; g.beginPath(); g.moveTo(14, 42); g.lineTo(39, 20); g.lineTo(64, 42); g.closePath(); g.fill();
+  g.fillStyle = '#f59e0b'; g.beginPath(); g.arc(84, 64, 16, 0, 7); g.fill();
+  return c;
+})();
+
+const font = (px, w) => `${w || 400} ${px}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
+
+function draw(){
+  ctx.clearRect(0, 0, W, H);
+  if(beat === 0) return;
+
+  const imgS = Math.min(H * 0.66, W * 0.22);
+  const xImg = W * 0.02, yImg = (H - imgS) / 2;
+
+  // 1. Draw the 224x224 image + patch grid
+  ctx.drawImage(sceneCan, xImg, yImg, imgS, imgS);
+  ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2;
+  ctx.strokeRect(xImg, yImg, imgS, imgS);
+  const G = 4; // 4x4 visual grid representing 14x14 patches
+  const cell = imgS / G;
+  ctx.strokeStyle = 'rgba(15, 23, 42, 0.65)'; ctx.lineWidth = 1.5;
+  for(let k = 1; k < G; k++){
+    ctx.beginPath();
+    ctx.moveTo(xImg + k * cell, yImg); ctx.lineTo(xImg + k * cell, yImg + imgS);
+    ctx.moveTo(xImg, yImg + k * cell); ctx.lineTo(xImg + imgS, yImg + k * cell);
+    ctx.stroke();
+  }
+  ctx.fillStyle = '#0f172a'; ctx.font = font(Math.max(11, H * 0.032), 700);
+  ctx.textAlign = 'center';
+  ctx.fillText('Image: 224×224×3', xImg + imgS / 2, yImg - H * 0.035);
+  ctx.fillStyle = '#475569'; ctx.font = font(Math.max(10, H * 0.028), 600);
+  ctx.fillText('14×14 = 196 patches', xImg + imgS / 2, yImg + imgS + H * 0.045);
+  ctx.fillText('(each 16×16×3 = 768)', xImg + imgS / 2, yImg + imgS + H * 0.09);
+
+  // If beat >= 2: show flattened patch sequence + Linear Projection E
+  if(beat >= 2){
+    const xSeq = xImg + imgS + W * 0.04;
+    const tokH = Math.min(H * 0.068, 26), tokW = W * 0.13;
+    const nShow = 7; // [CLS] + 6 sample patches
+    const startY = (H - nShow * (tokH + 6)) / 2;
+
+    ctx.fillStyle = '#0f172a'; ctx.font = font(Math.max(11, H * 0.032), 700);
+    ctx.fillText('Token Sequence Z₀', xSeq + tokW / 2, startY - H * 0.04);
+
+    for(let i = 0; i < nShow; i++){
+      const yy = startY + i * (tokH + 6);
+      if(i === 0){
+        if(beat >= 3){
+          ctx.fillStyle = '#1e293b'; ctx.fillRect(xSeq, yy, tokW, tokH);
+          ctx.fillStyle = '#f8fafc'; ctx.font = font(Math.max(10, tokH * 0.48), 700);
+          ctx.fillText('[CLS] z₀⁰ ∈ ℝ⁷⁶⁸', xSeq + tokW / 2, yy + tokH * 0.66);
+          if(beat >= 3){
+            ctx.fillStyle = '#d97706'; ctx.fillText('+ pos 0', xSeq + tokW + W * 0.04, yy + tokH * 0.66);
+          }
+        }
+      } else {
+        const pIdx = i === nShow - 1 ? 196 : i;
+        ctx.fillStyle = '#dbeafe'; ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 1.5;
+        ctx.fillRect(xSeq, yy, tokW, tokH); ctx.strokeRect(xSeq, yy, tokW, tokH);
+        ctx.fillStyle = '#0f172a'; ctx.font = font(Math.max(10, tokH * 0.46), 700);
+        const labelTxt = i === nShow - 2 ? '  ...  ' : `Patch ${pIdx}: z₀^${pIdx}`;
+        ctx.fillText(labelTxt, xSeq + tokW / 2, yy + tokH * 0.66);
+        if(beat >= 3 && i !== nShow - 2){
+          ctx.fillStyle = '#d97706'; ctx.font = font(Math.max(9.5, tokH * 0.44), 700);
+          ctx.fillText(`+ pos ${pIdx}`, xSeq + tokW + W * 0.04, yy + tokH * 0.66);
+        }
+      }
+    }
+    ctx.fillStyle = '#334155'; ctx.font = font(Math.max(10, H * 0.028), 700);
+    ctx.fillText(beat >= 3 ? 'Shape: 197 × 768' : 'Shape: 196 × 768', xSeq + tokW / 2, startY + nShow * (tokH + 6) + H * 0.04);
+  }
+
+  // If beat >= 4: show QKV Self-Attention Matrix & long-range patch interactions on the image
+  if(beat >= 4){
+    // Highlight query patch (row 2, col 3: sphere) and attended patches on the image
+    const qR = 2, qC = 2;
+    ctx.strokeStyle = '#d97706'; ctx.lineWidth = 3.5;
+    ctx.strokeRect(xImg + qC * cell + 1, yImg + qR * cell + 1, cell - 2, cell - 2);
+    // Draw attention links to other patches (roof [1,1], wall [2,1], grass [3,2])
+    const targets = [[1, 1, 0.32], [2, 1, 0.25], [3, 2, 0.28]];
+    const qx = xImg + (qC + 0.5) * cell, qy = yImg + (qR + 0.5) * cell;
+    targets.forEach(([tr, tc, w]) => {
+      const tx = xImg + (tc + 0.5) * cell, ty = yImg + (tr + 0.5) * cell;
+      ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 2 + w * 6;
+      ctx.beginPath(); ctx.moveTo(qx, qy); ctx.lineTo(tx, ty); ctx.stroke();
+      ctx.strokeRect(xImg + tc * cell + 2, yImg + tr * cell + 2, cell - 4, cell - 4);
+    });
+
+    // Draw Self-Attention diagram on the right half
+    const xAtt = W * 0.54, wAtt = W * 0.44, yAtt = H * 0.12;
+    ctx.fillStyle = '#0f172a'; ctx.font = font(Math.max(11, H * 0.032), 700);
+    ctx.textAlign = 'left';
+    ctx.fillText('Scaled Dot-Product Self-Attention (197×197):', xAtt, yAtt);
+
+    // Code/Math box
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath(); ctx.roundRect(xAtt, yAtt + H * 0.03, wAtt, H * 0.28, 10); ctx.fill();
+    ctx.fillStyle = '#f8fafc'; ctx.font = font(Math.max(10, H * 0.027), 600);
+    ctx.fillText('Q = Z W_Q,  K = Z W_K,  V = Z W_V', xAtt + 14, yAtt + H * 0.10);
+    ctx.fillStyle = '#93c5fd';
+    ctx.fillText('Attention(Q, K, V) = softmax(Q K^T / √d_k) V', xAtt + 14, yAtt + H * 0.18);
+    ctx.fillStyle = '#cbd5e1'; ctx.font = font(Math.max(9.5, H * 0.024), 400);
+    ctx.fillText('A ∈ ℝ^(197×197): every token attends to all 197 tokens', xAtt + 14, yAtt + H * 0.26);
+
+    // Small heatmap of 6x6 attention matrix A_ij
+    const hmS = Math.min(H * 0.36, wAtt * 0.42), hmX = xAtt + 8, hmY = yAtt + H * 0.36;
+    const nA = 6, cA = hmS / nA;
+    const weights = [
+      [0.45, 0.12, 0.08, 0.15, 0.10, 0.10],
+      [0.10, 0.50, 0.20, 0.05, 0.10, 0.05],
+      [0.08, 0.18, 0.42, 0.12, 0.12, 0.08],
+      [0.14, 0.06, 0.10, 0.48, 0.14, 0.08],
+      [0.12, 0.24, 0.18, 0.08, 0.30, 0.08],
+      [0.09, 0.08, 0.11, 0.12, 0.10, 0.50],
+    ];
+    for(let r = 0; r < nA; r++) for(let c = 0; c < nA; c++){
+      const v = weights[r][c];
+      const bCol = Math.round(255 - v * 210);
+      ctx.fillStyle = r === 4 ? `rgb(${Math.round(255 - v*40)}, ${Math.round(190 - v*120)}, 40)` : `rgb(${bCol}, ${bCol + 10}, 255)`;
+      ctx.fillRect(hmX + c * cA, hmY + r * cA, cA - 1, cA - 1);
+    }
+    ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1.5; ctx.strokeRect(hmX, hmY, hmS, hmS);
+    ctx.fillStyle = '#0f172a'; ctx.font = font(Math.max(10, H * 0.026), 700);
+    ctx.fillText('Keys k_j (attended tokens) →', hmX, hmY - 6);
+
+    // Role of each variable beside the heatmap
+    const rx = hmX + hmS + 16;
+    ctx.font = font(Math.max(10, H * 0.026), 700);
+    ctx.fillStyle = '#d97706'; ctx.fillText('• q_i (Query): what patch i looks for', rx, hmY + H * 0.06);
+    ctx.fillStyle = '#2563eb'; ctx.fillText('• k_j (Key): what patch j contains', rx, hmY + H * 0.14);
+    ctx.fillStyle = '#15803d'; ctx.fillText('• v_j (Value): information sent from j', rx, hmY + H * 0.22);
+    ctx.fillStyle = '#475569'; ctx.fillText('• √d_k: prevents softmax saturation', rx, hmY + H * 0.30);
+  }
+}
+
+function go(b){
+  beat = b;
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();
+  document.getElementById('exp').innerHTML = EXPS[b] || EXPS[0];
+  document.getElementById('dots').innerHTML = [...Array(N)].map((_, k) => `<i class="${k < b ? 'on' : ''}"></i>`).join('');
+  draw();
+}
+
+window.vitTokens = {
+  advance(){ if(beat < N) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === N,
+  reset(){ go(0); },
+  resetToEnd(){ go(N); },
+  getBeat: () => beat,
+  notes: NOTES
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) vitTokens.advance(); if(e.key === 'ArrowLeft') vitTokens.back(); });
+  addEventListener('click', () => vitTokens.advance());
+}
+size(); go(0);
+</script>
+</body>
+</html>
