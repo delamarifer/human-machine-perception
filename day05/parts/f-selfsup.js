@@ -6,7 +6,7 @@
    matrix (notebook Your turn 2). Code copied verbatim from the STUDENT notebook (None placeholders, never the
    solution); change both together. */
 {
-section('7. Task-free');
+section('Optional lab: CLIP');
 
 const LAB_NB = 'https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day05-lab-clip-embeddings.ipynb';
 const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -112,6 +112,5 @@ CLIP's own temperature, learned in training: 0.010`))}${CSS}
   "(draft) From our run, the same cell at three temperatures. At 0.01, the true pairs give a loss of 0.28 and the shifted pairs 6.59, far apart. At 0.07, 1.59 and 2.50. At 1.0, both sit near guessing, 2.30. And the last line: 0.01 is the temperature CLIP itself learned. Small differences in cosine only count when the temperature is small."
 ]});
 
-/* The text slide 'The views decide what is kept' is replaced by the views scene (scenes/views.html, 2026-11-06). */
-sc('viewsScene', 'scenes/views.html');
+/* (scene moved to f-ssl-scenes, 2026-11-06: the CLIP code slides are an optional lab at the end of Part 2) */
 }
