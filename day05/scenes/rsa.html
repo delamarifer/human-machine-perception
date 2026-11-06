@@ -108,7 +108,7 @@ const f2 = v => (v < 0 ? '−' : '') + Math.abs(v).toFixed(2);
 
 const CAPS = ['', '18 images: 3 of each kind', 'embedding: how different is each pair?', 'raw pixels: the same question', 'a model: same kind = similar', 'RSA: correlate the matrices'];
 const NOTES = [
-  "(draft) Title only. Here is what those matrices look like, computed on a small set of images.",
+  "(draft) Title only. To compare a network with the brain, Konkle and Alvarez compare dissimilarity matrices. Here is what those look like, computed on a small set of images.",
   "(draft) Take a set of images, here 18 toy images, 3 of each kind, and keep them in the same order throughout.",
   "(draft) For one representation, the embedding, measure how different every pair of images is: one minus the correlation of their embeddings. That gives an 18 by 18 matrix, a representational dissimilarity matrix, or RDM. Darker means more different. Some light blocks sit along the diagonal: for several kinds, images of the same kind are close.",
   "(draft) Now the same matrix computed from raw pixels. Much less structure: in pixels, two stripe images that are slightly shifted can look completely different.",

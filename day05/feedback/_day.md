@@ -10,6 +10,53 @@ The earlier Neural Networks deck (fixed to learned filters, a 2D classifier trai
 loss, backprop, gradient descent, PyTorch training loop) was removed from `day05/` in this round. It is in git
 at commit `b57d7e4` (`day05/parts/*.js`, `day05/scenes/*.html`), if any of it is wanted for Day 4 or later.
 
+## Round 5 · 2026-11-06 · two hours, slides and lab alternating; Fernanda's Part 2 (day05 session)
+
+Fernanda: feedback says we cover too much content, so "for each of our hours, Shreya and I will each have slides
+along with a lab ... we will be going back and forth". Part 2 is hers, from her outline: from task to task-free;
+learning the underlying patterns; embeddings; self-supervised; contrastive loss; you can still do a lot with those
+embeddings; one example: CLIP similarity (and lab). Plus slides on the reading, Konkle & Alvarez 2022, and the
+subsections from the vision book (Torralba, Isola & Freeman, *Foundations of Computer Vision*: Ch. 30
+Representation Learning, Ch. 51 Vision and Language). Her choices: HTML deck, Part 2 takes the place of
+Shreya's sections 7-9; hour shape slides → lab 1 → reading → lab 2; a new CLIP notebook for her lab.
+
+Running order now (31 slides, 116 clicks; every click walked forward and back, passages == clicks + 1 on every
+slide, console clean):
+
+| Hour | Slides | What |
+|---|---|---|
+| 1 · Shreya | 1-10 | her sections 1-6 (unchanged), my attention and ViT scenes |
+| 1 · Shreya | 11 | lab: MIT 6.S191 Lab 3, LLM fine-tuning (`f-lab`) |
+| 2 · Fernanda | 12-14 | `f-taskfree`: Part 2 divider, from task to task-free, learning the underlying patterns |
+| 2 | 15 | embedding scene (first note retuned) |
+| 2 | 16-19 | `f-selfsup`: self-supervised, contrastive learning, the contrastive loss (InfoNCE; alignment and uniformity), the views decide what is kept (book 30.10.2) |
+| 2 | 20-21 | `f-clip`: what embeddings are good for; one example: CLIP similarity, zero-shot |
+| 2 | 22 | `f-lab1`: lab part 1 (Your turn 1-3) |
+| 2 | 23-25 | `f-konkle`: the question, IPCL (Fig. 1a), categories emerge (Fig. 1b, kNN 3.5 / 37.3 / 58.8%) |
+| 2 | 26 | RSA scene (first note retuned to point at the reading) |
+| 2 | 27-29 | `f-konkle-brain`: brain fit (56 of 60), accuracy vs brain (Fig. 4), discussion |
+| 2 | 30 | `f-lab2`: lab part 2 (Your turn 4-6) |
+| 2 | 31 | homework (my copy; "Finish the labs" names both labs) |
+
+Figures: Konkle & Alvarez 2022 is open access, CC BY 4.0; Fig. 1a, 1b and 4 cropped from the PDF at 300 dpi
+into `assets/konkle/`, crop boxes found by script, credited on each slide. Every number on the reading slides is
+from the paper's Results text.
+
+Lab: `notebooks/day05-lab-clip-embeddings.ipynb` (build script `notebooks/build/day05_lab.py`; solutions in
+`notebooks/build/private/day05_lab_solutions.py`, git-ignored, in this worktree only: copy it to your private
+folder). CLIP ViT-B/32 from Hugging Face, CIFAR-10 test images, no API keys, no GPU needed.
+
+### Questions for Fernanda (Round 5)
+- [ ] **Hour 1 time.** Shreya's sections 1-6 add up to 64 minutes before her lab. Her hour needs a pass with her.
+- [ ] **Shreya's agenda slide** (slide 2, `s-title`) still lists her 11 sections. Ask her to update it, or I make a
+      copy that shows the two hours?
+- [ ] **Her sections 10 (RSA) and 11 (Thatcher)** are not loaded now (my RSA scene is in the reading instead, and
+      Thatcher is out). Keep them out, or move Thatcher into her hour?
+- [ ] **Course site.** The Day 5 card in `index.html` (shared file) needs the CLIP lab link once the notebook is on
+      `main`. The lab slides link straight to Colab.
+- [ ] **Response paper on the reading.** Day 4 told students to write one by hand at the start of Day 5. It is in
+      the instructors repo (`s-hw-questions`), not in the public deck. Who runs it, and in which hour?
+
 ## Round 4 · 2026-11-04 · the Day 5 lab is MIT 6.S191 Lab 3 (day05 session)
 
 Fernanda: "This will be the lab for Day 5:

@@ -103,7 +103,7 @@ const EMAX = Math.max(...EMB.flat());
 
 const CAPS = ['', 'an image: 32 × 32 pixels', 'a bank of 8 filters', '8 feature maps', 'average each map: 8 numbers', 'same kind, different pixels', 'a different kind'];
 const NOTES = [
-  "(draft) Title only. On Day 4, a CNN turned an image into feature maps. Today we start from there: how do we get one compact description of a whole image?",
+  "(draft) Title only. Here is an embedding built step by step, so you can see what compressing an image into a few numbers keeps and what it throws away.",
   "(draft) Here is a small image, made in code: vertical stripes. 32 by 32 pixels, so about a thousand numbers.",
   "(draft) We run a bank of filters over it. Here they are hand-designed, the Gabor filters from Day 3: four orientations, at a fine and a coarse scale. In a trained CNN, these would be the learned filters of a layer.",
   "(draft) Each filter gives a feature map: where in the image that filter responds. The vertical filters light up everywhere; the others barely respond.",

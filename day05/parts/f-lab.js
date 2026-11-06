@@ -4,7 +4,7 @@
    with a cross-entropy loss; LoRA on the attention (q, k, v, o) and MLP projections; fine-tune to a
    leprechaun style, then Yoda; Part 2 scores outputs with a judge LLM (needs OpenRouter and Comet API keys). */
 {
-section('9. Lab');
+section('Lab: LLM');
 
 st(`
   <h1 class="t">Lab: fine-tune a language model</h1>
