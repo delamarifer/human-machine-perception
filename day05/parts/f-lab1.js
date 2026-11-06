@@ -59,40 +59,11 @@ const codeSlide = ({ title, cues, code, tryIt, cell, label, notes }) => {
 `, { notes });
 };
 
-st(`
-  <h1 class="t">You can still do a lot with those embeddings</h1>
-  <ul class="frag">
-    <li class="b">Neighbors: search for similar images</li>
-    <li class="b">Clusters: groups that nobody named</li>
-    <li class="b">A small classifier on top: a few labels go a long way</li>
-    <li class="b">Compare with people and brains</li>
-  </ul>
-`, { notes: [
-  "(draft) No task during training. So what is the embedding good for afterwards? A lot.",
-  "(draft) Nearest neighbors: give it an image, get back the most similar images. That is image search.",
-  "(draft) Clustering: groups appear that nobody labeled.",
-  "(draft) A small classifier trained on top of the frozen embedding. With a good embedding, a handful of labels is enough.",
-  "(draft) And the one we care about in this course: compare the geometry of the space with human judgments and brain responses. That is the reading, after the lab."
-]});
+/* The text slide 'You can still do a lot with those embeddings' is replaced by the uses scene (scenes/uses.html, 2026-11-06). */
+sc('usesScene', 'scenes/uses.html');
 
-st(`
-  <h1 class="t">One example: how CLIP was trained</h1>
-  <div class="flow">
-    <div class="step b" data-step="1"><b>Two views</b><span class="label">an image and its caption are the positive pair</span></div>
-    <div class="arrow b" data-step="2">→</div>
-    <div class="step b" data-step="2"><b>The loss you computed</b><span class="label">each image picks its caption, each caption its image</span></div>
-    <div class="arrow b" data-step="3">→</div>
-    <div class="step b" data-step="3"><b>Kept: what words say</b><span class="label">the caption decides what the embedding keeps</span></div>
-  </div>
-  <div class="card hi b" data-step="4"><div class="k">Zero-shot</div><div class="label">Write each class as a caption, “a photo of a dog”. Pick the caption closest to the image.</div></div>
-  ${cite('Radford et al., 2021, Learning Transferable Visual Models From Natural Language Supervision · <i>Foundations of Computer Vision</i>, Sec. 51.3')}
-`, { notes: [
-  "(draft) Now we can say how CLIP got its space. It is contrastive learning, with one twist.",
-  "(draft) The two views are not two crops of a photo. They are an image and its caption, collected from the web.",
-  "(draft) In a batch of image and caption pairs, each image should be closest to its own caption and far from all the others, and the other way around. That is the loss you just computed in Your turn 2, on a much bigger batch. The book describes CLIP exactly this way, as a symmetric version of the same loss.",
-  "(draft) And from the last slide: the views decide what is kept. Here the other view is a sentence, so the embedding keeps what people tend to write about an image, and lets go of what they do not.",
-  "(draft) Once trained, you can classify with no training at all. Write each class name as a caption, a photo of a dog, a photo of a cat, embed the captions, and pick the one closest to the image. That is called zero-shot classification. Back to the lab."
-]});
+/* The text slide 'One example: how CLIP was trained' is replaced by the CLIP-training scene (scenes/cliptrain.html, 2026-11-06). */
+sc('clipTrainScene', 'scenes/cliptrain.html');
 
 codeSlide({
   title: 'Your turn 3: zero-shot predictions',
