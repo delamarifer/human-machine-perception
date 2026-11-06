@@ -33,6 +33,8 @@ const ORDER = [
   ['f-konkle',            '9. Reading, Konkle and Alvarez 2022: the question, IPCL, lab code for views (Your turn 4-5), categories emerge'],
   ['f-rsa',               '9. Scene: RDMs and RSA'],
   ['f-konkle-brain',      '9. Reading: lab code for RDMs and RSA (Your turn 6), brain fit, accuracy vs brain, discussion'],
+  // The scenes pretext, infonce (and later contrastive, views) are loaded from inside f-selfsup with sc(), so they
+  // sit between its slides; their own part files f-pretext.js, f-infonce.js are not listed here.
   // f-lab2 (the lab part 2 overview slide) is not loaded since 2026-11-06: its code slides sit inside section 9.
   ['f-homework',          'Homework (copy of s-homework, labs updated): proposal tonight, detailed proposal Monday, labs, readings'],
 ];

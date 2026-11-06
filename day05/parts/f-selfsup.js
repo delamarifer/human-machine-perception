@@ -42,22 +42,9 @@ if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) && new URLSearc
   }).catch(() => {});
 
 
-st(`
-  <h1 class="t">Self-supervised: the data makes its own labels</h1>
-  <ul class="frag">
-    <li class="b">Hide the right half, predict it from the left</li>
-    <li class="b">Remove the color, predict it back</li>
-    <li class="b">Rotate the image, predict whether it was turned</li>
-    <li class="b">No person wrote the answer: it was already in the image</li>
-  </ul>
-  ${cite('<i>Foundations of Computer Vision</i>, Sec. 30.6–30.8: self-supervised learning, imputation, pretext tasks')}
-`, { notes: [
-  "(draft) How do you get a training signal with no labels? Make the data label itself.",
-  "(draft) Cut the image in two and predict the right half from the left half.",
-  "(draft) Turn a photo gray and predict the colors back. The book shows that a network trained only to colorize ends up with units that respond to objects.",
-  "(draft) Rotate the image and ask whether it was turned. To answer, the network has to know, for example, that clouds tend to be near the top.",
-  "(draft) In each case the answer was in the image all along. That is what self-supervised means: the targets come from the raw data, not from a person."
-]});
+/* The text slide 'Self-supervised: the data makes its own labels' is replaced by the pretext-tasks scene
+   (scenes/pretext.html, 2026-11-06); the text version is in git before this commit. */
+sc('pretext', 'scenes/pretext.html');
 
 st(`
   <h1 class="t">Contrastive learning</h1>
@@ -78,20 +65,9 @@ st(`
   "(draft) One more detail: every embedding is scaled to length one, so all the points live on a sphere and similarity is just the cosine of the angle between them. Otherwise the network could push negatives infinitely far away."
 ]});
 
-st(`
-  <h1 class="t">The contrastive loss</h1>
-  <div class="cols">
-    <div class="card b"><div class="k">A guessing game</div><div class="label">Here is one view. Which of these N images is its partner?</div></div>
-    <div class="card b"><div class="k">Softmax over similarities</div><div class="label">Low loss when the partner has the highest cosine similarity (InfoNCE).</div></div>
-    <div class="card hi b"><div class="k">Alignment and uniformity</div><div class="label">Partners land together; everything else spreads out over the sphere.</div></div>
-  </div>
-  ${cite('<i>Foundations of Computer Vision</i>, Sec. 30.10–30.10.1 · van den Oord, Li &amp; Vinyals, 2018 · Wang &amp; Isola, 2020')}
-`, { notes: [
-  "(draft) The loss most methods use is easier to say as a game than as a formula.",
-  "(draft) Give the network one view and a lineup of N other images, one of which is the other view of the same image. Its job is to pick the partner.",
-  "(draft) Score every candidate by cosine similarity and put the scores through a softmax, the same softmax as a classifier, with a temperature. The loss is low when the partner gets the highest score. This is called InfoNCE, from van den Oord and colleagues, 2018.",
-  "(draft) Wang and Isola, 2020, showed what this loss does to the space: alignment, partners land together, and uniformity, everything else spreads out evenly over the sphere."
-]});
+/* The text slide 'The contrastive loss' is replaced by the InfoNCE guessing-game scene (scenes/infonce.html,
+   2026-11-06), right before its code step (Your turn 2). */
+sc('infonce', 'scenes/infonce.html');
 
 const turn2 = String.raw`# YOUR TURN 2 · CLIP's contrastive loss (InfoNCE) on the 10 x 10 matrix.
 # Row i: image i against every caption. Its partner is caption i.
