@@ -95,7 +95,7 @@ planbScene('planbClassify', {
       blocks.forEach((by, b) => {
         const g = beat === 4 ? PB.seg(t, 300 + b * 500, 1100 + b * 500) : 1;
         const [tx, , tw] = cl(inR);
-        ctx.strokeStyle = 'rgba(15,23,42,.30)'; ctx.lineWidth = 1; ctx.beginPath();
+        ctx.strokeStyle = 'rgba(15,23,42,.5)'; ctx.lineWidth = 1; ctx.beginPath();
         for(let k = 0; k < 64; k += 2){ const [x, , w] = at(inR, k);
           const sx = x + w / 2, sy = by + 3, ex = tx + tw / 2, ey = by + bh - 3;
           ctx.moveTo(sx, sy); ctx.quadraticCurveTo(sx, ey, PB.lerp(sx, ex, g), PB.lerp(sy, ey, g)); }

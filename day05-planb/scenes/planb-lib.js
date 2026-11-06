@@ -117,7 +117,7 @@ PB.posCanvas = (n = 65, d = 48) => {
 };
 /* a row of n vertical token slots inside rect r = {x, y, w, h}; returns slot k as [x, y, w, h] */
 PB.slot = (r, k, n = 64, gapFrac = .22) => { const s = r.w / n, g = s * gapFrac; return [r.x + k * s + g / 2, r.y, s - g, r.h]; };
-PB.ROWX = [.12, .98];   /* token rows span this share of the width; their names sit to the left */
+PB.ROWX = [.14, .98];   /* token rows span this share of the width; their names sit to the left */
 PB.rowLabel = (ctx, W, r, str, px) => PB.text(ctx, str, W * .005, r.y + r.h / 2, px, {w: 700, align: 'left'});
 
 function planbScene(name, cfg){

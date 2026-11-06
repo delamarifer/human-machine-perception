@@ -4,7 +4,7 @@ section('3. ViT and CNN');
 sc('planbCost', 'scenes/planb-cost.html');
 
 st(`<style>
-  .planb-two{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:3vw; align-items:center; }
+  .planb-two{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:3vw; align-items:stretch; margin:auto 0; flex:0 0 auto; }
   .planb-card{ border:2px solid var(--ink); border-radius:16px; padding:3.4vh 2vw; display:flex; flex-direction:column; gap:1.6vh; }
   .planb-card > b{ font-size:clamp(1.5rem, 2.4vw, 2.2rem); }
 </style>

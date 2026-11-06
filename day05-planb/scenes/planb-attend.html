@@ -65,7 +65,7 @@ planbScene('planbAttend', {
       return;
     }
     // beat 4: every pair, faintly
-    ctx.save(); ctx.strokeStyle = `rgba(15,23,42,${.07 * e})`; ctx.lineWidth = 1; ctx.beginPath();
+    ctx.save(); ctx.strokeStyle = `rgba(15,23,42,${.12 * e})`; ctx.lineWidth = 1; ctx.beginPath();
     for(let a = 0; a < 64; a++) for(let b = a + 1; b < 64; b++){ const [x1, y1] = ctr(a), [x2, y2] = ctr(b); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); }
     ctx.stroke(); ctx.restore();
     PB.text(ctx, 'all 64 patches', rx, iy + c * .5, fsR, {w: 700, align: 'left'});

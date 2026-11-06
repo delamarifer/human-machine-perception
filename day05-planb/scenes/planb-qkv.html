@@ -64,8 +64,10 @@ planbScene('planbQkv', {
           PB.text(ctx, '×', W * .405, ry, fs * 1.2, {w: 700, alpha: a});
           PB.box(ctx, bx, ry - bht / 2, bwid, bht, {fill: '#fff', stroke: PB.INK, lw: 2, alpha: a});
           const sub = QKV[i][0].split('_');
-          PB.text(ctx, sub[0], bx + bwid / 2 - fs * .25, ry, fs * 1.15, {w: 700, alpha: a});
-          PB.text(ctx, sub[1], bx + bwid / 2 + fs * .32, ry + fs * .3, fs * .75, {w: 700, alpha: a});
+          ctx.font = PB.font(fs * 1.15, 700); const ww = ctx.measureText(sub[0]).width;
+          ctx.font = PB.font(fs * .75, 700); const sw2 = ctx.measureText(sub[1]).width, x0 = bx + bwid / 2 - (ww + sw2 + 2) / 2;
+          PB.text(ctx, sub[0], x0, ry, fs * 1.15, {w: 700, align: 'left', alpha: a});
+          PB.text(ctx, sub[1], x0 + ww + 2, ry + fs * .35, fs * .75, {w: 700, align: 'left', alpha: a});
         });
       }
       if(beat >= 4){
