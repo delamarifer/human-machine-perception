@@ -257,6 +257,33 @@ resources(('Ch. 30.10, Contrastive learning', f'{BOOK}/representation_learning.h
           ('Boolean comparison and .float().mean() in PyTorch', 'https://pytorch.org/docs/stable/generated/torch.eq.html'))
 
 md("""
+### The instance test as a picture
+
+Contrastive learning asks for one thing: views of the same image close together, views of different images far
+apart. Here is every view compared with every other view, for each kind of view: a 100 × 100 matrix of cosine
+similarities, with the 5 views of each image next to each other. If the embedding does what contrastive learning
+asks, you see 20 dark 5 × 5 squares along the diagonal on a lighter background.
+""")
+code("""
+fig, axes = plt.subplots(1, 3, figsize=(14, 4.8))
+low = min((emb @ emb.T).min().item() for emb in view_emb.values())   # one color scale for all three
+for ax, (kind, emb) in zip(axes, view_emb.items()):
+    sims = (emb @ emb.T).numpy()
+    shown = ax.imshow(sims, cmap="gray_r", vmin=low, vmax=1)
+    ax.set_title(f"{kind} views")
+    ax.set_xticks(np.arange(2, 100, 5)); ax.set_xticklabels(range(20), fontsize=6)
+    ax.set_yticks(np.arange(2, 100, 5)); ax.set_yticklabels(range(20), fontsize=6)
+    ax.set_xlabel("image (5 views each)")
+fig.colorbar(shown, ax=axes, shrink=0.8, label="cosine similarity")
+plt.show()
+""")
+md("""
+Which kind of view gives the clearest squares? Find a square that fades, or a dark cell outside the squares: two
+different images that CLIP finds similar. The instance accuracy you computed is this picture turned into one
+number: for each row, is the darkest other cell inside the row's own square?
+""")
+
+md("""
 ### Your turn 2 · Talk it over
 
 Which kind of view does CLIP tolerate best, and which worst? CLIP was trained to match images with
