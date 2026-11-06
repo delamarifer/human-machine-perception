@@ -4,7 +4,8 @@
    Avoid apostrophes inside the strings. */
 const ORDER = [
   // part           what (video time in brackets)
-  ['title',         'Title and credit'],
+  ['planb-day5-title', 'Day 5 title slide, from Shreya Day 5 deck'],
+  ['title',         'Plan B title and credit to the video'],
   ['tokens',        'Image to tokens: patches, pixel values, flatten, embed (0:00 to 1:15)'],
   ['qkv',           'Query, key and value from one embedding (1:15 to 1:38)'],
   ['position',      'Why position matters, and adding it (1:38 to 2:11)'],

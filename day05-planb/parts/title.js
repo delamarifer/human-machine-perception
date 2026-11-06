@@ -9,7 +9,7 @@ st(`<style>
   <div class="planb-title">
     <h1 class="t">Vision Transformer</h1>
     <div class="statement b" data-step="1">How an image becomes a sequence of tokens, and what attention does with them</div>
-    <div class="label b" data-step="1">Human-Machine Perception · Day 5 (Plan B)</div>
+    <div class="label b" data-step="1">Human-Machine Perception · Day 5</div>
   </div>
   <div class="cite b" data-step="1">Based on “Vision Transformer”, AGI Lambda, YouTube (youtube.com/watch?v=vJF3TBI8esQ)</div>
 `, { notes: [
