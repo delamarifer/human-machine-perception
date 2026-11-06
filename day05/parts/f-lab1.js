@@ -1,32 +1,179 @@
-/* PART: f-lab1 (Day 5). Owner: Fernanda. Hour 2, lab block 1 of 2 (slides and lab alternate, 2026-11-06).
-   Notebook: notebooks/day05-lab-clip-embeddings.ipynb (built by notebooks/build/day05_lab.py), Part 1,
-   Your turn 1-3. Links open the exercise cell directly (#scrollTo=turn-N). */
+/* PART: f-lab1 (Day 5). Owner: Fernanda. Hour 2, section 8 (Round 6, 2026-11-06: lab interleaved with the
+   concepts). After the contrastive loss and the views (f-selfsup): what embeddings are good for; how CLIP was
+   trained (its two views are an image and its caption); then code steps on zero-shot classification
+   (Your turn 3, leaving classes out, Your turn 4), and a wrap-up of lab part 1.
+   Notebook: notebooks/day05-lab-clip-embeddings.ipynb, Part 1, section 3. Links open the cell directly
+   (#scrollTo=turn-N, or the fixed id try-classes). Code copied verbatim from the STUDENT notebook (None
+   placeholders, never a solution: the repository is public); change both together.
+   Sources: Foundations of Computer Vision, Sec. 51.3 (CLIP as contrastive learning with an image and its caption
+   as the two views; symmetric InfoNCE; zero-shot classification with text prompts). Radford et al., 2021. */
 {
 section('8. Lab: CLIP');
 
 const LAB_NB = 'https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day05-lab-clip-embeddings.ipynb';
+const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const CSS = `<style>
+  .flab1-code{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:minmax(0, 30fr) minmax(0, 70fr); gap:3vw; align-items:center; }
+  .flab1-left{ display:flex; flex-direction:column; gap:2.2vh; }
+  .flab1-left .frag{ margin:0; }
+  .flab1-codebox{ container-type:inline-size; min-width:0; }
+  .flab1-pre{ margin:0; font-family:Menlo, Consolas, monospace; font-size:min(1.15rem, 1.7cqw); line-height:1.45;
+    white-space:pre; overflow:hidden; background:#f8fafc; border:1px solid var(--line); border-radius:8px; padding:1.4vh 1.2vw; }
+  .flab1-open{ align-self:flex-start; border:3px solid var(--ink); border-radius:999px; padding:1vh 1.6vw;
+    font-weight:700; font-size:clamp(1rem, 1.5vw, 1.4rem); color:var(--ink); text-decoration:none; }
+</style>`;
+// Concept cues on the left (one click each), then the notebook cell on the right, then "Try it", then the link.
+const codeSlide = ({ title, cues, code, tryIt, cell, label, notes }) => {
+  const n = cues.length;
+  st(`
+  <h1 class="t">${title}</h1>
+  <div class="flab1-code">
+    <div class="flab1-left">
+      <ul class="frag">${cues.map((c, i) => `<li class="b" data-step="${i + 1}">${c}</li>`).join('')}</ul>
+      <div class="card hi b" data-step="${n + 2}"><div class="k">Try it</div><div class="label">${tryIt}</div></div>
+      <a class="flab1-open b" data-step="${n + 3}" href="${LAB_NB}#scrollTo=${cell}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${label} ↗</a>
+    </div>
+    <div class="flab1-codebox b" data-step="${n + 1}"><pre class="flab1-pre">${esc(code)}</pre></div>
+  </div>${CSS}
+`, { notes });
+};
 
 st(`
-  <h1 class="t">Lab, part 1: CLIP similarity</h1>
+  <h1 class="t">You can still do a lot with those embeddings</h1>
+  <ul class="frag">
+    <li class="b">Neighbors: search for similar images</li>
+    <li class="b">Clusters: groups that nobody named</li>
+    <li class="b">A small classifier on top: a few labels go a long way</li>
+    <li class="b">Compare with people and brains</li>
+  </ul>
+`, { notes: [
+  "(draft) No task during training. So what is the embedding good for afterwards? A lot.",
+  "(draft) Nearest neighbors: give it an image, get back the most similar images. That is image search.",
+  "(draft) Clustering: groups appear that nobody labeled.",
+  "(draft) A small classifier trained on top of the frozen embedding. With a good embedding, a handful of labels is enough.",
+  "(draft) And the one we care about in this course: compare the geometry of the space with human judgments and brain responses. That is the reading, after the lab."
+]});
+
+st(`
+  <h1 class="t">One example: how CLIP was trained</h1>
   <div class="flow">
-    <div class="step b" data-step="1"><b>Embed</b><span class="label">ten images and ten captions</span></div>
+    <div class="step b" data-step="1"><b>Two views</b><span class="label">an image and its caption are the positive pair</span></div>
     <div class="arrow b" data-step="2">→</div>
-    <div class="step b" data-step="2"><b>Compare</b><span class="label">cosine similarity, every image × every caption</span></div>
+    <div class="step b" data-step="2"><b>The loss you computed</b><span class="label">each image picks its caption, each caption its image</span></div>
     <div class="arrow b" data-step="3">→</div>
-    <div class="step b" data-step="3"><b>Zero-shot</b><span class="label">classify 500 images from their class names</span></div>
+    <div class="step b" data-step="3"><b>Kept: what words say</b><span class="label">the caption decides what the embedding keeps</span></div>
+  </div>
+  <div class="card hi b" data-step="4"><div class="k">Zero-shot</div><div class="label">Write each class as a caption, “a photo of a dog”. Pick the caption closest to the image.</div></div>
+  ${cite('Radford et al., 2021, Learning Transferable Visual Models From Natural Language Supervision · <i>Foundations of Computer Vision</i>, Sec. 51.3')}
+`, { notes: [
+  "(draft) Now we can say how CLIP got its space. It is contrastive learning, with one twist.",
+  "(draft) The two views are not two crops of a photo. They are an image and its caption, collected from the web.",
+  "(draft) In a batch of image and caption pairs, each image should be closest to its own caption and far from all the others, and the other way around. That is the loss you just computed in Your turn 2, on a much bigger batch. The book describes CLIP exactly this way, as a symmetric version of the same loss.",
+  "(draft) And from the last slide: the views decide what is kept. Here the other view is a sentence, so the embedding keeps what people tend to write about an image, and lets go of what they do not.",
+  "(draft) Once trained, you can classify with no training at all. Write each class name as a caption, a photo of a dog, a photo of a cat, embed the captions, and pick the one closest to the image. That is called zero-shot classification. Back to the lab."
+]});
+
+codeSlide({
+  title: 'Your turn 3: zero-shot predictions',
+  cues: ['500 test images, the same ten captions', 'Prediction: the caption with the largest similarity', 'No training: the class names do the work'],
+  code: String.raw`# YOUR TURN 3 · One predicted class index per image (500 integers).
+predictions = None    # replace None, using test_sims
+
+if predictions is None:
+    print("Your turn 3 is blank: using the course's answer.")
+    predictions = course_predictions(test_sims)
+accuracy = (predictions == test_labels).float().mean().item()
+print(f"zero-shot accuracy on {N} images: {accuracy:.1%}   (chance: 10%)")`,
+  tryIt: 'Run the next cell too: it shows the images CLIP got wrong. Which mistakes would a person make?',
+  cell: 'turn-3', label: 'Open Your turn 3 in Colab',
+  notes: [
+    "(draft) Your turn 3. Zero-shot classification, on five hundred images.",
+    "(draft) The cell before it embeds the first five hundred test images and scores every one against the same ten captions: a five hundred by ten matrix.",
+    "(draft) The prediction for each image is the column with the largest similarity, the caption it is closest to. Again one line of code.",
+    "(draft) No training happened. The ten class names, written as captions, are the whole classifier.",
+    "(draft) Here is the cell. The accuracy prints against chance, which is ten percent with ten classes.",
+    "(draft) The cell after it shows twenty images CLIP got wrong, with its guess. Look at them: these images are tiny, and some of the mistakes are ones a person could make.",
+    "(draft) The link opens Your turn 3."
+  ]
+});
+
+codeSlide({
+  title: 'The classes are the captions you write',
+  cues: ['Zero-shot can only choose among your captions', 'Delete a class name: where do its images go?'],
+  code: String.raw`# TRY IT · Leave classes out: delete one or two names from this list, then run.
+offered = ["airplane", "automobile", "bird", "cat", "deer",
+           "dog", "frog", "horse", "ship", "truck"]
+
+offered_emb = embed_texts([f"a photo of a {c}" for c in offered])
+picks = (test_emb @ offered_emb.T).argmax(dim=1)
+for c in CLASSES:
+    if c not in offered:
+        mine = test_labels == CLASSES.index(c)          # the images of class c
+        went = Counter(offered[p] for p in picks[mine].tolist())
+        top = ", ".join(f"{name} {n}" for name, n in went.most_common(3))
+        print(f"the {int(mine.sum())} {c} images now go to: {top}")
+if len(offered) == len(CLASSES):
+    print("All ten classes are offered: delete one or two names and run again.")`,
+  tryIt: 'Delete “cat”, then “truck”. Do their images go where you expected?',
+  cell: 'try-classes', label: 'Open this cell in Colab',
+  notes: [
+    "(draft) A small experiment, no code to write: just delete words.",
+    "(draft) Zero-shot can only pick among the captions you give it. It never says none of these.",
+    "(draft) So take a class away. Its images still have to go somewhere, and where they go tells you what CLIP thinks they are closest to.",
+    "(draft) Here is the cell. The list of class names is the only thing you change.",
+    "(draft) Delete cat and run it. Then put cat back and delete truck. Before you run, guess where they will go.",
+    "(draft) The link opens this cell."
+  ]
+});
+
+codeSlide({
+  title: 'Your turn 4: the words are part of the classifier',
+  cues: ['Change the caption template, keep the images', 'Watch the accuracy move'],
+  code: String.raw`# YOUR TURN 4 · Write your own caption template. {} is where the class goes.
+# Try a few: "{}", "a blurry photo of a {}.", "a drawing of a {}.",
+# "a photo of a small {}.", ...
+my_template = None    # for example "a blurry photo of a {}."
+
+baseline = (zero_shot(test_emb, "a photo of a {}") == test_labels).float().mean().item()
+print(f'"a photo of a {{}}"  ->  {baseline:.1%}')
+if my_template is not None:
+    mine = (zero_shot(test_emb, my_template) == test_labels).float().mean().item()
+    print(f'"{my_template}"  ->  {mine:.1%}')
+else:
+    print("Your turn 4 is blank: write a template above and run it again.")`,
+  tryIt: 'CIFAR-10 images are tiny and blurry. Does saying so in the caption help? Keep your best template.',
+  cell: 'turn-4', label: 'Open Your turn 4 in Colab',
+  notes: [
+    "(draft) Your turn 4, the last one in part one.",
+    "(draft) Same images, same model. The only thing you change is the sentence the class name goes into: just the word cat, a blurry photo of a cat, a drawing of a cat.",
+    "(draft) Each template is a different classifier, and the accuracy moves.",
+    "(draft) Here is the cell. Write a template with curly braces where the class name goes, and it prints your accuracy next to a photo of a.",
+    "(draft) These images are tiny and blurry. Does saying so in the caption help? Try a few and keep your best one for the discussion.",
+    "(draft) The link opens Your turn 4."
+  ]
+});
+
+st(`
+  <h1 class="t">Lab, part 1: what you did</h1>
+  <div class="flow">
+    <div class="step b" data-step="1"><b>Embed</b><span class="label">images and captions, one space</span></div>
+    <div class="arrow b" data-step="2">→</div>
+    <div class="step b" data-step="2"><b>Compare</b><span class="label">cosine similarity</span></div>
+    <div class="arrow b" data-step="3">→</div>
+    <div class="step b" data-step="3"><b>The loss</b><span class="label">InfoNCE, the temperature</span></div>
     <div class="arrow b" data-step="4">→</div>
-    <div class="step b" data-step="4"><b>Your captions</b><span class="label">change the words, watch the accuracy</span></div>
+    <div class="step b" data-step="4"><b>Zero-shot</b><span class="label">the captions are the classifier</span></div>
   </div>
   <div class="label b" data-step="5" style="text-align:center">
-    <a href="${LAB_NB}#scrollTo=turn-1" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open the lab in Colab ↗</a> · about 15 minutes, then back to slides
+    <a href="${LAB_NB}" target="_blank" rel="noopener" onclick="event.stopPropagation()">The whole notebook in Colab ↗</a> · what you did not finish, finish after class
   </div>
   ${cite('CLIP ViT-B/32 (OpenAI, through Hugging Face) · CIFAR-10 test images (Krizhevsky, 2009)')}
 `, { notes: [
-  "(draft) Lab time, part one. About fifteen minutes, then we come back for the reading.",
-  "(draft) You load CLIP and embed ten images, one from each class of a small dataset, and ten captions, a photo of an airplane, a photo of a cat, and so on.",
-  "(draft) You compute the cosine similarity between every image and every caption. If CLIP works, the diagonal lights up.",
-  "(draft) Then zero-shot classification on five hundred images: for each one, pick the closest caption, and score it against the true label. No training.",
-  "(draft) Last, change the captions. A blurry photo of a cat, a drawing of a cat, just the word cat. Does the accuracy move? The words are part of the classifier now.",
-  "(draft) The link opens the first exercise directly. (to add) The course site link, once the Day 5 card has it."
+  "(draft) That is part one of the lab. Here is what you did.",
+  "(draft) You embedded images and captions into one space.",
+  "(draft) You compared them with cosine similarity, and the diagonal stood out.",
+  "(draft) You computed the loss CLIP was trained with, and saw what the temperature does.",
+  "(draft) And you classified images from their names alone, and saw that the words are part of the classifier.",
+  "(draft) Whatever you did not finish, finish after class; the link opens the whole notebook. Now the reading: Konkle and Alvarez use the same kind of loss, with their own choice of views. (to add) The course site link, once the Day 5 card has it."
 ]});
 }
