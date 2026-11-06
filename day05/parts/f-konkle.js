@@ -11,9 +11,9 @@ section('9. Reading + lab');
 const KONKLE_CITE = 'Konkle &amp; Alvarez, 2022, <i>Nature Communications</i> 13, 491 (CC BY 4.0)';
 
 /* Concept next to code (Fernanda, 2026-11-06: "don't leave the lab for the end"). The code panels are copied
-   verbatim from notebooks/day05-lab-clip-embeddings.ipynb (contiguous lines, no edits; checked by script).
+   verbatim from notebooks/day05-lab-part2-views-rsa.ipynb (contiguous lines, no edits; checked by script).
    Exercise cells show only the blank student version: the deck is public, solutions stay in the teacher copy. */
-const LAB_NB = 'https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day05-lab-clip-embeddings.ipynb';
+const LAB_NB = 'https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day05-lab-part2-views-rsa.ipynb';
 const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const KONKLE_LAB_CSS = `<style>
   .konkle-lab{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:.85fr 1.4fr; gap:1.6vh 2.4vw; align-content:center; align-items:start; }
@@ -33,11 +33,11 @@ const KONKLE_LAB_CSS = `<style>
 </style>`;
 const codeBox = (src, code) => `<div><div class="konkle-lab-src">${src}</div><pre class="konkle-lab-code">${esc(code)}</pre></div>`;
 // Teacher-only solution (same mechanism as f-clip, day05-s7-8): open the deck on localhost with ?teacher. If
-// notebooks/teacher/day05-lab-solutions.json exists (written by `day05_lab.py --teacher`, git-ignored), a collapsed
+// notebooks/teacher/day05-lab-part2-solutions.json exists (written by `day05_lab.py --teacher`, git-ignored), a collapsed
 // Solution block appears under the Your-turn code. Never on the public site (no file there, and no fetch).
 const solBox = cell => `<details class="konkle-lab-sol" data-konkle-sol="${cell}" hidden onclick="event.stopPropagation()"><summary>Solution (teacher copy)</summary><div class="konkle-lab-sol-pop"><pre class="konkle-lab-code"></pre><div class="label konkle-lab-ans"></div></div></details>`;
 if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) && new URLSearchParams(location.search).has('teacher'))
-  fetch('../notebooks/teacher/day05-lab-solutions.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(sol => {
+  fetch('../notebooks/teacher/day05-lab-part2-solutions.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(sol => {
     if (!sol) return;
     const fill = () => document.querySelectorAll('[data-konkle-sol]').forEach(d => {
       const k = d.dataset.konkleSol; if (!sol[k] && !sol[k + '-answer']) return;
@@ -81,7 +81,7 @@ st(`${KONKLE_LAB_CSS}
   <h1 class="t">In the lab: their views, on CLIP</h1>
   <div class="konkle-lab">
     <div class="card b" data-step="1"><div class="k">Views</div><div class="label">Each kind of view changes the image in one way: a crop, a color change, or both.</div></div>
-    <div class="b" data-step="1">${codeBox('Section 4 · given', `VIEWS = {
+    <div class="b" data-step="1">${codeBox('Section 1 · given', `VIEWS = {
     "crop":  T.RandomResizedCrop(32, scale=(0.4, 1.0)),
     "color": T.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.8, hue=0.3),
     "both":  T.Compose([T.RandomResizedCrop(32, scale=(0.4, 1.0)),
@@ -93,22 +93,22 @@ st(`${KONKLE_LAB_CSS}
     sims = emb @ emb.T
     sims.fill_diagonal_(-2)
     return sims.argmax(dim=1)`)}</div>
-    <div class="card hi b" data-step="3"><div class="k">Your turn 5</div><div class="label">Score it: the fraction of views whose neighbor comes from the same image. Chance is about 4%.</div></div>
-    <div class="b" data-step="3">${codeBox('Your turn 5 · you write it', `# YOUR TURN 5 · The fraction of views whose nearest other view comes from the same image.
+    <div class="card hi b" data-step="3"><div class="k">Your turn 1</div><div class="label">Score it: the fraction of views whose neighbor comes from the same image. Chance is about 4%.</div></div>
+    <div class="b" data-step="3">${codeBox('Your turn 1 · you write it', `# YOUR TURN 1 · The fraction of views whose nearest other view comes from the same image.
 def instance_accuracy(emb, owner):
-    return None    # replace None: use nearest_other(emb) and owner`)}${solBox('turn-5')}</div>
+    return None    # replace None: use nearest_other(emb) and owner`)}${solBox('turn-1')}</div>
     <div class="label konkle-lab-go b" data-step="4">
-      <a href="${LAB_NB}#scrollTo=turn-5" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open Your turn 5 in Colab ↗</a> · then talk it over (Your turn 6) · then back to the reading
-      ${solBox('turn-6')}
+      <a href="${LAB_NB}#scrollTo=turn-1" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open part 2 in Colab (Your turn 1) ↗</a> · then talk it over (Your turn 2) · then back to the reading
+      ${solBox('turn-2')}
     </div>
   </div>
-  ${cite('Notebook: day05-lab-clip-embeddings, Part 2 · CLIP ViT-B/32 · CIFAR-10 test images (Krizhevsky, 2009)')}
+  ${cite('Notebook: Day 5 part 2 (day05-lab-part2-views-rsa) · CLIP ViT-B/32 · CIFAR-10 test images (Krizhevsky, 2009)')}
 `, { notes: [
   "(draft) Before the results, let's try their objective ourselves. Not on their network: on CLIP, the model from the first lab.",
   "(draft) First, views, the way Konkle and Alvarez made them. In the notebook this is given: a random crop that keeps 40 to 100 percent of the image area and scales it back up, a color change, or both at once. Each image gets five views of each kind.",
   "(draft) Their objective becomes a test. For every view, find the most similar other view among all the views. If it is a view of the same image, the embedding kept what makes that image itself. The helper nearest_other does the search: a similarity matrix, the diagonal pushed down so a view cannot pick itself, then the largest in each row.",
-  "(draft) Your turn 5 is the score: what fraction of views have a neighbor from their own image. Twenty images, five views each, so chance is four out of ninety-nine, about four percent. Run it for crops, for color, and for both.",
-  "(draft) The link opens Your turn 5. Then Your turn 6, talk it over with your neighbor: which views does CLIP tolerate, and what would a network trained on color changes be blind to? Then we come back for the paper's results."
+  "(draft) Your turn 1 is the score: what fraction of views have a neighbor from their own image. Twenty images, five views each, so chance is four out of ninety-nine, about four percent. Run it for crops, for color, and for both.",
+  "(draft) The link opens Your turn 1. Then Your turn 2, talk it over with your neighbor: which views does CLIP tolerate, and what would a network trained on color changes be blind to? Then we come back for the paper's results."
 ]});
 
 st(`
