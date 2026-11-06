@@ -16,6 +16,11 @@
   .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
   .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
   .dots i.on{ background:#64748b; }
+
+/* Part 2 citations are collapsed (Fernanda, 2026-11-06): a small (i), the full source on hover. */
+.cite{ width:max-content !important; max-width:1.4em !important; white-space:nowrap !important; overflow:hidden !important; cursor:help; transition:max-width .35s; }
+.cite::before{ content:'\24D8\00A0\00A0'; }
+.cite:hover{ max-width:88vw !important; white-space:normal !important; }
 </style>
 </head>
 <body>

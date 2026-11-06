@@ -68,7 +68,7 @@ st(`
     <div class="step b" data-step="3"><b>One space</b><span class="label">both scaled to length 1, on the same sphere</span></div>
   </div>
   <div class="card hi b" data-step="4"><div class="k">Close means similar</div><div class="label">An image and a caption that match land near each other. How it learned that comes later today.</div></div>
-  ${cite('Radford et al., 2021, Learning Transferable Visual Models From Natural Language Supervision · <i>Foundations of Computer Vision</i>, Sec. 51.3')}
+  ${f2cite('Radford et al., 2021, Learning Transferable Visual Models From Natural Language Supervision · <i>Foundations of Computer Vision</i>, Sec. 51.3')}
 `, { notes: [
   "(draft) Before we ask how to learn an embedding without labels, let us get our hands on one. The model for today's lab is CLIP.",
   "(draft) CLIP has an image encoder. In the version we use, it is a Vision Transformer, the one from the first hour. An image goes in, 512 numbers come out.",

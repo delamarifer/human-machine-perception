@@ -52,7 +52,7 @@ st(`
     <div class="card b"><div class="k">Two accounts</div><div class="label">Category pressure shapes it, or it falls out of learning the structure of images.</div></div>
     <div class="card hi b"><div class="k">Their test</div><div class="label">A network that never sees a label. Does it still end up brain-like?</div></div>
   </div>
-  ${cite(KONKLE_CITE)}
+  ${f2cite(KONKLE_CITE)}
 `, { notes: [
   "(draft) Now the reading: Konkle and Alvarez, 2022. You read it for today; let's go through it together.",
   "(draft) The starting fact: the later stages of the ventral visual stream carry a lot of information about object categories, faces, bodies, scenes, animals, objects.",
@@ -68,7 +68,7 @@ st(`
     <li class="b">Pull the views toward their average, the instance prototype</li>
     <li class="b">Push away from the 4,096 most recent images</li>
   </ul>
-  ${cite('Fig. 1a, ' + KONKLE_CITE)}
+  ${f2cite('Fig. 1a, ' + KONKLE_CITE)}
 `, { notes: [
   "(draft) Their model is contrastive learning, the recipe from earlier, with a few choices of their own. They call it instance-prototype contrastive learning, IPCL.",
   "(draft) Here is the figure. An image goes in, and they make five views of it: random crops, rescaling, and color changes. Each view goes through a convolutional network, an AlexNet, into a 128-number embedding on the unit sphere.",
@@ -102,7 +102,7 @@ def instance_accuracy(emb, owner):
       ${solBox('turn-2')}
     </div>
   </div>
-  ${cite('Notebook: Day 5 part 2 (day05-lab-part2-views-rsa) · CLIP ViT-B/32 · CIFAR-10 test images (Krizhevsky, 2009)')}
+  ${f2cite('Notebook: Day 5 part 2 (day05-lab-part2-views-rsa) · CLIP ViT-B/32 · CIFAR-10 test images (Krizhevsky, 2009)')}
 `, { notes: [
   "(draft) Before the results, let's try their objective ourselves. Not on their network: on CLIP, the model from the first lab.",
   "(draft) First, views, the way Konkle and Alvarez made them. In the notebook this is given: a random crop that keeps 40 to 100 percent of the image area and scales it back up, a color change, or both at once. Each image gets five views of each kind.",
@@ -122,7 +122,7 @@ st(`
       <tr><td>Same network, trained on the labels</td><td>58.8%</td></tr>
     </tbody>
   </table>
-  ${cite('Fig. 1b and Results, ' + KONKLE_CITE)}
+  ${f2cite('Fig. 1b and Results, ' + KONKLE_CITE)}
 `, { notes: [
   "(draft) First result: is there category information in a space that was never asked for it?",
   "(draft) The picture is a t-SNE map of 500 images from ten ImageNet categories, placed by the IPCL embedding. The colors are the true categories, added afterwards. Images of the same category land together.",

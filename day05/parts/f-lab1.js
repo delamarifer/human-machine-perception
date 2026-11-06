@@ -159,7 +159,7 @@ st(`
   <div class="label b" data-step="5" style="text-align:center">
     <a href="${LAB_NB}" target="_blank" rel="noopener" onclick="event.stopPropagation()">The whole notebook in Colab ↗</a> · what you did not finish, finish after class
   </div>
-  ${cite('CLIP ViT-B/32 (OpenAI, through Hugging Face) · CIFAR-10 test images (Krizhevsky, 2009)')}
+  ${f2cite('CLIP ViT-B/32 (OpenAI, through Hugging Face) · CIFAR-10 test images (Krizhevsky, 2009)')}
 `, { notes: [
   "(draft) That is part one of the lab. Here is what you did.",
   "(draft) You embedded images and captions into one space.",

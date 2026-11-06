@@ -69,7 +69,7 @@ def rsa(rdm_a, rdm_b):
       <a href="${LAB_NB}#scrollTo=turn-3" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open part 2 in Colab (Your turn 3) ↗</a> · then back to the reading
     </div>
   </div>
-  ${cite('Notebook: Day 5 part 2 (day05-lab-part2-views-rsa) · CLIP ViT-B/32 · CIFAR-10 test images (Krizhevsky, 2009)')}
+  ${f2cite('Notebook: Day 5 part 2 (day05-lab-part2-views-rsa) · CLIP ViT-B/32 · CIFAR-10 test images (Krizhevsky, 2009)')}
 `, { notes: [
   "(draft) Now the same comparison in the notebook, on real images and a real network.",
   "(draft) A hundred CIFAR images, ten from each class. Three dissimilarity matrices, given in the notebook: one minus the cosine similarity of the CLIP embeddings, one minus the correlation of the raw pixels, and the category model, zero for two images of the same class and one otherwise. Like the scene, that last one is a hypothesis, not a measurement.",
@@ -88,7 +88,7 @@ st(`
     <li class="b">Top-1 accuracy from 26% to 73% across models: no better brain fit</li>
     <li class="b">A gap remains in anterior cortex for the 72 objects</li>
   </ul>
-  ${cite('Fig. 4, ' + KONKLE_CITE2)}
+  ${f2cite('Fig. 4, ' + KONKLE_CITE2)}
 `, { notes: [
   "(draft) Third result. Newer contrastive models, like SimCLR, MoCo version 2 and SwAV, classify much better than theirs, close to supervised models. Are they more brain-like?",
   "(draft) This figure answers it, for the 72 inanimate objects. Each point is a model. Across, its ImageNet accuracy; up, how well it fits the brain. Filled markers learned without labels; open markers were trained on labels. The black line is the noise ceiling, the best any model could do given how reliable the data are.",
@@ -104,7 +104,7 @@ st(`
     <li class="b">Is benchmark accuracy the right yardstick for a model of the brain?</li>
     <li class="b">Their caveat: existence proofs, not models of the brain</li>
   </ul>
-  ${cite(KONKLE_CITE2)}
+  ${f2cite(KONKLE_CITE2)}
 `, { notes: [
   "(draft) Questions to talk over with your neighbor, then with the room. Pull from what you wrote.",
   "(draft) If categories are not the goal, what is? Their answer: tell every view of the world apart from every other, in a compact code. Do you buy it?",
