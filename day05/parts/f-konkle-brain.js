@@ -78,20 +78,8 @@ def rsa(rdm_a, rdm_b):
   "(draft) The link opens Your turn 3. Then we come back to see how Konkle and Alvarez did this with brain data."
 ]});
 
-st(`
-  <h1 class="t">Does it match the ventral stream?</h1>
-  <div class="cols">
-    <div class="card b"><div class="k">Brain data</div><div class="label">fMRI: 8 objects at 5 orientations, and 72 everyday objects. Early visual, posterior and anterior occipito-temporal cortex.</div></div>
-    <div class="card b"><div class="k">The comparison</div><div class="label">Predict each voxel from a layer's units, then compare the predicted and the measured dissimilarity matrices.</div></div>
-    <div class="card hi b"><div class="k">Result</div><div class="label">No labels, on par with the category-trained network: as good or not reliably worse in 56 of 60 comparisons.</div></div>
-  </div>
-  ${cite('Results and Fig. 2, ' + KONKLE_CITE2)}
-`, { notes: [
-  "(draft) Second result, the one in the title: do the IPCL features match the brain?",
-  "(draft) They used two fMRI datasets. In one, eight objects shown at five orientations each. In the other, 72 everyday inanimate objects. They looked at three stages: early visual cortex, then posterior and anterior occipito-temporal cortex, going up the ventral stream.",
-  "(draft) The comparison is the RSA we just saw, with one step added. First they fit each voxel's responses as a weighted sum of a layer's units, then they compute the dissimilarity matrix those predicted voxels give, and correlate it with the measured one. They call it voxel-wise encoding RSA.",
-  "(draft) The result: the network trained with no labels matches the brain about as well as the same network trained on the categories. In 56 of their 60 comparisons it was as good or not significantly different. Early layers fit early visual cortex best, later layers fit the later regions."
-]});
+/* The text slide 'Does it match the ventral stream?' is replaced by the veRSA scene (scenes/versa.html, 2026-11-06). */
+sc('versaScene', 'scenes/versa.html');
 
 st(`
   <h1 class="t">More accuracy is not more brain-like</h1>
