@@ -8,7 +8,7 @@
    Sources: Foundations of Computer Vision, Sec. 51.3 (CLIP as contrastive learning with an image and its caption
    as the two views; symmetric InfoNCE; zero-shot classification with text prompts). Radford et al., 2021. */
 {
-section('8. Lab: CLIP');
+section('Optional lab: CLIP');
 
 const LAB_NB = 'https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day05-lab-clip-embeddings.ipynb';
 const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -66,11 +66,8 @@ const codeSlide = ({ title, cues, code, tryIt, cell, label, notes, out }) => {
 `, { notes });
 };
 
-/* The text slide 'You can still do a lot with those embeddings' is replaced by the uses scene (scenes/uses.html, 2026-11-06). */
-sc('usesScene', 'scenes/uses.html');
+/* (scene moved to f-ssl-scenes, 2026-11-06: the CLIP code slides are an optional lab at the end of Part 2) */
 
-/* The text slide 'One example: how CLIP was trained' is replaced by the CLIP-training scene (scenes/cliptrain.html, 2026-11-06). */
-sc('clipTrainScene', 'scenes/cliptrain.html');
 
 codeSlide({
   title: 'Your turn 3: zero-shot predictions',

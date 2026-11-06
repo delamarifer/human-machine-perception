@@ -7,7 +7,7 @@
    given code and None placeholders only, never a solution (the repository is public). Change both together.
    Sources: Radford et al., 2021; Foundations of Computer Vision, Sec. 51.3. */
 {
-section('7. Task-free');
+section('Optional lab: CLIP');
 
 const LAB_NB = 'https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day05-lab-clip-embeddings.ipynb';
 const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -66,7 +66,7 @@ const codeSlide = ({ title, cues, code, tryIt, cell, label, notes, out }) => {
 };
 
 st(`
-  <h1 class="t">The model we will use: CLIP</h1>
+  <h1 class="t">Optional lab: the model, CLIP</h1>
   <div class="flow">
     <div class="step b" data-step="1"><b>Image encoder</b><span class="label">image → 512 numbers</span></div>
     <div class="arrow b" data-step="2">+</div>
@@ -74,15 +74,15 @@ st(`
     <div class="arrow b" data-step="3">→</div>
     <div class="step b" data-step="3"><b>One space</b><span class="label">both scaled to length 1, on the same sphere</span></div>
   </div>
-  <div class="card hi b" data-step="4"><div class="k">Close means similar</div><div class="label">An image and a caption that match land near each other. It learned that with the guessing game you just saw.</div></div>
+  <div class="card hi b" data-step="4"><div class="k">Close means similar</div><div class="label">An image and a caption that match land near each other. It learned that with the guessing game from earlier.</div></div>
   <img class="b" data-step="5" src="assets/konkle/clip-fig1.png" alt="Radford et al. 2021, Figure 1: (1) contrastive pre-training, a text encoder and an image encoder, and the matrix of image-caption dot products with the matching pairs on the diagonal; (2) a classifier made from label text; (3) zero-shot prediction" style="display:block;margin:0.6em auto 0;max-width:80%;max-height:34vh">
   ${f2cite('Radford et al., 2021, Learning Transferable Visual Models From Natural Language Supervision, Fig. 1 (figure from github.com/openai/CLIP, MIT License) · <i>Foundations of Computer Vision</i>, Sec. 51.3')}
 `, { notes: [
-  "(draft) Now a real model trained exactly this way, and the one for today's lab: CLIP.",
+  "(draft) An optional lab, for anyone who wants to try it, in class or at home: a real model trained exactly this way, CLIP. The slides that follow show each step and its output, so you can follow along without running anything.",
   "(draft) CLIP has an image encoder. In the version we use, it is a Vision Transformer, the one from the first hour. An image goes in, 512 numbers come out.",
   "(draft) And a text encoder, a transformer over the words of a caption. A caption goes in, 512 numbers come out.",
   "(draft) Both vectors are scaled to length one, so they live on the same sphere, and we can compare an image with a sentence directly.",
-  "(draft) An image and a caption that describe the same thing land close together. It learned that with the guessing game we just played: the two views are an image and its caption. It never saw a class label.",
+  "(draft) An image and a caption that describe the same thing land close together. It learned that with the guessing game from earlier: the two views are an image and its caption. It never saw a class label.",
   "(draft) Here is the figure from the CLIP paper. On the left, training: a batch of images and their captions, and the matrix of every image against every caption, with the true pairs on the diagonal. That is the guessing game, where each image's positive is its own caption. On the right, using it: write each class as a caption, a photo of a dog, and pick the caption closest to the image. That is zero-shot classification, which you will run in the lab."
 ]});
 
