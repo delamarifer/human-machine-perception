@@ -30,7 +30,13 @@ const KONKLE_LAB_CSS = `<style>
   .konkle-lab-sol-pop .konkle-lab-code{ background:#fffbeb; overflow:visible; }
   .konkle-lab-sol-pop .konkle-lab-code:empty{ display:none; }
   .konkle-lab-sol-pop .konkle-lab-ans{ line-height:1.4; }
+  .konkle-lab-out{ position:absolute; inset:0; z-index:6; background:var(--bg, #fff); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:1.2vh; padding:5vh 4vw; }
+  .konkle-lab-out img{ display:block; max-width:88vw; object-fit:contain; }
+  .konkle-lab-out .konkle-lab-code{ background:#fff; font-size:clamp(.95rem, 1.45vw, 1.45rem); }
 </style>`;
+// Output of a notebook cell, from a run of the notebook (CPU, Hugging Face CIFAR-10 copy): shown when we come back.
+const outBox = (step, title, inner) => `<div class="konkle-lab-out b" data-step="${step}"><div class="label"><b>${title}</b> · output from a run of the notebook</div>${inner}</div>`;
 const codeBox = (src, code) => `<div><div class="konkle-lab-src">${src}</div><pre class="konkle-lab-code">${esc(code)}</pre></div>`;
 // Teacher-only solution (same mechanism as f-clip, day05-s7-8): open the deck on localhost with ?teacher. If
 // notebooks/teacher/day05-lab-part2-solutions.json exists (written by `day05_lab.py --teacher`, git-ignored), a collapsed
@@ -77,6 +83,23 @@ st(`
   "(draft) One question to keep: which views did they choose, and what does that make the network ignore? Color changes are in the list."
 ]});
 
+st(`
+  <h1 class="t">The model in the lab: CLIP</h1>
+  <img class="b" data-step="1" src="assets/konkle/clip-fig1.png" alt="Radford et al. 2021, Figure 1: (1) contrastive pre-training, a text encoder and an image encoder, and the matrix of image-caption dot products with the matching pairs on the diagonal; (2) a classifier made from label text, 'A photo of a {object}'; (3) zero-shot prediction, the image is matched to the closest caption" style="display:block;margin:0.4em auto;max-width:92%;max-height:46vh">
+  <ul class="frag">
+    <li class="b" data-step="2">Training: each image pulled toward its own caption (the diagonal), pushed away from the others</li>
+    <li class="b" data-step="3">Zero-shot: write the classes as captions; the closest caption wins</li>
+    <li class="b" data-step="4">Today, part 2: only the image encoder, on views of one image</li>
+  </ul>
+  ${f2cite('Radford et al., 2021, Learning Transferable Visual Models From Natural Language Supervision, Fig. 1 · figure from github.com/openai/CLIP (MIT License)')}
+`, { notes: [
+  "(draft) A reminder of the model we use in the lab, CLIP.",
+  "(draft) This is the figure from the CLIP paper. Two encoders: one for text, one for images. Each turns its input into a vector in the same space.",
+  "(draft) Panel one is the training. A batch of images and their captions. Every image is compared with every caption, that grid of dot products. The matching pairs are on the diagonal: pull those together, push everything else apart. It is the contrastive loss from earlier, with captions as the second view.",
+  "(draft) Panels two and three are what you did in part one: write each class as a caption, a photo of a dog, and pick the caption closest to the image. No training on our labels.",
+  "(draft) In part two we use only the image encoder. We give it several views of the same image and ask the question from the reading: does it keep views of one image together?"
+]});
+
 st(`${KONKLE_LAB_CSS}
   <h1 class="t">In the lab: their views, on CLIP</h1>
   <div class="konkle-lab">
@@ -102,6 +125,10 @@ def instance_accuracy(emb, owner):
       ${solBox('turn-2')}
     </div>
   </div>
+    ${outBox(5, 'Section 1 · the views', `<img src="assets/konkle/lab-views-crop.png" alt="Five crop views of a red car: each crop's box on the original, and the crop view below" style="max-height:38vh"><img src="assets/konkle/lab-views-color.png" alt="The red car and five color views" style="max-height:14vh"><img src="assets/konkle/lab-views-both.png" alt="The red car and five views with crop and color change together" style="max-height:14vh">`)}
+    ${outBox(6, 'Your turn 1 · the instance test', `<pre class="konkle-lab-code">${esc(`crop   views: instance accuracy 97%
+color  views: instance accuracy 94%
+both   views: instance accuracy 86%`)}</pre><img src="assets/konkle/lab-view-similarity.png" alt="Three 100 by 100 view-by-view cosine similarity matrices, crop, color and both: dark 5 by 5 squares on the diagonal, clearest for crop, faintest for both" style="max-height:52vh">`)}
   ${f2cite('Notebook: Day 5 part 2 (day05-lab-part2-views-rsa) · CLIP ViT-B/32 · CIFAR-10 test images (Krizhevsky, 2009)')}
 `, { notes: [
   "(draft) Before the results, let's try their objective ourselves. Not on their network: on CLIP, the model from the first lab.",
@@ -109,6 +136,9 @@ def instance_accuracy(emb, owner):
   "(draft) Their objective becomes a test. For every view, find the most similar other view among all the views. If it is a view of the same image, the embedding kept what makes that image itself. The helper nearest_other does the search: a similarity matrix, the diagonal pushed down so a view cannot pick itself, then the largest in each row.",
   "(draft) Your turn 1 is the score: what fraction of views have a neighbor from their own image. Twenty images, five views each, so chance is four out of ninety-nine, about four percent. Run it for crops, for color, and for both.",
   "(draft) The link opens Your turn 1. Then Your turn 2, talk it over with your neighbor: which views does CLIP tolerate, and what would a network trained on color changes be blind to? Then we come back for the paper's results."
+,
+  "(draft) Back together. Here is what the views look like for one image, a red car. The boxes show which part of the image each crop kept; the crop is then scaled back up, so it looks like a zoom. Below, five color changes, and five with both at once.",
+  "(draft) And the instance test, from our run: crops 97 percent, color 94, both together 86, against a chance level of about 4. The matrices show the same thing as a picture: every view against every other view, with the five views of each image next to each other. The dark squares on the diagonal are views of one image kept together. They are clearest for crops and faintest when crop and color change together. CLIP was never trained to do this; it comes along with matching images to captions."
 ]});
 
 st(`

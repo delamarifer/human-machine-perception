@@ -29,7 +29,13 @@ const KONKLE_LAB_CSS = `<style>
   .konkle-lab-sol-pop .konkle-lab-code{ background:#fffbeb; overflow:visible; }
   .konkle-lab-sol-pop .konkle-lab-code:empty{ display:none; }
   .konkle-lab-sol-pop .konkle-lab-ans{ line-height:1.4; }
+  .konkle-lab-out{ position:absolute; inset:0; z-index:6; background:var(--bg, #fff); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:1.2vh; padding:5vh 4vw; }
+  .konkle-lab-out img{ display:block; max-width:88vw; object-fit:contain; }
+  .konkle-lab-out .konkle-lab-code{ background:#fff; font-size:clamp(.95rem, 1.45vw, 1.45rem); }
 </style>`;
+// Output of a notebook cell, from a run of the notebook (CPU, Hugging Face CIFAR-10 copy): shown when we come back.
+const outBox = (step, title, inner) => `<div class="konkle-lab-out b" data-step="${step}"><div class="label"><b>${title}</b> · output from a run of the notebook</div>${inner}</div>`;
 const codeBox = (src, code) => `<div><div class="konkle-lab-src">${src}</div><pre class="konkle-lab-code">${esc(code)}</pre></div>`;
 // Teacher-only solution (same mechanism as f-clip, day05-s7-8): open the deck on localhost with ?teacher. If
 // notebooks/teacher/day05-lab-part2-solutions.json exists (written by `day05_lab.py --teacher`, git-ignored), a collapsed
@@ -69,6 +75,8 @@ def rsa(rdm_a, rdm_b):
       <a href="${LAB_NB}#scrollTo=turn-3" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open part 2 in Colab (Your turn 3) ↗</a> · then back to the reading
     </div>
   </div>
+    ${outBox(5, 'Section 2 and Your turn 3 · RDMs and RSA', `<img src="assets/konkle/lab-rdms.png" alt="Three 100 by 100 dissimilarity matrices for 100 CIFAR-10 images, ten per class: CLIP, pixels and the category model; CLIP shows class blocks, pixels show little structure" style="max-height:52vh"><pre class="konkle-lab-code">${esc(`CLIP   vs category model: Spearman r = 0.39
+pixels vs category model: Spearman r = 0.08`)}</pre>`)}
   ${f2cite('Notebook: Day 5 part 2 (day05-lab-part2-views-rsa) · CLIP ViT-B/32 · CIFAR-10 test images (Krizhevsky, 2009)')}
 `, { notes: [
   "(draft) Now the same comparison in the notebook, on real images and a real network.",
@@ -76,6 +84,8 @@ def rsa(rdm_a, rdm_b):
   "(draft) The matrix is symmetric and its diagonal is zero, so each pair counts once: the helper upper keeps only the numbers above the diagonal, as one long vector.",
   "(draft) Your turn 3 is RSA itself: the Spearman rank correlation between two of those vectors. Compare CLIP with the category model, and the pixels with the category model. CLIP never saw these ten labels.",
   "(draft) The link opens Your turn 3. Then we come back to see how Konkle and Alvarez did this with brain data."
+,
+  "(draft) Back together. The three matrices from our run, a hundred images sorted by class. CLIP shows blocks along the diagonal: images of the same class are closer. The pixels show almost none. The rank correlation with the category model: CLIP 0.39, pixels 0.08. CLIP never saw these ten labels, so this is the reading's first result in miniature, with one caveat: CLIP's captions often name the object, and the reading's network had no words at all."
 ]});
 
 /* The text slide 'Does it match the ventral stream?' is replaced by the veRSA scene (scenes/versa.html, 2026-11-06). */
