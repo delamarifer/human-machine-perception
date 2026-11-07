@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pixel accuracy versus mean IoU</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="or-scene.css">
+<style>
+  .pm-two{ display:grid; grid-template-columns:1fr 1fr; gap:1.6vw; }
+  .pm-two canvas{ width:100%; border-radius:8px; display:block; }
+  .pm-grid{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; gap:2.2vh; justify-content:center; }
+  .pm-nums{ display:grid; grid-template-columns:1fr 1fr; gap:1.6vw; }
+</style>
+</head>
+<body>
+<div class="or-wrap">
+  <h1 class="t deck-title">Why pixel accuracy misleads</h1>
+  <div class="pm-grid">
+    <div class="pm-two">
+      <div data-from="1"><canvas id="c1" width="640" height="360"></canvas><div class="label">True labels</div></div>
+      <div data-from="2"><canvas id="c2" width="640" height="360"></canvas><div class="label">A lazy prediction: every car and person called road</div></div>
+    </div>
+    <div class="pm-nums">
+      <div data-from="3"><div class="or-big" id="acc"></div><div class="label">pixel accuracy</div></div>
+      <div data-from="4"><div class="or-big" id="miou"></div><div class="label" id="per"></div></div>
+    </div>
+    <div class="lead" data-from="5">Fix it in the loss too: weight each class by its average area</div>
+  </div>
+</div>
+<script src="or-scene.js"></script>
+<script src="or-world.js"></script>
+<script>
+const SEM = [[219, 231, 243], [185, 201, 163], [154, 163, 173], [37, 99, 235], [217, 119, 6]];
+const pred = c => c >= 3 ? 2 : c;                       // objects become road; stuff is right
+const K = WORLD.CLS.length, n = WORLD.cls.length;
+let hit = 0; const I = Array(K).fill(0), U = Array(K).fill(0);
+for(let i = 0; i < n; i++){ const t = WORLD.cls[i], p = pred(t);
+  if(t === p){ hit++; I[t]++; U[t]++; } else { U[t]++; U[p]++; } }
+const iou = I.map((v, k) => v / U[k]), acc = hit / n, miou = iou.reduce((a, b) => a + b) / K;
+WORLD.paint(document.getElementById('c1').getContext('2d'), i => SEM[WORLD.cls[i]]);
+WORLD.paint(document.getElementById('c2').getContext('2d'), i => SEM[pred(WORLD.cls[i])]);
+document.getElementById('acc').textContent = (acc * 100).toFixed(1) + '%';
+document.getElementById('miou').textContent = miou.toFixed(2);
+document.getElementById('per').textContent = 'mean IoU: ' + WORLD.CLS.map((c, k) => `${c} ${iou[k].toFixed(2)}`).join(', ');
+orScene('pixelMetrics', [
+  "(draft) How do we score a per-pixel prediction? The obvious answer has a trap.",
+  "(draft) Here are the true labels of our generated street.",
+  "(draft) Here is a lazy prediction. It gets all the sky and grass right, and it calls every car and person road. It found no objects at all.",
+  `(draft) Its pixel accuracy is ${(acc * 100).toFixed(1)} percent, computed over this image, because large regions dominate the count.`,
+  `(draft) Mean IoU takes the IoU of each class and averages across classes. Cars and people score zero, so the mean falls to ${miou.toFixed(2)}. That is why we report mean IoU.`,
+  "(draft) The same problem appears in training, because sky and road would dominate a plain per-pixel loss. So each class is weighted to normalize by its average area, and small objects are not ignored."
+], () => {});
+</script>
+</body>
+</html>

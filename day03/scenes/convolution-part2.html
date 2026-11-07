@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Convolution: applying a kernel to an image</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Works alone too: open day03-part2/scenes/convolution.html and click. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:9vh 6vw 12vh; display:flex; flex-direction:column; gap:1.6vh; }
+  :root{ --c:min(3.2vw, 5vh); }
+  .row{ flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center; gap:1.6vw; }
+  .part{ opacity:0; transition:opacity .5s ease; display:flex; flex-direction:column; align-items:center; }
+  .part.on{ opacity:1; }
+  .g{ display:grid; gap:2px; position:relative; }
+  .g span{ width:var(--c); height:var(--c); display:flex; align-items:center; justify-content:center; border-radius:3px;
+    font:700 clamp(.58rem, .95vw, .92rem) ui-monospace, SFMono-Regular, Menlo, monospace; transition:background .35s, color .35s, opacity .35s; }
+  .g span.pad{ opacity:0; }
+  .padded .g span.pad{ opacity:.5; outline:1px dashed #94a3b8; }
+  .g.k span{ background:#fff; border:1px solid #cbd5e1; color:#0f172a; }
+  .g.k span.pos{ background:#dbeafe; } .g.k span.neg{ background:#fee2e2; }
+  .g.out span{ background:#f8fafc; color:transparent; }
+  .g.out span.cur{ outline:3px solid #d97706; outline-offset:-1px; }
+  .win{ position:absolute; border:3px solid #d97706; border-radius:6px; pointer-events:none; opacity:0;
+    transition:left .35s ease, top .35s ease, opacity .3s; box-shadow:0 0 0 4px rgba(217,119,6,.18); }
+  .op{ font-size:clamp(1.6rem, 2.6vw, 2.4rem); color:var(--mute); }
+  .lab{ text-align:center; margin-top:.8vh; }
+  .calc{ font:clamp(.9rem, 1.3vw, 1.25rem) ui-monospace, SFMono-Regular, Menlo, monospace; text-align:center; min-height:2.8em; color:var(--ink); }
+  .cap{ text-align:center; min-height:1.5em; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <h1 class="t deck-title">Convolution: applying a kernel to an image</h1>
+  <div class="row">
+    <div class="part" id="pin"><div class="g" id="gin"><div class="win" id="win"></div></div><div class="label lab">input <i>I</i>: 8 × 8 pixels from the hut edge</div></div>
+    <div class="op part" id="op1">∗</div>
+    <div class="part" id="pk"><div class="g k" id="gk"></div><div class="label lab" id="klab"></div></div>
+    <div class="op part" id="op2">=</div>
+    <div class="part" id="pout"><div class="g out" id="gout"></div><div class="label lab" id="olab">output <i>I′</i></div></div>
+  </div>
+  <div class="calc" id="calc"></div>
+  <div class="label cap" id="cap"></div>
+</div>
+<div class="dots" id="dots"></div>
+<script src="../assets/numbers.js"></script>
+<script>
+/* BEAT 0  TITLE    the title alone
+   BEAT 1  INPUT    8 x 8 gray values from the photo (the hut edge of slide 6)
+   BEAT 2  KERNEL   a 3 x 3 box, 1/9 each
+   BEAT 3  ONE      window on the top-left: nine products, one sum, one output pixel
+   BEAT 4  STEP     one step right
+   BEAT 5  EDGE     the window straddles the edge: a middle value
+   BEAT 6  ALL      every valid position: the jump became a ramp (6 x 6 output)
+   BEAT 7  SOBEL    same slide-multiply-add with Sobel x weights: large only at the edge
+   BEAT 8  PADDING  mirror the border: 8 x 8 output; the output-size formula
+   Weights are drawn as they land on the pixels (correlation), as in the slide that follows.
+   Shading: input and box output are gray levels; Sobel output is signed (zero = mid-gray). */
+const P = MZ.patch8, N = 8, MAX = 8;
+const BOX = [[1, 1, 1], [1, 1, 1], [1, 1, 1]];
+const SOBEL = [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]];
+const refl = i => i < 0 ? -i : (i >= N ? 2 * N - 2 - i : i);
+const at = (r, c) => P[refl(r)][refl(c)];
+const apply = (K, norm, r, c) => { let s = 0; for(let a = 0; a < 3; a++) for(let b = 0; b < 3; b++) s += K[a][b] * at(r - 1 + a, c - 1 + b); return s / norm; };
+
+const gin = document.getElementById('gin'), gk = document.getElementById('gk'), gout = document.getElementById('gout');
+gin.style.gridTemplateColumns = `repeat(${N + 2}, var(--c))`;
+gout.style.gridTemplateColumns = `repeat(${N}, var(--c))`;
+gk.style.gridTemplateColumns = 'repeat(3, var(--c))';
+const gray = v => { const g = Math.max(0, Math.min(255, Math.round(v))); return `rgb(${g},${g},${g})`; };
+const ink = v => v > 140 ? '#0f172a' : '#f8fafc';
+
+/* input: (N+2) x (N+2) with a mirrored ring that shows only when padding is on */
+const IN = [];
+for(let R = 0; R < N + 2; R++) for(let C = 0; C < N + 2; C++){
+  const s = document.createElement('span'), v = at(R - 1, C - 1);
+  if(R === 0 || C === 0 || R === N + 1 || C === N + 1) s.className = 'pad';
+  s.textContent = v; s.style.background = gray(v); s.style.color = ink(v);
+  gin.appendChild(s); IN.push(s);
+}
+const KS = [...Array(9)].map(() => { const s = document.createElement('span'); gk.appendChild(s); return s; });
+const OUT = [];
+for(let r = 0; r < N; r++) for(let c = 0; c < N; c++){
+  const s = document.createElement('span');
+  if(r === 0 || c === 0 || r === N - 1 || c === N - 1) s.className = 'pad';
+  gout.appendChild(s); OUT.push(s);
+}
+
+const VALID = []; for(let r = 1; r < N - 1; r++) for(let c = 1; c < N - 1; c++) VALID.push([r, c]);
+const ALL = []; for(let r = 0; r < N; r++) for(let c = 0; c < N; c++) ALL.push([r, c]);
+/* window centers (output coordinates) and which outputs are filled, per beat */
+const CUR = {3: [1, 1], 4: [1, 2], 5: [1, 4], 7: [3, 4], 8: [0, 0]};
+const FILLED = b => b < 3 ? [] : b === 3 ? [[1, 1]] : b === 4 ? [[1, 1], [1, 2]] : b === 5 ? [[1, 1], [1, 2], [1, 3], [1, 4]] : b < 8 ? VALID : ALL;
+const CAP = [
+  '',
+  'Real gray values (0 to 255) from the photo: dark trim on the left, bright wall on the right.',
+  'A 3 × 3 box kernel: every neighbor gets the weight 1/9.',
+  'Place the kernel, multiply each weight by the pixel under it, add: one output pixel.',
+  'Slide one pixel to the right and repeat.',
+  'Straddling the edge: part dark, part bright, so the output lands in between.',
+  'Every position where the kernel fits: the jump from about 15 to 150 has become a ramp. That is blur.',
+  'Same slide, multiply, add, new weights (Sobel x): near zero on flat areas, large at the edge.',
+  'Pad by mirroring the border: the output is 8 × 8 again. Output size: ⌊(N + 2P − K) / S⌋ + 1.',
+];
+
+let beat = 0;
+function place(r, c){
+  const win = document.getElementById('win');
+  if(r == null){ win.style.opacity = 0; return; }
+  const a = IN[r * (N + 2) + c], z = IN[(r + 2) * (N + 2) + c + 2];   // input grid cells of the window corners
+  win.style.left = (a.offsetLeft - 3) + 'px'; win.style.top = (a.offsetTop - 3) + 'px';
+  win.style.width = (z.offsetLeft + z.offsetWidth - a.offsetLeft + 6) + 'px';
+  win.style.height = (z.offsetTop + z.offsetHeight - a.offsetTop + 6) + 'px';
+  win.style.opacity = 1;
+}
+function render(){
+  const b = beat, sob = b >= 7, K = sob ? SOBEL : BOX, norm = sob ? 1 : 9;
+  document.getElementById('pin').classList.toggle('on', b >= 1);
+  ['pk', 'op1'].forEach(id => document.getElementById(id).classList.toggle('on', b >= 2));
+  ['pout', 'op2'].forEach(id => document.getElementById(id).classList.toggle('on', b >= 3));
+  document.getElementById('wrap').classList.toggle('padded', b >= 8);
+  K.flat().forEach((w, i) => { KS[i].textContent = String(w).replace('-', '−'); KS[i].className = w > 0 ? 'pos' : w < 0 ? 'neg' : ''; });
+  document.getElementById('klab').innerHTML = sob ? 'kernel <i>K</i>: Sobel x' : 'kernel <i>K</i>: box, × 1/9';
+  document.getElementById('olab').innerHTML = `output <i>I′</i>: ${b >= 8 ? '8 × 8 (padded)' : '6 × 6 (valid)'}`;
+
+  const vals = ALL.map(([r, c]) => apply(K, norm, r, c));
+  const scale = Math.max(...vals.map(Math.abs)) || 1;
+  const filled = new Set(FILLED(b).map(([r, c]) => r * N + c));
+  OUT.forEach((s, i) => {
+    const on = filled.has(i), v = vals[i];
+    s.textContent = Math.round(v);
+    if(!on){ s.style.background = '#f8fafc'; s.style.color = 'transparent'; return; }
+    const g = sob ? 127.5 + 127.5 * v / scale : v;
+    s.style.background = gray(g); s.style.color = ink(g);
+  });
+  const cur = CUR[b];
+  OUT.forEach((s, i) => s.classList.toggle('cur', !!cur && i === cur[0] * N + cur[1]));
+  requestAnimationFrame(() => place(cur ? cur[0] : null, cur ? cur[1] : null));
+
+  let calc = '';
+  if(cur && b < 8){
+    const [r, c] = cur, terms = [];
+    for(let a = 0; a < 3; a++) for(let k = 0; k < 3; k++){
+      const w = K[a][k], v = at(r - 1 + a, c - 1 + k);
+      if(!sob) terms.push(String(v));
+      else if(w) terms.push(`${w < 0 ? '−' : '+'}${Math.abs(w) === 1 ? '' : Math.abs(w) + '·'}${v}`);
+    }
+    const out = Math.round(apply(K, norm, r, c));
+    calc = sob ? `${terms.join(' ').replace(/^\+/, '')} = ${out}` : `(${terms.join(' + ')}) / 9 ≈ ${out}`;
+  } else if(b >= 8){
+    calc = 'N = 8, K = 3, P = 1, S = 1:  ⌊(8 + 2 − 3) / 1⌋ + 1 = 8   ·   stride S = 2:  ⌊7 / 2⌋ + 1 = 4';
+  }
+  document.getElementById('calc').textContent = calc;
+  document.getElementById('cap').textContent = CAP[b];
+  document.getElementById('dots').innerHTML = [...Array(MAX + 1)].map((_, i) => `<i class="${i <= b ? 'on' : ''}"></i>`).join('');
+}
+addEventListener('resize', render);
+
+window.conv = {
+  advance(){ if(beat < MAX){ beat++; render(); } },
+  back(){ if(beat > 0){ beat--; render(); } },
+  atStart: () => beat === 0, atEnd: () => beat === MAX,
+  reset(){ beat = 0; render(); }, resetToEnd(){ beat = MAX; render(); },
+  getBeat: () => beat,
+  notes: [
+    "(draft) The equation comes after the picture. Watch one kernel move across real pixels from the photo.",
+    "(draft) These are the actual gray values from the hut edge on slide 6: the dark trim, around 5 to 20, then the bright wall, above 200. The column in between, around 150, is the edge itself.",
+    "(draft) The kernel: a 3 by 3 box, each weight one ninth. It is the averaging filter from slide 6.",
+    "(draft) Put the kernel on the top-left corner. Multiply each weight by the pixel under it and add the nine products: here it is just the mean of nine dark pixels, about 9. That single number is the output pixel at the center of the window.",
+    "(draft) Slide one step right and do it again. Same weights, new pixels. This is the whole algorithm: slide, multiply, add.",
+    "(draft) Now the window straddles the edge: some dark pixels, some bright ones. The average lands in the middle, around 120. That is how a blur softens an edge.",
+    "(draft) Every position where the kernel fits. The output is 6 by 6, two smaller than the input, because the window cannot be centered on the border pixels. Read across a row: the jump from about 15 to 150 over one pixel has become a ramp over three. Low-pass in one picture.",
+    "(draft) Keep everything, change only the weights: Sobel x, minus on the left, plus on the right. On the flat dark area and on the flat bright wall, the output is near zero; at the edge it is large. Same machinery, completely different question. Point at the calculation line: the weights multiply the pixels exactly as before.",
+    "(draft) The border. To get an output the same size as the input, pad: here by mirroring the image into a one-pixel ring, the dashed cells. Now the output is 8 by 8. The general rule is the floor of N plus 2P minus K over S, plus one. With stride 2 the kernel jumps two pixels at a time and the output is 4 by 4: downsampling. Next slide: the same thing as an equation."
+  ]
+};
+if(window.parent === window){
+  addEventListener('click', () => window.conv.advance());
+  addEventListener('keydown', e => { if(e.key === 'ArrowLeft') window.conv.back(); else if(['ArrowRight', ' ', 'Enter'].includes(e.key)) window.conv.advance(); });
+}
+render();
+</script>
+</body>
+</html>

@@ -86,3 +86,17 @@ adversarial training + robust metamers) → Feather across stages → discussion
 - [ ] Minutes per section are a first guess (Representation 10, Metamers 10, Textures 12, Networks 15,
       Your turn 5). Day 3 is now long: decide what to trim.
 - [ ] Two homework slides: Shreya's (slide 17) and none at the end of the metamers half. Merge into one at the end.
+
+## Round 3 · 2026-11-06 · Shreya's Part 2 replaces the first-draft image half
+
+Copied from the instructors repo (`day03-part2/`, commit 293efcf) into `day03/`: parts `intro`, `foundations`,
+`low-pass`, `derivatives`, `perception`, `synthesis`, plus `lib.js`, `cites.js`, assets and two scenes
+(`hermann.html`, `convolution-part2.html`). The old parts stay in `parts/` but are out of `order.js`.
+
+Changes from the instructors copy: lab links point to the public notebooks; CC BY-SA credits added on the
+two road and receipt slides; the citation toggle applies to Part 2 only, so Part 1 looks as before.
+
+- [ ] Orientation selectivity in V1: `assets/hubel-wiesel.png` has no recorded source. The slide says
+      "source: to add". Find the source and license, or replace the figure.
+- [ ] `assets/photo.jpg` (Muizenberg): confirm whose photo it is.
+- [ ] Homework slide still says "due tomorrow" and "Friday night", written for the day of class.

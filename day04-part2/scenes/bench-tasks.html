@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>One teacup, three problems</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="or-scene.css">
+<style>
+  .or-wrap{ padding-bottom:12vh; }
+  .bt-cups{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:1.6vw; align-content:center; }
+  .bt-cup{ background:#f8fafc; border:1px solid var(--line); border-radius:12px; padding:1.4vh 1vw; display:flex; flex-direction:column; gap:.6vh; }
+  .bt-cup canvas{ width:100%; height:30vh; object-fit:contain; border-radius:8px; display:block; }
+</style>
+</head>
+<body>
+<div class="or-wrap">
+  <h1 class="t deck-title">One teacup, three prediction problems</h1>
+  <div class="bt-cups">
+    <div class="bt-cup" data-from="1"><canvas id="c1" width="470" height="370"></canvas><div class="lead"><b>Classification</b></div><div class="label">Is this a teacup?</div></div>
+    <div class="bt-cup" data-from="2"><canvas id="c2" width="470" height="370"></canvas><div class="lead"><b>Detection</b></div><div class="label">Where is the teacup?</div></div>
+    <div class="bt-cup" data-from="3"><canvas id="c3" width="470" height="370"></canvas><div class="lead"><b>Segmentation</b></div><div class="label">Which pixels are the teacup?</div></div>
+  </div>
+  <div class="question" data-from="4" style="text-align:center">Does a good score mean the system really sees?</div>
+  <div class="cite" data-from="1">Photo: Shixart1985, CC BY 2.0. Box and outline are our own annotation</div>
+</div>
+<script src="or-scene.js"></script>
+<script src="../assets/cup-mask.js"></script>
+<script src="or-cup.js"></script>
+<script>
+function paint(){
+  const [a, b, c] = ['c1', 'c2', 'c3'].map(id => document.getElementById(id));
+  cupPhoto(a); cupTag(a, 'teacup');
+  cupPhoto(b); cupBox(b, CUP.box, '#d97706', 6);
+  const k = cupPhoto(c); cupPath(c); k.fillStyle = 'rgba(217,119,6,.55)'; k.fill('evenodd');
+}
+cupImg.onload = paint;
+orScene('benchTasks', [
+  "(draft) Every benchmark starts by deciding what the task is. Let us follow one object through this section: a teacup.",
+  "(draft) Classification asks a single question about the whole image: is there a teacup? The answer is a label.",
+  "(draft) Detection is a different prediction problem. It has to say where: a box and a class for each object. The output is no longer one label.",
+  "(draft) Segmentation asks which exact pixels belong to the teacup, so the output is a mask. Same image, three different problems, so they cannot share one way of being scored.",
+  "(draft) That is the thread for the rest of this section. Does a good score mean the system really sees?"
+], paint);
+</script>
+</body>
+</html>

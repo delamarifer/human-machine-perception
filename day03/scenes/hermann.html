@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Hermann grid</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:8vh 5vw 7vh; display:flex; flex-direction:column; gap:1.2vh; }
+  .field{ flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center; }
+  .board{ position:relative; opacity:0; transition:opacity .45s ease; }
+  .board.on{ opacity:1; }
+  .sq{ position:absolute; background:#111; }
+  .rf{ position:absolute; opacity:0; transform:scale(.72); transition:opacity .45s ease, transform .45s ease; pointer-events:none; }
+  .rf.show{ opacity:1; transform:none; }
+  .surround{ position:absolute; inset:0; border-radius:50%; background:#6d28d9; }
+  .core{ position:absolute; left:50%; top:50%; margin:0; border-radius:50%; background:#ffe14a;
+    display:flex; align-items:center; justify-content:center; transform:translate(-50%, -50%); }
+  .plus, .minus{ position:absolute; background:#ef4444; border-radius:2px; }
+  .plus.v{ } .bar{ position:absolute; background:#22c55e; border-radius:3px; }
+  .mark{ position:absolute; inset:0; transition:opacity .4s ease; }
+  .mark.off{ opacity:0; }
+  .rf.flip .mark.on{ opacity:0; }
+  .rf.flip .mark.off{ opacity:1; }
+  .tag{ position:absolute; left:50%; transform:translateX(-50%); white-space:nowrap;
+    font-weight:700; font-size:clamp(.95rem, 1.45vw, 1.3rem); color:#0f172a;
+    background:#fff; padding:.15em .45em; border-radius:6px; }
+  .cap{ text-align:center; min-height:2.6em; font-size:clamp(1.05rem, 1.7vw, 1.5rem); line-height:1.3; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">The Hermann grid</h1>
+  <div class="field"><div class="board" id="board"></div></div>
+  <div class="label cap" id="cap"></div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* BEAT 0  TITLE    the title alone
+   BEAT 1  GRID     the grid: illusory dark spots at the crossings
+   BEAT 2  ON-X     an ON-center field on a crossing (plus center, minus surround)
+   BEAT 3  ON-ST    the same cell on a street: less white falls in the surround
+   BEAT 4  OFF      both fields flip to OFF-center: the signs reverse
+   The disks match the lecture figure: purple surround, green minus, yellow center, red plus. */
+const COLS = 4, ROWS = 3, MAX = 4;
+const CAP = [
+  '',
+  'Dark spots at the crossings. None of them is printed.',
+  'ON-center. Light in the center excites. Light in the surround inhibits.',
+  'At a crossing the surround meets white on four sides. On a street, on two.',
+  'OFF-center carries the other sign. Dark in the center excites. Light in the surround excites.',
+];
+
+const board = document.getElementById('board');
+
+function layout(){
+  const stage = document.querySelector('.field');
+  const gapRatio = 0.30;
+  const unit = Math.min(
+    stage.clientWidth / (COLS + (COLS - 1) * gapRatio),
+    stage.clientHeight / (ROWS + (ROWS - 1) * gapRatio));
+  if(!unit) return;
+  const SQ = unit, GAP = unit * gapRatio;
+  const W = COLS * SQ + (COLS - 1) * GAP, H = ROWS * SQ + (ROWS - 1) * GAP;
+  board.style.width = W + 'px';
+  board.style.height = H + 'px';
+  board.querySelectorAll('.sq').forEach(s => s.remove());
+  for(let r = 0; r < ROWS; r++) for(let c = 0; c < COLS; c++){
+    const s = document.createElement('div');
+    s.className = 'sq';
+    s.style.left = c * (SQ + GAP) + 'px';
+    s.style.top = r * (SQ + GAP) + 'px';
+    s.style.width = SQ + 'px';
+    s.style.height = SQ + 'px';
+    board.appendChild(s);
+  }
+  /* crossing between the middle four squares; the street is the vertical gap one column to the right */
+  const cross = { x: (SQ + GAP) + SQ + GAP / 2, y: (SQ + GAP) + SQ + GAP / 2 };
+  const street = { x: 2 * (SQ + GAP) + SQ + GAP / 2, y: (SQ + GAP) + SQ / 2 };
+  const R = GAP / 2 + SQ * 0.36;
+  const C = GAP * 0.46;
+  place(document.getElementById('rf-cross'), cross, R, C);
+  place(document.getElementById('rf-street'), street, R, C);
+  ['rf-cross', 'rf-street'].forEach(id => board.appendChild(document.getElementById(id)));
+}
+
+function field(id){
+  const rf = document.createElement('div');
+  rf.className = 'rf';
+  rf.id = id;
+  rf.innerHTML = `
+    <div class="surround"></div>
+    <div class="mark on"><div class="bar" data-bar></div></div>
+    <div class="mark off"><div class="plus" data-h></div><div class="plus v" data-v></div></div>
+      <div class="core">
+      <div class="mark on"><div class="plus" data-h></div><div class="plus v" data-v></div></div>
+      <div class="mark off"><div class="bar" data-bar></div></div>
+    </div>
+    <div class="tag" data-tag></div>`;
+  board.appendChild(rf);
+  return rf;
+}
+
+function place(rf, p, R, C){
+  rf.style.width = rf.style.height = 2 * R + 'px';
+  rf.style.left = (p.x - R) + 'px';
+  rf.style.top = (p.y - R) + 'px';
+  const center = rf.querySelector('.core');
+  center.style.width = center.style.height = 2 * C + 'px';
+  const arm = C * 0.62, thick = Math.max(3, C * 0.22);
+  rf.querySelectorAll('.core .plus').forEach(el => {
+    el.style.width = (el.classList.contains('v') ? thick : arm * 2) + 'px';
+    el.style.height = (el.classList.contains('v') ? arm * 2 : thick) + 'px';
+    el.style.left = '50%'; el.style.top = '50%';
+    el.style.transform = 'translate(-50%, -50%)';
+  });
+  const barW = R * 0.55, barH = Math.max(4, R * 0.09);
+  rf.querySelectorAll('.bar').forEach(el => {
+    el.style.width = barW + 'px';
+    el.style.height = barH + 'px';
+    el.style.left = '50%';
+    const inCenter = el.parentNode.parentNode.classList.contains('core');
+    el.style.top = inCenter ? '50%' : (R * 0.16) + 'px';
+    el.style.transform = inCenter ? 'translate(-50%, -50%)' : 'translateX(-50%)';
+  });
+  const plus = rf.querySelector('.mark.off');
+  const sArm = R * 0.16, sThick = Math.max(4, R * 0.075);
+  plus.querySelectorAll('.plus').forEach(el => {
+    el.style.width = (el.classList.contains('v') ? sThick : sArm * 2) + 'px';
+    el.style.height = (el.classList.contains('v') ? sArm * 2 : sThick) + 'px';
+    el.style.left = '50%';
+    el.style.top = (R * 0.20) + 'px';
+    el.style.background = '#ef4444';
+    el.style.transform = 'translate(-50%, -50%)';
+  });
+  rf.querySelector('.tag').style.top = '-1.7em';
+}
+
+field('rf-cross');
+field('rf-street');
+
+let beat = 0;
+function render(){
+  board.classList.toggle('on', beat >= 1);
+  const cross = document.getElementById('rf-cross');
+  const street = document.getElementById('rf-street');
+  cross.classList.toggle('show', beat >= 2);
+  street.classList.toggle('show', beat >= 3);
+  cross.classList.toggle('flip', beat >= 4);
+  street.classList.toggle('flip', beat >= 4);
+  const name = beat >= 4 ? 'OFF-center' : 'ON-center';
+  cross.querySelector('[data-tag]').textContent = beat >= 2 ? name : '';
+  street.querySelector('[data-tag]').textContent = beat >= 3 ? name : '';
+  document.getElementById('cap').textContent = CAP[beat];
+  document.getElementById('dots').innerHTML = [...Array(MAX + 1)].map((_, i) => `<i class="${i <= beat ? 'on' : ''}"></i>`).join('');
+}
+
+window.hermann = {
+  advance(){ if(beat < MAX){ beat++; render(); } },
+  back(){ if(beat > 0){ beat--; render(); } },
+  atStart: () => beat === 0, atEnd: () => beat === MAX,
+  reset(){ beat = 0; render(); }, resetToEnd(){ beat = MAX; render(); },
+  getBeat: () => beat,
+  notes: [
+    "(draft) The Hermann grid, right after the ON and OFF cells, because it is the illusion those cells predict. Ask the room to look before the figure comes up.",
+    "(draft) Here is the grid. Black squares, white streets, nothing else. Most people see grey spots at the crossings, and not along the streets. Look straight at one crossing and that spot vanishes; the others remain. The spots are not in the picture.",
+    "(draft) An ON-center cell, drawn the way Kuffler described it. The yellow center is excitatory: light there increases firing. The purple surround is inhibitory: light there decreases firing. The green bar is the minus. This one sits on a crossing, so its center is on white.",
+    "(draft) The same cell, moved onto a street. Both centers are on white, so both are excited. The difference is the surround. At the crossing, white street runs into the surround from four directions. On the street, white runs in from only two, and the rest of the surround lands on black, which does not inhibit. More inhibition at the crossing, so the crossing is signaled as darker. That is Baumgartner's 1960 account of the spots. They vanish in the fovea because foveal fields are smaller than the streets. One caution, for questions: a fixed circular field does not explain every version of the grid, so this is a model of the effect, not the whole of it.",
+    "(draft) OFF-center cells carry the other sign. The center is now inhibitory and the surround excitatory: the plus and the minus trade places. Light on the center decreases firing, and light in the surround increases it. The retina has both populations, which is how it can signal increments and decrements with firing rates that cannot go negative. Hermann described the illusion in 1870."
+  ]
+};
+if(window.parent === window){
+  addEventListener('click', () => window.hermann.advance());
+  addEventListener('keydown', e => {
+    if(e.key === 'ArrowLeft') window.hermann.back();
+    else if(['ArrowRight', ' ', 'Enter'].includes(e.key)) window.hermann.advance();
+  });
+}
+addEventListener('resize', () => { layout(); render(); });
+layout();
+render();
+</script>
+</body>
+</html>

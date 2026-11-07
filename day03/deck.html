@@ -2,11 +2,64 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Day 3 · Metamers, then Image Formation + Processing (working deck)</title>
+<title>Day 3 · Part 1 and Part 2</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>/* cache-bust while editing, so nobody presents a stale file */
 document.write(`<link rel="stylesheet" href="../deck/deck.css?v=${Date.now()}">`);
-document.write(`<script src="../deck/engine.js?v=${Date.now()}"><\/script><script src="order.js?v=${Date.now()}"><\/script>`);</script>
+document.write(`<script src="../deck/engine.js?v=${Date.now()}"><\/script><script src="order.js?v=${Date.now()}"><\/script>` +
+  `<script src="cites.js?v=${Date.now()}"><\/script><script src="lib.js?v=${Date.now()}"><\/script>` +
+  `<script src="assets/numbers.js?v=${Date.now()}"><\/script>`);</script>
+<style>
+/* Same open type as Day 3: a left rule and the shared lead size, not filled cards.
+   Data colors from deck.css only: slate-blue, pine, plum. Amber marks a ring or a highlighted cell. */
+.lf-sub{ font-size:clamp(1.05rem, 1.6vw, 1.45rem); color:var(--mute); margin-top:-1.4vh; flex-shrink:0; line-height:1.3; }
+.lf-cols{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:2.4vw; }
+.lf-col{ display:flex; flex-direction:column; gap:1.3vh; min-height:0; min-width:0; justify-content:center; }
+.lf-col > .lf-fig, .lf-col > .lf-grid, .lf-col > .lf-stack{ flex:1 1 0; }
+.lf-cols.roomy .lf-col{ gap:3.2vh; }
+.lf-stack{ position:relative; min-height:0; min-width:0; }
+.lf-stack > .lf-fig{ position:absolute; inset:0; background:var(--bg, #fff); }
+.lf-card{ border-left:4px solid var(--line); padding:.25vh 0 .25vh 1vw; display:flex; flex-direction:column; gap:.35vh; flex-shrink:0; }
+.lf-card .lf-head{ font-size:clamp(1.15rem, 1.85vw, 1.65rem); font-weight:700; line-height:1.2; }
+.lf-card .label{ line-height:1.32; }
+.lf-card.key{ border-left-color:var(--early); }
+.lf-grid{ flex:1 1 auto; min-height:0; display:grid; gap:1.4vh 1.2vw; }
+.lf-fig{ min-height:0; min-width:0; display:grid; grid-template-rows:minmax(0,1fr) auto; justify-items:center; gap:.4vh; margin:0; }
+.lf-fig img{ width:100%; height:100%; min-height:0; object-fit:contain; object-position:50% 100%; display:block; }
+.lf-fig img.px{ image-rendering:pixelated; }
+.lf-fig figcaption{ text-align:center; font-size:clamp(.95rem, 1.3vw, 1.25rem); flex-shrink:0; line-height:1.25; }
+.lf-eq{ background:#f1f5f9; border:1px solid #cbd5e1; border-left:4px solid var(--early); border-radius:10px;
+  padding:1vh 1.2vw; font-family:'Cambria Math','STIX Two Math',Georgia,serif; font-size:clamp(1.05rem, 1.65vw, 1.55rem);
+  color:#0f172a; line-height:1.45; flex-shrink:0; }
+.lf-eq var{ font-style:italic; }
+.lf-eq .why{ display:block; font-family:var(--font); font-size:clamp(.92rem, 1.22vw, 1.15rem); color:var(--mute); line-height:1.3; margin-top:.3vh; }
+.lf-eq table{ border-collapse:collapse; font-family:var(--font); font-size:clamp(.92rem, 1.22vw, 1.15rem); margin-top:.5vh; }
+.lf-eq td{ padding:.15vh .7vw .15vh 0; vertical-align:top; }
+.lf-eq td:first-child{ font-family:'Cambria Math','STIX Two Math',Georgia,serif; white-space:nowrap; font-size:1.08em; }
+.lf-kwrap{ display:inline-flex; align-items:center; gap:.5vw; flex-wrap:wrap; }
+.lf-kscale{ font-family:'Cambria Math',Georgia,serif; font-size:clamp(1rem, 1.5vw, 1.4rem); }
+.lf-k{ display:inline-grid; gap:2px; background:var(--line); border:2px solid var(--ink); border-radius:6px; overflow:hidden;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:700; }
+.lf-k span{ background:#fff; min-width:2.5vw; height:3.3vh; display:flex; align-items:center; justify-content:center;
+  font-size:clamp(.72rem, 1.02vw, .98rem); padding:0 .25vw; }
+.lf-k span.pos{ background:#dbeafe; } .lf-k span.neg{ background:#fee2e2; }
+.lf-kcap{ width:100%; }
+.lf-row{ display:flex; gap:2vw; align-items:center; flex-wrap:wrap; flex-shrink:0; }
+.lf-op{ font-size:clamp(1.6rem, 2.6vw, 2.4rem); color:var(--mute); align-self:center; }
+.lf-q{ font-size:clamp(1.6rem, 2.7vw, 2.5rem); font-weight:700; line-height:1.2; }
+.lf-table{ display:grid; grid-template-columns:1fr 1.2fr 1.5fr 1fr; flex:1 1 auto; min-height:0; align-content:start; }
+.lf-table > div{ padding:.9vh .8vw; border-top:1px solid var(--line); font-size:clamp(1rem, 1.4vw, 1.3rem); line-height:1.28;
+  display:flex; align-items:center; min-height:0; }
+.lf-table .hd{ font-weight:700; color:var(--mute); text-transform:uppercase; letter-spacing:.04em; font-size:clamp(.8rem, 1.02vw, .98rem); border-top:none; }
+.lf-table img{ height:8.6vh; width:auto; max-width:100%; border-radius:4px; }
+.lf-table.pairs{ grid-template-columns:minmax(0,.78fr) minmax(0,1.7fr); align-content:center; }
+.lf-table.pairs > div{ padding:.62vh .7vw; }
+.lf-refs{ columns:2; column-gap:3vw; font-size:clamp(.78rem, 1vw, .98rem); line-height:1.35; }
+.lf-refs p{ break-inside:avoid; margin-bottom:.7vh; }
+.lf-refs h3{ font-size:clamp(.9rem, 1.15vw, 1.1rem); margin:.6vh 0 .4vh; break-after:avoid; }
+.stage > h1.t, .stage > .lf-card, .stage > .lf-eq, .stage > .lf-row{ flex-shrink:0; }
+.lf-cite a{ color:inherit; }
+</style>
 </head>
 <body>
 <div id="root"></div>
@@ -15,7 +68,7 @@ document.write(`<script src="../deck/engine.js?v=${Date.now()}"><\/script><scrip
 <div id="notes"><div id="notes-body"></div></div>
 <script>
 /* WORKING deck: loads everyone's live drafts from parts/. Preview parts with ?only=intro,thanks */
-loadParts('parts', PARTS, {minutes: SEC_MINUTES});
+loadParts('parts', PARTS, {minutes: SEC_MINUTES}).then(() => collapseCites(document));
 </script>
 </body>
 </html>

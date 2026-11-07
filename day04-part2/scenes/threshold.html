@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The threshold on a real street</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="or-scene.css">
+<style>
+  .th-img{ display:grid; min-height:0; height:100%; align-items:center; }
+  .th-img img{ grid-area:1 / 1; width:100%; max-height:62vh; object-fit:contain; border-radius:8px; opacity:0; transition:opacity .6s ease; }
+  .th-img img.on{ opacity:1; }
+  .th-slider{ position:relative; height:5vh; margin:0 .6vw; }
+  .th-slider::before{ content:''; position:absolute; left:0; right:0; top:50%; height:6px; margin-top:-3px; background:var(--line); border-radius:3px; }
+  .th-knob{ position:absolute; top:50%; width:22px; height:22px; margin:-11px 0 0 -11px; border-radius:50%; background:#d97706; transition:left .7s ease; }
+  .th-ends{ display:flex; justify-content:space-between; }
+  .th-row{ display:grid; grid-template-columns:7.5em 1fr 2em; gap:.6vw; align-items:center; }
+  .th-bar{ height:1.9vh; background:#38506e; border-radius:3px; width:0; transition:width .7s ease; }
+  .th-n{ text-align:right; font-variant-numeric:tabular-nums; }
+</style>
+</head>
+<body>
+<div class="or-wrap">
+  <h1 class="t deck-title">The threshold on a real street</h1>
+  <div class="or-split">
+    <div class="th-img" id="imgs"></div>
+    <div class="or-side">
+      <div data-from="1">
+        <div class="or-big" id="big"></div>
+        <div class="label" id="sub"></div>
+        <div class="th-slider"><div class="th-knob" id="knob"></div></div>
+        <div class="th-ends label"><span>0</span><span>confidence</span><span>1</span></div>
+      </div>
+      <div id="bars" data-from="1"></div>
+      <div class="lead" data-from="4">AP summarizes every threshold at once</div>
+    </div>
+  </div>
+  <div class="cite" data-from="1">YOLO11n. Tom Mboya Street, Nairobi. Bahnfrend, CC BY-SA 4.0</div>
+</div>
+<script src="or-scene.js"></script>
+<script src="../../day04/assets/result.js"></script>
+<script>
+const LV = [['0.1', '10'], ['0.25', '25'], ['0.6', '60']], Y = D4.yolo.street, $ = id => document.getElementById(id);
+const CL = ['person', 'bus', 'motorcycle', 'car'], MAX = Math.max(...LV.flatMap(l => CL.map(c => Y[l[0]].counts[c] || 0)));
+$('imgs').innerHTML = LV.map((l, k) => `<img id="i${k}" src="../../day04/assets/yolo/street-conf${l[1]}.jpg" alt="YOLO11n at confidence ${l[0]}">`).join('');
+$('bars').innerHTML = CL.map(c => `<div class="th-row label"><span>${c}</span><div><div class="th-bar" id="b-${c}"></div></div><span class="th-n" id="n-${c}"></span></div>`).join('');
+function draw(b){
+  const k = Math.min(Math.max(b - 1, 0), 2), r = Y[LV[k][0]];
+  LV.forEach((l, j) => $('i' + j).classList.toggle('on', b >= 1 && j === k));
+  $('big').textContent = r.n + ' boxes';
+  $('sub').textContent = 'confidence ≥ ' + LV[k][0];
+  $('knob').style.left = (+LV[k][0] * 100) + '%';
+  CL.forEach(c => { const n = r.counts[c] || 0; $('b-' + c).style.width = (n / MAX * 100) + '%'; $('n-' + c).textContent = n; });
+}
+orScene('threshold', [
+  "(draft) That was a toy list. Here is the same idea on a real photo, with one detector, YOLO11n. We have no ground-truth boxes for this photo, so we cannot compute AP. We can only look.",
+  `(draft) At a low threshold of 0.1 we get ${Y['0.1'].n} boxes, including ${Y['0.1'].counts.person} people. High recall, and more chances of being wrong.`,
+  `(draft) Raise the threshold to 0.25 and we get ${Y['0.25'].n} boxes.`,
+  `(draft) At 0.6 only ${Y['0.6'].n} boxes survive, and most of the street goes unreported.`,
+  "(draft) No single threshold is right. That is why we report AP, which summarizes the whole trade-off."
+], draw);
+</script>
+</body>
+</html>

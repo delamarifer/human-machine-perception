@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Train, tune, test once, rank</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="or-scene.css">
+<style>
+  .or-wrap{ gap:1.2vh; padding-bottom:12vh; }
+  .bm-steps{ display:flex; align-items:center; justify-content:space-between; gap:.8vw; }
+  .bm-steps span{ flex:1 1 0; text-align:center; border:2px solid var(--ink); border-radius:10px; padding:.7vh .4vw;
+    font-size:clamp(1.05rem, 1.6vw, 1.5rem); font-weight:700; }
+  .bm-steps i{ font-style:normal; color:var(--mute); font-size:clamp(1.2rem, 1.8vw, 1.6rem); }
+  .bm-cards{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:1.4vw; align-content:center; }
+  .bm-card{ background:#f8fafc; border:1px solid var(--line); border-radius:12px; padding:1vh .9vw; display:flex; flex-direction:column; gap:.5vh; }
+  .bm-card canvas{ width:100%; height:21vh; object-fit:contain; border-radius:8px; display:block; }
+  .bm-score{ font-size:clamp(1.3rem, 2.1vw, 1.9rem); font-weight:700; }
+</style>
+</head>
+<body>
+<div class="or-wrap">
+  <h1 class="t deck-title">Train, tune, test once, rank</h1>
+  <div class="bm-steps" data-from="1"><span>Train</span><i>→</i><span>Tune</span><i>→</i><span>Test once</span><i>→</i><span>Rank</span></div>
+  <div class="bm-cards">
+    <div class="bm-card" data-from="2"><canvas id="c1" width="470" height="370"></canvas><div class="lead"><b>Classification</b></div>
+      <div class="bm-score">Accuracy</div><div class="label">Predicted = truth? Share of images right</div></div>
+    <div class="bm-card" data-from="3"><canvas id="c2" width="470" height="370"></canvas><div class="lead"><b>Detection</b></div>
+      <div class="bm-score" id="s2"></div><div class="label">Precision, recall, then mAP over classes</div></div>
+    <div class="bm-card" data-from="4"><canvas id="c3" width="470" height="370"></canvas><div class="lead"><b>Segmentation</b></div>
+      <div class="bm-score" id="s3"></div><div class="label">Overlap of predicted and true pixels</div></div>
+  </div>
+  <div class="lead" data-from="5" style="text-align:center"><b>A metric is a definition of success</b></div>
+  <div class="cite" data-from="2">Dashed: truth, our own annotation. Orange: a toy prediction; the scores are computed. Photo: Shixart1985, CC BY 2.0</div>
+</div>
+<script src="or-scene.js"></script>
+<script src="../assets/cup-mask.js"></script>
+<script src="or-cup.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const PRED = [CUP.box[0] + 34, CUP.box[1] - 20, CUP.box[2] + 40, CUP.box[3] - 14], DX = 22, DY = 14;
+const boxScore = boxIoU(CUP.box, PRED), M = maskScores(DX, DY);
+$('s2').textContent = `IoU ${boxScore.toFixed(2)} > 0.5: a hit`;
+$('s3').textContent = `IoU ${M.iou.toFixed(2)} · Dice ${M.dice.toFixed(2)}`;
+function paint(){
+  const a = $('c1'), b = $('c2'), c = $('c3');
+  cupPhoto(a); cupTag(a, 'predicted: teacup ✓');
+  cupPhoto(b); cupBox(b, CUP.box, '#0f172a', 5, [14, 9]); cupBox(b, PRED, '#d97706', 6);
+  const k = cupPhoto(c);
+  cupPath(c, DX, DY); k.fillStyle = 'rgba(217,119,6,.5)'; k.fill('evenodd');
+  cupPath(c); k.setLineDash([14, 9]); k.strokeStyle = '#0f172a'; k.lineWidth = 4; k.stroke(); k.setLineDash([]);
+}
+cupImg.onload = paint;
+orScene('benchMetrics', [
+  "(draft) How is a benchmark used, and how does each task get its number?",
+  "(draft) The recipe is the same everywhere. Train on the training split, tune on the validation split, report once on the held-out test set, often scored by a hidden server, and rank on a leaderboard.",
+  "(draft) Every score compares a prediction with a ground-truth annotation. For classification that comparison is simple: does the predicted label match? Accuracy is the share of images that do. Top-1 and top-5 from earlier are versions of this.",
+  `(draft) Detection needs more. The orange box is a toy prediction, the dashed box is the truth, and their IoU is ${boxScore.toFixed(2)}, above the usual 0.5, so it counts as a hit. Hits and misses give precision and recall, AP summarizes them for one class, and mAP averages AP over classes.`,
+  `(draft) Segmentation compares pixels. Here a toy mask is shifted a little from the true outline. IoU is the overlap divided by the union, ${M.iou.toFixed(2)} here. Dice is twice the overlap divided by the two areas added together, ${M.dice.toFixed(2)} here. Dice is always at least as high as IoU for the same masks.`,
+  "(draft) So a metric is not neutral. It is a definition of success. Accuracy does not care where the cup is. A 0.5 IoU threshold does not care about a sloppy box. Mask IoU rewards the boundary. Read per-class and per-group results too, because the headline number hides where the errors fall."
+], paint);
+</script>
+</body>
+</html>

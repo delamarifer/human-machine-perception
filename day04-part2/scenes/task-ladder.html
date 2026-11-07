@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The task ladder</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="or-scene.css">
+<style>
+  .lad-row{ border-left:5px solid var(--line); padding:.5vh 0 .5vh 1vw; color:var(--mute); }
+  .lad-row.cur{ border-left-color:var(--ink); color:var(--ink); }
+  .lad-row .lead{ color:inherit; font-weight:700; }
+  .lad-row .det{ display:none; margin-top:.6vh; }
+  .lad-row.cur .det{ display:flex; flex-direction:column; gap:.5vh; }
+  #cv{ border-radius:8px; opacity:0; transition:opacity .6s ease; }
+  #cv.on{ opacity:1; }
+</style>
+</head>
+<body>
+<div class="or-wrap">
+  <h1 class="t deck-title">One image, four outputs</h1>
+  <div class="or-split">
+    <div class="or-fig"><canvas id="cv" width="640" height="360"></canvas></div>
+    <div class="or-side" id="rows"></div>
+  </div>
+</div>
+<script src="or-scene.js"></script>
+<script src="or-world.js"></script>
+<script>
+const TASKS = [
+  ['Classification', 'K-vector of class probabilities', 'Is class c present?', 'Where is it? How many?'],
+  ['Localization', 'Set of (box, class)', 'Where, and how many', 'Shape, stuff, thin structures, overlaps'],
+  ['Semantic segmentation', 'One class per pixel', 'Stuff and irregular shapes', 'Cannot count touching instances'],
+  ['Instance segmentation', 'One mask and class per instance', 'Classify, localize, count, separate', 'Classes are still defined by language'],
+];
+document.getElementById('rows').innerHTML = TASKS.map((t, k) => `
+  <div class="lad-row" data-from="${k + 2}" id="r${k}">
+    <div class="lead">${t[0]}</div>
+    <div class="det label"><div><b>Output:</b> ${t[1]}</div><div><b>Adds:</b> ${t[2]}</div><div><b>Still cannot:</b> ${t[3]}</div></div>
+  </div>`).join('');
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const SEM = [[219, 231, 243], [185, 201, 163], [154, 163, 173], [37, 99, 235], [217, 119, 6]];
+const INST = {1: [37, 99, 235], 2: [14, 165, 233], 3: [217, 119, 6]};
+const B = [1, 2, 3].map(WORLD.bbox);
+function tag(x, y, s){ ctx.font = '700 19px Arial'; const w = ctx.measureText(s).width + 14;
+  ctx.fillStyle = '#0f172a'; ctx.fillRect(x, y, w, 28); ctx.fillStyle = '#fff'; ctx.fillText(s, x + 7, y + 20); return w; }
+function draw(b){
+  cv.classList.toggle('on', b >= 1);
+  if(b <= 3) WORLD.photo(ctx);
+  if(b === 2){ let x = 14; for(const s of ['car: yes', 'person: yes', 'bicycle: no']) x += tag(x, 14, s) + 8; }
+  if(b === 3){ WORLD.box(ctx, B[0], '#1d4ed8', 'car'); WORLD.box(ctx, B[1], '#0369a1', 'car'); WORLD.box(ctx, B[2], '#b45309', 'person'); }
+  if(b === 4){ WORLD.paint(ctx, i => SEM[WORLD.cls[i]]);
+    ctx.fillStyle = '#0f172a'; ctx.font = '700 19px Arial';
+    ctx.fillText('sky', 14, 30); ctx.fillText('grass', 14, 185); ctx.fillText('road', 14, 345);
+    ctx.fillStyle = '#fff'; ctx.fillText('car', 262, 245); }
+  if(b >= 5){ WORLD.paint(ctx, i => WORLD.inst[i] ? INST[WORLD.inst[i]] : [226, 232, 240]);
+    ctx.fillStyle = '#fff'; ctx.font = '700 19px Arial';
+    ctx.fillText('car 1', 150, 235); ctx.fillText('car 2', 340, 250); }
+  TASKS.forEach((t, k) => document.getElementById('r' + k).classList.toggle('cur', b === k + 2));
+}
+orScene('taskLadder', [
+  "(draft) Here is the backbone of the lecture: four ways of answering, all on the same picture.",
+  "(draft) This is a generated street, so we know the truth of every pixel. Two cars that touch, one person in front of them, and sky, grass and road.",
+  "(draft) Classification outputs a vector of length K, one value per class. It answers: is class c present? It cannot say where the object is or how many there are.",
+  "(draft) Localization outputs a set of boxes with classes. Now we know where and how many. But a box says nothing about shape, and it fits stuff, thin structures and overlapping objects badly.",
+  "(draft) Semantic segmentation gives every pixel a class. Sky, grass and road are finally represented. But the two touching cars have merged into one region, so we can no longer count them.",
+  "(draft) Instance segmentation gives each object its own mask, so it can classify, localize, count and separate overlaps. It still depends on classes that are defined by language. We come back to that at the end."
+], draw);
+</script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+/* Object Recognition deck: additions to deck/deck.css. All classes prefixed or-. */
+.or-cards{ flex:1 1 auto; min-height:0; display:grid; gap:2vh 2vw; align-content:center; }
+.or-c2{ grid-template-columns:repeat(2, 1fr); }
+.or-c3{ grid-template-columns:repeat(3, 1fr); }
+.or-card{ background:#f8fafc; border:1px solid var(--line); border-radius:12px; padding:2vh 1.5vw;
+  display:flex; flex-direction:column; gap:1vh; }
+.or-card svg{ width:100%; max-height:28vh; }
+.or-split{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:3vw; align-items:center; }
+.or-split > svg{ width:100%; max-height:58vh; }
+.or-list{ display:flex; flex-direction:column; gap:1.8vh; }
+.or-eq{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-weight:600;
+  font-size:clamp(1.2rem, 2.1vw, 2rem); background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px;
+  padding:1.6vh 1.5vw; text-align:center; }
+.or-note{ color:var(--mute); }
+.or-q{ display:grid; grid-template-columns:repeat(2, 1fr); gap:1.4vh 3vw; flex:1 1 auto; align-content:center; }
+.or-tbl{ width:100%; border-collapse:collapse; margin:auto 0; }
+.or-tbl th, .or-tbl td{ text-align:left; padding:1.2vh .8vw; border-bottom:1px solid var(--line);
+  font-size:clamp(1.05rem, 1.55vw, 1.45rem); vertical-align:top; }
+.or-tbl th{ color:var(--mute); font-weight:600; }
+
+/* real photos and model outputs (from day04/assets) */
+.or-stack{ display:grid; min-height:0; }
+.or-stack > img{ grid-area:1 / 1; width:100%; max-height:60vh; object-fit:contain; border-radius:8px; }
+.or-img{ width:100%; max-height:60vh; object-fit:contain; border-radius:8px; display:block; }
+.or-tiles{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:1.6vw; align-content:center; }
+.or-tile{ display:flex; flex-direction:column; gap:.8vh; }
+.or-tile img{ width:100%; aspect-ratio:4 / 3; object-fit:cover; border-radius:8px; display:block; background:#000; }
+.or-big{ font-size:clamp(1.8rem, 3vw, 2.8rem); font-weight:700; }
+.or-split .fig{ height:60vh; }
+
+/* photos inside cards keep a fixed height, so the text below them lines up */
+.or-card .fig{ flex:none; height:36vh; }
+.or-short .fig{ height:27vh; }
+.or-split > .b{ height:60vh; display:flex; min-width:0; }
+.or-split > .b > .fig{ height:100%; width:100%; }
+/* a diagram plus its caption, not a photo: stack them so the caption sits under the figure */
+.or-split > .b:has(> svg){ flex-direction:column; align-items:center; justify-content:center; height:auto; gap:1.6vh; }
+.or-split > .b > svg{ width:100%; height:auto; max-height:42vh; }
+.or-refs{ display:grid; grid-template-columns:1fr 1fr; gap:1.6vh 3vw; margin:auto 0; }
+/* image placeholders for figures still to insert */
+.or-slot{ min-height:44vh; display:flex; flex-direction:column; justify-content:center; }
+.or-slot-s{ min-height:13vh; display:block; }
+.or-small{ flex:0 0 auto; gap:1.2vh 2vw; }
+.or-small .or-card{ padding:1vh 1.2vw; }
+.or-shot{ display:block; width:100%; height:24vh; object-fit:contain; }
+/* benchmark section */
+.or-pic{ width:100%; height:17vh; object-fit:cover; border-radius:8px; display:block; }
+.or-bars{ display:flex; flex-direction:column; gap:.3vh; }
+.or-bar{ display:grid; grid-template-columns:5em 1fr 3em; align-items:center; gap:.5vw; }
+.or-bar i{ display:block; height:1.5vh; background:#38506e; border-radius:3px; }
+.or-bar b{ text-align:right; font-variant-numeric:tabular-nums; }
+.or-hsplit{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:.8fr 1.5fr; gap:2.4vw; align-items:center; }
+.or-hsplit th{ color:var(--ink); }
+.or-case{ display:grid; grid-template-columns:.5fr 2fr; gap:1.6vw; align-items:center; border:2px solid var(--ink); border-radius:12px;
+  padding:1.2vh 1.2vw; margin-bottom:4.5vh; }
+.or-case img{ width:100%; height:20vh; object-fit:cover; border-radius:8px; display:block; }
+.or-case .or-list{ gap:.5vh; }
+.or-bar-w{ grid-template-columns:11em 1fr 3em; }

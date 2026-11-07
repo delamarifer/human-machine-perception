@@ -12,7 +12,7 @@ const RECAP = [
   ['Day 3', 'Metamers, transformations and filters'],
 ];
 const ASSIGNMENT = ['Assignment 1', 'Due next Wednesday', 'https://delamarifer.github.io/human-machine-perception/assignment1.html'];
-const PROPOSAL_DUE = 'Fri, Nov 6, midnight';
+const PROPOSAL_DUE = 'Monday';
 
 /* announcements (Fernanda, 2026-11-05; replaces the 'Coming up' and 'How to submit your proposal' slides).
    Screenshots in assets/start/: her Discord post, the course-site proposal card, the idea form (cropped so no

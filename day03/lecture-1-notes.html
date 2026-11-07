@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Day 3 · Lecture 1 Notes · Computer Vision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0d16; --surface:#121827; --line:#25304a;
+    --text:#e9edf6; --mute:#9aa5bd;
+    --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{ margin:0; background:var(--bg); color:var(--text);
+    font:16.5px/1.65 Inter, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif; }
+  a{ color:var(--cyan); }
+  .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
+  .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;
+    font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
+  .spine b{ color:var(--text); font-weight:500; }
+  .page{ margin-left:44px; }
+  .hero{ border-bottom:1px solid var(--line); background:radial-gradient(120% 90% at 78% 40%, #121a33 0%, var(--bg) 60%); }
+  .hero-in{ max-width:46rem; margin:0 auto; padding:8vh 24px 4vh; }
+  .back{ margin:0 0 2.2em; font-size:.95rem; display:flex; align-items:center; gap:1.2em; flex-wrap:wrap; }
+  .back a{ color:var(--mute); text-decoration:none; }
+  .back a:hover{ color:var(--text); }
+  .back button{ margin-left:auto; font:600 .85rem/1 'Space Grotesk', sans-serif; color:var(--bg);
+    background:var(--cyan); border:0; border-radius:999px; padding:.45em .9em; cursor:pointer; }
+  .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--cyan); }
+  h1{ margin:0 0 .35em; font:700 clamp(2.2rem, 6vw, 3.6rem)/.95 'Space Grotesk', sans-serif; text-transform:uppercase;
+    background:linear-gradient(90deg, #fff 0%, #c7fff4 55%, #e4d8ff 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lead{ max-width:42rem; color:#d3d9e6; font-size:1.05rem; margin:0 0 1.2em; }
+  .toc{ display:flex; flex-wrap:wrap; gap:8px; margin:0; padding:0; list-style:none; }
+  .toc a{ color:var(--mute); text-decoration:none; font:500 .88rem/1 'Space Grotesk', sans-serif;
+    border:1px solid var(--line); border-radius:999px; padding:.35em .75em; }
+  .toc a:hover{ color:var(--text); border-color:var(--cyan); }
+  main{ max-width:46rem; margin:28px auto 72px; padding:36px 40px 56px; background:#fff; color:#1c1917;
+    border-radius:18px; box-shadow:0 18px 50px rgba(0,0,0,.35); }
+  main a{ color:#0f766e; } main a:hover{ color:#115e59; }
+  main h2, main h3, main strong{ color:#1c1917; }
+  main li::marker{ color:#a8a29e; }
+  main .callout{ background:#f5f5f4; border-color:#e7e5e4; color:#1c1917; }
+  main figcaption{ color:#57534e; }
+  section{ padding-top:2.4em; scroll-margin-top:1.25rem; }
+  #open{ --c:var(--cyan); } #rep{ --c:var(--violet); } #meta{ --c:var(--amber); }
+  #color{ --c:var(--pink); } #texture{ --c:var(--sky); } #nets{ --c:var(--cyan); } #lab{ --c:var(--amber); }
+  h2{ margin:0 0 .7em; font:700 1.45rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
+  h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
+  h3{ margin:1.3em 0 .35em; font:700 1.08rem/1.3 'Space Grotesk', sans-serif; }
+  p{ margin:0 0 .75em; } ul, ol{ margin:0 0 .9em; padding-left:1.2em; } li{ margin:.28em 0; }
+  .callout{ margin:1em 0 1.15em; padding:14px 16px; border-radius:14px; border-left:4px solid var(--c, var(--cyan)); }
+  .callout p{ margin:0; }
+  figure.fig{ margin:1em 0 1.2em; }
+  figure img, .pair img, .grid3 img{ display:block; width:100%; max-width:100%; height:auto; background:#fff; border-radius:12px; }
+  figcaption{ margin-top:.45em; font-size:.9rem; line-height:1.45; }
+  .pair{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; margin:1em 0 1.2em; }
+  .pair figure, .grid3 figure{ margin:0; min-width:0; }
+  .grid3{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; margin:1em 0 1.15em; }
+  .grid3 img{ aspect-ratio:1; object-fit:cover; }
+  .grid3 figcaption, .pair figcaption{ font-size:.82rem; }
+  @media (max-width:700px){
+    .spine{ display:none; } .page{ margin-left:0; }
+    .hero-in{ padding:5vh 16px 3vh; }
+    main{ margin:16px; padding:24px 18px 40px; }
+    .pair, .grid3{ grid-template-columns:1fr; }
+    .back button{ margin-left:0; }
+  }
+  @media print{
+    body, .page, .hero, main{ background:#fff; color:#1c1917; box-shadow:none; }
+    .spine, .back{ display:none; } .page{ margin:0; } main{ margin:0; max-width:none; }
+    h1{ color:#1c1917; background:none; -webkit-text-fill-color:#1c1917; }
+    a{ color:#1c1917; } h2::before{ box-shadow:none; }
+    figure, .callout{ break-inside:avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="spine" aria-hidden="true"><span><b>Computer Vision</b> &nbsp;/&nbsp; Day 3 · Lecture 1</span></div>
+<div class="page">
+<header class="hero">
+  <div class="hero-in">
+    <div class="back"><a href="../index.html">← Home</a><a href="deck.html">Slides</a><a href="lecture-2-notes.html">Lecture 2</a>
+      <button type="button" onclick="window.print()" title="Opens the print dialog. Choose Save as PDF.">Download PDF</button></div>
+    <p class="kicker">Day 3 · Lecture 1 · Fernanda de la Torre · Shreya Pandit</p>
+    <h1>Lecture notes</h1>
+    <p class="lead">Probing perceptual representations through metamers. These notes follow the first half of the Day 3 lecture: what a representation keeps, and what two inputs that look the same tell us it threw away.</p>
+    <nav class="toc" aria-label="On this page">
+      <a href="#open">The question</a>
+      <a href="#rep">Representations</a>
+      <a href="#meta">Metamers</a>
+      <a href="#color">Color</a>
+      <a href="#texture">Texture and sound</a>
+      <a href="#nets">Networks</a>
+      <a href="#lab">The lab</a>
+    </nav>
+  </div>
+</header>
+<main>
+
+  <section id="open">
+    <h2>The question</h2>
+    <p>Today is about transformations of the input, in two parts. Lecture 1 probes perceptual representations through metamers, which the primer introduced. Lecture 2 is the fundamentals of image transformations and filters.</p>
+    <p>The question underneath this half: what information does an image carry, and what should a system keep?</p>
+  </section>
+
+  <section id="rep">
+    <h2>From pixels to objects</h2>
+    <p>A picture can be described at several levels. To a computer it is a grid of brightness numbers. Those numbers keep everything, and nothing in them says wall or ball. One step up is local features, such as the strength of edges from a small derivative filter. Next is texture: in each window, keep how much edge energy there is in each orientation, and throw away the exact positions inside the window. Further up, the description names objects.</p>
+    <p>A representation keeps some information and throws the rest away. Which information should it throw away? A letter <em>b</em> and the same letter shifted to the right are the same letter to us. In pixels the two images are far apart. The amplitude of the Fourier transform is the same for both: a shift changes only the phases, not the amplitudes. That representation is invariant to position. Invariance is useful when the thrown-away change does not matter for the task, and it is a mistake when it does.</p>
+  </section>
+
+  <section id="meta">
+    <h2>What a metamer is</h2>
+    <p>Two inputs, <em>x</em><sub>1</sub> and <em>x</em><sub>2</sub>, that are physically different, and a function <em>f</em> that maps them to exactly the same output, are metamers for <em>f</em>. The inputs can be images, sounds, or any sensory input. <em>f</em> can be the human visual system, an AI model, or any system that infers something from the stimulus.</p>
+    <div class="pair">
+      <figure>
+        <img src="assets/ps-textures/brick-original.png" alt="A photograph of a brick wall">
+        <figcaption>A brick wall.</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/ps-textures/brick-all.png" alt="A new image synthesized to match the brick wall’s texture statistics">
+        <figcaption>A new image matched to its texture statistics. Every pixel is different.</figcaption>
+      </figure>
+    </div>
+    <div class="callout">
+      <p><strong>Whatever differs between two metamers is information <em>f</em> threw away.</strong> Whatever they share is what it keeps.</p>
+    </div>
+    <p>Metamers do two jobs. They reveal what a system represents. And they let us compare systems: make a metamer for one system, then show it to another. If the two systems share their metamers, they throw away the same information. If they do not, the metamers show where they differ.</p>
+    <p>Metamers are always relative. Relative to a system: a camera’s color filters are not your cones, so two lights that match for you can look different in a photo. Relative to the conditions: two paints can match under the store’s light and not under daylight. Relative to how you look: two images can match in a brief glance in the periphery and come apart when you look straight at them.</p>
+  </section>
+
+  <section id="color">
+    <h2>Color, the easy case</h2>
+    <p>Color is the easy case because we have knobs. In the color-matching experiments of the 1920s and 1930s, Wright and Guild had observers look at a small field, about 2 degrees across, split in two. A tungsten lamp has energy at every wavelength. Only three cone types sample it, L, M, and S. Those three numbers are all that is left of the spectrum.</p>
+    <p>A spectrum has energy at hundreds of wavelengths. The cones keep three numbers. Many different spectra give exactly the same three. The differences are patterns of energy that no cone responds to. No amount of attention or training lets you see the difference between two halves of a field that match for your cones.</p>
+    <p>We use this every day. A camera records three numbers per pixel, through red, green, and blue filters. A screen never reproduces the spectrum of the scene. It lights three primaries in the amounts those numbers say. Yellow on a screen is red and green subpixels lit, with blue off. If the three cone responses agree with what the real scene would have sent, you see the same color. A banana on your screen is a metamer of the real banana, for you.</p>
+  </section>
+
+  <section id="texture">
+    <h2>Knobs for texture, and for sound</h2>
+    <p>Color has three knobs. Are there knobs for texture, shape, objects, and sounds? A texture model treats a few statistics as those knobs. One model first filters like the retina, center-surround at two sizes, then like V1, oriented filters at two orientations and two sizes, then takes the envelope of each oriented response. From those it measures statistics averaged over the image. Start from white noise and adjust the pixels until the statistics match the photo. If the result looks like the same texture, those statistics were enough. If it does not, a missing statistic is an edge of the representation.</p>
+    <p>The same idea works for sound. McDermott and Simoncelli started with sound textures such as rain, wind, or fire. A model of the ear splits the sound into frequency channels. Statistics of those channels over time are the knobs: how loud each band is, how much it varies, how the bands move together. A synthetic sound matched on those statistics can be heard as the same kind of sound, even though the waveform is different. When it does not sound right, a statistic was missing.</p>
+    <h3>Crowding</h3>
+    <p>Texture statistics matter beyond textures. Keep your eyes on a cross and a letter off to the side is readable. The same letter, with a neighbor on each side, is much harder. This is crowding; Bouma measured it for letters in 1970. One account: the visual system computes texture-like statistics over pooling regions, and those regions grow with distance from where you are looking. Near fixation the regions are small. Farther out, one region can cover all three letters, so it only keeps their statistics. Freeman and Simoncelli built a model like this. People could not tell its images from the original while keeping their eyes on the center. Rosenholtz and colleagues used the same idea to explain crowding.</p>
+    <h3>When there are no hand-made knobs</h3>
+    <p>Bashivan, Kar, and DiCarlo built a model of neurons in area V4 of the monkey, then synthesized images the model predicted would drive one recording site as hard as possible. For one site, those images drove responses of 5.4 to 7.6, against at most 2.1 for any of 640 natural images. They also made images that drive one site while keeping the others quiet. Tuckute and colleagues used a language model to choose sentences predicted to drive, or to suppress, the human language network, and measured the responses with fMRI. In both cases a model chooses the stimulus.</p>
+    <div class="grid3">
+      <figure><img src="assets/papers/bashivan2019/stretch-site04-synth-1.png" alt="A synthesized image meant to drive one V4 site"><figcaption>Synthesized for one V4 site</figcaption></figure>
+      <figure><img src="assets/papers/bashivan2019/stretch-site04-synth-3.png" alt="Another synthesized V4 image"><figcaption>Another from the same site</figcaption></figure>
+      <figure><img src="assets/papers/bashivan2019/stretch-site04-natural-best.png" alt="The best of 640 natural images for that site"><figcaption>Best of 640 natural images</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="nets">
+    <h2>Networks as knobs</h2>
+    <p>Gradient descent on a model’s representation is a knob for looking inside it. In color, the knobs are three lights and the sensors are the cones. In a network, the knob changes every pixel a little at a time, in whatever direction moves the network where we want, and the sensors are the activations at one stage. A scrambled image made to match a network’s third stage can still be called espresso, at 62%, by that network.</p>
+    <p>That is the second job of metamers. Make an image that matches a natural image at one stage of a model, then show it to people, or to another network. If it is not a metamer for them, the two systems throw away different information, even if they agree on natural images.</p>
+    <p>Across stages, the pattern is systematic. For a standard network, early-stage metamers can still look like the original, and later-stage metamers look like colored noise to people, even though the network gives them the same name. An adversarially trained network keeps much more of the picture. Training with random noise instead does not. Metamers say not only that a model’s invariances differ from ours, but where, stage by stage, and which training choices close the gap.</p>
+    <figure class="fig">
+      <img src="assets/lab-solutions/robust-4b.png" alt="A café photo, its metamer for a standard network, and its metamer for a robust network">
+      <figcaption>The same café photo, matched at the last stage of two networks. The standard network’s metamer is noise to us. The robust network’s still shows the cup, the saucer, and the hand. Both networks still call their own metamer espresso.</figcaption>
+    </figure>
+  </section>
+
+  <section id="lab">
+    <h2>Before the lab</h2>
+    <p>What information can be removed from an image while keeping what we perceive? For textures, what did the scrambling and the synthesis throw away? In the periphery, what is lost outside the center of gaze, and why don’t we notice? Would a classifier be fooled by the same changes, or by different ones?</p>
+    <p>In the lab you make metamers with a library called plenoptic. First a texture: pick a photo and synthesize a new image that matches its statistics. Then a vision network: match the activations at one stage, early or late, and see what survives. Then a sound, with an audio model. The notebook is <a href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day03-lab-metamers.ipynb">Metamers, in Colab</a>.</p>
+  </section>
+
+</main>
+</div>
+</body>
+</html>

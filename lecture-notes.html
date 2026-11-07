@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Day 1 Lecture Notes · Computer Vision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Same look as homework.html and readings.html. */
+  :root{
+    --bg:#0a0d16; --surface:#121827; --surface2:#171f33; --line:#25304a;
+    --text:#e9edf6; --mute:#9aa5bd;
+    --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{ margin:0; background:var(--bg); color:var(--text);
+    font:16.5px/1.65 Inter, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif; }
+  a{ color:var(--cyan); }
+
+  .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
+  .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;
+    font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
+  .spine b{ color:var(--text); font-weight:500; }
+  .page{ margin-left:44px; }
+
+  .hero{ position:relative; overflow:hidden; border-bottom:1px solid var(--line);
+    background:radial-gradient(120% 90% at 78% 40%, #121a33 0%, var(--bg) 60%); }
+  .hero-in{ position:relative; max-width:46rem; margin:0 auto; padding:8vh 24px 4vh; }
+  .back{ margin:0 0 2.2em; font-size:.95rem; display:flex; align-items:center; gap:1.2em; flex-wrap:wrap; }
+  .back a{ color:var(--mute); text-decoration:none; }
+  .back a:hover{ color:var(--text); }
+  .back button{ margin-left:auto; font:600 .85rem/1 'Space Grotesk', sans-serif; color:var(--bg);
+    background:var(--cyan); border:0; border-radius:999px; padding:.45em .9em; cursor:pointer; }
+  .back button:hover{ filter:brightness(1.08); }
+  .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--cyan); }
+  h1{ margin:0 0 .35em; font:700 clamp(2.2rem, 6vw, 3.8rem)/.95 'Space Grotesk', sans-serif; text-transform:uppercase;
+    background:linear-gradient(90deg, #fff 0%, #c7fff4 55%, #e4d8ff 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lead{ max-width:42rem; color:#d3d9e6; font-size:1.05rem; margin:0 0 1.2em; }
+  .toc{ display:flex; flex-wrap:wrap; gap:8px; margin:0; padding:0; list-style:none; }
+  .toc a{ color:var(--mute); text-decoration:none; font:500 .88rem/1 'Space Grotesk', sans-serif;
+    border:1px solid var(--line); border-radius:999px; padding:.35em .75em; }
+  .toc a:hover{ color:var(--text); border-color:var(--cyan); }
+
+  main{ max-width:46rem; margin:28px auto 72px; padding:36px 40px 56px;
+    background:#fff; color:#1c1917; border-radius:18px;
+    box-shadow:0 18px 50px rgba(0,0,0,.35); }
+  main a{ color:#0f766e; }
+  main a:hover{ color:#115e59; }
+  main h2, main h3, main strong, main .qs b{ color:#1c1917; }
+  main li::marker{ color:#a8a29e; }
+  main .callout, main .theory, main .qs li{ background:#f5f5f4; border-color:#e7e5e4; color:#1c1917; }
+  main figcaption, main .meta, main .src{ color:#57534e; }
+  section{ padding-top:2.4em; scroll-margin-top:1.25rem; }
+  #question{ --c:var(--cyan); } #course{ --c:var(--violet); } #hard{ --c:var(--amber); }
+  #assumptions{ --c:var(--pink); } #brain{ --c:var(--sky); } #history{ --c:var(--amber); }
+  #computers{ --c:var(--cyan); } #practice{ --c:var(--violet); } #after{ --c:var(--sky); }
+  h2{ margin:0 0 .7em; font:700 1.45rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
+  h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
+  h3{ margin:1.3em 0 .35em; font:700 1.08rem/1.3 'Space Grotesk', sans-serif; }
+  p{ margin:0 0 .75em; }
+  ul, ol{ margin:0 0 .9em; padding-left:1.2em; }
+  li{ margin:.28em 0; }
+  li::marker{ color:var(--mute); }
+
+  .callout{ margin:1em 0 1.15em; padding:14px 16px; border-radius:14px; background:var(--surface);
+    border:1px solid var(--line); border-left:4px solid var(--c, var(--cyan)); }
+  .callout p{ margin:0; }
+
+  figure.fig{ margin:1em 0 1.2em; }
+  figure img, .theory > img, .grid3 img{ display:block; width:100%; max-width:100%; height:auto; background:#fff; border-radius:12px; }
+  figcaption{ margin-top:.45em; color:var(--mute); font-size:.9rem; line-height:1.45; }
+  .pair{ display:grid; grid-template-columns:minmax(0, 1.35fr) minmax(0, .85fr); gap:14px; align-items:start; margin:1em 0 1.2em; }
+  .pair figure{ margin:0; min-width:0; }
+  .grid3{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin:1em 0 1.15em; }
+  .grid3 figure{ margin:0; min-width:0; }
+  .grid3 img{ aspect-ratio:1; object-fit:cover; }
+  .grid3 figcaption{ font-size:.82rem; }
+
+  .theory{ display:grid; grid-template-columns:132px minmax(0,1fr); gap:16px; align-items:center;
+    margin:0 0 10px; padding:14px 16px; border-radius:14px; background:var(--surface); border:1px solid var(--line); }
+  .theory > img{ width:100%; border-radius:8px; }
+  .theory h3{ margin-top:0; }
+  .theory p:last-child{ margin-bottom:0; }
+  .meta{ margin:0 0 .35em; color:var(--mute); font-size:.88rem; }
+
+  .sink{ position:relative; max-width:26rem; }
+  .sink img{ display:block; width:100%; height:auto; border-radius:12px; }
+  .det{ position:absolute; box-sizing:border-box; border:3px solid; }
+  .det b{ position:absolute; left:-3px; top:-1.25em; padding:0 .25em; font:700 .75rem/1.2 Inter, sans-serif; background:#fff; color:#0f172a; }
+
+  .qs{ margin:0; padding:0; list-style:none; display:grid; gap:8px; }
+  .qs li{ margin:0; padding:12px 14px; border-radius:12px; background:var(--surface); border:1px solid var(--line); }
+  .qs b{ display:block; font:600 .95rem/1.3 'Space Grotesk', sans-serif; color:#fff; }
+  .src{ color:var(--mute); font-size:.92rem; }
+
+  @media (max-width:700px){
+    .spine{ display:none; } .page{ margin-left:0; }
+    .hero-in{ padding:5vh 16px 3vh; }
+    main{ margin:16px 16px 48px; padding:24px 18px 40px; }
+    .pair, .grid3, .theory{ grid-template-columns:1fr; }
+    .back button{ margin-left:0; }
+  }
+  @media print{
+    body, .page, .hero{ background:#fff; color:#1c1917; }
+    .spine, .back{ display:none; }
+    .page{ margin:0; }
+    h1{ color:#1c1917; background:none; -webkit-text-fill-color:#1c1917; }
+    .lead, .meta, .src, figcaption{ color:#444; }
+    a{ color:#1c1917; }
+    .callout, .theory, .qs li{ background:#fff; border-color:#ccc; }
+    h2::before{ box-shadow:none; }
+    figure, .theory, .callout{ break-inside:avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="spine" aria-hidden="true"><span><b>Computer Vision</b> &nbsp;/&nbsp; Day 1 notes</span></div>
+<div class="page">
+
+<header class="hero">
+  <div class="hero-in">
+    <div class="back"><a href="index.html">← Home</a><a href="deck.html">Slides</a><a href="homework.html">Homework</a>
+      <button type="button" onclick="window.print()" title="Opens the print dialog. Choose Save as PDF.">Download PDF</button></div>
+    <p class="kicker">Day 1 · Fernanda de la Torre · Shreya Pandit</p>
+    <h1>Lecture notes</h1>
+    <p class="lead">What does it mean to see? These notes follow the Day 1 lecture: why a picture is not a scene, what the visual system assumes, and what computer vision is asked to recover.</p>
+    <nav class="toc" aria-label="On this page">
+    <a href="#question">The question</a>
+    <a href="#course">The course</a>
+    <a href="#hard">Why vision is hard</a>
+    <a href="#assumptions">Assumptions</a>
+    <a href="#brain">Human vision</a>
+    <a href="#history">A history of seeing</a>
+    <a href="#computers">Computers</a>
+    <a href="#practice">Practice</a>
+    <a href="#after">After class</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section id="question">
+    <h2>The question</h2>
+    <p>Seeing feels instant. That is why the difficulty is easy to miss. The question for the course is what it actually means to see, for a brain and for a computer. Today opens the question. Later we open one image as numbers.</p>
+  </section>
+
+  <section id="course">
+    <h2>How the course works</h2>
+    <p>The three weeks put human vision and machine vision side by side. The work is hands-on, from pixels to learned models. At each step the question is the same one from this morning: what does the system actually receive, and what does it infer. You build the thing, and you also say where it fails.</p>
+    <p>By the end you can load and change images in Python, use a pretrained model, and build an application of your own. You present the design, the result, and the limits. Labs, homework, and that project are the work of the course.</p>
+    <p>Co-design means we learn what you already know and what you want to build. The questionnaire today is the start. Later days, and the final project, bend toward those interests.</p>
+    <p>Every class follows the same rhythm.</p>
+    <ol>
+      <li><strong>Intro question,</strong> to start thinking.</li>
+      <li><strong>Lecture,</strong> on the concepts.</li>
+      <li><strong>Lab.</strong> Today that is the checker-shadow image as an array. Tomorrow is a system that recovers boxes.</li>
+      <li><strong>Exit question:</strong> what stuck?</li>
+    </ol>
+  </section>
+
+  <section id="hard">
+    <h2>Why vision is hard</h2>
+    <p>Two different difficulties. A camera stores only brightness. And even a clean drawing still fits many solid shapes.</p>
+
+    <h3>The input is a table of numbers</h3>
+    <p>A camera does not store objects, edges, or distance. It stores a brightness at every pixel. Take one small patch and write it out as a table, called <em>I</em>. Each entry is the brightness of one pixel, about 0 for black and about 255 for white, on a grid of roughly sixteen rows and sixteen columns.</p>
+    <p>In the middle columns the values fall off, through the hundreds, into the twenties and thirties, then climb again. That dip is a dark vertical stroke, but the table does not say so. There is no edge in the list, no object, and no depth. This list of integers is the whole input.</p>
+    <div class="pair">
+      <figure class="fig">
+        <img src="assets/ill-posed/input-pixel-values.png" alt="The patch written as a matrix I of brightness numbers">
+        <figcaption>The patch as the table <em>I</em>. The dip in the middle columns is the dark stroke. The table does not say so.</figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/ill-posed/input-what-we-see.png" alt="The same numbers drawn as gray squares, with a dark vertical bar">
+        <figcaption>The same numbers, drawn. Row <em>m</em>, column <em>n</em>.</figcaption>
+      </figure>
+    </div>
+    <p>Nothing was added between the table and the picture. Painting the numbers is enough for a person to see a bar.</p>
+    <div class="callout">
+      <p><strong>The camera is a measurement device, not a vision system.</strong> Measurement is the table. Seeing is whatever has to be inferred after that. Tomorrow’s lab starts from an array like this one.</p>
+    </div>
+
+    <h3>One drawing, many shapes</h3>
+    <p>A line drawing tells us the <em>x</em> and <em>y</em> of each point, and not how far away it is. Each corner could sit anywhere along its line of sight. Most of us see a cube, and a cube is a perfectly good answer. Other shapes fit the same lines of sight just as well. There are infinitely many 3D shapes consistent with one drawing.</p>
+    <figure class="fig">
+      <img src="assets/ill-posed/line-drawing-ambiguity-figure.png" alt="A line drawing of a cube, and several different solid shapes that project to the same drawing">
+      <figcaption>The classic figure. (a) The drawing gives <em>x</em> and <em>y</em>. (b) and (c) Different solids sit on the same lines of sight and land on that one drawing.</figcaption>
+    </figure>
+    <p>Slide each shape down its lines of sight onto the image plane and every one of them lands on exactly the same drawing. The problem is ill-posed: one image, infinitely many 3D shapes. We still saw a cube. The visual system has to choose, and it chooses using assumptions about the world.</p>
+  </section>
+
+  <section id="assumptions">
+    <h2>Assumptions about the world</h2>
+    <p>Vision is not a measuring device. It makes assumptions, and those assumptions are usually the right answer about the world even when they are the wrong answer about the pixels.</p>
+
+    <h3>Light versus surface: the checker shadow</h3>
+    <p>Edward Adelson’s checker-shadow illusion (1995) is a checkerboard with a cylinder casting a shadow across it. Look at the squares marked A and B. Which is darker? Most people say A, clearly.</p>
+    <figure class="fig">
+      <img src="assets/assumptions/checker-shadow.png" alt="Adelson’s checkerboard with a green cylinder and squares marked A and B">
+      <figcaption>Checker-shadow illusion, Edward H. Adelson, 1995. A and B are the same gray. The lecture then draws two bars of A’s gray down into B, and the edge disappears.</figcaption>
+    </figure>
+    <p>Draw two bars in exactly the gray of square A, running from A down to B. Where the bars meet B there is no edge at all. A and B are the same gray. The visual system assumes B sits in a shadow and corrects for it. It reports the color of the surface, not the light reaching the eye.</p>
+
+    <h3>Size and distance: Emmert’s law</h3>
+    <p>A second assumption pairs size with distance. In a corridor, two white spheres of equal size sit on the screen. Most people say the farther one looks larger. Set the two circles side by side and they have the same diameter.</p>
+    <p>Emmert’s law: the size we see scales with the distance we see. The visual system does not report the size of the patch on the retina. That slide is drawn live in the lecture, so there is no still to put here.</p>
+  </section>
+
+  <section id="brain">
+    <h2>What human vision computes</h2>
+    <p>The brain does not receive a finished picture. Light comes in, and a chain of stages turns it into contrast, edges, objects, and actions. A machine later in the week does a cousin of this: local filters, then a name.</p>
+    <figure class="fig">
+      <img src="assets/visual-system/pathways.png" alt="Side view of the brain with the retina, LGN, V1, the ventral stream through V4 to IT, and the dorsal stream through MT into parietal cortex">
+      <figcaption>Light lands on the retina, then LGN, then V1. The ventral stream runs toward inferotemporal cortex. The dorsal stream runs up into parietal cortex. The figure source is still to add.</figcaption>
+    </figure>
+
+    <h3>From the eye to V1</h3>
+    <p>Light enters through the pupil. The lens focuses it on the retina, a thin sheet of neurons on the back of the eye. The retina is not film. Processing starts before anything leaves the eye, and light has to pass the other cell layers to reach the photoreceptors at the back.</p>
+    <p>Rods work in dim light, with no color and a coarse picture. Cones work in brighter light and carry the detail, packed into the fovea. Three cone types, L, M, and S, prefer long, medium, and short wavelengths. Color is the brain comparing those three responses, not a paint stored in the eye.</p>
+    <p>Many ganglion cells have a center-surround receptive field. They fire for a bright spot on a dark ring, or the reverse, and stay quiet on a uniform field. A flat wall is quiet and a boundary is loud. The signal emphasizes edges and local contrast: early feature extraction, the biological version of a spatial filter.</p>
+    <p>The axons of the ganglion cells leave as the optic nerve. They reach the lateral geniculate nucleus, the LGN, in the thalamus, and then primary visual cortex, V1, at the back of the head. The LGN organizes the signal on the way. It is more than a relay.</p>
+    <p>In V1, Hubel and Wiesel found cells that prefer a bar at one orientation: vertical for one cell, horizontal or diagonal for another. A simple cell cares about the position of that edge. A complex cell keeps the orientation and cares less about the exact place. Nearby places in the world land nearby on the cortex, and the fovea takes far more than its share of that map. An early layer of a convolutional network is the machine version: filters for edges, gradients, and simple texture.</p>
+
+    <h3>Ventral stream: what</h3>
+    <p>One stream runs down and forward, from V1 through V4 into inferotemporal cortex. This is the ventral stream. It builds shape, color, objects, and faces. Face-selective cortex, including the fusiform gyrus, is part of this stream.</p>
+    <p>The hard part is invariance. Position, angle, distance, lighting, and occlusion all change the image, and the object stays the object. The same cup can make a different image from another angle, another distance, or another light, and we still know it is that cup. A classifier that names a photograph is attempting this job, and it can be confidently wrong.</p>
+
+    <h3>Dorsal stream: where and how</h3>
+    <p>The other stream runs up into parietal cortex. This is the dorsal stream. It carries position, motion, depth, and the information used to reach or to move around something. Area MT, also called V5, prefers motion in a direction and at a speed. Catching a ball, or reaching for a glass, needs this stream: where it is, how it is moving, and what the hand should do. Optical flow, tracking, and a robot arm are the machine versions. Recognition alone does not pick up the cup.</p>
+    <div class="callout">
+      <p><strong>The two streams are not a wall.</strong> Look at a bicycle. One stream says it is a bicycle. The other says where it is, whether it is moving, and how to reach it or step around it. A name is not a reach. If you can name a cup and cannot reach it, the split is a real division of labor.</p>
+    </div>
+  </section>
+
+  <section id="history">
+    <h2>A history of theories of seeing</h2>
+    <p>The argument about seeing is old. Computer vision is the late chapter. These accounts are from <em>Foundations of Computer Vision</em>, chapter 1.3.</p>
+
+    <article class="theory">
+      <img src="assets/history/intromission.svg" alt="Class diagram: small copies travel from an object into the eye">
+      <div>
+        <h3>Early intromission</h3>
+        <p class="meta">Ancient atomists · c. 400–50 BCE · object to eye</p>
+        <p>Objects shed tiny copies, <em>eidola</em>, and those copies enter the pupil. The eye receives something from the world. It does not shine on the world. This is the ancestor of treating sight as something physical that arrives. It is not yet a camera, and it is not modern physics.</p>
+      </div>
+    </article>
+    <article class="theory">
+      <img src="assets/history/extramission.svg" alt="Class diagram: rays leave the eye and reach the object">
+      <div>
+        <h3>Extramission</h3>
+        <p class="meta">Euclid · c. 300 BCE · eye to object</p>
+        <p>The eye sends rays out. The rays touch objects and measure angles and distance. That is the first mathematical account of perspective. Perspective drawing, and a camera model, still use that geometry. The rays do not actually leave the eye.</p>
+      </div>
+    </article>
+    <article class="theory">
+      <img src="assets/history/ibn-al-haytham.jpg" alt="Imagined engraving of Ibn al-Haytham, 1647">
+      <div>
+        <h3>Mathematical intromission</h3>
+        <p class="meta">Ibn al-Haytham · Book of Optics, c. 1011 · object to eye</p>
+        <p>Light reflects from every point of an object into the eye. The rays that come in straight are the ones that form a clear image. He rejected rays leaving the eye. A dark room with a small hole, a camera obscura, shows the light coming in and forming a picture. He used that room as the demonstration. He did not invent it. The picture still is not the scene. Tomorrow we recover boxes only by adding assumptions. The face is an imagined engraving from 1647, not a sitting.</p>
+      </div>
+    </article>
+    <article class="theory">
+      <img src="assets/history/helmholtz.jpg" alt="Photograph of Hermann von Helmholtz">
+      <div>
+        <h3>Unconscious inference</h3>
+        <p class="meta">Hermann von Helmholtz · 1867 · the brain, from the retinal image</p>
+        <p>The retina delivers a messy signal. The brain applies what it already knows and picks the best guess about the object that made the light. Helmholtz called ordinary seeing an unconscious conclusion. Press on a closed eye and you see light: the guess was wrong about the cause. Predictive processing, and a generative model, are this idea in a new machine. The guess can be wrong. On Day 3 a network can name an elephant statue a triceratops. The percentage is the guess, not proof.</p>
+      </div>
+    </article>
+    <article class="theory" style="grid-template-columns:1fr">
+      <div>
+        <h3>Gestalt theory</h3>
+        <p class="meta">Max Wertheimer · 1912 · the brain, grouping the parts</p>
+        <figure class="fig">
+          <img src="assets/history/gestalt-grouping.jpg" alt="Grouping laws: proximity, similarity of color, size, and orientation, closure, parallelism, and symmetry">
+          <figcaption>Grouping laws. Left: no grouping, then proximity, then similarity of color, size, and orientation. Right: closure, parallelism, and symmetry.</figcaption>
+        </figure>
+        <p>The mind groups marks into wholes before it lists the parts. Near marks group. Marks of the same color, size, or orientation group. Closed, parallel, and symmetric marks group. Raw marks are not yet objects, and the early theory did not say how these laws compete. A vision system still has to decide which edges are one thing. On Day 3 a cube gets grouped as a chest: the grouping ran, and the object is wrong. Layout, interface design, and pattern recognition still use these laws.</p>
+      </div>
+    </article>
+    <article class="theory">
+      <img src="assets/history/path.svg" alt="Class diagram of a path on the ground">
+      <div>
+        <h3>Ecological psychology</h3>
+        <p class="meta">James J. Gibson · 1979 · environment and body, both ways</p>
+        <p>A moving observer picks up structure in the light. As you move, the optic array changes in a structured way, and that structure specifies the layout. A path affords walking. An obstacle affords collision. Gibson rejected Helmholtz’s hidden guess: if the light already says what the place lets you do, you do not need a hidden conclusion. A car that must drive, or a robot that must reach, needs the use of the scene, not only a name. Tomorrow we still recover boxes. That is a task we chose, not an affordance. The diagram is ours: a path on the ground.</p>
+      </div>
+    </article>
+    <article class="theory">
+      <img src="assets/history/levels.svg" alt="Three stacked boxes: computational, algorithm, implementation">
+      <div>
+        <h3>Computational vision</h3>
+        <p class="meta">David Marr · <em>Vision</em>, 1982 · from the image to a 3D model</p>
+        <p>Three levels, and they can be studied apart. The computational level asks what the task is, and why. The algorithm asks which facts are made explicit, and by what steps. The implementation is the eye, the brain, or a computer. Raw intensities become a 3D description. Edge finding is one of the early steps. The same task can run on an eye or on a computer. Tomorrow writes the task: projection, edges, assumptions, boxes. The day after does not derive that theory. It runs a pretrained network. Marr is how we tell those two days apart. The drawing is a class diagram. The book is 1982, after his death in 1980.</p>
+      </div>
+    </article>
+
+    <h3>Computer vision is the late chapter</h3>
+    <p>The same question, in a short recent history of methods.</p>
+    <ol>
+      <li><strong>Geometry.</strong> Write the rules: a world of boxes, a camera, and equations.</li>
+      <li><strong>Designed features.</strong> A person decides what to measure. Edges, corners, texture. The system measures what we told it to measure.</li>
+      <li><strong>Learning.</strong> The features come from data, not from a person writing the rule. Deep learning, and systems that generate images as well as read them. The argument about seeing is the old part. The network is the new implementation.</li>
+    </ol>
+    <p class="src">Torralba, Isola, and Freeman, <em>Foundations of Computer Vision</em>, chapter 1.3.</p>
+  </section>
+
+  <section id="computers">
+    <h2>Can computers do the same?</h2>
+    <p>The brain solves this all the time. Computers do some of it, and not the rest.</p>
+    <div class="callout">
+      <p><strong>Computer vision is getting information about the world from images.</strong> The input is a picture. The output is something the picture does not store: a name, a distance, a shape.</p>
+    </div>
+
+    <h3>Where it is starting to work</h3>
+    <div class="grid3">
+      <figure><img src="assets/can-computers/app-healthcare.jpg" alt="A clinical scene"><figcaption>Healthcare</figcaption></figure>
+      <figure><img src="assets/can-computers/app-robotics.jpg" alt="A robot handling an object"><figcaption>Robotics</figcaption></figure>
+      <figure><img src="assets/can-computers/app-driving.jpg" alt="A road from a driver’s view"><figcaption>Driving</figcaption></figure>
+      <figure><img src="assets/can-computers/app-gaming.jpg" alt="A person playing with a depth camera"><figcaption>Gaming</figcaption></figure>
+      <figure><img src="assets/can-computers/app-accessibility.jpg" alt="A person using a phone that can describe a scene"><figcaption>Accessibility</figcaption></figure>
+      <figure><img src="assets/can-computers/app-ecology.jpg" alt="Fish on a reef"><figcaption>Ecology</figcaption></figure>
+    </div>
+    <ul>
+      <li><strong>Healthcare.</strong> Finding structures in medical and microscopy images.</li>
+      <li><strong>Robotics.</strong> Robots that see what they are handling.</li>
+      <li><strong>Driving.</strong> Self-driving cars.</li>
+      <li><strong>Gaming.</strong> Depth cameras, such as the Kinect, that track a body.</li>
+      <li><strong>Accessibility.</strong> Automatic descriptions of photos for people who are blind or have low vision.</li>
+      <li><strong>Ecology.</strong> Detecting and counting animals, such as fish on a reef.</li>
+    </ul>
+
+    <h3>Recombining concepts</h3>
+    <p>One reason recent models are powerful is that they recombine concepts to make something new. The lecture showed three generated images, from the prompt “a cup of coffee, a cat, and a cup of cat.” Given a text input the model was not handed as one labeled thing, it can put the cup and the cat in the same picture. That ability is compositionality. It is a large part of the creativity of these models, and the examples were not a single lucky image.</p>
+    <div class="grid3">
+      <figure><img src="assets/can-computers/cup-of-coffee.jpg" alt="A generated picture of a cup of coffee"><figcaption>A cup of coffee</figcaption></figure>
+      <figure><img src="assets/can-computers/cat.jpg" alt="A generated picture of a cat"><figcaption>A cat</figcaption></figure>
+      <figure><img src="assets/can-computers/cup-of-cat.jpg" alt="A generated picture of a cat sitting in a cup of coffee"><figcaption>A cup of cat</figcaption></figure>
+    </div>
+    <p class="src">Images: ChatGPT-4o (OpenAI). Prompt idea: Shuang Li.</p>
+
+    <h3>Not long ago</h3>
+    <p>A few years ago an object detector, shown a bathroom sink, reported a sheep, an airplane, a bed, and a horse. The boxes below are the ones the lecture drew on this photo. The same field now produces a cup of cat. That is how fast the methods have moved, and why this is a useful time to learn how they work.</p>
+    <figure class="fig">
+      <div class="sink">
+        <img src="assets/can-computers/sink-detections.jpg" alt="A bathroom sink. The detector’s boxes label parts of it sheep, airplane, bed, and horse.">
+        <span class="det" style="left:1.8%;top:31%;width:23.2%;height:38.6%;border-color:#f00"><b style="color:#f00">Sheep</b></span>
+        <span class="det" style="left:66.7%;top:18.1%;width:31.5%;height:22.2%;border-color:#080"><b style="color:#080">Airplane</b></span>
+        <span class="det" style="left:30.6%;top:42.2%;width:61.4%;height:15.8%;border-color:#cc0"><b style="color:#a60">Bed</b></span>
+        <span class="det" style="left:62.6%;top:46.1%;width:23.2%;height:38.6%;border-color:#6a8f4e"><b style="color:#3d5c28">Horse</b></span>
+      </div>
+      <figcaption>The photo is the lecture’s. The four boxes are placed where the slide drew them. Image source still to add.</figcaption>
+    </figure>
+
+    <h3>The tasks</h3>
+    <p>These are the jobs in <a href="https://scale.com/guides/computer-vision">Scale’s guide to computer vision applications</a>.</p>
+    <ul>
+      <li><strong>Classification</strong> names the one thing in the picture. <strong>Detection</strong> finds each instance and where it is. <strong>Recognition</strong> returns the objects in a scene, not only one class.</li>
+      <li><strong>Tracking</strong> follows those objects over time and keeps an identity for each. <strong>Event detection</strong> says when something happened, such as an item picked up. <strong>Pose</strong> is the position of a body, a hand, or a set of points.</li>
+      <li><strong>Depth</strong> is how far, from one camera or from two.</li>
+      <li><strong>Generation</strong> makes a new image. Diffusion models are the current way.</li>
+    </ul>
+
+    <h3>Industries, from the same guide</h3>
+    <div class="grid3">
+      <figure><img src="assets/can-computers/app-shops.jpg" alt="A checkout counter"><figcaption>Shops</figcaption></figure>
+      <figure><img src="assets/can-computers/app-ar.jpg" alt="A person using an augmented-reality view"><figcaption>Augmented reality</figcaption></figure>
+      <figure><img src="assets/can-computers/app-maps.jpg" alt="A satellite view of land"><figcaption>Maps</figcaption></figure>
+    </div>
+    <ul>
+      <li><strong>Driving.</strong> Assistance, levels 1 and 2: staying in a lane, braking, parking. Autonomous vehicles, levels 3 to 5, with little or no human input. The seeing task is the road, other cars, and people.</li>
+      <li><strong>Health.</strong> Diagnostics, watching a patient, and research. Medical images share a standard format, DICOM, which is what made these sets usable.</li>
+      <li><strong>Shops.</strong> A checkout that sees what was picked up. Matching the same product across photos, and dropping duplicates. Generated pictures of products.</li>
+      <li><strong>Robots and farms.</strong> Moving inventory, finding a defect, harvesting, and disease on a plant.</li>
+      <li><strong>Software.</strong> Augmented and virtual reality, something added to a view you already have. And content understanding: recommendations, and trust and safety.</li>
+      <li><strong>Maps and the public sector.</strong> Overhead imagery and video: ordinary cameras, radar, and full-motion video. The guide’s examples are damage after a disaster or a war, reconnaissance, a perimeter, and a forest or a coastline.</li>
+    </ul>
+  </section>
+
+  <section id="practice">
+    <h2>Practice, then a group question</h2>
+    <p>The same checker shadow is now a grid of numbers. In <a href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-practice-numpy-images.ipynb">Images as arrays</a>, open the notebook in Colab, choose File, Save a copy in Drive, and work in that copy. You read pixels, including squares A and B, which are the same gray, then slices, channels, brightness, and contrast.</p>
+    <p>In groups of four, pick one application you just heard, or another you care about. Four answers, one sentence each.</p>
+    <ol class="qs">
+      <li><b>What problem does it solve?</b> The problem in the world, not the name of a model.</li>
+      <li><b>How is that like human vision?</b> Recognizing, finding, tracking, judging distance, reading a scene.</li>
+      <li><b>What does the system actually see?</b> A photo, a video, or something else. Say which.</li>
+      <li><b>Where could it be wrong?</b> Darkness, a rare case, a thing that looks like something else. Pixels, a simple system, or a model that can be confidently wrong.</li>
+    </ol>
+  </section>
+
+  <section id="after">
+    <h2>After class</h2>
+    <ul>
+      <li><a href="https://forms.gle/3EP5zfyj7UvarX9B7">Day 1 questionnaire</a>. Background and what you want to learn. There are no right or wrong answers.</li>
+      <li>Read <a href="https://www.cogconfluence.com/wp-content/uploads/2017/09/perception_inverse_problem.pdf">Pizlo, “Perception viewed as an inverse problem”</a> (Vision Research, 2001). Seeing as recovering a scene from an image is the inverse of making the image.</li>
+      <li>Finish <a href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-practice-numpy-images.ipynb">Images as arrays</a>.</li>
+      <li>Optional: <a href="https://www.cogconfluence.com/wp-content/uploads/2017/09/Pritchard_stabilization.pdf">Pritchard, “Stabilized images on the retina”</a> (Scientific American, 1961), and <a href="https://visionbook.mit.edu/simplesystem.html">chapter 2 of <em>Foundations of Computer Vision</em></a>, the simple system we build next.</li>
+    </ul>
+    <p>The course page is <a href="https://delamarifer.github.io/human-machine-perception/">delamarifer.github.io/human-machine-perception</a>. The full list is on the <a href="homework.html">homework page</a>.</p>
+  </section>
+
+</main>
+</div>
+</body>
+</html>

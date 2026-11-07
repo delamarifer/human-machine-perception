@@ -92,6 +92,17 @@
   a.card b{ display:block; font:700 1.2rem/1.3 'Space Grotesk', sans-serif; margin-bottom:.3em; }
   a.card span{ color:var(--mute); font-size:.95rem; }
   a.card .badge{ display:block; margin-top:12px; height:20px; }
+  .card.lecture{ position:relative; display:block; padding:20px 20px 18px; border:1px solid var(--line); border-radius:18px; overflow:hidden;
+    background:linear-gradient(180deg, var(--surface2), var(--surface)); color:var(--text); }
+  .card.lecture::before{ content:''; position:absolute; inset:0 0 auto 0; height:3px; background:var(--k); box-shadow:0 0 18px 2px var(--k); }
+  .card.lecture > small{ display:block; font-size:.72rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--k); margin-bottom:.4em; }
+  .card.lecture > b{ display:block; font:700 1.2rem/1.3 'Space Grotesk', sans-serif; margin-bottom:.3em; }
+  .card.lecture > b + b{ margin-top:.85em; }
+  .card.lecture > span{ display:block; color:var(--mute); font-size:.95rem; }
+  .lecture-links{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 0; }
+  .lecture-links a{ color:var(--k); text-decoration:none; font:600 .92rem/1 'Space Grotesk', sans-serif;
+    border:1px solid color-mix(in srgb, var(--k) 50%, var(--line)); border-radius:999px; padding:.32em .75em; }
+  .lecture-links a:hover{ background:color-mix(in srgb, var(--k) 16%, transparent); }
   a.card.past{ opacity:.68; border-style:dashed; }
   a.card.past::before{ filter:grayscale(.7); }
   a.card.past small{ color:var(--mute); }
@@ -179,8 +190,9 @@
     <section class="day" id="day-1" style="--c:var(--cyan)">
       <h3>Day 1</h3>
       <div class="cards">
-        <a class="card" href="deck.html" style="--k:var(--cyan)"><small>Lecture slides</small><b>Introduction to Visual Systems</b>
-          <span>What does it mean to see?</span></a>
+        <div class="card lecture" style="--k:var(--cyan)"><small>Lecture</small><b>Introduction to Visual Systems</b>
+          <span>What does it mean to see?</span>
+          <p class="lecture-links"><a href="deck.html">Slides</a><a href="lecture-notes.html">Notes</a></p></div>
         <a class="card" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-practice-numpy-images.ipynb" style="--k:var(--amber)"><small>In-class lab (continued at home)</small><b>Images as arrays</b>
           <span>Checker-shadow image. NumPy slices and arithmetic.</span>
           <img class="badge" src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"></a>
@@ -191,20 +203,22 @@
     <section class="day" id="day-2" style="--c:var(--violet)">
       <h3>Day 2</h3>
       <div class="cards">
-        <a class="card" href="day02/deck.html" style="--k:var(--violet)"><small>Lecture slides</small><b>Computer Vision: Promise, Pitfalls, and Your Place in It</b>
-          <span>What computer vision can do, where it still fails, and your project.</span></a>
+        <div class="card lecture" style="--k:var(--violet)"><small>Lecture</small><b>Computer Vision: Promise, Pitfalls, and Your Place in It</b>
+          <span>What computer vision can do, where it still fails, and your project.</span>
+          <p class="lecture-links"><a href="day02/deck.html">Slides</a><a href="day02/lecture-notes.html">Notes</a></p></div>
         <a class="card" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-lab-simple-vision-system.ipynb" style="--k:var(--amber)"><small>In-class lab (continued at home)</small><b>A simple vision system</b>
           <span>Recover 3D from one image of a blocks world.</span>
           <img class="badge" src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"></a>
         <a class="card" href="metamers.html" style="--k:var(--sky)"><small>Homework / Readings</small><b>Metamers primer</b>
-          <span>Read the primer; you write a short response on it by hand at the start of next class. Also: finish the simple vision system lab, and send your project idea by Friday night.</span></a>
+          <span>Read the primer; you write a short response on it by hand at the start of next class. Also: finish the simple vision system lab, and send your project idea by Saturday night.</span></a>
       </div>
     </section>
     <section class="day" id="day-3" style="--c:var(--pink)">
       <h3>Day 3</h3>
       <div class="cards">
-        <a class="card" href="day03/deck.html" style="--k:var(--pink)"><small>Lecture slides</small><b>Transformations to input stimuli</b>
-          <span>Part 1: probing perceptual representations through metamers. Part 2: image transformations and filters.</span></a>
+        <div class="card lecture" style="--k:var(--pink)"><small>Lecture</small><b>Both lectures, in one slide deck</b>
+          <span>Part 1, metamers, then Part 2, image filters. The Slides link plays them in that order.</span>
+          <p class="lecture-links"><a href="day03/deck.html">Slides</a><a href="day03/lecture-1-notes.html">Lecture 1 notes</a><a href="day03/lecture-2-notes.html">Lecture 2 notes</a></p></div>
         <div class="card lab2" style="--k:var(--amber)"><small>In-class lab</small>
           <a class="lab2-part" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day03-lab-metamers.ipynb"><em>Part 1</em><b>Metamers as windows into representations</b>
             <span>Make your own metamers with plenoptic, for models of seeing and hearing, and test whether a classmate can tell them apart.</span>
@@ -220,8 +234,9 @@
     <section class="day" id="day-4" style="--c:var(--sky)">
       <h3>Day 4</h3>
       <div class="cards">
-        <a class="card" href="day04/deck.html" style="--k:var(--sky)"><small>Lecture slides</small><b>CNNs and Visual Recognition</b>
-          <span>From neurons to convolutional networks, then classification, detection and segmentation with pretrained models.</span></a>
+        <div class="card lecture" style="--k:var(--sky)"><small>Lecture</small><b>CNNs and Visual Recognition</b>
+          <span>From neurons to convolutional networks, then classification, detection and segmentation with pretrained models.</span>
+          <p class="lecture-links"><a href="day04/deck.html">Slides</a><a href="day04-part2/deck.html">Lecture 2 slides</a></p></div>
         <a class="card" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day04-lab-cnn-mnist.ipynb" style="--k:var(--amber)"><small>In-class lab</small><b>Handwritten digits: a fully connected network, then a CNN</b>
           <span>Train both on MNIST, look inside the CNN, and shuffle the pixels. Adapted from MIT 6.S191.</span>
           <img class="badge" src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"></a>
@@ -232,11 +247,12 @@
     <section class="day" id="day-5" style="--c:var(--cyan)">
       <h3>Day 5</h3>
       <div class="cards">
-        <div class="card lab2" style="--k:var(--cyan)"><small>Lecture slides</small>
-          <a class="lab2-part" href="day05-planb/deck.html"><em>Hour 1</em><b>Transformers and Visual Representations</b>
-            <span>The Vision Transformer step by step: patches, embeddings, position, query, key and value, attention, and how it compares with CNNs.</span></a>
-          <a class="lab2-part" href="day05-hour2/deck.html"><em>Hour 2</em><b>Learning without labels</b>
-            <span>Embeddings, contrastive learning and CLIP, then the Konkle &amp; Alvarez reading and RSA.</span></a>
+        <div class="card lecture" style="--k:var(--cyan)"><small>Lecture</small>
+          <b>Hour 1 · Transformers and Visual Representations</b>
+          <span>The Vision Transformer step by step: patches, embeddings, position, query, key and value, attention, and how it compares with CNNs.</span>
+          <b>Hour 2 · Learning without labels</b>
+          <span>Embeddings, contrastive learning and CLIP, then the Konkle &amp; Alvarez reading and RSA.</span>
+          <p class="lecture-links"><a href="day05-planb/deck.html">Hour 1 slides</a><a href="day05-hour2/deck.html">Hour 2 slides</a></p>
         </div>
         <div class="card lab2" style="--k:var(--amber)"><small>In-class labs</small>
           <a class="lab2-part" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day05-lab-transformer-exercises.ipynb"><em>Hour 1</em><b>Transformer exercises</b>
@@ -271,8 +287,8 @@
         <span>Are vision models still blind? Test newer models on BlindTest · Due Wed, Nov 11, 2pm</span></a>
       <a class="card" data-due="2026-11-11T14:00:00+02:00" href="https://forms.gle/F3TMeyRNz44h1rDA8" style="--k:var(--violet)"><small>Due</small><b>Submit Assignment 1</b>
         <span>Your Colab link and one-page PDF · Due Wed, Nov 11, 2pm</span></a>
-      <a class="card" href="https://forms.gle/aKgRbKQpWfukdbG78" style="--k:var(--sky)"><small>Lab</small><b>Day 4 lab</b>
-        <span>Submit your Colab link for the handwritten digits lab.</span></a>
+      <a class="card" data-due="2026-11-06T14:00:00+02:00" href="https://forms.gle/aKgRbKQpWfukdbG78" style="--k:var(--sky)"><small>Due</small><b>Day 4 lab</b>
+        <span>Submit your Colab link for the handwritten digits lab · Due Fri, Nov 6, 2pm</span></a>
     </div>
   </section>
 
@@ -280,7 +296,7 @@
     <h2>Project</h2>
     <div class="cards">
       <a class="card" href="https://forms.gle/wBXHE6AFaHf8RR4T8" style="--k:var(--pink)"><small>Due</small><b>Project proposal</b>
-        <span>Upload your project proposal. · Due Fri, Nov 6, midnight</span></a>
+        <span>General idea due Saturday night. Detailed proposal due Monday.</span></a>
       <a class="card" href="templates.html" style="--k:var(--violet)"><small>Final project</small><b>Project templates</b>
         <span>Idea, proposal, presentation and write-up, for a built demo or an experiment.</span></a>
     </div>
