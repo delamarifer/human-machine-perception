@@ -80,7 +80,7 @@ Both slides end the human section, after "Categories are not crisp" and before "
 - [ ] The Oppenheim image and both figures are likely under copyright. Check permission before this goes on the public site.
 - Checked: Geirhos 95.9% human shape, 77.9% ResNet-50 texture (Section 3.1; the human figure is a share of decisions matching either cue), Fig. 1(c), ICLR 2019.
 - Partly checked: "newer architectures do better, not at human level" follows Geirhos et al. (2021), which covers vision transformers. Not cited on the slide.
-- [ ] Not checked: the apple and iPod example and the "physical attack" wording. The fetched Distill text stopped before the article body, and OpenAI's post refused the fetch.
+- [x] Apple and iPod example removed from the cue conflict slide (2026-11-07). Still not checked: the "physical attack" wording. The fetched Distill text stopped before the article body, and OpenAI's post refused the fetch.
 - [ ] Not checked: the MoMA credit line, because the page refused the fetch.
 - The later critique of the test moved to the benchmarks case study. The cue conflict note now points ahead to it.
 - [ ] "Next class" for transformers assumes this lecture comes right before that class.

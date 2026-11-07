@@ -133,26 +133,21 @@ st(`
 /* Cue conflict closes the human section. The public copy has no figures: the Oppenheim, Geirhos and Goh images await permission. */
 st(`
   <h1 class="t">When shape and texture disagree, models often pick texture</h1>
-  <div class="or-cards or-c2">
+  <div class="or-cards" style="grid-template-columns:minmax(0,60vw);justify-content:center">
     <div class="or-card b" data-step="1">
       <div class="lead"><b>Cat shape, elephant skin</b></div>
       <div class="label">Humans pick shape: 96%. ResNet-50 picks texture: 78%</div>
     </div>
-    <div class="or-card b" data-step="2">
-      <div class="lead"><b>An apple with an "iPod" note</b></div>
-      <div class="label">CLIP says iPod: written text overrides appearance</div>
-    </div>
   </div>
-  <div class="lead b" data-step="3" style="text-align:center">A single-label classifier must choose one cue; humans describe both</div>
+  <div class="lead b" data-step="2" style="text-align:center">A single-label classifier must choose one cue; humans describe both</div>
   <div class="or-cards or-c2 or-small">
-    <div class="or-card b" data-step="4"><div class="label"><b>Still open:</b> no agreed way to measure which cues a model relies on</div></div>
-    <div class="or-card b" data-step="5"><div class="label"><b>Safety:</b> misleading text and stickers are cheap physical attacks</div></div>
+    <div class="or-card b" data-step="3"><div class="label"><b>Still open:</b> no agreed way to measure which cues a model relies on</div></div>
+    <div class="or-card b" data-step="4"><div class="label"><b>Safety:</b> misleading text and stickers are cheap physical attacks</div></div>
   </div>
   ${cite('Geirhos et al. (2019) · Goh et al. (2021), Distill')}
 `, { notes: [
   "(draft) Now the same conflict for models.",
   "(draft) Geirhos and colleagues built images with one object's shape and another's texture: for example, a cat's shape with elephant skin. Among decisions that matched either cue, humans picked the shape 95.9 percent of the time. An ImageNet-trained ResNet-50 picked the texture 77.9 percent of the time.",
-  "(draft) Goh and colleagues showed the same kind of thing with CLIP. An apple with a handwritten iPod note gets labeled as an iPod. Written text overrides appearance.",
   "(draft) A single-label classifier has to choose one cue. Humans describe both.",
   "(draft) Still open: there is no agreed way to measure which cues a model relies on.",
   "(draft) And a safety point: misleading text and stickers are cheap, physical attacks that work in the real world. Teaser: newer architectures do better on this test, though not at human level. Next class: do transformers see shape more like we do? We come back to this test at the end of the lecture, where later work questions it. Bridge: humans recognize by shape and keep both cues. Now let us see what we ask machines to do. The simplest task outputs one label, so the model has to pick one cue."
