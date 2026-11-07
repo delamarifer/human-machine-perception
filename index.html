@@ -52,14 +52,19 @@
   .tagline{ position:relative; margin:-.1em 0 .9em; font:500 clamp(1.15rem, 3vw, 1.6rem)/1.3 'Space Grotesk', sans-serif; font-style:italic;
     background:linear-gradient(90deg, var(--amber), var(--pink) 55%, var(--violet)); -webkit-background-clip:text; background-clip:text; color:transparent; }
   .who{ position:relative; margin:0; color:var(--mute); font-size:1.1rem; }
-  .mails{ position:relative; margin:.35em 0 0; color:var(--mute); font-size:.95rem; }
-  .mails a{ color:inherit; text-decoration:none; }
-  .mails a:hover{ color:var(--cyan); }
   .discord{ position:relative; display:inline-block; margin:.9em 0 .2em; padding:.55em 1.1em; border:1px solid var(--sky); border-radius:999px;
     font:600 .95rem/1 'Space Grotesk', sans-serif; color:var(--text); text-decoration:none;
     background:color-mix(in srgb, var(--sky) 14%, transparent); transition:all .2s; }
   .discord:hover{ background:color-mix(in srgb, var(--sky) 28%, transparent); box-shadow:0 0 20px color-mix(in srgb, var(--sky) 40%, transparent); }
-  .note{ position:relative; margin:.6em 0 0; max-width:34rem; color:var(--mute); font-size:.88rem; font-style:italic; }
+  .oh{ position:relative; display:flex; flex-direction:column; gap:.15em; width:fit-content; max-width:34rem; margin:.9em 0 0; padding:.7em 1em;
+    border:1px solid var(--line); border-left:3px solid var(--cyan); border-radius:12px;
+    background:color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    color:var(--text); font-size:.98rem; line-height:1.45; }
+  .oh-fernanda{ border-left-color:var(--violet); margin-top:.6em; }
+  .oh a.oh-mail{ margin-left:.3em; color:var(--mute); font:500 .92rem/1 Inter, sans-serif; text-decoration:none; }
+  .oh a.oh-mail:hover{ color:var(--text); text-decoration:underline; }
+  .oh b{ font:600 1.02rem/1.4 'Space Grotesk', sans-serif; }
+  .oh a{ color:var(--cyan); font-weight:600; text-underline-offset:3px; }
 
   .with-nav{ display:grid; grid-template-columns:13rem minmax(0, 1fr); gap:8px 28px;
     max-width:72rem; margin:0 auto; padding:0 24px 12vh; align-items:start; }
@@ -163,8 +168,12 @@
     <p class="tagline">with an eye toward human perception</p>
     <p class="who">Fernanda de la Torre · Shreya Pandit</p>
     <a class="discord" href="https://discord.gg/2kN726ZZ6" target="_blank" rel="noopener">Join the class Discord</a>
-    <p class="mails"><a href="mailto:dlatorre@mit.edu">dlatorre@mit.edu</a> · <a href="mailto:shreyalpandit@gmail.com">shreyalpandit@gmail.com</a></p>
-    <p class="note">Fernanda: After the course ends, if I take too long to reply, please email me asking for my WhatsApp until I do :)</p>
+    <div class="oh"><b>Shreya: <a class="oh-mail" href="mailto:shreyalpandit@gmail.com">shreyalpandit@gmail.com</a></b>
+      <span>Schedule time to chat <a href="https://calendly.com/shreyalpandit/30min" target="_blank" rel="noopener">here</a>.</span>
+      <span>Office hours from 4-5pm M-F in lecture room.</span>
+      <span>Email or talk to me if you need time outside of that!</span></div>
+    <div class="oh oh-fernanda"><b>Fernanda: <a class="oh-mail" href="mailto:dlatorre@mit.edu">dlatorre@mit.edu</a></b>
+      <span>After the course ends, if I take too long to reply, please email me asking for my WhatsApp until I do :)</span></div>
   </div>
 </header>
 
