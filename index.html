@@ -103,9 +103,9 @@
   .lecture-links a{ color:var(--k); text-decoration:none; font:600 .92rem/1 'Space Grotesk', sans-serif;
     border:1px solid color-mix(in srgb, var(--k) 50%, var(--line)); border-radius:999px; padding:.32em .75em; }
   .lecture-links a:hover{ background:color-mix(in srgb, var(--k) 16%, transparent); }
-  a.card.past{ opacity:.68; border-style:dashed; }
-  a.card.past::before{ filter:grayscale(.7); }
-  a.card.past small{ color:var(--mute); }
+  .card.past{ opacity:.68; border-style:dashed; }
+  .card.past::before{ filter:grayscale(.7); }
+  .card.past small{ color:var(--mute); }
   .passed-label{ grid-column:1 / -1; margin:.6em 0 0; font:600 .72rem/1 Inter, sans-serif;
     letter-spacing:.16em; text-transform:uppercase; color:var(--mute); }
 
@@ -283,10 +283,9 @@
         <span>A simple vision system · Due Wed, Nov 4, 2pm</span></a>
       <a class="card" data-due="2026-11-05T14:00:00+02:00" href="https://forms.gle/urPSQVh27DA7rAC37" style="--k:var(--sky)"><small>Due</small><b>Day 3 homework</b>
         <span>Both Day 3 labs: metamers and image filtering · Due Thu, Nov 5, 2pm</span></a>
-      <a class="card" data-due="2026-11-11T14:00:00+02:00" href="assignment1.html" style="--k:var(--violet)"><small>Due</small><b>Assignment 1</b>
-        <span>Are vision models still blind? Test newer models on BlindTest · Due Wed, Nov 11, 2pm</span></a>
-      <a class="card" data-due="2026-11-11T14:00:00+02:00" href="https://forms.gle/F3TMeyRNz44h1rDA8" style="--k:var(--violet)"><small>Due</small><b>Submit Assignment 1</b>
-        <span>Your Colab link and one-page PDF · Due Wed, Nov 11, 2pm</span></a>
+      <div class="card lecture" data-due="2026-11-11T14:00:00+02:00" style="--k:var(--violet)"><small>Due</small><b>Assignment 1</b>
+        <span>Are vision models still blind? Test newer models on BlindTest. Submit your Colab link and one-page PDF · Due Wed, Nov 11, 2pm</span>
+        <p class="lecture-links"><a href="assignment1.html">Instructions</a><a href="https://forms.gle/F3TMeyRNz44h1rDA8">Submit</a></p></div>
       <a class="card" data-due="2026-11-06T14:00:00+02:00" href="https://forms.gle/aKgRbKQpWfukdbG78" style="--k:var(--sky)"><small>Due</small><b>Day 4 lab</b>
         <span>Submit your Colab link for the handwritten digits lab · Due Fri, Nov 6, 2pm</span></a>
     </div>
@@ -377,7 +376,7 @@
   function orderSubmissions(now) {
     const board = document.getElementById('submissions');
     if (!board) return;
-    const cards = [...board.querySelectorAll('a.card[data-due]')];
+    const cards = [...board.querySelectorAll('.card[data-due]')];
     const stamp = now.getTime();
     cards.forEach(card => {
       const past = new Date(card.dataset.due).getTime() < stamp;
