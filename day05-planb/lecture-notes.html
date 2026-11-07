@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Day 5 · Hour 1 Notes · Computer Vision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#0a0d16; --line:#25304a; --text:#e9edf6; --mute:#9aa5bd; --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa; }
+  *{ box-sizing:border-box; } html{ scroll-behavior:smooth; }
+  body{ margin:0; background:var(--bg); color:var(--text); font:16.5px/1.65 Inter, system-ui, sans-serif; }
+  a{ color:var(--cyan); }
+  .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line); display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
+  .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap; font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
+  .spine b{ color:var(--text); font-weight:500; }
+  .page{ margin-left:44px; }
+  .hero{ border-bottom:1px solid var(--line); background:radial-gradient(120% 90% at 78% 40%, #121a33 0%, var(--bg) 60%); }
+  .hero-in{ max-width:46rem; margin:0 auto; padding:8vh 24px 4vh; }
+  .back{ margin:0 0 2.2em; display:flex; align-items:center; gap:1.2em; flex-wrap:wrap; font-size:.95rem; }
+  .back a{ color:var(--mute); text-decoration:none; } .back a:hover{ color:var(--text); }
+  .back button{ margin-left:auto; font:600 .85rem/1 'Space Grotesk', sans-serif; color:var(--bg); background:var(--cyan); border:0; border-radius:999px; padding:.45em .9em; cursor:pointer; }
+  .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--cyan); }
+  h1{ margin:0 0 .35em; font:700 clamp(2.1rem, 6vw, 3.4rem)/.95 'Space Grotesk', sans-serif; text-transform:uppercase; background:linear-gradient(90deg,#fff,#c7fff4 55%,#e4d8ff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lead{ max-width:42rem; color:#d3d9e6; margin:0 0 1.2em; }
+  .toc{ display:flex; flex-wrap:wrap; gap:8px; margin:0; padding:0; list-style:none; }
+  .toc a{ color:var(--mute); text-decoration:none; font:500 .88rem/1 'Space Grotesk', sans-serif; border:1px solid var(--line); border-radius:999px; padding:.35em .75em; }
+  main{ max-width:46rem; margin:28px auto 72px; padding:36px 40px 56px; background:#fff; color:#1c1917; border-radius:18px; box-shadow:0 18px 50px rgba(0,0,0,.35); }
+  main a{ color:#0f766e; } main h2, main h3, main strong{ color:#1c1917; } main figcaption{ color:#57534e; }
+  main .callout{ background:#f5f5f4; color:#1c1917; }
+  section{ padding-top:2.2em; scroll-margin-top:1.25rem; }
+  #tokens{ --c:var(--cyan); } #attend{ --c:var(--violet); } #compare{ --c:var(--amber); } #cost{ --c:var(--pink); }
+  h2{ margin:0 0 .7em; font:700 1.4rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
+  h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
+  h3{ margin:1.2em 0 .3em; font:700 1.05rem/1.3 'Space Grotesk', sans-serif; }
+  p{ margin:0 0 .75em; } ol,ul{ margin:0 0 .9em; padding-left:1.2em; } li{ margin:.25em 0; }
+  .callout{ margin:1em 0; padding:14px 16px; border-radius:14px; border-left:4px solid var(--c,var(--cyan)); } .callout p{ margin:0 0 .6em; } .callout p:last-child{ margin:0; }
+  .eq{ margin:.35em 0; font:600 1.05rem/1.45 'Space Grotesk', sans-serif; letter-spacing:.01em; }
+  figure{ margin:1em 0; } figure img{ width:min(100%, 28rem); border-radius:12px; display:block; } figcaption{ margin-top:.4em; font-size:.9rem; }
+  @media (max-width:700px){ .spine{ display:none; } .page{ margin-left:0; } main{ margin:16px; padding:24px 18px; } .back button{ margin-left:0; } }
+  @media print{ body,.page,.hero,main{ background:#fff; color:#111; box-shadow:none; } .spine,.back{ display:none; } .page,main{ margin:0; } h1{ color:#111; background:none; -webkit-text-fill-color:#111; } a{ color:#111; } }
+</style>
+</head>
+<body>
+<div class="spine" aria-hidden="true"><span><b>Computer Vision</b> &nbsp;/&nbsp; Day 5 · Hour 1</span></div>
+<div class="page">
+<header class="hero"><div class="hero-in">
+  <div class="back"><a href="../index.html">← Home</a><a href="deck.html">Slides</a><a href="../day05-hour2/lecture-notes.html">Hour 2</a>
+    <button type="button" onclick="window.print()">Download PDF</button></div>
+  <p class="kicker">Day 5 · Hour 1 · Fernanda de la Torre · Shreya Pandit</p>
+  <h1>Lecture notes</h1>
+  <p class="lead">The Vision Transformer, followed concept by concept from the AGI Lambda explainer. The structure of the ideas is theirs. The slides and the words are the course’s. The question: how does an image become a sequence of tokens, and what does attention do with them?</p>
+  <nav class="toc">
+    <a href="#tokens">From pixels to tokens</a><a href="#attend">Attention</a><a href="#compare">Compared with a CNN</a><a href="#cost">Cost and data</a>
+  </nav>
+</div></header>
+<main>
+  <section id="tokens">
+    <h2>From pixels to tokens</h2>
+    <figure>
+      <img src="assets/planb-cat-512.jpg" alt="A close-up of a cat with one blue eye and one amber eye">
+      <figcaption>The working image is a 64 by 64 crop of this photo, so the numbers stay readable. Keith Kissel, “June odd-eyed-cat” (cropped), CC BY 2.0, via Wikimedia Commons.</figcaption>
+    </figure>
+    <p>A Vision Transformer does not look at pixels one at a time. It cuts the image into patches. On the slide the grid is 8 by 8, so 64 patches of 8 by 8 pixels. Dosovitskiy and colleagues use 16 by 16 pixel patches. A 224 pixel image then becomes 196 patches, plus one extra token.</p>
+    <p>One patch is three small tables, red, green, and blue, with values from 0 to 255. Divide by 255 and every value lies between 0 and 1. Flatten the three tables into one column: 3 × 8 × 8 = 192 numbers. Do that for every patch, in order, left to right and top to bottom. The input is 64 vectors of 192 numbers.</p>
+    <p>Each vector then goes through one shared linear layer. In the paper that layer is learned, and every patch uses it. For the base model the embedding has 768 numbers. What comes out is the embedding of the patch. From here the image is treated like a sentence: each patch is a token.</p>
+    <h3>Position, because attention is parallel</h3>
+    <p>Every token is processed the same way, at the same time. Nothing in that computation says which patch was first. Swap two words in a sentence and the meaning can reverse. Shuffle the 64 patches and every patch is still there, but it is no longer a face. So before attention, a position vector is added to each embedding. The stripes on the slide are the sinusoidal code from Vaswani and colleagues, 2017. The Vision Transformer paper instead learns one position vector per patch.</p>
+  </section>
+  <section id="attend">
+    <h2>What attention computes</h2>
+    <p>Each token is turned into three vectors by three learned matrices, the same matrices for every patch. The query is what this patch is looking for. The key is what it offers. The value is the information it passes on. That reading is a gloss; the computation is the three multiplications.</p>
+    <p>A class token is prepended. It belongs to no patch. It is a learnable vector with its own position, and in every block it can attend to all the patches. At the end, only its output goes to a small classifier and a softmax. The other patch outputs are not used for the class label.</p>
+    <p>One attention block compares every token with every other. The stack in the video is drawn as three blocks. The base model has twelve. Each block in the paper also has a small network applied to every token, layer normalization, and skip connections.</p>
+    <h3>One score</h3>
+    <p>Take the query of patch 1 and the key of patch j. Their dot product is large when the two vectors point the same way. Divide by the square root of d, the length of the vectors, so the numbers stay in a workable range. A softmax turns the scores into weights between 0 and 1 that add up to 1. The new vector for patch 1 is the weighted average of every value.</p>
+    <p>On the toy slide, one query meets four keys and the weights are 0.53, 0.20, 0.07, and 0.20. Those are computed on the slide, not taken from a trained model. For the 64-patch image, every patch does this at once, so each layer holds a 64 by 64 table of weights.</p>
+    <div class="callout">
+      <p><strong>Four steps.</strong> Compare every query with every key, scale, softmax along each row, then mix the values.</p>
+      <p class="eq">score<sub>1j</sub> = q<sub>1</sub> · k<sub>j</sub> / √d</p>
+      <p class="eq">a<sub>1j</sub> = softmax<sub>j</sub>(score<sub>1j</sub>)</p>
+      <p class="eq">new<sub>1</sub> = Σ<sub>j</sub> a<sub>1j</sub> v<sub>j</sub></p>
+      <p class="eq">Attention(Q, K, V) = softmax( Q Kᵀ / √d<sub>k</sub> ) V</p>
+      <p>The first three lines are one patch against every other patch. The last line, from Vaswani and colleagues, does all the patches at once. In the exercise, 196 tokens of 64 numbers go in, the score matrix is 196 by 196, and 196 tokens of 64 numbers come back out.</p>
+    </div>
+    <p>The exercises turn those steps into code. The notebook is <a href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day05-lab-transformer-exercises.ipynb">Transformer exercises, in Colab</a>. The weights there are random. Nothing in the exercise is trained.</p>
+    <p>To see the same computation in a real model, open <a href="https://poloclub.github.io/transformer-explainer/">Transformer Explainer</a>. It runs GPT-2 small and shows each step. Pick an example and find the tokens. A token is not always a whole word, which is the same idea as cutting an image into patches. Then open attention and hover a token: which other tokens does it read, including one far away in the sentence? The question to take back to images is what would change if the tokens were patches. Cho, Kim, Karpekov, Helbling, Wang, Lee, Hoover, and Chau, Georgia Institute of Technology.</p>
+  </section>
+  <section id="compare">
+    <h2>A global view, from the first layer</h2>
+    <p>In a Vision Transformer, the two patches farthest apart attend to each other in layer 1, and again in every layer after. Every patch can draw on every other patch immediately. The video calls that a global receptive field.</p>
+    <p>A 3 by 3 convolution at the first patch sees only its neighbors. On the 8 by 8 patch grid, with no pooling, it takes seven layers before that view reaches the opposite corner. A real CNN works on pixels and uses pooling, but the point is the same: information from far away arrives only after many layers. Locality is an inductive bias. Nearby pixels are assumed to belong together. It is a good assumption for images, and it is why a CNN can learn from less data.</p>
+    <p>Shuffle the 64 patches and the local texture remains: fur, a whisker, the blue of the eye. The shape of the cat is gone. Keep only the outlines and the texture is gone, but the shape of the head remains. Geirhos and colleagues, in 2019, found that ImageNet-trained CNNs are biased toward texture. Tuli and colleagues, in 2021, found Vision Transformers more shape-biased than CNNs on the same kind of test, and still less shape-biased than people. The two pictures on the slide are illustrations computed from the photo.</p>
+  </section>
+  <section id="cost">
+    <h2>The price, and the whole pipeline</h2>
+    <p>Fix the patch at 16 by 16 pixels, the paper’s size. A 128 pixel image is 64 patches, and 64 × 64 is 4,096 attention values in each layer. Double the side to 256 and there are 256 patches, so 65,536 values: twice the side, four times the patches, sixteen times the attention. At 512 pixels, more than a million values per layer. At 2048 pixels, a size ordinary for medical or satellite images, about 268 million values in every layer. The number of patches grows with the square of the side, and attention grows with the square of the number of patches. Windowed attention, as in the Swin Transformer, and hierarchies that merge patches, are two ways around that.</p>
+    <p>With little training data, a Vision Transformer cannot compete with a CNN, because the CNN’s locality does part of the work. Dosovitskiy and colleagues showed the other side: trained on ImageNet alone, the Vision Transformer did worse than comparable CNNs, and pretrained on much larger datasets it did better. Given enough data, the model learns what the CNN had assumed.</p>
+    <div class="callout"><p><strong>A question the video does not ask.</strong> A newborn does not see millions of labeled images. What does that suggest about the assumptions built into human vision?</p></div>
+    <p>The pipeline, in order: cut the image into patches, flatten and normalize, embed with one shared linear layer, add position, prepend the class token, run a stack of attention blocks, take the class token out, and softmax over the classes.</p>
+  </section>
+</main>
+</div>
+</body>
+</html>

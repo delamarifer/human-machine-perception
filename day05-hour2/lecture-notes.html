@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Day 5 · Hour 2 Notes · Computer Vision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#0a0d16; --line:#25304a; --text:#e9edf6; --mute:#9aa5bd; --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa; }
+  *{ box-sizing:border-box; } html{ scroll-behavior:smooth; }
+  body{ margin:0; background:var(--bg); color:var(--text); font:16.5px/1.65 Inter, system-ui, sans-serif; }
+  a{ color:var(--cyan); }
+  .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line); display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
+  .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap; font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
+  .spine b{ color:var(--text); font-weight:500; }
+  .page{ margin-left:44px; }
+  .hero{ border-bottom:1px solid var(--line); background:radial-gradient(120% 90% at 78% 40%, #121a33 0%, var(--bg) 60%); }
+  .hero-in{ max-width:46rem; margin:0 auto; padding:8vh 24px 4vh; }
+  .back{ margin:0 0 2.2em; display:flex; align-items:center; gap:1.2em; flex-wrap:wrap; font-size:.95rem; }
+  .back a{ color:var(--mute); text-decoration:none; } .back a:hover{ color:var(--text); }
+  .back button{ margin-left:auto; font:600 .85rem/1 'Space Grotesk', sans-serif; color:var(--bg); background:var(--cyan); border:0; border-radius:999px; padding:.45em .9em; cursor:pointer; }
+  .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--cyan); }
+  h1{ margin:0 0 .35em; font:700 clamp(2.1rem, 6vw, 3.4rem)/.95 'Space Grotesk', sans-serif; text-transform:uppercase; background:linear-gradient(90deg,#fff,#c7fff4 55%,#e4d8ff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lead{ max-width:42rem; color:#d3d9e6; margin:0 0 1.2em; }
+  .toc{ display:flex; flex-wrap:wrap; gap:8px; margin:0; padding:0; list-style:none; }
+  .toc a{ color:var(--mute); text-decoration:none; font:500 .88rem/1 'Space Grotesk', sans-serif; border:1px solid var(--line); border-radius:999px; padding:.35em .75em; }
+  main{ max-width:46rem; margin:28px auto 72px; padding:36px 40px 56px; background:#fff; color:#1c1917; border-radius:18px; box-shadow:0 18px 50px rgba(0,0,0,.35); }
+  main a{ color:#0f766e; } main h2, main h3, main strong{ color:#1c1917; } main figcaption{ color:#57534e; }
+  main .callout{ background:#f5f5f4; color:#1c1917; }
+  section{ padding-top:2.2em; scroll-margin-top:1.25rem; }
+  #labels{ --c:var(--cyan); } #clip{ --c:var(--violet); } #reading{ --c:var(--amber); } #rsa{ --c:var(--pink); } #after{ --c:var(--sky); }
+  h2{ margin:0 0 .7em; font:700 1.4rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
+  h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
+  h3{ margin:1.2em 0 .3em; font:700 1.05rem/1.3 'Space Grotesk', sans-serif; }
+  p{ margin:0 0 .75em; } ul,ol{ margin:0 0 .9em; padding-left:1.2em; } li{ margin:.25em 0; }
+  .callout{ margin:1em 0; padding:14px 16px; border-radius:14px; border-left:4px solid var(--c,var(--cyan)); } .callout p{ margin:0; }
+  figure{ margin:1em 0; } figure img{ width:100%; border-radius:12px; display:block; } figcaption{ margin-top:.4em; font-size:.9rem; }
+  @media (max-width:700px){ .spine{ display:none; } .page{ margin-left:0; } main{ margin:16px; padding:24px 18px; } .back button{ margin-left:0; } }
+  @media print{ body,.page,.hero,main{ background:#fff; color:#111; box-shadow:none; } .spine,.back{ display:none; } .page,main{ margin:0; } h1{ color:#111; background:none; -webkit-text-fill-color:#111; } a{ color:#111; } }
+</style>
+</head>
+<body>
+<div class="spine" aria-hidden="true"><span><b>Computer Vision</b> &nbsp;/&nbsp; Day 5 · Hour 2</span></div>
+<div class="page">
+<header class="hero"><div class="hero-in">
+  <div class="back"><a href="../index.html">← Home</a><a href="deck.html">Slides</a><a href="../day05-planb/lecture-notes.html">Hour 1</a>
+    <button type="button" onclick="window.print()">Download PDF</button></div>
+  <p class="kicker">Day 5 · Hour 2 · Fernanda de la Torre · Shreya Pandit</p>
+  <h1>Lecture notes</h1>
+  <p class="lead">Learning without labels. A label is one word, chosen for one task. This hour asks whether the images themselves can be the teacher, and whether a network that never sees a category still ends up organized like the ventral stream.</p>
+  <nav class="toc">
+    <a href="#labels">Why drop the labels</a><a href="#clip">CLIP</a><a href="#reading">The reading</a><a href="#rsa">Comparing with the brain</a><a href="#after">After class</a>
+  </nav>
+</div></header>
+<main>
+  <section id="labels">
+    <h2>A label decides what is kept</h2>
+    <p>Every network so far learned from labels. The ImageNet challenge set has about 1.28 million training images in 1,000 classes, and people labeled every one of them. A label is narrow. ImageNet’s thousand classes include about ninety dog breeds, so a network learns dog breeds whether or not that matters for anything else. There are vastly more images with no labels at all.</p>
+    <p>On a small set made of circles, squares, and triangles in four colors, a network trained to name the shape pulls the shapes apart and mixes the colors. A readout for color is then close to chance. Nothing in the labels asked for color, so the network threw it away. A representation that is good for one task can be bad for another.</p>
+    <p>Train the same network with no labels, and ask it only to squeeze each image into two numbers and rebuild the image. Color and shape both survive, though the specialist still wins its own task. Learn the structure first, and choose the task later. What comes out is an embedding: one vector per image, in a space where close means similar.</p>
+    <h3>The views decide what is ignored</h3>
+    <p>Contrastive learning makes two views of each image, pulls those two together, and pushes other images away. If the views are random crops, color is the easy thing the two views share, and a tiny network groups the images by color. Add random changes of hue, brightness, and saturation, and the same network regroups by shape. Whatever the views differ in, the embedding learns to ignore. Across six random starts the direction held; one run on the slide is cleaner than the average. Konkle and Alvarez trained with crops and color changes. What would their network be blind to?</p>
+  </section>
+  <section id="clip">
+    <h2>CLIP: an image and a caption in one space</h2>
+    <figure>
+      <img src="assets/konkle/clip-fig1.png" alt="CLIP training figure: image and text encoders, and a matrix of image-caption similarities">
+      <figcaption>Radford et al., 2021, Figure 1. An image encoder and a text encoder, trained so matching pairs sit on the diagonal. Figure from the CLIP repository, MIT License.</figcaption>
+    </figure>
+    <p>CLIP has two encoders. In the version in the lab, the image encoder is a Vision Transformer: an image in, 512 numbers out. The text encoder is a transformer over the words of a caption: a caption in, 512 numbers out. Both vectors are scaled to length one, so they live on the same sphere. An image and a caption that describe the same thing land close together. It never saw a class label. The two views are an image and its caption.</p>
+    <p>The optional lab uses ten CIFAR-10 images, 32 by 32, one from each class, and ten captions of the form “a photo of a …”. Similarity is the cosine of the angle. Because both vectors have length one, that cosine is the dot product. Every image against every caption is a 10 by 10 matrix. If CLIP works, the diagonal is strongest. In the run on the slides, with a different set of ten images, every image was still closest to its own caption. The cosines themselves sit in a narrow band, about 0.17 to 0.29, which is why a temperature matters.</p>
+    <p>The loss is the guessing game written as cross-entropy. Each row asks which caption belongs to this image. Divide the similarities by a temperature, softmax, and take minus the log of the true partner. Play it both ways and average. At temperature 0.01, the temperature CLIP itself learned, true pairs in that run had loss 0.28 and shifted pairs 6.59, against 2.30 for pure guessing, the log of ten. At temperature 1, all three sit near guessing. Small differences in cosine only count when the temperature is small.</p>
+    <p>Zero-shot classification writes the class names as captions and picks the closest one. On 500 CIFAR-10 test images the run scored 90.6%, against a chance of 10%, with no training on those classes. The words are part of the classifier: the bare class name scored 88%, and “a drawing of a …” scored 92%. Take a class away and its images still have to go somewhere. With cat deleted, 42 of 49 cat images went to dog. With truck deleted, 55 of 56 went to automobile. Zero-shot never says “none of these.”</p>
+    <p>The notebook is <a href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day05-lab-clip-embeddings.ipynb">CLIP embeddings, in Colab</a>.</p>
+  </section>
+  <section id="reading">
+    <h2>Do categories have to be taught?</h2>
+    <p>The later stages of the ventral stream carry a lot of information about object categories: faces, bodies, scenes, animals, objects. One account says category pressure shapes that organization. The other says it falls out of learning the structure of natural images. A CNN trained on ImageNet is not a clean test of the first account. Its labels are much finer than any theory proposes: three kinds of crab, ninety dog breeds.</p>
+    <figure>
+      <img src="assets/konkle/fig1a-ipcl.png" alt="Diagram of instance-prototype contrastive learning: an image, five views, an encoder, and an embedding">
+      <figcaption>Konkle and Alvarez, 2022, Figure 1a. Five views of one image, pulled toward their average and pushed away from recent images.</figcaption>
+    </figure>
+    <p>Their test is a network that never sees a label. The model is instance-prototype contrastive learning. Five views of each image, random crops, rescaling, and color changes, go through an AlexNet into a 128-number embedding on the unit sphere. All five are pulled toward their average, the instance prototype, and pushed away from the embeddings of the 4,096 most recent images. The objective is to tell every image apart from every other image. Nothing in it mentions a category.</p>
+    <figure>
+      <img src="assets/konkle/fig1b-tsne.png" alt="t-SNE plot of ImageNet images clustered by category">
+      <figcaption>Figure 1b. A t-SNE of 500 images from ten ImageNet categories. The colors are the true categories, added afterwards. Images of the same category land together.</figcaption>
+    </figure>
+    <p>They then classify by nearest neighbors in that embedding, out of 1,000 classes, where chance is a tenth of a percent. An untrained network gets 3.5%. Their model gets 37.3% with no labels. The same network trained on the labels gets 58.8%. The labels still help. A lot of category structure appears without them.</p>
+    <p>In the lab the same idea is tested on CLIP, not on their network. A random crop keeps 40 to 100 percent of the image and is scaled back up. Each image gets five views. For every view, find the most similar other view. Twenty images and five views, so chance is about 4 out of 99, about 4%. In the run on the slides: crops 97%, color 94%, both together 86%. CLIP was never trained to do this. It comes along with matching images to captions. The notebook is <a href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day05-lab-part2-views-rsa.ipynb">Views and RSA, in Colab</a>.</p>
+  </section>
+  <section id="rsa">
+    <h2>Comparing a network with the brain</h2>
+    <p>A representational dissimilarity matrix records how different every pair of images is, for one representation. One minus the correlation of two embeddings is one such matrix. The same matrix from raw pixels has much less structure: two stripe images that are slightly shifted can look completely different as pixels. A hypothesis can be written the same way: same kind similar, different kinds different. That last matrix is a model, not a measurement. RSA correlates two matrices, pair by pair, with a rank correlation.</p>
+    <p>Konkle and Alvarez add a step before that comparison. Each voxel, a small cube of cortex, is fit as a weighted sum of the network’s units, with ridge regression, holding out one image at a time. The weights then predict voxel responses for images the fit never saw. RSA compares those predicted patterns with the measured ones. In 56 of 60 comparisons, the network trained without labels fit as well as, or not significantly worse than, the same network trained on the categories. Early layers fit early visual cortex best. Later layers fit the later regions.</p>
+    <figure>
+      <img src="assets/konkle/lab-rdms.png" alt="Three dissimilarity matrices for CLIP embeddings, pixels, and categories">
+      <figcaption>A hundred CIFAR-10 images in the lab. CLIP shows class blocks. The pixels show almost none. Rank correlation with the category model: CLIP 0.39, pixels 0.08. One caveat: CLIP’s captions often name the object, and the reading’s network had no words at all.</figcaption>
+    </figure>
+    <figure>
+      <img src="assets/konkle/fig4-accuracy-vs-brain.png" alt="Scatter plots of brain fit against ImageNet accuracy">
+      <figcaption>Figure 4. ImageNet accuracy across, brain fit up, for early visual cortex and two later regions. Filled markers learned without labels. The line is the noise ceiling.</figcaption>
+    </figure>
+    <p>For 72 inanimate objects, ImageNet accuracy ranges from 26% to 73%, and the brain fit does not rise with it. Being better at the benchmark did not make a model more brain-like. In anterior cortex a gap remains that none of them closes. Other visual diets, scenes, faces, mixtures, barely mattered, except that a diet of faces alone did worse on eight objects shown at five orientations, in the later regions.</p>
+    <div class="callout"><p><strong>Their own caveat.</strong> These networks are existence proofs, not models of the brain. They show what kind of representation can be learned from images alone. Their proposed goal is a compact code that tells every view of the world apart from every other. They chose the views by hand. A model trained on video from head cameras worn by young children did not close the gap either. They point to learning over time, from video, as the open frontier.</p></div>
+  </section>
+  <section id="after">
+    <h2>After class</h2>
+    <p>The general idea is due Saturday night, on the form linked from the course page: a working title, one sentence with no jargon, which track, who would care, and what images you would use. The ideas are shared with the class so people can find teammates. The detailed proposal is due Tuesday night, one to two pages from the template: the problem, the approach, how you will know it works, and a plan for the time you have.</p>
+    <p>Finish the labs you do not reach in class: the language-model fine-tuning lab from MIT 6.S191, the CLIP embeddings notebook, and the views and RSA notebook. The readings named on the slide are Vision Book Chapter 26, Transformers, and Chapter 30, Representation learning.</p>
+  </section>
+</main>
+</div>
+</body>
+</html>
