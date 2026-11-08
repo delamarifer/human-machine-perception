@@ -181,7 +181,8 @@
 <nav class="sidenav" aria-label="On this page"></nav>
 <main>
 
-  <!-- Tabs are Course, Days, Homework submission, Project. Add the next day as another .day inside #days. -->
+  <!-- Tabs are Course, Announcements, Days, Homework submission, Project. Add the next day as another .day inside #days.
+       Add each announcement as a card at the start of #announcements, newest first. -->
   <section id="course" style="--c:var(--violet)">
     <h2>Course</h2>
     <div class="cards">
@@ -191,6 +192,14 @@
         <span>Readings as we assign them, things to explore, and a place to suggest your own.</span></a>
       <a class="card" href="https://forms.gle/Js3vcF7hgkhXQELt5" style="--k:var(--pink)"><small>Feedback</small><b>How was class?</b>
         <span>We welcome anonymous feedback to help improve the course!</span></a>
+    </div>
+  </section>
+
+  <section id="announcements" style="--c:var(--sky)">
+    <h2>Announcements</h2>
+    <div class="cards">
+      <a class="card" href="assignment1.html#colab-help" style="--k:var(--sky)"><small>Nov 8 · Assignment 1</small><b>If Colab has been crashing</b>
+        <span>We fixed the starter notebook. It now saves every answer to your Google Drive as it goes, so after a crash you rerun the cells and it continues where it stopped. Already working in your own copy? Keep it, and follow the steps on the assignment page. If it keeps crashing, or you run out of free GPU time, use Qwen/Qwen3-VL-2B-Instruct and say so in your write-up.</span></a>
     </div>
   </section>
 
@@ -316,7 +325,7 @@
 <script>
   const nav = document.querySelector('.sidenav');
   const links = [];
-  const tabs = [['course', 'Course'], ['days', 'Days'], ['homework', 'Homework submission'], ['project', 'Project']];
+  const tabs = [['course', 'Course'], ['announcements', 'Announcements'], ['days', 'Days'], ['homework', 'Homework submission'], ['project', 'Project']];
 
   function addLink(section, label, sub) {
     const link = document.createElement('a');
