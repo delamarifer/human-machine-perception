@@ -192,6 +192,18 @@
         Google may use what you send to improve its products, so send only the test images.</p>
       <p><b>Never paste a key into a code cell.</b> Anyone with the link to your notebook could copy it.</p>
     </div>
+    <div class="box" style="margin-top:12px">
+      <p><b>If Colab crashes or disconnects.</b> The starter notebook now saves every answer to your Google Drive as it
+        comes. Reconnect, run the cells from the top, and it continues where it stopped. Only one model is kept in
+        memory at a time, so comparing two models no longer fills the GPU.</p>
+      <p style="margin-top:.6em"><b>Already working in your own copy?</b> Keep it. Add a new code cell right after the
+        helper cell, paste these lines and run it:</p>
+      <pre style="white-space:pre-wrap;overflow-wrap:anywhere;margin:.5em 0"><code>!curl -sO https://raw.githubusercontent.com/delamarifer/human-machine-perception/main/notebooks/assignment1_fix.py
+%run -i assignment1_fix.py
+from google.colab import drive; drive.mount("/content/drive")</code></pre>
+      <p>Then run your model cells again. If it keeps crashing, or you run out of free GPU time, use
+        <code>Qwen/Qwen3-VL-2B-Instruct</code> and say so in your write-up.</p>
+    </div>
   </section>
 
   <section style="--c:var(--cyan)">

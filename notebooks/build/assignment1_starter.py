@@ -4,6 +4,7 @@ Part A replicates BlindTest (Rahmanzadehgervi, Bolton, Taesiri & Nguyen, "Vision
 ACCV 2024; data: huggingface.co/datasets/XAI/vlmsareblind, MIT license) on a newer open model, on a fixed
 course subset. Part B makes fresh images with known answers. The 2024 numbers are Table 1 of arXiv 2407.06581v6.
 See nbtools.py for how to build and check it."""
+import os
 from nbtools import md, code, hidden, turn, answer, resources, badge, main
 
 # The solutions live in a git-ignored file, private/assignment1_starter_solutions.py (the repository is
@@ -69,6 +70,9 @@ print("Device       ", DEVICE, f"({torch.cuda.get_device_name(0)})" if DEVICE ==
 if DEVICE == "cpu":
     print("No GPU: Runtime -> Change runtime type -> T4 GPU. On the CPU, use the 2B model and fewer images per task.")
 """)
+# The model-loading and run() code is shared with notebooks/assignment1_fix.py, which students with an older copy can load.
+RUNTIME = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'assignment1_fix.py')).read()
+
 hidden(r'''
 #@title Helpers: run this cell (you can read it, but you don't need to)
 import io, json, math, os, random, re
@@ -166,26 +170,7 @@ def _prepare(image):
     image.thumbnail((MAX_SIDE, MAX_SIDE))
     return image
 
-def load_open_model(model_id):
-    """An open vision-language model from Hugging Face. Returns ask(image, prompt) -> the model's reply."""
-    from transformers import AutoModelForImageTextToText, AutoProcessor
-    token = secret("HF_TOKEN")
-    t0 = time.time()
-    processor = AutoProcessor.from_pretrained(model_id, token=token)
-    model = AutoModelForImageTextToText.from_pretrained(
-        model_id, token=token, dtype="auto" if DEVICE == "cuda" else torch.float32).to(DEVICE).eval()
-    print(f"Loaded {model_id} in {time.time() - t0:.0f} s")
-
-    def ask(image, prompt, max_new_tokens=256):   # room to reason before answering, as some models do
-        messages = [{"role": "user", "content": [{"type": "image", "image": _prepare(image)},
-                                                 {"type": "text", "text": prompt}]}]
-        inputs = processor.apply_chat_template(messages, add_generation_prompt=True, tokenize=True,
-                                               return_dict=True, return_tensors="pt").to(DEVICE)
-        with torch.no_grad():
-            out = model.generate(**inputs, max_new_tokens=max_new_tokens, do_sample=False)
-        return processor.decode(out[0, inputs["input_ids"].shape[1]:], skip_special_tokens=True).strip()
-    return ask
-
+# @@RUNTIME@@
 def load_gemini(model_name):
     """A Gemini model through Google's API, with the key from Colab's Secrets (GEMINI_API_KEY).
     Returns ask(image, prompt) -> the reply, or None if there is no key."""
@@ -210,18 +195,6 @@ def load_gemini(model_name):
                     return f"ERROR: {err}"
                 time.sleep(15 * (attempt + 1))   # free-tier rate limits: wait and try again
     return ask
-
-def run(ask, items, label=""):
-    """Asks the model every item (dicts with image, prompt, task, groundtruth). Returns a table, one row per item."""
-    rows, t0 = [], time.time()
-    for k, item in enumerate(items):
-        reply = ask(item["image"], item["prompt"])
-        rows.append({**{c: item.get(c) for c in ("row", "task", "groundtruth", "level", "prompt")},
-                     "reply": reply, "answer": parse(item["task"], reply),
-                     "correct": is_correct(item["task"], reply, item["groundtruth"])})
-        if (k + 1) % 20 == 0 or k + 1 == len(items):
-            print(f"{label} {k + 1}/{len(items)} done, {time.time() - t0:.0f} s")
-    return pd.DataFrame(rows)
 
 def accuracy_by_task(results):
     """Accuracy (%) per column of the paper's table, from a table returned by run()."""
@@ -285,7 +258,7 @@ def two_lines(linewidth=3, size=512, seed=None):
             "groundtruth": str(_crossings(ys1, ys2)), "level": linewidth}
 
 print(f"BlindTest loaded: {len(BLINDTEST)} images, {len(TASKS)} tasks.")
-''')
+'''.replace('# @@RUNTIME@@\n', RUNTIME))
 md("""
 **What is in the helper cell**
 
@@ -297,11 +270,27 @@ md("""
 | `PAPER` | the paper's 2024 results (Table 1), accuracy in % per task |
 | `load_open_model(model_id)` | loads an open model from Hugging Face; returns `ask(image, prompt)` |
 | `load_gemini(model_name)` | the same for Gemini, with your free key from Colab's Secrets |
-| `run(ask, items)` | asks a model about every image; returns a table of replies, answers and whether each is correct |
+| `run(ask, items)` | asks a model about every image, saving each answer as it goes; returns a table of replies, answers and whether each is correct |
+| `free_model()` | takes the open model out of memory (only one fits on the free GPU; asking another model swaps it in by itself) |
 | `accuracy_by_task(results)` | accuracy (%) per task, in the paper's columns |
 | `parse(task, reply)` | the answer inside a model's reply |
 | `show_items(items, titles)` | shows images in a grid |
 | `two_circles(gap, ...)`, `two_lines(linewidth, ...)` | draw new images with a known answer (Part B) |
+""")
+
+md("""
+### Keep your answers safe
+
+Colab can disconnect, especially if you leave it alone or use up your free GPU time. The next cell connects your
+Google Drive, so every answer a model gives is saved there, in a folder called `assignment1-answers`. Say yes to
+the pop-up. If you say no, answers are saved in Colab only, and are lost when the runtime is disconnected.
+""")
+code("""
+try:
+    from google.colab import drive
+    drive.mount("/content/drive")
+except Exception as err:
+    print("Not saving to Drive:", err)
 """)
 
 # ---------------------------------------------------------------------------------------------
@@ -348,8 +337,12 @@ Pick a model that was not in the paper. The default is `Qwen/Qwen3-VL-4B-Instruc
 and `google/gemma-3-4b-it` (accept its license on Hugging Face first, and add your token to Colab's Secrets
 as `HF_TOKEN`). Or find another on Hugging Face and say where in your source log.
 
-The next cell runs your model on the whole course subset (180 images). On a T4 GPU, expect several minutes;
-it prints its progress. On the CPU, set `N_PER_TASK` to 5 and use the 2B model.
+The next cell runs your model on the whole course subset (180 images). The first time, it downloads the model
+(about 9 GB for the 4B, 4 GB for the 2B). It prints how long is left after every 20 images.
+
+**If it stops or Colab disconnects:** reconnect, run the cells from the top, and it continues where it stopped. You
+do not lose the answers you already have. If it keeps crashing, or you run out of free GPU time, use the 2B model
+and say so in your write-up. On the CPU, set `N_PER_TASK` to 5 and use the 2B model.
 """)
 code("""
 # EDIT: your model, and how many images per task (20 for the full course subset).
