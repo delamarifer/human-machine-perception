@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Why do models fail in the real world?</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Part: failures (Day 6 reduced), Google deck p2. One street corner, each parameter changes it.
+     Light is the real night photo of the same corner. Weather, distance, fog and rotation are simulated on the day photo (said in the credit).
+     Bus position for the distance zoom: red paint measured with a script, x 0.37 to 0.50, y 0.52 to 0.65 of the photo. */
+  html, body{ background:#fff; }
+  .failures-wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .failures-row{ flex:1 1 auto; min-height:0; container-type:size; display:flex; gap:3vw; align-items:stretch; }
+  .failures-photo{ position:relative; flex:0 0 auto; height:100cqh; width:min(133.33cqh, 62cqw); overflow:hidden; border-radius:8px; }
+  .failures-photo > *{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .failures-photo img{ object-fit:cover; }
+  #failures-day{ transition:transform .7s ease, filter .7s ease; }
+  #failures-night, #failures-rain, #failures-fog{ opacity:0; transition:opacity .7s ease; }
+  #failures-fog{ background:linear-gradient(180deg, rgba(232,236,240,.88), rgba(232,236,240,.62)); }
+  .failures-side{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; justify-content:space-between; }
+  .failures-word{ padding:.25vh 0 .25vh 1.2vw; border-left:4px solid transparent; transition:opacity .5s ease; }
+  .failures-word.now{ border-left-color:var(--ink); font-weight:700; }
+  .failures-in{ opacity:0; transition:opacity .6s ease; }
+  .cite{ position:static; font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); }
+  .cite a{ color:var(--mute); }
+  .failures-jump, .failures-jump *{ transition:none !important; }
+</style>
+</head>
+<body>
+<div class="failures-wrap" id="failures-root">
+  <h1 class="t deck-title">Why do models fail in the real world?</h1>
+  <div class="lead failures-in" id="failures-s1">The natural world has different “parameters” that change</div>
+  <div class="failures-row">
+    <div class="failures-photo failures-in" id="failures-photo">
+      <img id="failures-day" src="../assets/failures/castro-18th-day.jpg" alt="A sunny street corner with a trolleybus and cars">
+      <img id="failures-night" src="../assets/failures/castro-18th-night.jpg" alt="The same street corner at night, with headlights and street lamps">
+      <svg id="failures-rain" viewBox="0 0 400 300" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div id="failures-fog"></div>
+    </div>
+    <div class="failures-side">
+      <div>
+        <div class="lead failures-word failures-in" data-beat="2">light</div>
+        <div class="lead failures-word failures-in" data-beat="3">weather</div>
+        <div class="lead failures-word failures-in" data-beat="4">distance</div>
+        <div class="lead failures-word failures-in" data-beat="5">fog</div>
+        <div class="lead failures-word failures-in" data-beat="6">rotation</div>
+      </div>
+      <div class="lead failures-in" id="failures-s2">Models fail for several reasons, here are two of them:</div>
+    </div>
+  </div>
+  <div class="cite failures-in" id="failures-cite">Castro and 18th St, San Francisco · Photos: Evan0512, Pi.1415926535, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>, Wikimedia Commons · weather, distance, fog, rotation simulated on the day photo</div>
+</div>
+<script>
+/* BEAT 0  title only
+   BEAT 1  her first sentence and the day photo
+   BEAT 2  light: the night photo
+   BEAT 3  weather: dim, flat light and rain
+   BEAT 4  distance: the bus, closer
+   BEAT 5  fog
+   BEAT 6  rotation
+   BEAT 7  back to the day photo; her second sentence */
+const NB = 7;
+const $ = id => document.getElementById(id);
+
+/* Rain is seeded, so it looks the same every time. */
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const R = rng(18);
+$('failures-rain').innerHTML = [...Array(170)].map(() => { const x = R()*440 - 20, y = R()*320 - 20, len = 12 + R()*16;
+  return `<line x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${(x - len*.22).toFixed(1)}" y2="${(y + len).toFixed(1)}" stroke="#fff" stroke-width="${(.5 + R()*.5).toFixed(2)}" stroke-opacity="${(.45 + R()*.4).toFixed(2)}" vector-effect="non-scaling-stroke" stroke-linecap="round"/>`; }).join('');
+
+/* Distance: zoom so the bus (center of its red paint, as a fraction of the photo) sits at the middle of the frame. */
+const BUS = {x: .436, y: .58}, ZOOM = 2.1;
+/* Rotation: the scale that keeps a rotated 4:3 photo filling its frame. */
+const ANGLE = 22, RAD = ANGLE*Math.PI/180, FILL = Math.cos(RAD) + (4/3)*Math.sin(RAD);
+
+let beat = 0;
+function go(b, jump){
+  beat = b;
+  const root = $('failures-root');
+  if(jump) root.classList.add('failures-jump');
+  const day = $('failures-day');
+  day.style.transform = b === 4 ? `translate(${(.5 - BUS.x)*ZOOM*100}%, ${(.5 - BUS.y)*ZOOM*100}%) scale(${ZOOM})` : b === 6 ? `rotate(-${ANGLE}deg) scale(${FILL.toFixed(3)})` : 'none';
+  day.style.filter = b === 3 ? 'brightness(.62) saturate(.55)' : b === 5 ? 'blur(2px) contrast(.72) saturate(.7)' : 'none';
+  $('failures-night').style.opacity = b === 2 ? 1 : 0;
+  $('failures-rain').style.opacity = b === 3 ? 1 : 0;
+  $('failures-fog').style.opacity = b === 5 ? 1 : 0;
+  ['failures-s1', 'failures-photo', 'failures-cite'].forEach(id => $(id).style.opacity = b >= 1 ? 1 : 0);
+  $('failures-s2').style.opacity = b >= 7 ? 1 : 0;
+  document.querySelectorAll('.failures-word').forEach(w => { const k = +w.dataset.beat;
+    w.style.opacity = b >= k ? 1 : 0; w.classList.toggle('now', b === k); });
+  if(jump){ void root.offsetWidth; root.classList.remove('failures-jump'); }
+}
+
+window.failuresParams = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) failuresParams.advance(); if(e.key === 'ArrowLeft') failuresParams.back(); });
+  addEventListener('click', () => failuresParams.advance());
+}
+go(0, true);
+</script>
+</body>
+</html>
