@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cross-validation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: splits part (Day 6 reduced). Google p37. Motivation and mechanism follow the StatQuest video she linked. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .splits-box{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; visibility:hidden; }
+  .cite{ position:static; font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); transition:opacity .4s; }
+  .cite a{ color:inherit; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Cross-validation</h1>
+  <div class="splits-box"><canvas id="cv"></canvas></div>
+  <div class="cite" id="cite" style="opacity:0">Toy example: 30 points, 2 classes, 1-nearest-neighbor, scores computed · motivation and mechanism after <a href="https://www.youtube.com/watch?v=fSytzGwwBVw" target="_blank" rel="noopener">StatQuest, Machine Learning Fundamentals: Cross Validation</a></div>
+</div>
+<div class="dots" id="dots"></div>
+<script src="../assets/splits/folds.js"></script>
+<script>
+/* BEATS
+   1  one split, test on the last part, a score
+   2  test on the first part instead, a different score: which part should be the test?
+   3  cut into k parts; first rotation
+   4  the other rotations
+   5  average; five or ten folds
+   6  classes appear: random folds are uneven
+   7  stratified: the same proportions in each fold
+   8  group split: whole patients
+   9  time-based split: train before test
+   10 nested: an inner loop inside the training part of an outer row
+   11 her decision: large datasets, small datasets */
+const P = SPLITS, {INK, MUTE, VAL, txt, ease, lerp, FOLD, K} = P;
+const NB = 11;
+const D = P.makeData(1);                 /* seed 1 picked so random folds are visibly uneven in class and in score */
+const SC = P.foldScores(D, D.base), AVG = P.mean(SC);
+
+const testFold = f => pos => Math.floor(pos/FOLD) === f ? 'test' : 'train';
+const kfRows = (order, n = K) => [...Array(n)].map((_, f) => ({order, role: testFold(f)}));
+const timeRow = r => ({order: D.base, role: pos => { const b = Math.floor(pos/FOLD); return b <= r ? 'train' : b === r + 1 ? 'test' : 'none'; }});
+const LAY = [
+  {rows: [], marks: null},
+  {rows: [{order: D.base, role: testFold(4)}], marks: null},
+  {rows: [{order: D.base, role: testFold(0)}], marks: null},
+  {rows: [{order: D.base, role: testFold(0)}], marks: null, cut: 1},
+  {rows: kfRows(D.base), marks: null, cut: 1},
+  {rows: kfRows(D.base), marks: null, cut: 1},
+  {rows: kfRows(D.base), marks: 'class', cut: 1},
+  {rows: kfRows(D.strat), marks: 'class', cut: 1},
+  {rows: kfRows(D.group), marks: 'patient', cut: 1},
+  {rows: [0, 1, 2, 3].map(timeRow), marks: null, cut: 1},
+  {rows: kfRows(D.base), marks: null, cut: 1},
+  {rows: kfRows(D.base), marks: null, cut: 1},
+];
+const CUE = ['', '', 'which part should be the test?', 'k parts: train on k−1, test on the rest', 'rotate', 'average · five or ten folds',
+  'classes in each fold', 'Stratified k-fold: same class proportions in each fold', 'Group split: same patient, same subject',
+  'Time-based split: time series', 'Nested CV: inner loop for tuning, outer loop for evaluation', ''];
+
+const ctl = P.controller('splitsCv', NB, b => { document.getElementById('cite').style.opacity = b ? 1 : 0; document.getElementById('cv').style.visibility = b ? 'visible' : 'hidden'; P.dots(NB, b); });
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const k = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W*k; cv.height = H*k; ctx.setTransform(k, 0, 0, k, 0, 0); }
+const ratio = (order, f) => { const ids = P.foldIds(order, f), x = ids.filter(i => D.pts[i].y).length; return `${6 - x} : ${x}`; };
+
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();
+  const beat = ctl.beat, prev = ctl.prev, p = Math.min(1, (now - ctl.t0)/1000), e = ease(p);
+  const on = b => beat === b ? p : (prev === b ? 1 - p : 0);
+  ctx.clearRect(0, 0, W, H);
+  if(beat > 0){
+    const S = P.strip(W, H), fs = S.fs;
+    const stagger = beat === 4;
+    P.renderRows(ctx, S, D, LAY[prev], LAY[beat], beat > prev ? p : 1, stagger);
+    const xR = S.x + S.width + 18;
+
+    /* ---- one cue per click ---- */
+    for(let b = 1; b <= NB; b++){ const a = on(b); if(a > 0 && CUE[b]){ ctx.save(); ctx.globalAlpha = a; txt(ctx, CUE[b], S.x, H*.05, fs*1.12, true); ctx.restore(); } }
+
+    /* ---- legend ---- */
+    P.legend(ctx, S, W*.76, H*.05, [['train', 'train'], ['test', 'test']]);
+
+    /* ---- scores beside the rows (beats 1-5), per-row class counts (6-7) ---- */
+    if(beat <= 5){
+      const shownRows = beat === 1 ? [[0, SC[4]]] : beat <= 3 ? [[0, SC[0]]] : SC.map((s, f) => [f, s]);
+      for(const [r, s] of shownRows){ const q = beat === 4 && r > 0 ? Math.max(0, Math.min(1, p*6 - r)) : (beat === 1 || beat === 2 ? p : 1);
+        ctx.save(); ctx.globalAlpha = q; txt(ctx, s.toFixed(2), xR, P.rowY(S, r) + S.ch/2, fs*1.1, true); ctx.restore(); }
+    }
+    if(beat === 5 || (beat === 6 && prev === 5)){ const a = beat === 5 ? e : 1 - p; ctx.save(); ctx.globalAlpha = a;
+      const x = xR + W*.075, y0 = P.rowY(S, 0), y1 = P.rowY(S, 4) + S.ch;
+      ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x - 10, y0); ctx.lineTo(x, y0); ctx.lineTo(x, y1); ctx.lineTo(x - 10, y1); ctx.stroke();
+      txt(ctx, 'average', x + 14, (y0 + y1)/2 - fs*.9, fs); txt(ctx, AVG.toFixed(2), x + 14, (y0 + y1)/2 + fs*.6, fs*2, true); ctx.restore(); }
+    if(beat === 6 || beat === 7){ const order = beat === 6 ? D.base : D.strat, a = beat > prev ? (beat === 6 ? e : 1) : 1;
+      ctx.save(); ctx.globalAlpha = a; txt(ctx, '●  :  ✕', xR, S.y0 - fs*.75, fs*.95);
+      for(let f = 0; f < K; f++) txt(ctx, ratio(order, f), xR + 2, P.rowY(S, f) + S.ch/2, fs*1.1, true);
+      ctx.restore(); }
+    if(beat === 8){ const a = e; ctx.save(); ctx.globalAlpha = a; for(let f = 0; f < K; f++) txt(ctx, `patient ${P.PATIENTS[f]}`, xR, P.rowY(S, f) + S.ch/2, fs); ctx.restore(); }
+    if(beat === 9){ const a = e; ctx.save(); ctx.globalAlpha = a; const y = P.rowY(S, 4) + S.ch*.5; P.arrow(ctx, S.x, y, S.x + S.width, y, INK, 3); txt(ctx, 'time', S.x, y + fs*.9, fs); ctx.restore(); }
+
+    /* ---- nested CV: inner folds inside the training part of the first outer row ---- */
+    const aN = on(10);
+    if(aN > 0){ ctx.save(); ctx.globalAlpha = aN;
+      const y0 = P.rowY(S, K) + 4, iH = Math.round(S.ch*.62), iG = Math.max(3, Math.round(S.rowGap*.4));
+      const inner = {...S, ch: iH};
+      for(let inr = 0; inr < 4; inr++){ const y = y0 + inr*(iH + iG);
+        for(let pos = 6; pos < 30; pos++){ const b = Math.floor((pos - 6)/6);
+          P.drawCell(ctx, inner, P.cellX(S, pos), y, P.ROLE[b === inr ? 'val' : 'train']); } }
+      /* the connection: the training part of outer row 1 opens into the inner rows */
+      const xa = P.cellX(S, 6), xb = P.cellX(S, 29) + S.cw, top = P.rowY(S, 0) + S.ch;
+      const y00 = P.rowY(S, 0);
+      ctx.strokeStyle = VAL; ctx.lineWidth = 2.5; ctx.strokeRect(xa - 3, y00 - 3, xb - xa + 6, S.ch + 6);
+      ctx.beginPath(); ctx.moveTo(xb + 3, y00 + S.ch/2); ctx.lineTo(xb + 10, y00 + S.ch/2); ctx.lineTo(xb + 10, y0 + iH/2); ctx.lineTo(xb + 1, y0 + iH/2); ctx.stroke();
+      txt(ctx, 'outer loop', xR, P.rowY(S, 2) + S.ch/2, fs, true);
+      txt(ctx, 'inner loop', xR, y0 + 2*(iH + iG) - iG/2, fs, true);
+      /* inner swatch for validation */
+      ctx.fillStyle = P.rgb(P.ROLE.val); const sw = Math.round(fs*.9); ctx.fillRect(xR, y0 + 4*(iH + iG) - sw - iG, sw, sw); ctx.strokeStyle = INK; ctx.lineWidth = 1.3; ctx.strokeRect(xR, y0 + 4*(iH + iG) - sw - iG, sw, sw);
+      txt(ctx, 'validation', xR + sw + 7, y0 + 4*(iH + iG) - sw/2 - iG, fs);
+      ctx.restore(); }
+
+    /* ---- her decision, drawn ---- */
+    const aT = on(11);
+    if(aT > 0){ ctx.save(); ctx.globalAlpha = aT;
+      const cx = S.x + S.width/2, yRoot = P.rowY(S, K) + fs*1.1, yK = yRoot + H*.14, dx = S.width*.27;
+      txt(ctx, 'Cross-Validation', cx, yRoot, fs*1.2, true, 'center');
+      ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(cx - 12, yRoot + fs*.8); ctx.lineTo(cx - dx, yK - fs*.8); ctx.moveTo(cx + 12, yRoot + fs*.8); ctx.lineTo(cx + dx, yK - fs*.8); ctx.stroke();
+      txt(ctx, 'Large Datasets', cx - dx, yK, fs*1.15, true, 'center'); txt(ctx, 'Use Train-Test-Validation', cx - dx, yK + fs*1.5, fs, false, 'center');
+      txt(ctx, 'Small Datasets', cx + dx, yK, fs*1.15, true, 'center'); txt(ctx, 'Use K-Fold Cross-Validation', cx + dx, yK + fs*1.5, fs, false, 'center');
+      ctx.restore(); }
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

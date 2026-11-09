@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>For models: the train, test, validation split</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: splits part (Day 6 reduced). Google p36. Her diagram (All Data to Training / Validation / Test) drawn, then
+     over- and underfitting on one toy example: same noisy points, polynomials of growing degree, errors computed. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .splits-box{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; visibility:hidden; }
+  .cite{ position:static; font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); transition:opacity .4s; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">For models: the train, test, validation split</h1>
+  <div class="splits-box"><canvas id="cv"></canvas></div>
+  <div class="cite" id="cite" style="opacity:0">Toy example: y = sin(2.6x) + 0.3x + noise; 12 training, 15 validation, 15 test points; polynomial fits, all errors computed</div>
+</div>
+<div class="dots" id="dots"></div>
+<script src="../assets/splits/folds.js"></script>
+<script>
+/* BEATS
+   1  All Data
+   2  Training / Validation / Test, with what each is for
+   3  the diagram moves to the top; the noisy points appear
+   4  degree 1: underfitting
+   5  sweep to the degree with the lowest validation error
+   6  sweep to degree 10: overfitting
+   7  back to the degree validation chose
+   8  test set, touched once
+   9  looking at test and adjusting: the marker moves to the lowest test error */
+const P = SPLITS, {INK, MUTE, VAL, LEAK, txt, ease, lerp} = P;
+const NB = 9;
+
+/* Toy data. f, noise and the seed are ours: seed 120 picked so the chosen degree is 4 and the test set disagrees with it. */
+const R = P.rng(120), G = P.gaussOf(R);
+const f = x => Math.sin(2.6*x) + .3*x, NOISE = .28;
+const mk = n => [...Array(n)].map(() => { const x = -1 + 2*R(); return {x, y: f(x) + NOISE*G()}; });
+const TR = mk(12), VA = mk(15), TE = mk(15);
+const DMAX = 10, fits = [null];
+for(let d = 1; d <= DMAX; d++) fits[d] = P.polyFit(TR, d);
+const err = fits.map((g, d) => d ? {tr: P.rmse(TR, g), va: P.rmse(VA, g), te: P.rmse(TE, g)} : null);
+const argmin = key => { let b = 1; for(let d = 2; d <= DMAX; d++) if(err[d][key] < err[b][key]) b = d; return b; };
+const DV = argmin('va'), DT = argmin('te');
+const DEG = [0, 0, 0, 0, 1, DV, DMAX, DV, DV, DT];                 /* polynomial degree shown at each beat */
+const shownDeg = b => Math.max(...DEG.slice(0, b + 1));            /* how far the error curves have grown */
+
+const ctl = P.controller('splitsTts', NB, b => { document.getElementById('cite').style.opacity = b ? 1 : 0; document.getElementById('cv').style.visibility = b ? 'visible' : 'hidden'; P.dots(NB, b); });
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const k = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W*k; cv.height = H*k; ctx.setTransform(k, 0, 0, k, 0, 0); }
+
+function bar(x, y, w, h, role, label, fs, alpha = 1){
+  if(alpha <= 0) return; ctx.save(); ctx.globalAlpha = alpha;
+  ctx.fillStyle = role === 'all' ? '#e2e8f0' : P.rgb(P.ROLE[role]); ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, w, h);
+  txt(ctx, label, x + w/2, y + h/2 + 1, fs, true, 'center', 'middle', role === 'train' ? '#fff' : INK);
+  ctx.restore();
+}
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();
+  const beat = ctl.beat, prev = ctl.prev, p = Math.min(1, (now - ctl.t0)/1000);
+  const on = b => beat === b ? p : (prev === b ? 1 - p : 0);        /* visible only during beat b */
+  const from = b => beat > b ? 1 : beat === b ? p : 0;              /* visible from beat b on */
+  ctx.clearRect(0, 0, W, H);
+  const fs = Math.max(17, W*.0172), e = ease(p);
+
+  /* ---- her diagram: All Data, three parts, what each is for; compact bar on top from beat 3 ---- */
+  const c = beat >= 3 ? (beat === 3 ? e : 1) : 0;
+  const xa = lerp(W*.08, 0, c), wa = lerp(W*.84, W, c);
+  const yC = lerp(H*.32, 0, c), hC = lerp(H*.14, H*.085, c), wT = wa*.6, wV = wa*.2, wE = wa*.2, gap = lerp(W*.012, W*.006, c);
+  const W0 = wa - 2*gap, tw = W0*.6, vw = W0*.2, ew = W0*.2, xT = xa, xV = xa + tw + gap, xE = xV + vw + gap;
+  const a1 = from(1), a2 = from(2);
+  const hA = H*.13, yA = lerp(H*.04, -H*.2, c);
+  if(c < 1) bar(xa, yA, wa, hA, 'all', 'All Data', fs*1.15, a1*(1 - c));
+  if(a2 > 0){
+    if(c < 1){ ctx.save(); ctx.globalAlpha = a2*(1 - c);
+      for(const tx of [xT + tw/2, xV + vw/2, xE + ew/2]) P.arrow(ctx, W*.5, yA + hA + 5, tx, yC - 7, INK, 2.6);
+      ctx.restore(); }
+    bar(xT, yC, tw, hC, 'train', 'Training', fs*1.1, a2);
+    bar(xV, yC, vw, hC, 'val', 'Validation', fs*1.1, a2);
+    bar(xE, yC, ew, hC, 'test', 'Test', fs*1.1, a2);
+    if(c < 1){ ctx.save(); ctx.globalAlpha = a2*(1 - c);
+      const yq = yC + hC + H*.09;
+      for(const [t, x, w] of [['fits the parameters', xT, tw], ['choosing hyperparameters, comparing models', xV, vw], ['touched once, at the very end', xE, ew]]){
+        ctx.fillStyle = INK; ctx.font = `400 ${fs}px ${P.FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; P.wrap(ctx, t, x + w/2, yq, w - 8, fs*1.35); }
+      ctx.restore(); }
+  }
+
+  /* ---- the two plots ---- */
+  if(beat >= 3){
+    const a3 = beat === 3 ? e : 1;
+    const y0 = H*.2, y1 = H*.9;
+    const L = {x0: W*.04, x1: W*.48}, Rr = {x0: W*.56, x1: W*.97};
+    ctx.save(); ctx.globalAlpha = a3;
+    const axes = (B, xl, yl) => { ctx.strokeStyle = VAL; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(B.x0, y0); ctx.lineTo(B.x0, y1); ctx.lineTo(B.x1, y1); ctx.stroke();
+      txt(ctx, xl, (B.x0 + B.x1)/2, y1 + fs*1.0, fs, false, 'center', 'middle', INK); txt(ctx, yl, B.x0 + 8, y0 + 2, fs, false, 'left', 'top', INK); };
+    axes(L, 'x', 'y'); axes(Rr, 'model complexity (polynomial degree)', 'error');
+
+    const XL = x => L.x0 + (x + 1)/2*(L.x1 - L.x0), YL = y => y1 - (y + 2.0)/4.0*(y1 - y0);
+    const clipL = () => { ctx.save(); ctx.beginPath(); ctx.rect(L.x0, y0, L.x1 - L.x0, y1 - y0); ctx.clip(); };
+    const YMAX = 1.3, XE = d => Rr.x0 + (d - 1)/(DMAX - 1)*(Rr.x1 - Rr.x0 - W*.02) + W*.01, YE = v => y1 - Math.min(v, YMAX)/YMAX*(y1 - y0)*.94;
+
+    /* the fitted curve, morphing through integer degrees during the sweep */
+    const dPrev = DEG[prev] || 0, dNow = DEG[beat];
+    const dd = beat > prev ? lerp(dPrev, dNow, e) : dNow;
+    if(dNow > 0){
+      const lo = Math.max(1, Math.floor(dd)), hi = Math.min(DMAX, Math.max(1, Math.ceil(dd))), fr = dd - lo;
+      clipL(); ctx.strokeStyle = INK; ctx.lineWidth = 3.4; ctx.beginPath();
+      const a = dNow === 1 && dPrev === 0 ? e : 1; ctx.globalAlpha = a3*a;
+      for(let i = 0; i <= 260; i++){ const x = -1 + 2*i/260, y = lerp(fits[lo](x), fits[hi](x), fr); const X = XL(x), Y = YL(Math.max(-3, Math.min(3, y))); i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }
+      ctx.stroke(); ctx.restore(); ctx.globalAlpha = a3;
+    }
+    /* points: filled = training, grey = validation, open diamond = test, same as the bars */
+    const r = Math.max(5, W*.0058);
+    for(const {x, y} of VA){ ctx.beginPath(); ctx.arc(XL(x), YL(y), r, 0, 7); ctx.fillStyle = VAL; ctx.fill(); }
+    for(const {x, y} of TR){ ctx.beginPath(); ctx.arc(XL(x), YL(y), r, 0, 7); ctx.fillStyle = INK; ctx.fill(); }
+    const aT = from(8);
+    if(aT > 0){ ctx.save(); ctx.globalAlpha = a3*aT; for(const {x, y} of TE){ const X = XL(x), Y = YL(y); ctx.beginPath(); ctx.moveTo(X, Y - r*1.25); ctx.lineTo(X + r*1.25, Y); ctx.lineTo(X, Y + r*1.25); ctx.lineTo(X - r*1.25, Y); ctx.closePath(); ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 2.2; ctx.stroke(); } ctx.restore(); }
+
+    /* error curves, growing with the degrees reached so far */
+    const sPrev = shownDeg(Math.min(prev, beat)), sNow = shownDeg(beat), shown = lerp(sPrev, sNow, beat > prev ? e : 1);
+    const curve = (key, col, lw, dash) => { if(shown < 1) return; ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.setLineDash(dash || []); ctx.beginPath();
+      for(let d = 1; d <= Math.floor(shown); d++){ const X = XE(d), Y = YE(err[d][key]); d === 1 ? ctx.moveTo(X, Y) : ctx.lineTo(X, Y); }
+      if(shown % 1 && shown < DMAX){ const d = Math.floor(shown), fr = shown - d; ctx.lineTo(lerp(XE(d), XE(d + 1), fr), lerp(YE(err[d][key]), YE(err[d + 1][key]), fr)); }
+      ctx.stroke(); ctx.restore(); };
+    curve('va', VAL, 4); curve('tr', INK, 4);
+    /* a dot at each degree reached, so degree 1 alone already shows */
+    for(const [key, col] of [['va', VAL], ['tr', INK]]) for(let d = 1; d <= Math.floor(shown); d++){ ctx.beginPath(); ctx.arc(XE(d), YE(err[d][key]), 4.5, 0, 7); ctx.fillStyle = col; ctx.fill(); }
+    if(shown >= DMAX){ const a = beat === 6 ? e : 1; ctx.save(); ctx.globalAlpha = a3*a;
+      txt(ctx, 'training', XE(DMAX) - 4, YE(err[DMAX].tr) - fs*.9, fs, false, 'right'); ctx.font = `400 ${fs}px ${P.FONT}`; { const tw3 = ctx.measureText('validation').width, ly = YE(.75); ctx.fillStyle = '#fff'; ctx.fillRect(XE(DMAX) - tw3 - 3, ly - fs*.65, tw3 + 6, fs*1.3); txt(ctx, 'validation', XE(DMAX), ly, fs, false, 'right'); } ctx.restore(); }
+
+    /* test error curve, only when someone looks */
+    if(beat === 9){ const a = e; ctx.save(); ctx.globalAlpha = a3*a; ctx.strokeStyle = INK; ctx.lineWidth = 2.4; ctx.setLineDash([8, 7]); ctx.beginPath();
+      for(let d = 1; d <= DMAX; d++){ const X = XE(d), Y = YE(err[d].te); d === 1 ? ctx.moveTo(X, Y) : ctx.lineTo(X, Y); } ctx.stroke(); ctx.setLineDash([]); ctx.restore(); }
+
+    /* markers: the degree in use, and the test score once it is measured */
+    if(dNow > 0){ const X = XE(Math.max(1, dd)); ctx.save(); ctx.strokeStyle = VAL; ctx.lineWidth = 1.5; ctx.setLineDash([3, 5]); ctx.beginPath(); ctx.moveTo(X, y0); ctx.lineTo(X, y1); ctx.stroke(); ctx.restore(); }
+    if(aT > 0){ const dm = beat === 9 ? lerp(DV, DT, e) : DV;
+      const lo = Math.floor(dm), hi = Math.ceil(dm), fr = dm - lo, v = lerp(err[lo].te, err[hi].te, fr), X = XE(dm), Y = YE(v);
+      ctx.save(); ctx.globalAlpha = a3*aT; ctx.beginPath(); ctx.moveTo(X, Y - 9); ctx.lineTo(X + 9, Y); ctx.lineTo(X, Y + 9); ctx.lineTo(X - 9, Y); ctx.closePath(); ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = beat === 9 ? LEAK : INK; ctx.lineWidth = 3; ctx.stroke();
+      const tl = `test ${v.toFixed(2)}`; ctx.font = `700 ${fs*1.08}px ${P.FONT}`; const tw2 = ctx.measureText(tl).width; ctx.fillStyle = '#fff'; ctx.fillRect(X - 14 - tw2 - 3, Y - 40, tw2 + 6, fs*1.3); txt(ctx, tl, X - 14, Y - 40 + fs*.65, fs*1.08, true, 'right'); ctx.restore(); }
+
+    /* one cue per click, in the same place */
+    const CUE = {4: 'underfitting', 6: 'overfitting', 7: 'the validation set chooses', 8: 'touched once, at the very end', 9: 'once you look at test set and adjust, it stops being an honest estimate!'};
+    for(const k of Object.keys(CUE)){ const a = on(+k) || (beat === +k ? 1 : 0); if(a > 0){ ctx.save(); ctx.globalAlpha = a3*a; txt(ctx, CUE[k], 0, H*.142, +k === 9 ? fs*1.12 : fs*1.15, true); ctx.restore(); } }
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

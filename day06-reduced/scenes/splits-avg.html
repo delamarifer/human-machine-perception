@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Averages of model performance can be misleading</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: splits part (Day 6 reduced). Google p39, empty on her slide. Filled from day06/parts/eval-data.js (ED_G):
+     day 900 images at 96%, night 100 images at 60%. Average and weights computed below. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .splits-box{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; visibility:hidden; }
+  .cite{ position:static; font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); transition:opacity .4s; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Averages of model performance can be misleading</h1>
+  <div class="splits-box"><canvas id="cv"></canvas></div>
+  <div class="cite" id="cite" style="opacity:0">Counts and accuracies are an example; average and weights computed</div>
+</div>
+<div class="dots" id="dots"></div>
+<script src="../assets/splits/folds.js"></script>
+<script>
+/* BEATS
+   1  two groups, each square one test image: filled right, open wrong
+   2  the groups collapse into one pool: the average
+   3  back apart: the worst group
+   4  reweighting: each group counts the same */
+const P = SPLITS, {INK, MUTE, txt, ease, lerp} = P;
+const NB = 4;
+const G = [{n: 'day', N: 900, acc: .96}, {n: 'night', N: 100, acc: .60}];       /* same inputs as day06/parts/eval-data.js */
+const TOT = G.reduce((s, g) => s + g.N, 0), AVG = G.reduce((s, g) => s + g.N*g.acc, 0)/TOT;
+const WT = g => TOT/(G.length*g.N);
+const pct = v => (Math.round(v*1000)/10).toFixed(1) + '%';
+const BAL = G.reduce((s, g) => s + WT(g)*g.N*g.acc, 0)/G.reduce((s, g) => s + WT(g)*g.N, 0);
+/* one square per test image, correct ones first inside each group */
+const SQ = []; G.forEach((g, gi) => { const right = Math.round(g.N*g.acc); for(let i = 0; i < g.N; i++) SQ.push({gi, i, ok: i < right}); });
+/* the pooled order: every correct image first, so the wrong ones gather at the end */
+const pool = SQ.map((s, i) => i).sort((a, b) => (SQ[b].ok - SQ[a].ok) || (a - b)), poolPos = []; pool.forEach((idx, k) => poolPos[idx] = k);
+
+const ctl = P.controller('splitsAvg', NB, b => { document.getElementById('cite').style.opacity = b ? 1 : 0; document.getElementById('cv').style.visibility = b ? 'visible' : 'hidden'; P.dots(NB, b); });
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const k = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W*k; cv.height = H*k; ctx.setTransform(k, 0, 0, k, 0, 0); }
+
+/* a layout gives each square {x, y, s} (top-left and size), bottom-aligned on yb */
+function layout(beat){
+  const s = Math.floor(W*.0098), yb = H*.86, x0 = W*.02, out = [];
+  if(beat === 2){                                                        /* one pool, 40 by 25 */
+    SQ.forEach((q, i) => { const k = poolPos[i], c = k % 40, r = Math.floor(k/40); out.push({x: x0 + c*s, y: yb - 25*s + r*s, s}); });
+    return out;
+  }
+  const sc = beat === 4 ? g => s*Math.sqrt(WT(g)) : () => s;
+  const sd = sc(G[0]), sn = sc(G[1]);
+  const xd = x0, xn = xd + 30*sd + W*.045;
+  SQ.forEach(q => { if(q.gi === 0){ const c = q.i % 30, r = Math.floor(q.i/30); out.push({x: xd + c*sd, y: yb - 30*sd + r*sd, s: sd}); }
+    else { const c = q.i % 10, r = Math.floor(q.i/10); out.push({x: xn + c*sn, y: yb - 10*sn + r*sn, s: sn}); } });
+  return out;
+}
+
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();
+  const beat = ctl.beat, prev = ctl.prev, p = Math.min(1, (now - ctl.t0)/1000), e = ease(p);
+  const on = b => beat === b ? p : (prev === b ? 1 - p : 0);
+  ctx.clearRect(0, 0, W, H);
+  if(beat > 0){
+    const fs = Math.max(17, W*.0175), A = layout(prev === 0 ? beat : prev), B = layout(beat), q = beat > prev && prev !== 0 ? e : 1;
+    ctx.globalAlpha = prev === 0 && beat === 1 ? e : 1;
+    SQ.forEach((sq, i) => { const x = lerp(A[i].x, B[i].x, q), y = lerp(A[i].y, B[i].y, q), s = lerp(A[i].s, B[i].s, q);
+      const m = Math.max(.6, s*.1);
+      if(sq.ok){ ctx.fillStyle = INK; ctx.fillRect(x + m, y + m, s - 2*m, s - 2*m); }
+      else { ctx.fillStyle = '#fff'; ctx.fillRect(x + m, y + m, s - 2*m, s - 2*m); ctx.strokeStyle = INK; ctx.lineWidth = 1.1; ctx.strokeRect(x + m, y + m, s - 2*m, s - 2*m); } });
+    ctx.globalAlpha = 1;
+
+    /* legend: filled = right, open = wrong */
+    const ly = H*.04, sw = Math.round(fs*.9);
+    ctx.fillStyle = INK; ctx.fillRect(W*.02, ly - sw/2, sw, sw); txt(ctx, 'right', W*.02 + sw + 7, ly, fs);
+    ctx.fillStyle = '#fff'; ctx.fillRect(W*.14, ly - sw/2, sw, sw); ctx.strokeStyle = INK; ctx.lineWidth = 1.3; ctx.strokeRect(W*.14, ly - sw/2, sw, sw); txt(ctx, 'wrong', W*.14 + sw + 7, ly, fs);
+
+    const xr = W*.66;
+    /* group labels under each block, except while pooled */
+    const lab = beat === 1 ? e : (beat === 3 || beat === 4) ? 1 : 1 - (beat === 2 ? e : 0);
+    if(beat !== 2 || p < 1){
+      const d = B[0], n = B[900];
+      ctx.save(); ctx.globalAlpha = (prev === 0 && beat === 1) ? e : (beat === 2 ? 1 - e : 1);
+      const yl = H*.86 + fs*1.0;
+      txt(ctx, `${G[0].n} · ${G[0].N} images · ${pct(G[0].acc)}`, W*.02, yl, fs*1.1, true);
+      if(beat !== 4 || p > 0) txt(ctx, `${G[1].n} · ${G[1].N} · ${pct(G[1].acc)}`, n.x, yl, fs*1.1, true);
+      ctx.restore();
+    }
+    /* the average */
+    const a2 = beat === 2 ? e : 0;
+    if(a2 > 0){ ctx.save(); ctx.globalAlpha = a2; txt(ctx, 'average', xr, H*.34, fs*1.25); txt(ctx, pct(AVG), xr, H*.5, fs*4, true); ctx.restore(); }
+    /* the worst group */
+    const a3 = on(3);
+    if(a3 > 0){ ctx.save(); ctx.globalAlpha = a3; txt(ctx, 'worst group', xr, H*.34, fs*1.25); txt(ctx, pct(G[1].acc), xr, H*.5, fs*4, true);
+      txt(ctx, `average ${pct(AVG)}`, xr, H*.68, fs*1.1); ctx.restore(); }
+    /* reweighting */
+    const a4 = on(4);
+    if(a4 > 0){ ctx.save(); ctx.globalAlpha = a4; ctx.fillStyle = INK; ctx.font = `700 ${fs*1.1}px ${P.FONT}`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; P.wrap(ctx, 'reweight: each group counts the same', xr, H*.13, W - xr - 4, fs*1.4);
+      txt(ctx, 'weight = total ÷ (groups × group size)', xr, H*.31, fs);
+      txt(ctx, `day ${WT(G[0]).toFixed(2)} · night ${WT(G[1]).toFixed(2)}`, xr, H*.44, fs*1.6, true);
+      txt(ctx, `balanced ${pct(BAL)}`, xr, H*.6, fs*1.6, true); txt(ctx, `average ${pct(AVG)}`, xr, H*.71, fs*1.1); ctx.restore(); }
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
