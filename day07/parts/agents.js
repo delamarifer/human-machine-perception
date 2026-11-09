@@ -59,16 +59,30 @@ st(`${agStyle}
 `);
 
 /* ---------- _0_30: From model to agent. Her three lines, then her request: "a diagram of an agent loop with all the main parts,
-   agent, tools, etc. it should be computer vision related". Our drawing: the loop builds one stage per click,
-   perceive → decide → act → remember. ---------- */
-const agScreen = (x, y) => `<rect x="${x}" y="${y}" width="230" height="150" rx="10" fill="#fff" stroke="#0f172a" stroke-width="3.5"/>
-  <rect x="${x + 14}" y="${y + 14}" width="202" height="104" rx="4" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
-  <rect x="${x + 28}" y="${y + 30}" width="80" height="58" rx="4" fill="#bcd3e6"/><circle cx="${x + 92}" cy="${y + 44}" r="8" fill="#f3d79f"/>
-  <path d="M ${x + 28} ${y + 88} l 26 -26 l 18 16 l 14 -10 l 22 20 z" fill="#3f7a3a"/>
-  <rect x="${x + 128}" y="${y + 74}" width="72" height="26" rx="6" fill="#0f172a"/><text x="${x + 164}" y="${y + 93}" font-size="16" font-weight="700" text-anchor="middle" style="fill:#fff">Submit</text>
-  <path d="M ${x + 180} ${y + 86} l 0 26 l 7 -7 l 9 14 l 5 -3 l -9 -13 l 10 -2 z" fill="#0f172a" stroke="#fff" stroke-width="1.5"/>
-  <circle cx="${x + 196}" cy="${y + 136}" r="9" fill="#0f172a"/><circle cx="${x + 196}" cy="${y + 136}" r="4" fill="#fff"/>`;
-const AG_TOOLS = ['detect objects', 'segment', 'estimate depth', 'click (x, y)', 'move the robot arm'];
+   agent, tools, etc. it should be computer vision related". Shreya (2026-11-09): a richer diagram and a concrete CV example.
+   Slide 1: the loop part by part (our drawing). Slide 2: one pass around the loop on one task (our drawing, illustrative). ---------- */
+const agFrame = (x, y, w, h, opt = {}) => {   /* a camera frame: wall, table, mug (handle on the right), sink on the right */
+  const X = v => x + v * w, Y = v => y + v * h;
+  const mx = opt.inSink ? .74 : .3, my = opt.inSink ? .5 : .46;
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#eef2f6"/>
+    <rect x="${x}" y="${Y(.58)}" width="${w}" height="${h * .42}" fill="#d6c7ad"/>
+    <rect x="${X(.62)}" y="${Y(.5)}" width="${w * .3}" height="${h * .16}" rx="4" fill="#cbd5e1" stroke="#64748b" stroke-width="2"/>
+    <rect x="${X(.66)}" y="${Y(.53)}" width="${w * .22}" height="${h * .08}" rx="3" fill="#94a3b8"/>
+    ${opt.inSink ? '' : `<rect x="${X(mx)}" y="${Y(my)}" width="${w * .12}" height="${h * .18}" rx="3" fill="#b45f4e" stroke="#0f172a" stroke-width="2"/>
+    <path d="M ${X(mx + .12)} ${Y(my + .04)} q ${w * .07} ${h * .05} 0 ${h * .1}" fill="none" stroke="#0f172a" stroke-width="3"/>`}
+    ${opt.boxes ? `<rect x="${X(mx - .03)}" y="${Y(my - .05)}" width="${w * .25}" height="${h * .28}" fill="none" stroke="#0f172a" stroke-width="2.5" stroke-dasharray="6 4"/>
+      <text x="${X(mx - .03)}" y="${Y(my - .08)}" font-size="17" font-weight="700">mug</text>
+      <rect x="${X(.6)}" y="${Y(.46)}" width="${w * .34}" height="${h * .24}" fill="none" stroke="#0f172a" stroke-width="2.5" stroke-dasharray="6 4"/>
+      <text x="${X(.6)}" y="${Y(.43)}" font-size="17" font-weight="700">sink</text>` : ''}
+    ${opt.grip ? `<path d="M ${X(mx + .04)} ${y} V ${Y(my - .06)} M ${X(mx + .1)} ${y} V ${Y(my - .06)}" stroke="#334155" stroke-width="7"/>
+      <path d="M ${X(mx + .02)} ${Y(my - .06)} h ${w * .1} M ${X(mx + .02)} ${Y(my - .06)} v ${h * .12} M ${X(mx + .12)} ${Y(my - .06)} v ${h * .12}" stroke="#334155" stroke-width="5" fill="none"/>` : ''}
+    <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="#0f172a" stroke-width="2.5"/>`;
+};
+const agBox = (x, y, w, h, title, lines, fill = '#fff', dash = false) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="${fill}" stroke="#0f172a" stroke-width="3"${dash ? ' stroke-dasharray="8 5"' : ''}/>
+  <text x="${x + w / 2}" y="${y + 34}" font-size="25" font-weight="700" text-anchor="middle">${title}</text>
+  ${lines.map((t, i) => `<text x="${x + w / 2}" y="${y + 66 + i * 27}" font-size="19" text-anchor="middle">${t}</text>`).join('')}`;
+const agLine = (x1, y1, x2, y2, t, ty = -10) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#0f172a" stroke-width="3" marker-end="url(#agL)"/>
+  ${t ? `<text x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 + ty}" font-size="19" text-anchor="middle">${t}</text>` : ''}`;
 st(`
   <h1 class="t">From model to agent</h1>
   <div class="agents-lines">
@@ -76,39 +90,66 @@ st(`
     <div class="lead b" data-step="2">The model fits into a broader system</div>
     <div class="lead b" data-step="3">a loop of perceive (screen or camera) → decide → act → remember</div>
   </div>
-  <svg class="agents-svg" viewBox="0 0 1180 400" role="img" aria-label="An agent loop. The environment, a screen or camera, is perceived as an image by the agent, a vision-language model. The agent decides which tool to call: detect objects, segment, estimate depth, click, or move a robot arm. The tools act on the environment. The agent reads and writes a memory.">
+  <svg class="agents-svg" viewBox="0 0 1180 430" role="img" aria-label="The agent loop. A camera or screen gives an image to perception models that detect objects, segment and estimate depth. Their output and the task go to the agent, a vision-language model that plans and picks the next action. Actions such as click, type, move the arm and grasp change the environment, which gives a new image. The agent reads and writes memory.">
     ${agArrowDefs('agL')}
     <g class="b" data-step="3">
-      ${agScreen(20, 70)}
-      <text x="135" y="256" font-size="24" font-weight="700" text-anchor="middle">Environment</text>
-      <text x="135" y="284" font-size="20" text-anchor="middle">screen or camera</text>
-      <line x1="258" y1="145" x2="440" y2="145" stroke="#0f172a" stroke-width="3.5" marker-end="url(#agL)"/>
-      <text x="349" y="132" font-size="22" text-anchor="middle">perceive: image</text>
+      ${agFrame(20, 120, 200, 140)}
+      <text x="120" y="290" font-size="23" font-weight="700" text-anchor="middle">Environment</text>
+      <text x="120" y="316" font-size="18" text-anchor="middle">camera or screen</text>
+      ${agLine(226, 190, 286, 190, 'image')}
     </g>
     <g class="b" data-step="4">
-      <rect x="450" y="90" width="250" height="110" rx="14" fill="#e2e8f0" stroke="#0f172a" stroke-width="3.5"/>
-      <text x="575" y="138" font-size="28" font-weight="700" text-anchor="middle">Agent</text>
-      <text x="575" y="170" font-size="20" text-anchor="middle">vision-language model</text>
-      <line x1="706" y1="145" x2="842" y2="145" stroke="#0f172a" stroke-width="3.5" marker-end="url(#agL)"/>
-      <text x="774" y="132" font-size="22" text-anchor="middle">decide</text>
-      <rect x="852" y="20" width="310" height="${AG_TOOLS.length * 44 + 56}" rx="12" fill="#fff" stroke="#0f172a" stroke-width="3.5"/>
-      <text x="1007" y="54" font-size="24" font-weight="700" text-anchor="middle">Tools</text>
-      ${AG_TOOLS.map((t, i) => `<text x="880" y="${94 + i * 44}" font-size="21">· ${t}</text>`).join('')}
+      ${agBox(292, 108, 220, 164, 'Perception', ['detect objects', 'segment', 'estimate depth'], '#f8fafc')}
+      ${agLine(518, 190, 584, 190, 'objects,')}<text x="551" y="214" font-size="19" text-anchor="middle">masks</text>
     </g>
     <g class="b" data-step="5">
-      <path d="M 1007 ${20 + AG_TOOLS.length * 44 + 60} C 1007 390, 135 390, 135 296" fill="none" stroke="#0f172a" stroke-width="3.5" marker-end="url(#agL)"/>
-      <rect x="520" y="352" width="140" height="34" fill="#fff"/>
-      <text x="590" y="378" font-size="22" font-weight="700" text-anchor="middle">act</text>
+      <rect x="600" y="0" width="210" height="48" rx="10" fill="#fff" stroke="#0f172a" stroke-width="2.5"/>
+      <text x="705" y="31" font-size="20" text-anchor="middle"><tspan font-weight="700">Task:</tspan> mug → sink</text>
+      ${agLine(705, 52, 705, 100)}
+      ${agBox(590, 108, 230, 164, 'Agent', ['vision-language model', 'plans the steps', 'picks the next action'], '#e2e8f0')}
     </g>
     <g class="b" data-step="6">
-      <rect x="490" y="250" width="170" height="70" rx="10" fill="#fff" stroke="#0f172a" stroke-width="3" stroke-dasharray="8 5"/>
-      <text x="575" y="294" font-size="24" font-weight="700" text-anchor="middle">Memory</text>
-      <line x1="560" y1="206" x2="560" y2="244" stroke="#0f172a" stroke-width="3" marker-end="url(#agL)"/>
-      <line x1="590" y1="246" x2="590" y2="208" stroke="#0f172a" stroke-width="3" marker-end="url(#agL)"/>
-      <text x="682" y="232" font-size="22">remember</text>
+      ${agLine(826, 190, 886, 190, 'decide')}
+      ${agBox(892, 108, 270, 164, 'Actions', ['screen: click, type, scroll', 'robot: move the arm,', 'grasp, release'])}
+      <path d="M 1027 278 C 1027 420, 120 420, 120 326" fill="none" stroke="#0f172a" stroke-width="3" marker-end="url(#agL)"/>
+      <rect x="470" y="380" width="260" height="34" fill="#fff"/>
+      <text x="600" y="404" font-size="20" font-weight="700" text-anchor="middle">act: the world changes</text>
+    </g>
+    <g class="b" data-step="7">
+      ${agBox(612, 300, 186, 62, 'Memory', [], '#fff', true)}
+      <line x1="690" y1="276" x2="690" y2="294" stroke="#0f172a" stroke-width="3" marker-end="url(#agL)"/>
+      <line x1="720" y1="296" x2="720" y2="280" stroke="#0f172a" stroke-width="3" marker-end="url(#agL)"/>
+      <text x="808" y="296" font-size="19">read · write</text>
     </g>
   </svg>
   ${rdCite('Our drawing', 3)}
+`);
+
+/* Same title, so the engine numbers it as the second half of this slide. One pass: task, see, perceive, decide, act, remember.
+   The scene, the model's answer and the note are an illustrative example, not a real run. */
+const AG_PASS = [
+  ['1. See', 'camera frame', o => agFrame(0, 0, 200, 140, o), {}],
+  ['2. Perceive', 'detector: mug, sink', o => agFrame(0, 0, 200, 140, o), {boxes: true}],
+  ['3. Decide', 'the model picks an action', () => `<rect x="0" y="10" width="200" height="120" rx="12" fill="#e2e8f0" stroke="#0f172a" stroke-width="2.5"/>
+      <text x="100" y="56" font-size="18" text-anchor="middle">“grasp the mug</text><text x="100" y="80" font-size="18" text-anchor="middle">by its handle,</text><text x="100" y="104" font-size="18" text-anchor="middle">then move right”</text>`, {}],
+  ['4. Act', 'arm grasps; new frame', o => agFrame(0, 0, 200, 140, o), {grip: true}],
+  ['5. Remember', 'a note for next time', () => `<rect x="20" y="4" width="160" height="132" rx="6" fill="#fff" stroke="#0f172a" stroke-width="2.5"/>
+      ${['mugs: grasp by', 'the handle', 'sink: right of', 'the counter'].map((t, i) => `<text x="34" y="${36 + i * 27}" font-size="17">${t}</text>`).join('')}`, {}],
+];
+st(`
+  <h1 class="t">From model to agent</h1>
+  <div class="lead b" data-step="1"><b>One pass around the loop.</b> Task: put the mug in the sink.</div>
+  <svg class="agents-svg" viewBox="0 0 1180 300" role="img" aria-label="One pass around the agent loop for the task put the mug in the sink: see the camera frame, perceive the mug and sink with a detector, decide to grasp the mug by its handle, act so the arm grasps it and a new frame arrives, and remember a note for next time.">
+    ${agArrowDefs('agP')}
+    ${AG_PASS.map(([h, t, g, o], i) => `<g class="b" data-step="${i + 1}"><g transform="translate(${10 + i * 236},40)">
+      ${i ? `<line x1="-32" y1="70" x2="-6" y2="70" stroke="#0f172a" stroke-width="3" marker-end="url(#agP)"/>` : ''}
+      ${g(o)}
+      <text x="100" y="184" font-size="23" font-weight="700" text-anchor="middle">${h}</text>
+      <text x="100" y="212" font-size="18" text-anchor="middle">${t}</text>
+    </g></g>`).join('')}
+  </svg>
+  <div class="lead b" data-step="6" style="text-align:center">Next frame → perceive again. The note is read at the start of the next task.</div>
+  ${rdCite('Our drawing; an illustrative example, not a real run')}
 `);
 
 /* ---------- _0_35: Current Challenges. Her two lines, one per click, each with our drawing. ---------- */

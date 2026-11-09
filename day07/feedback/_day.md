@@ -26,3 +26,9 @@
   - [ ] Nader, Schafe, LeDoux (2000), reconsolidation: not yet checked on PubMed. McClelland 1995, Teyler 1986 and Tse 2007 were checked.
   - [ ] Not brought over: "Share" (after Data Worksheet Review) and "Transfer Learning Related to Humans" (title only in her deck).
   - [ ] Should the agent slides be their own section in the progress bar instead of part of Transfer Learning?
+
+## 2026-11-09: "From model to agent" reworked (Shreya: richer diagram, concrete CV example)
+- 21A: the loop now shows each main part: environment (camera or screen) → perception (detect, segment, depth) → agent
+  (vision-language model, with the task coming in) → actions (screen and robot) → back to the environment, plus memory read and write.
+- 21B (new): one pass around the loop for "put the mug in the sink": see, perceive, decide, act, remember. An illustrative example, not a real run.
+- [ ] Is the mug-and-sink example the right one, or would a screen task (filling a web form) fit the class better?
