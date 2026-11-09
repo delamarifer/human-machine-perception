@@ -67,7 +67,7 @@ st(`
   </div>
 `);
 
-/* ---------- _0_30: From model to agent. Her three lines, then her request: "a diagram of an agent loop with all the main parts,
+/* ---------- _0_30: From model to agent. Shreya (2026-11-09): only her loop line stays on screen; the other two are said aloud. Then her request: "a diagram of an agent loop with all the main parts,
    agent, tools, etc. it should be computer vision related". Shreya (2026-11-09): a richer diagram and a concrete CV example.
    Slide 1: the loop part by part (our drawing). Slide 2: one pass around the loop on one task (our drawing, illustrative). ---------- */
 const agFrame = (x, y, w, h, opt = {}) => {   /* a camera frame: wall, table, mug (handle on the right), sink on the right */
@@ -94,44 +94,40 @@ const agLine = (x1, y1, x2, y2, t, ty = -10) => `<line x1="${x1}" y1="${y1}" x2=
   ${t ? `<text x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 + ty}" font-size="19" text-anchor="middle">${t}</text>` : ''}`;
 st(`
   <h1 class="t">From model to agent</h1>
-  <div class="agents-lines">
-    <div class="lead b" data-step="1">We aren’t typically operating in isolation with a model</div>
-    <div class="lead b" data-step="2">The model fits into a broader system</div>
-    <div class="lead b" data-step="3">a loop of perceive (screen or camera) → decide → act → remember</div>
-  </div>
+  <div class="lead b" data-step="1">a loop of perceive → decide → act → remember</div>
   <svg class="agents-svg" viewBox="0 0 1180 430" role="img" aria-label="The agent loop. A camera or screen gives an image to perception models that detect objects, segment and estimate depth. Their output and the task go to the agent, a vision-language model that plans and picks the next action. Actions such as click, type, move the arm and grasp change the environment, which gives a new image. The agent reads and writes memory.">
     ${agArrowDefs('agL')}
-    <g class="b" data-step="3">
+    <g class="b" data-step="2">
       ${agFrame(20, 120, 200, 140)}
       <text x="120" y="290" font-size="23" font-weight="700" text-anchor="middle">Environment</text>
       <text x="120" y="316" font-size="18" text-anchor="middle">camera or screen</text>
       ${agLine(226, 190, 286, 190, 'image')}
     </g>
-    <g class="b" data-step="4">
+    <g class="b" data-step="3">
       ${agBox(292, 108, 220, 164, 'Perception', ['detect objects', 'segment', 'estimate depth'], '#f8fafc')}
       ${agLine(518, 190, 584, 190, 'objects,')}<text x="551" y="214" font-size="19" text-anchor="middle">masks</text>
     </g>
-    <g class="b" data-step="5">
+    <g class="b" data-step="4">
       <rect x="600" y="0" width="210" height="48" rx="10" fill="#fff" stroke="#0f172a" stroke-width="2.5"/>
       <text x="705" y="31" font-size="20" text-anchor="middle"><tspan font-weight="700">Task:</tspan> mug → sink</text>
       ${agLine(705, 52, 705, 100)}
       ${agBox(590, 108, 230, 164, 'Agent', ['vision-language model', 'plans the steps', 'picks the next action'], '#e2e8f0')}
     </g>
-    <g class="b" data-step="6">
+    <g class="b" data-step="5">
       ${agLine(826, 190, 886, 190, 'decide')}
       ${agBox(892, 108, 270, 164, 'Actions', ['screen: click, type, scroll', 'robot: move the arm,', 'grasp, release'])}
       <path d="M 1027 278 C 1027 420, 120 420, 120 326" fill="none" stroke="#0f172a" stroke-width="3" marker-end="url(#agL)"/>
       <rect x="470" y="380" width="260" height="34" fill="#fff"/>
       <text x="600" y="404" font-size="20" font-weight="700" text-anchor="middle">act: the world changes</text>
     </g>
-    <g class="b" data-step="7">
+    <g class="b" data-step="6">
       ${agBox(612, 300, 186, 62, 'Memory', [], '#fff', true)}
       <line x1="690" y1="276" x2="690" y2="294" stroke="#0f172a" stroke-width="3" marker-end="url(#agL)"/>
       <line x1="720" y1="296" x2="720" y2="280" stroke="#0f172a" stroke-width="3" marker-end="url(#agL)"/>
       <text x="808" y="296" font-size="19">read · write</text>
     </g>
   </svg>
-  ${rdCite('Our drawing', 3)}
+  ${rdCite('Our drawing', 2)}
 `);
 
 /* Same title, so the engine numbers it as the second half of this slide. One pass: task, see, perceive, decide, act, remember.
@@ -328,14 +324,49 @@ st(`
   ${rdCite(agPost('Claude Plays Pokémon (Figures 6–8) and the wiki graph (Figure 10)'))}
 `);
 
-/* ---------- _0_54: Agent memory, her three lines. ---------- */
+/* ---------- _0_54: Agent memory, her three lines (Shreya, 2026-11-09: "improve"). Each line is a card with a picture of its question:
+   who is working on it (named projects, each with its paper or post); what a memory of a scene could be beyond text; how stored
+   pieces could relate (a flat folder, a hierarchy, a linked wiki). Drawings are ours. ---------- */
+const AG_WHO = ['Anthropic: notes, wikis, dreaming', 'Letta and UC Berkeley: sleep-time compute', 'MemGPT: memory paged like an operating system'];
+const agBeyond = `
+  <rect x="14" y="24" width="150" height="68" rx="6" fill="#fff" stroke="#0f172a" stroke-width="2.5"/>
+  ${['mug: left of sink', 'grasp by handle'].map((t, i) => `<text x="26" y="${52 + i * 26}" font-size="17">${t}</text>`).join('')}
+  <text x="89" y="114" font-size="17" text-anchor="middle" fill="#64748b">text</text>
+  <rect x="196" y="24" width="96" height="68" fill="#eef2f6" stroke="#0f172a" stroke-width="2.5"/>
+  <rect x="196" y="64" width="96" height="28" fill="#d6c7ad"/><rect x="214" y="48" width="18" height="24" rx="3" fill="#b45f4e"/><rect x="252" y="62" width="30" height="12" rx="3" fill="#94a3b8"/>
+  <text x="244" y="114" font-size="17" text-anchor="middle" fill="#64748b">image</text>
+  ${[.8, .2, .55, .9, .35, .65].map((v, i) => `<rect x="${24 + i * 22}" y="${210 - v * 60}" width="16" height="${v * 60}" fill="#94a3b8"/>`).join('')}
+  <text x="89" y="234" font-size="17" text-anchor="middle" fill="#64748b">embedding</text>
+  <path d="M 200 200 L 244 176 L 288 200 L 244 224 Z" fill="#f1f5f9" stroke="#0f172a" stroke-width="2.5"/><path d="M 244 176 V 140 M 200 200 V 164 L 244 140 L 288 164 V 200" fill="none" stroke="#0f172a" stroke-width="2.5"/>
+  <text x="244" y="246" font-size="17" text-anchor="middle" fill="#64748b">3D map</text>
+  <text x="330" y="150" font-size="56" font-weight="700" text-anchor="middle">?</text>`;
+const agNode = (x, y) => `<rect x="${x - 15}" y="${y - 19}" width="30" height="38" rx="4" fill="#fff" stroke="#0f172a" stroke-width="2.5"/>`;
+const agStruct = `
+  ${[0, 1, 2, 3].map(i => agNode(40, 40 + i * 50)).join('')}
+  <text x="40" y="250" font-size="17" text-anchor="middle" fill="#64748b">flat</text>
+  ${[[140, 50], [112, 130], [168, 130], [100, 205], [128, 205]].map(([x, y], i) => (i ? `<line x1="${i < 3 ? 140 : 112}" y1="${i < 3 ? 69 : 149}" x2="${x}" y2="${y - 19}" stroke="#0f172a" stroke-width="2"/>` : '') + agNode(x, y)).join('')}
+  <text x="140" y="250" font-size="17" text-anchor="middle" fill="#64748b">hierarchy</text>
+  ${[[230, 60], [290, 50], [262, 130], [312, 150], [236, 205], [298, 215]].reduce((acc, p, i, a) => acc + [[0, 1], [0, 2], [1, 3], [2, 3], [2, 4], [3, 5], [4, 5], [1, 2]].filter(([u]) => u === i).map(([u, v]) => `<line x1="${a[u][0]}" y1="${a[u][1]}" x2="${a[v][0]}" y2="${a[v][1]}" stroke="#0f172a" stroke-width="2"/>`).join(''), '')}
+  ${[[230, 60], [290, 50], [262, 130], [312, 150], [236, 205], [298, 215]].map(([x, y]) => agNode(x, y)).join('')}
+  <text x="270" y="250" font-size="17" text-anchor="middle" fill="#64748b">linked wiki</text>`;
 st(`
   <h1 class="t">Agent memory</h1>
-  <div class="agents-list">
-    <div class="lead b" data-step="1">Many researchers and companies exploring this space</div>
-    <div class="lead b" data-step="2">Open questions on how this is handled beyond a text level</div>
-    <div class="lead b" data-step="3">Open questions on the structure of storing information and the relation to one another</div>
+  <div class="agents-cards">
+    <div class="d6-card b" data-step="1">
+      <div class="lead" style="font-size:clamp(1.05rem,1.75vw,1.65rem)">Many researchers and companies exploring this space</div>
+      <div style="display:flex;flex-direction:column;gap:1.2vh;margin-top:1vh;width:100%">${AG_WHO.map(t => `<div class="label" style="text-align:left;border-left:3px solid var(--ink);padding-left:.8vw">${t}</div>`).join('')}</div>
+    </div>
+    <div class="d6-card b" data-step="2">
+      <div class="lead" style="font-size:clamp(1.05rem,1.75vw,1.65rem)">Open questions on how this is handled beyond a text level</div>
+      <svg viewBox="0 0 370 260" aria-hidden="true" style="height:auto;flex:1 1 auto;min-height:0">${agBeyond}</svg>
+    </div>
+    <div class="d6-card b" data-step="3">
+      <div class="lead" style="font-size:clamp(1.05rem,1.75vw,1.65rem)">Open questions on the structure of storing information and the relation to one another</div>
+      <svg viewBox="0 0 340 260" aria-hidden="true" style="height:auto;flex:1 1 auto;min-height:0">${agStruct}</svg>
+    </div>
   </div>
+  ${rdCite(agPost('') + ' · ' + d6Link('https://arxiv.org/abs/2504.13171', 'Lin et al., Sleep-time Compute (2025)') + ' · '
+    + d6Link('https://arxiv.org/abs/2310.08560', 'Packer et al., MemGPT (2023)') + ' · drawings: ours')}
 `);
 
 /* ---------- _0_66: Evaluation. Her two lines, then (Shreya, 2026-11-09: make it concrete) the aspects to discuss, one per click,

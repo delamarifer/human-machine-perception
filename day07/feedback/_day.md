@@ -52,3 +52,10 @@
   "Finetuning subparts in code" (frozen / finetuned / from scratch, after the subparts figure). Both ran on random tensors with
   torch 2.13 and torchvision 0.28. The check confirmed the frozen layers do not change.
 - [ ] The code uses ResNet-18 and the farm's two classes. Use another model or dataset to match the lab notebook once it exists?
+
+## 2026-11-09: From model to agent text; Agent memory open questions (Shreya's request)
+- 22A From model to agent: only "a loop of perceive → decide → act → remember" stays on screen (Shreya's choice). The other two lines are said aloud.
+- 28 Agent memory (Google slide 11): her three lines are now three cards, each with a picture of its question: who is working on it
+  (Anthropic; Letta and UC Berkeley, sleep-time compute; MemGPT), memory beyond text (text, image, embedding, 3D map), and how
+  stored pieces relate (flat, hierarchy, linked wiki). Both papers were checked on arXiv: Lin et al. 2025 (2504.13171) and Packer et al. 2023 (2310.08560).
+  - [ ] Are those three the right examples for "many researchers and companies", or do you want others named?
