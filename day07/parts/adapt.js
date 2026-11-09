@@ -42,6 +42,9 @@ const adStyle = `<style>
     font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:clamp(.82rem, 1.42vw, 1.36rem); line-height:1.5; color:#0f172a; overflow:hidden; }
   .adapt-code .ln{ display:block; white-space:pre; }
   .adapt-code .c{ color:#64748b; }
+  .adapt-ftmath{ flex:0 0 auto; display:grid; grid-template-columns:repeat(4, auto); gap:1vw; justify-content:start; }
+  .adapt-ftmath .d6-eq{ font-family:var(--font); font-weight:500; white-space:nowrap; font-size:clamp(1rem, 1.75vw, 1.7rem); padding:1.2vh 1.4vw; }
+  @media (max-width: 820px), (max-aspect-ratio: 1/1){ .adapt-ftmath{ grid-template-columns:1fr 1fr; } }
   .adapt-cards{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:1.6vw; align-items:stretch; }
   .adapt-cards .d6-card{ align-items:center; text-align:center; justify-content:flex-start; }
   .adapt-cards svg{ width:100%; height:20vh; display:block; }
@@ -121,6 +124,12 @@ st(`
     [5, '    loss.backward()                             <c># gradients reach every layer</c>'],
     [5, '    optimizer.step()'],
   ])}
+  <div class="adapt-ftmath">
+    <div class="d6-eq b" data-step="1">θ<sub>0</sub> = θ<sub>pre</sub></div>
+    <div class="d6-eq b" data-step="2">f′(x) = W · g<sub>θ</sub>(x)</div>
+    <div class="d6-eq b" data-step="5">L = (1/N) Σ<sub>i</sub> CE(f′(x<sub>i</sub>), y<sub>i</sub>)</div>
+    <div class="d6-eq b" data-step="5">θ ← θ − η ∇<sub>θ</sub>L, small η</div>
+  </div>
   ${rdCite('Our code (PyTorch, torchvision ResNet-18) · ' + adBook('section 37.3'))}
 `);
 
