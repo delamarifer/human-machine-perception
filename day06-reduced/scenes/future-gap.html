@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The robotics data gap</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Part future (Day 6 reduced), Google deck p58. One slide, three states of the same slide, driven by clicks only.
+     Text on this slide: Fernanda's title and her failure line, direct quotes from the Scale post (exact wording checked
+     against the post's HTML on 2026-11-09), and short labels. "about 5,000 hours" appears ONLY inside the quote: the post
+     gives no source for it (see day06/feedback/_day.md, Round 14). Hours on the bars come from the papers. */
+  html, body{ background:#fff; }
+  h1.t.future-title{ font-size:clamp(1.6rem, 3.05vw, 2.8rem); }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .future-box{ position:relative; flex:1 1 auto; min-height:0; }
+  .future-phase{ position:absolute; inset:0; opacity:0; visibility:hidden; transition:opacity .25s, visibility .25s; }
+  .future-phase.on{ opacity:1; visibility:visible; }
+  .future-item{ opacity:0; transition:opacity .25s; }
+  .future-item.on{ opacity:1; }
+  .future-cite{ font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); opacity:0; }
+  .future-cite.on{ opacity:1; }
+  .future-cite a{ color:var(--mute); }
+  .future-citebox{ display:grid; }
+  .future-citebox .future-cite{ grid-area:1 / 1; }
+
+  /* state A: quotes and a photo */
+  .future-quotes{ display:grid; grid-template-columns:1.15fr 1fr; gap:2.6vw; height:100%; align-items:center; }
+  .future-qcol{ display:flex; flex-direction:column; gap:2.4vh; }
+  .future-q{ font-size:clamp(1.15rem, 1.95vw, 1.9rem); line-height:1.3; padding-left:1vw; border-left:4px solid var(--ink); }
+  .future-photo{ width:100%; max-height:100%; object-fit:contain; display:block; border-radius:6px; }
+
+  /* state B: human hands, robot hands */
+  .future-hands{ display:flex; flex-direction:column; height:100%; gap:1.6vh; }
+  .future-pair{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 7vw 1fr; align-items:center; }
+  .future-side{ display:flex; flex-direction:column; gap:.9vh; height:100%; min-height:0; }
+  .future-side img{ flex:1 1 auto; min-height:0; width:100%; object-fit:contain; display:block; border-radius:6px; }
+  .future-bartrack{ height:1.9vh; }
+  .future-bar{ display:block; height:100%; background:var(--ink); border-radius:3px; }
+  .future-ne{ font-size:clamp(3rem, 6vw, 6rem); font-weight:700; text-align:center; line-height:1; }
+  .future-fail{ text-align:center; }
+  .future-handl{ font-weight:700; text-align:center; }
+
+  /* state C: the gaps, each as a figure */
+  .future-gaps{ display:grid; grid-template-rows:1fr 1fr; gap:1.4vh; height:100%; }
+  .future-gaprow{ display:grid; gap:1.2vw; min-height:0; }
+  .future-gaprow.r1{ grid-template-columns:1fr 1.25fr 1.7fr; }
+  .future-gaprow.r2{ grid-template-columns:1fr 1fr; }
+  .future-tile{ display:flex; flex-direction:column; gap:.6vh; min-height:0; min-width:0; }
+  .future-tile .future-imgs{ flex:1 1 auto; min-height:0; display:flex; gap:.6vw; justify-content:center; }
+  .future-tile img{ min-width:0; max-width:100%; height:100%; object-fit:contain; display:block; }
+  .future-tile .future-imgs.two img{ width:50%; height:100%; }
+  .future-tile .label{ text-align:center; font-weight:700; }
+  .future-subl{ font-size:clamp(.9rem, 1.3vw, 1.2rem); font-weight:400; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title future-title">How much data to take models into embodied agents?<br>The robotics data gap</h1>
+
+  <div class="future-box">
+
+    <div class="future-phase" data-from="1" data-to="3">
+      <div class="future-quotes">
+        <div class="future-qcol">
+          <div class="future-q future-item" data-from="1">&ldquo;Language models train on trillions of tokens from the internet. Vision models learn from billions of images.&rdquo;</div>
+          <div class="future-q future-item" data-from="2">&ldquo;Unlike text or images, robotic manipulation data can't be scraped from the web. It must be collected, one interaction at a time, in the real world.&rdquo;</div>
+          <div class="future-q future-item" data-from="3">&ldquo;Today's relevant open-source datasets, including DROID and Open X-Embodiment, offer only about 5,000 hours of interaction data combined&rdquo;</div>
+        </div>
+        <img class="future-photo future-item" data-from="2" src="../assets/future/droid_kitchen.jpg" alt="A robot arm reaching into an open refrigerator in a real kitchen, from the DROID dataset">
+      </div>
+    </div>
+
+    <div class="future-phase" data-from="4" data-to="5">
+      <div class="future-hands">
+        <div class="future-pair">
+          <div class="future-side">
+            <img src="../assets/future/hand_mug.jpg" alt="A human hand with five fingers wrapped around a mug">
+            <div class="label future-handl">human hands</div>
+            <div class="label">Ego4D, people: 3,670 hours</div>
+            <div class="future-bartrack"><i class="future-bar" data-hours="3670"></i></div>
+          </div>
+          <div class="future-ne future-item" data-from="5">&ne;</div>
+          <div class="future-side">
+            <img src="../assets/future/droid_gripper.jpg" alt="Close-up of a robot gripper at a refrigerator, from the DROID dataset">
+            <div class="label future-handl">robot hands</div>
+            <div class="label">DROID, robot: 350 hours</div>
+            <div class="future-bartrack"><i class="future-bar" data-hours="350"></i></div>
+          </div>
+        </div>
+        <div class="lead future-fail future-item" data-from="5">Possible failures: if your data includes human hands but not robot hands</div>
+      </div>
+    </div>
+
+    <div class="future-phase" data-from="6" data-to="10">
+      <div class="future-gaps">
+        <div class="future-gaprow r1">
+          <div class="future-tile future-item" data-from="6">
+            <div class="future-imgs"><img src="../assets/future/droid_rooms.jpg" alt="DROID scenes: robot arms in bathrooms, bedrooms, closets, kitchens, laboratories and offices"></div>
+            <div class="label">coverage</div>
+          </div>
+          <div class="future-tile future-item" data-from="7">
+            <div class="future-imgs"><img src="../assets/future/openx_embodiments.jpg" alt="Open X-Embodiment: a row of different robot arms, 22 embodiments"></div>
+            <div class="label">shift across robots and rooms</div>
+          </div>
+          <div class="future-tile future-item" data-from="8">
+            <div class="future-imgs two">
+              <img src="../assets/future/robocasa_kitchen.jpg" alt="A simulated kitchen with a robot, from RoboCasa">
+              <img src="../assets/future/droid_kitchen.jpg" alt="A real kitchen with a robot, from DROID">
+            </div>
+            <div class="label">sim-to-real</div>
+          </div>
+        </div>
+        <div class="future-gaprow r2">
+          <div class="future-tile future-item" data-from="9">
+            <div class="future-imgs"><img src="../assets/future/hand_mug.jpg" alt="A human hand around a mug"></div>
+            <div class="label">human video without robot actions</div>
+          </div>
+          <div class="future-tile future-item" data-from="10">
+            <div class="future-imgs"><img src="../assets/future/droid_bathroom.jpg" alt="A robot arm at a bathroom sink, from DROID"></div>
+            <div class="label">richer labels <span class="future-subl">&ldquo;intent, task structure, and failure modes&rdquo;</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="future-citebox">
+  <div class="future-cite" data-from="1" data-to="3">Quotes: Ben Levin, <a href="https://scale.com/blog/physical-ai" target="_blank" rel="noopener" onclick="event.stopPropagation()">Scale AI blog, &ldquo;Expanding Our Data Engine for Physical AI&rdquo;</a> (2025) &middot; Photo: <a href="https://arxiv.org/abs/2403.12945" target="_blank" rel="noopener" onclick="event.stopPropagation()">Khazatsky et al., DROID (2024)</a>, CC BY 4.0, cropped</div>
+  <div class="future-cite" data-from="4" data-to="5">Photos: John Beans, <a href="https://commons.wikimedia.org/wiki/File:Woman_holding_white_ceramic_mug.jpg" target="_blank" rel="noopener" onclick="event.stopPropagation()">Wikimedia Commons</a>, CC BY 2.0, cropped; DROID, CC BY 4.0, cropped &middot; Hours, bars to scale: <a href="https://arxiv.org/abs/2110.07058" target="_blank" rel="noopener" onclick="event.stopPropagation()">Grauman et al., Ego4D (CVPR 2022)</a>; <a href="https://arxiv.org/abs/2403.12945" target="_blank" rel="noopener" onclick="event.stopPropagation()">Khazatsky et al., DROID (2024)</a></div>
+  <div class="future-cite" data-from="6" data-to="10"><a href="https://arxiv.org/abs/2403.12945" target="_blank" rel="noopener" onclick="event.stopPropagation()">DROID (2024)</a>, <a href="https://arxiv.org/abs/2310.08864" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open X-Embodiment (2023)</a>, <a href="https://arxiv.org/abs/2406.02523" target="_blank" rel="noopener" onclick="event.stopPropagation()">RoboCasa (2024)</a>: CC BY 4.0, cropped &middot; Hand: John Beans, CC BY 2.0, cropped &middot; Quote: <a href="https://scale.com/blog/physical-ai" target="_blank" rel="noopener" onclick="event.stopPropagation()">Scale AI blog</a> (2025)</div>
+  </div>
+</div>
+
+<script>
+/* BEAT 0      title only
+   BEATS 1-3   the Scale quotes, one per click, with a DROID photo
+   BEATS 4-5   human hands vs robot hands (bars to scale); 5 brings her failure line
+   BEATS 6-10  the gaps, one figure per click
+   Nothing moves by itself: a click sets the beat, and the beat alone decides what is shown. */
+const NB = 10;
+let beat = 0;
+const MAX_HOURS = 3670;
+document.querySelectorAll('.future-bar').forEach(b => { b.style.width = (+b.dataset.hours / MAX_HOURS * 100).toFixed(2) + '%'; });
+function go(n){
+  beat = n;
+  document.querySelectorAll('[data-from]').forEach(e => {
+    const from = +e.dataset.from, to = e.dataset.to ? +e.dataset.to : NB;
+    e.classList.toggle('on', n >= from && n <= to);
+  });
+}
+window.futureGap = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0); },
+  resetToEnd(){ go(NB); },
+  getBeat: () => beat,
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) futureGap.advance(); if(e.key === 'ArrowLeft') futureGap.back(); });
+  addEventListener('click', () => futureGap.advance());
+}
+go(0);
+</script>
+</body>
+</html>
