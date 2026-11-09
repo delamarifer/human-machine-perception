@@ -49,9 +49,7 @@ st(`
   <div style="flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;gap:2.6vh">
     <div class="lead b" data-step="1"><b>Assignment 1</b> due Wednesday, Nov 11, 2pm</div>
     <div class="lead b" data-step="2"><b>Project proposal</b> due Wednesday, Nov 11, midnight</div>
-    <div class="lead b" data-step="3"><b>Follow-up meetings with us</b> Thursday, Nov 12 (a Calendly link will be sent)</div>
-    <div class="lead d6-todo b" data-step="4">Quiz review: when results come back, and the one or two most common mistakes (to fill in)</div>
-  </div>
+    <div class="lead b" data-step="3"><b>Follow-up meetings with us</b> Thursday, Nov 12 (a Calendly link will be sent)</div>  </div>
 `);
 
 st(`
@@ -65,24 +63,30 @@ st(`
 /* The central idea (plan doc, Overview), told as one worked example. The detector numbers are illustrative. */
 st(`
   <h1 class="t">A model learns its training data, not the world</h1>
-  <div style="flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:3vh">
+  <style>
+    .start-photo{ width:100%; height:21vh; object-fit:cover; border-radius:10px; display:block; }
+    .start-err{ font-size:clamp(1.6rem,2.9vw,2.8rem); font-weight:700; line-height:1.05; }
+    .start-card .lead{ font-size:clamp(1rem,1.65vw,1.55rem); line-height:1.25; }
+  </style>
+  <div style="flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:2vh">
     <div class="lead b" data-step="1">A street-camera detector finds cars and people. It was trained and tested on <b>daytime</b> images.</div>
     <div class="d6-cols" style="flex:0 0 auto;align-items:stretch">
-      <div class="d6-card b" data-step="2">
-        <div class="lead"><b>On the test set</b></div>
-        <div class="lead">all daytime, misses 2 of 100</div>
-        <div style="font-size:clamp(2rem,4vw,4rem);font-weight:700">2% error</div>
+      <div class="d6-card start-card b" data-step="2" style="padding:1.2vh 1vw;gap:.8vh">
+        <img class="start-photo" src="assets/start/castro-18th-day.jpg" alt="A sunny street corner with a trolleybus, cars and people waiting at the crossing">
+        <div class="lead"><b>On the test set:</b> all daytime, misses 2 of 100</div>
+        <div class="lead">&nbsp;</div>
+        <div class="start-err">2% error</div>
       </div>
-      <div class="d6-card b" data-step="3">
-        <div class="lead"><b>On the road</b></div>
-        <div class="lead">30% of frames are at night, and it misses half of those</div>
-        <div class="lead">0.7 × 2% + 0.3 × 50%</div>
-        <div class="b" data-step="4" style="font-size:clamp(2rem,4vw,4rem);font-weight:700">16.4% error</div>
+      <div class="d6-card start-card b" data-step="3" style="padding:1.2vh 1vw;gap:.8vh">
+        <img class="start-photo" src="assets/start/castro-18th-night.jpg" alt="The same street corner at night: headlights, street lamps, a person crossing in the dark">
+        <div class="lead"><b>On the road:</b> 30% of frames are at night; it misses half of those</div>
+        <div class="lead b" data-step="4">0.7 × 2% + 0.3 × 50%</div>
+        <div class="start-err b" data-step="4">16.4% error</div>
       </div>
     </div>
     <div class="statement b" data-step="5"><b>Same model, eight times the error. Only the images changed.</b></div>
   </div>
-  ${cite('Numbers are illustrative')}
+  ${cite('Numbers are illustrative · Castro and 18th St, San Francisco · Photos: Evan0512, Pi.1415926535, ' + d6Link('https://creativecommons.org/licenses/by-sa/4.0/', 'CC BY-SA 4.0') + ', Wikimedia Commons')}
 `);
 
 /* Today's plan: one row per click. The same list opens every section, with that section bold (d6Roadmap in lib.js). */

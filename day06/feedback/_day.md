@@ -32,7 +32,7 @@ wide and saved as JPEG (35 MB → 2 MB). Each slide credits the figure and the l
 - [ ] Slide 6: the chapter gives no perturbation size, so the doc's "r = 2/255" example is not on the slide.
 
 ### Questions for Shreya
-- [ ] **Quiz review (slide 2).** When do results come back, and which one or two mistakes do you want to show?
+- [x] **Quiz review (slide 2).** Removed from the announcements (Shreya, 2026-11-09). When do results come back, and which one or two mistakes do you want to show?
 - [ ] **Name That Dataset answers.** The book figure has blank answer boxes and the answer key is not in the
       chapter. Do you want to reveal the matches (source: Torralba and Efros 2011), or keep it as a guessing game?
 - [ ] **Toy scene.** The chapter does not give its true curve, so the scene uses ours (0.3·e^(0.9x) + 0.4, seed 5)
@@ -308,3 +308,13 @@ checked at 1280×720.
 - [ ] Wrap-up "rebalance toward people and scenes" is the plan's advice, not a sourced count of people in ImageNet.
 - [ ] Length: the deck is 91 slides. Section minutes in order.js: 15 + 10 + 15 + 10 + 10 + 10 + 3 + 22 = 95 (Start includes the
       12-minute quiz). Parts 1–5 each have more slides than their minutes suggest.
+
+## Round 19 · 2026-11-09 · announcements and slide 4 photos
+
+- Announcements: the quiz-review box removed (Shreya).
+- Slide 4 ("A model learns its training data, not the world"): a matched day / night photo of the same corner,
+  Castro and 18th St, San Francisco, one above each card. Day: "Muni route 33 trolleybus at 18th and Castro,
+  September 2021" by Evan0512; night: "Castro and 18th at night, March 2026" by Pi.1415926535; both CC BY-SA 4.0,
+  Wikimedia Commons, downloaded with Shreya's OK. Scaled to 2,400 px wide and saved without EXIF (no GPS) in
+  `assets/start/`; otherwise unmodified. Both show cars, a bus and people. Same corner, not the same framing.
+  Clicks unchanged (5); walked forward and back.
