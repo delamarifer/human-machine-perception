@@ -9,7 +9,7 @@
   /* Part future (Day 6 reduced), Google deck p58. One slide, three states of the same slide, driven by clicks only.
      Text on this slide: Fernanda's title and her failure line, direct quotes from the Scale post (exact wording checked
      against the post's HTML on 2026-11-09), and short labels. "about 5,000 hours" appears ONLY inside the quote: the post
-     gives no source for it (see day06/feedback/_day.md, Round 14). Hours on the bars come from the papers. */
+     gives no source for it (see day06/feedback/_day.md, Round 14). */
   html, body{ background:#fff; }
   h1.t.future-title{ font-size:clamp(1.6rem, 3.05vw, 2.8rem); }
   .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
@@ -35,8 +35,6 @@
   .future-pair{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 7vw 1fr; align-items:center; }
   .future-side{ display:flex; flex-direction:column; gap:.9vh; height:100%; min-height:0; }
   .future-side img{ flex:1 1 auto; min-height:0; width:100%; object-fit:contain; display:block; border-radius:6px; }
-  .future-bartrack{ height:1.9vh; }
-  .future-bar{ display:block; height:100%; background:var(--ink); border-radius:3px; }
   .future-ne{ font-size:clamp(3rem, 6vw, 6rem); font-weight:700; text-align:center; line-height:1; }
   .future-fail{ text-align:center; }
   .future-handl{ font-weight:700; text-align:center; }
@@ -77,15 +75,11 @@
           <div class="future-side">
             <img src="../assets/future/hand_mug.jpg" alt="A human hand with five fingers wrapped around a mug">
             <div class="label future-handl">human hands</div>
-            <div class="label">Ego4D, people: 3,670 hours</div>
-            <div class="future-bartrack"><i class="future-bar" data-hours="3670"></i></div>
           </div>
           <div class="future-ne future-item" data-from="5">&ne;</div>
           <div class="future-side">
             <img src="../assets/future/droid_gripper.jpg" alt="Close-up of a robot gripper at a refrigerator, from the DROID dataset">
             <div class="label future-handl">robot hands</div>
-            <div class="label">DROID, robot: 350 hours</div>
-            <div class="future-bartrack"><i class="future-bar" data-hours="350"></i></div>
           </div>
         </div>
         <div class="lead future-fail future-item" data-from="5">Possible failures: if your data includes human hands but not robot hands</div>
@@ -128,7 +122,7 @@
 
   <div class="future-citebox">
   <div class="future-cite" data-from="1" data-to="3">Quotes: Ben Levin, <a href="https://scale.com/blog/physical-ai" target="_blank" rel="noopener" onclick="event.stopPropagation()">Scale AI blog, &ldquo;Expanding Our Data Engine for Physical AI&rdquo;</a> (2025) &middot; Photo: <a href="https://arxiv.org/abs/2403.12945" target="_blank" rel="noopener" onclick="event.stopPropagation()">Khazatsky et al., DROID (2024)</a>, CC BY 4.0, cropped</div>
-  <div class="future-cite" data-from="4" data-to="5">Photos: John Beans, <a href="https://commons.wikimedia.org/wiki/File:Woman_holding_white_ceramic_mug.jpg" target="_blank" rel="noopener" onclick="event.stopPropagation()">Wikimedia Commons</a>, CC BY 2.0, cropped; DROID, CC BY 4.0, cropped &middot; Hours, bars to scale: <a href="https://arxiv.org/abs/2110.07058" target="_blank" rel="noopener" onclick="event.stopPropagation()">Grauman et al., Ego4D (CVPR 2022)</a>; <a href="https://arxiv.org/abs/2403.12945" target="_blank" rel="noopener" onclick="event.stopPropagation()">Khazatsky et al., DROID (2024)</a></div>
+  <div class="future-cite" data-from="4" data-to="5">Photos: John Beans, <a href="https://commons.wikimedia.org/wiki/File:Woman_holding_white_ceramic_mug.jpg" target="_blank" rel="noopener" onclick="event.stopPropagation()">Wikimedia Commons</a>, CC BY 2.0, cropped &middot; <a href="https://arxiv.org/abs/2403.12945" target="_blank" rel="noopener" onclick="event.stopPropagation()">Khazatsky et al., DROID (2024)</a>, CC BY 4.0, cropped</div>
   <div class="future-cite" data-from="6" data-to="10"><a href="https://arxiv.org/abs/2403.12945" target="_blank" rel="noopener" onclick="event.stopPropagation()">DROID (2024)</a>, <a href="https://arxiv.org/abs/2310.08864" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open X-Embodiment (2023)</a>, <a href="https://arxiv.org/abs/2406.02523" target="_blank" rel="noopener" onclick="event.stopPropagation()">RoboCasa (2024)</a>: CC BY 4.0, cropped &middot; Hand: John Beans, CC BY 2.0, cropped &middot; Quote: <a href="https://scale.com/blog/physical-ai" target="_blank" rel="noopener" onclick="event.stopPropagation()">Scale AI blog</a> (2025)</div>
   </div>
 </div>
@@ -136,13 +130,11 @@
 <script>
 /* BEAT 0      title only
    BEATS 1-3   the Scale quotes, one per click, with a DROID photo
-   BEATS 4-5   human hands vs robot hands (bars to scale); 5 brings her failure line
+   BEATS 4-5   human hands vs robot hands; 5 brings her failure line
    BEATS 6-10  the gaps, one figure per click
    Nothing moves by itself: a click sets the beat, and the beat alone decides what is shown. */
 const NB = 10;
 let beat = 0;
-const MAX_HOURS = 3670;
-document.querySelectorAll('.future-bar').forEach(b => { b.style.width = (+b.dataset.hours / MAX_HOURS * 100).toFixed(2) + '%'; });
 function go(n){
   beat = n;
   document.querySelectorAll('[data-from]').forEach(e => {
