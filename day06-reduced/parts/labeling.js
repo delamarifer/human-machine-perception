@@ -149,12 +149,41 @@ const LB_S_THREAD = `<svg viewBox="0 0 170 110" aria-hidden="true">
   <path d="M 112 12 L 120 22 L 136 4" fill="none" stroke="#0f172a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
   <text x="128" y="106" font-size="38" font-weight="700" text-anchor="middle" font-family="var(--font)" fill="#0f172a">?</text></svg>`;
 const LB_S_EXPERT = `<svg viewBox="0 0 170 110" aria-hidden="true">${lbPerson(85, 62, 1.5)}<path d="M 50 24 L 85 10 L 120 24 L 85 38 Z" fill="#0f172a"/><line x1="112" y1="27" x2="112" y2="48" stroke="#0f172a" stroke-width="4"/></svg>`;
+/* Round 2, her comment on this page: "include images for why this could be useful. think in terms of time, cost, resources".
+   One card per click after her three points. Clocks and coins are our drawings and carry no numbers. Resources: Self-Instruct
+   (Wang et al., ACL 2023) grew 175 hand-written seed tasks into 52K generated instructions. */
+const lbClock = (cx, cy, frac, lbl) => { const a = frac * 2 * Math.PI, x = cx + 34 * Math.sin(a), y = cy - 34 * Math.cos(a);
+  return `<circle cx="${cx}" cy="${cy}" r="40" fill="#f8fafc" stroke="#0f172a" stroke-width="4"/>
+    <path d="M ${cx} ${cy} L ${cx} ${cy - 34} A 34 34 0 ${frac > .5 ? 1 : 0} 1 ${x.toFixed(1)} ${y.toFixed(1)} Z" fill="#94a3b8"/>
+    <text x="${cx}" y="${cy + 66}" font-size="20" text-anchor="middle">${lbl}</text>`; };
+const lbCoins = (cx, base, n, lbl) => [...Array(n)].map((_, k) => `<ellipse cx="${cx}" cy="${base - k * 11}" rx="26" ry="8" fill="#cbd5e1" stroke="#0f172a" stroke-width="2.5"/>`).join('')
+  + `<text x="${cx}" y="${base + 34}" font-size="20" text-anchor="middle">${lbl}</text>`;
+const LB_WHY = [
+  ['Time', `<svg viewBox="0 0 260 130" aria-hidden="true">${lbClock(70, 50, .85, 'people')}${lbClock(190, 50, .15, 'generator')}</svg>`],
+  ['Cost', `<svg viewBox="0 0 260 130" aria-hidden="true">${lbCoins(70, 92, 7, 'people')}${lbCoins(190, 92, 2, 'generator')}</svg>`],
+  ['Resources', `<svg viewBox="0 0 260 130" aria-hidden="true">${lbPerson(34, 62, 1.1)}<text x="34" y="122" font-size="18" text-anchor="middle">175 seeds</text>
+    <line x1="64" y1="56" x2="104" y2="56" stroke="#0f172a" stroke-width="4"/><path d="M 104 46 L 118 56 L 104 66 Z" fill="#0f172a"/>
+    ${[...Array(18)].map((_, k) => `<rect x="${128 + (k % 6) * 21}" y="${16 + Math.floor(k / 6) * 28}" width="16" height="22" rx="2" fill="#fff" stroke="#0f172a" stroke-width="2"/>`).join('')}
+    <text x="190" y="122" font-size="18" text-anchor="middle">52K generated</text></svg>`],
+];
 st(`
+  <style>
+    .labeling-why{ display:grid; grid-template-columns:repeat(3, 1fr); gap:1.6vw; flex:0 0 auto; }
+    .labeling-why .d6-card{ align-items:center; text-align:center; padding:1vh 1vw; gap:.4vh; }
+    .labeling-why svg{ width:100%; height:15vh; display:block; }
+    .labeling-why svg text{ font-family:var(--font); fill:var(--ink); }
+    .labeling-gen .labeling-lane svg{ height:8.5vh; }
+    .labeling-gen{ gap:1.4vh; }
+  </style>
   <h1 class="t">Synthetic generator</h1>
-  <div class="labeling-lanes">
+  <div class="labeling-lanes labeling-gen">
     <div class="labeling-lane b" data-step="1" style="grid-template-columns:11vw minmax(0, 1fr)">${LB_S_CLOCK}<div class="labeling-cue">The tasks take forever</div></div>
     <div class="labeling-lane b" data-step="2" style="grid-template-columns:11vw minmax(0, 1fr)">${LB_S_THREAD}<div class="labeling-cue">Multi-turn thread: even if a model does well, how does it do on the following turn</div></div>
     <div class="labeling-lane b" data-step="3" style="grid-template-columns:11vw minmax(0, 1fr)">${LB_S_EXPERT}<div class="labeling-cue">Subject expert</div></div>
   </div>
+  <div class="labeling-why">
+    ${LB_WHY.map(([h, g], i) => `<div class="d6-card b" data-step="${i + 4}">${g}<div class="labeling-cue"><b>${h}</b></div></div>`).join('')}
+  </div>
+  ${rdCite('Our drawings; clocks and coins are illustrative, no measured numbers · seeds: ' + lbA('https://arxiv.org/abs/2212.10560', 'Wang et al., Self-Instruct (ACL 2023)') + ', 175 seed tasks → 52K instructions', 4)}
 `);
 }
