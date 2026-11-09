@@ -7,8 +7,8 @@
 <link rel="stylesheet" href="../../deck/deck.css">
 <style>
   /* Part check-data (Day 6 reduced), Google page 29. Street tiles are our drawing; labels, model outputs and votes are examples,
-     and the disagreements and order are computed from them. Similarity panel: day06/scenes/near-dup.html (Shreya), every copy,
-     fingerprint and similarity computed here in the browser.
+     and the disagreements and order are computed from them. Similarity panel: day06/scenes/near-dup.html (Shreya), every copy
+     and similarity computed here in the browser (the pixel-fingerprint click was removed in review).
      Cat photo: Keith Kissel, "June odd-eyed-cat" (cropped), CC BY 2.0, via Wikimedia Commons (changes allowed).
      Other image: Fig. 35.3, Foundations of Computer Vision (MIT Press), CC BY-NC-ND 4.0, shown whole, only scaled. */
   html, body{ background:#fff; }
@@ -55,7 +55,6 @@
   figure.orig canvas{ outline:3px solid var(--ink); outline-offset:2px; }
   .nm{ font-weight:700; font-size:clamp(.95rem, 1.35vw, 1.3rem); white-space:nowrap; }
   .m{ font-size:clamp(.85rem, 1.15vw, 1.1rem); color:var(--ink); white-space:nowrap; transition:opacity .5s ease; text-align:center; opacity:0; }
-  .m code{ font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
   .low{ display:grid; grid-template-columns:1fr 1.2fr; gap:2vw; align-items:center; flex:1 1 auto; min-height:0; }
   .cues{ display:flex; flex-direction:column; gap:1.4vh; }
   .cues .lead{ font-size:clamp(1.15rem, 2.05vw, 1.9rem); line-height:1.25; transition:opacity .5s ease; opacity:0; }
@@ -86,7 +85,6 @@
       <div class="row" id="row"></div>
       <div class="low">
         <div class="cues">
-          <div class="lead" id="s3">pixel fingerprint: <b id="nExact"></b> of 4 copies found</div>
           <div class="lead" id="s4">cosine similarity = cos(angle) between image vectors</div>
           <div class="lead" id="s5"><b id="nSim"></b> of 4 copies above <span id="thr"></span> · other image <b id="sOther"></b></div>
         </div>
@@ -102,8 +100,8 @@
    1 method 1: dataset of tiles · 2 a random sample looked at; one tile tagged "car" has no car
    3 method 2: dataset labels · 4 the trusted model's reading; mismatches ringed
    5 method 3: model and people, disagreement computed · 6 sorted by disagreement; biggest first
-   7 method 4: a photo, four copies, another image · 8 pixel fingerprints miss the copies
-   9 cosine: each image as an arrow, angle = acos(similarity) · 10 threshold wedge, count above it */
+   7 method 4: a photo, four copies, another image
+   8 cosine: each image as an arrow, angle = acos(similarity) · 9 threshold wedge, count above it */
 function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
   t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
@@ -170,8 +168,6 @@ async function build(){
     const s = Math.min(N/other.width, N/other.height), w = other.width*s, h = other.height*s; c.drawImage(other, (N-w)/2, (N-h)/2, w, h); }
   return [['in training', orig, 'orig'], ['resized', small], ['re-saved JPEG', saved], ['cropped', crop], ['color shift', color], ['another image', oth, 'other']];
 }
-function fnv(c){ const a = c.getContext('2d').getImageData(0, 0, N, N).data; let h = 0x811c9dc5;
-  for(let i = 0; i < a.length; i++){ if(i % 4 === 3) continue; h ^= a[i]; h = Math.imul(h, 0x01000193); } return (h >>> 0).toString(16).padStart(8, '0'); }
 function vec(c){ const t = document.createElement('canvas'); t.width = t.height = 16; const x = t.getContext('2d', {willReadFrequently: true}); x.drawImage(c, 0, 0, 16, 16);
   const a = x.getImageData(0, 0, 16, 16).data, v = []; for(let i = 0; i < a.length; i += 4) v.push(.299*a[i] + .587*a[i+1] + .114*a[i+2]);
   const m = v.reduce((s, z) => s + z, 0)/v.length; const u = v.map(z => z - m); const n = Math.hypot(...u); return u.map(z => z/n); }
@@ -196,19 +192,17 @@ function drawFan(items){
 
 let ready = false;
 build().then(items => {
-  const h0 = fnv(items[0][1]), v0 = vec(items[0][1]);
-  let nExact = 0, nSim = 0, sOther = 0; const fan = [];
+  const v0 = vec(items[0][1]);
+  let nSim = 0, sOther = 0; const fan = [];
   document.getElementById('row').innerHTML = items.map(([nm, , k], i) => `<figure class="${k || 'copy'}" id="f${i}"><div id="cv${i}"></div>
-    <div class="nm">${nm}</div><div class="m fp" id="h${i}"></div><div class="m sim" id="v${i}"></div></figure>`).join('');
+    <div class="nm">${nm}</div><div class="m sim" id="v${i}"></div></figure>`).join('');
   items.forEach(([nm, c, k], i) => {
     document.getElementById('cv' + i).appendChild(c);
-    const h = fnv(c), s = cos(v0, vec(c));
-    document.getElementById('h' + i).innerHTML = `<code>${h}</code>`;
+    const s = cos(v0, vec(c));
     document.getElementById('v' + i).innerHTML = k === 'orig' ? '&nbsp;' : `cosine <b>${s.toFixed(2)}</b>`;
-    if(!k){ if(h === h0) nExact++; if(s >= THR) nSim++; fan.push({nm, s, k: 'copy', deg: Math.acos(Math.min(1, s))*180/Math.PI}); }
+    if(!k){ if(s >= THR) nSim++; fan.push({nm, s, k: 'copy', deg: Math.acos(Math.min(1, s))*180/Math.PI}); }
     if(k === 'other'){ sOther = s; fan.push({nm, s, k: 'other', deg: Math.acos(Math.max(-1, Math.min(1, s)))*180/Math.PI}); }
   });
-  document.getElementById('nExact').textContent = nExact;
   document.getElementById('nSim').textContent = nSim;
   document.getElementById('thr').textContent = THR.toFixed(1);
   document.getElementById('sOther').textContent = sOther.toFixed(2);
@@ -231,7 +225,7 @@ function layout(){
 addEventListener('resize', () => { layout(); go(beat); });
 layout();
 
-const NB = 10;
+const NB = 9;
 let beat = 0;
 const q = (sel, root = document) => [...root.querySelectorAll(sel)];
 function go(b){ beat = b;
@@ -249,8 +243,8 @@ function go(b){ beat = b;
   document.getElementById('look').classList.toggle('on', b >= 6);
   /* 4 */
   const op = (sel, on) => q(sel).forEach(e => e.style.opacity = on ? 1 : 0);
-  op('.fp', b >= 8); op('.sim', b >= 9); op('#s3', b >= 8); op('#s4', b >= 9); op('#s5', b >= 10); op('#fan', b >= 9);
-  const w = document.getElementById('wedge'); if(w) w.setAttribute('opacity', b >= 10 ? 1 : 0);
+  op('.sim', b >= 8); op('#s4', b >= 8); op('#s5', b >= 9); op('#fan', b >= 8);
+  const w = document.getElementById('wedge'); if(w) w.setAttribute('opacity', b >= 9 ? 1 : 0);
   /* credit changes with the method */
   const CR = ['Our drawing · example', 'Our drawing · labels and model outputs are examples', 'Our drawing · model outputs and votes are examples; disagreement = |model − people| computed',
     'Computed in the browser: cosine of 16×16 gray thumbnails (a stand-in for a network\'s features) · 0.9 is an example threshold · Photo: Keith Kissel, CC BY 2.0 · Other: Fig. 35.3, Foundations of CV, CC BY-NC-ND 4.0'];
