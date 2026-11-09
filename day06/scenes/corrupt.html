@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Corruptions at five severities</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: Shreya (Day 6, part eval-models). Every tile is computed here from one photo. These are our own
+     versions of four ImageNet-C corruption types, not the benchmark's exact parameters.
+     Photo: Keith Kissel, "June odd-eyed-cat" (cropped), CC BY 2.0, via Wikimedia Commons (changes allowed). */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.4vh; }
+  .row{ flex:1 1 auto; min-height:0; display:flex; gap:3vw; align-items:center; justify-content:center; }
+  .orig{ display:flex; flex-direction:column; align-items:center; gap:.8vh; transition:opacity .7s ease; }
+  .orig canvas{ width:24vh; height:24vh; border-radius:8px; }
+  .grid{ display:grid; grid-template-columns:auto repeat(5, 10.5vh); gap:.7vh .7vw; align-items:center; }
+  .grid .r{ display:contents; }
+  .grid canvas{ width:10.5vh; height:10.5vh; border-radius:5px; transition:opacity .7s ease; }
+  .grid .nm, .grid .sv{ transition:opacity .7s ease; }
+  .nm{ font-weight:700; font-size:clamp(.85rem, 1.9vh, 1.2rem); text-align:right; padding-right:.6vw; white-space:nowrap; }
+  .sv{ font-size:clamp(.75rem, 1.6vh, 1rem); color:var(--mute); text-align:center; }
+  .say{ transition:opacity .7s ease; font-size:clamp(1rem, 1.9vw, 1.7rem); }
+  .cite{ font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); margin-top:auto; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Corrupt the test images on purpose, at five strengths</h1>
+  <div class="row">
+    <div class="orig" id="orig"><canvas id="c0" width="300" height="300"></canvas><div class="lead">test image</div></div>
+    <div class="grid" id="grid"></div>
+  </div>
+  <div class="lead say" id="s6"><b>ImageNet-C:</b> 15 corruption types in 4 groups (noise, blur, weather, digital) × 5 severities = <b>75</b> versions of every test image</div>
+  <div class="cite">Our versions of four corruption types, computed in the browser (not the benchmark's exact settings) · Hendrycks and Dietterich (ICLR 2019) · Photo: Keith Kissel, CC BY 2.0</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* BEAT 0 title only · 1 the clean test image · 2-5 one corruption row each (noise, blur, fog, JPEG), severities 1-5
+   · 6 what ImageNet-C contains. */
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const N = 300, img = new Image(); img.src = '../assets/broaden/june-odd-eyed-cat.jpg';
+const load = im => new Promise(r => im.complete && im.naturalWidth ? r() : (im.onload = r));
+function base(ctx){ const s = Math.min(img.width, img.height); ctx.drawImage(img, (img.width - s)/2, (img.height - s)/2, s, s, 0, 0, N, N); }
+const clamp = v => Math.max(0, Math.min(255, v));
+function pix(ctx, f){ const d = ctx.getImageData(0, 0, N, N), a = d.data; for(let i = 0; i < a.length; i += 4){ const o = f(a[i], a[i+1], a[i+2], i); a[i] = o[0]; a[i+1] = o[1]; a[i+2] = o[2]; } ctx.putImageData(d, 0, 0); }
+function blur(ctx, r){ if(r < 1) return; const d = ctx.getImageData(0, 0, N, N), a = d.data;
+  for(let pass = 0; pass < 2; pass++){ const src = a.slice();
+    for(let y = 0; y < N; y++) for(let x = 0; x < N; x++){ let s0 = 0, s1 = 0, s2 = 0, n = 0;
+      for(let k = -r; k <= r; k++){ const xx = pass ? x : Math.min(N-1, Math.max(0, x+k)), yy = pass ? Math.min(N-1, Math.max(0, y+k)) : y; const j = (yy*N + xx)*4; s0 += src[j]; s1 += src[j+1]; s2 += src[j+2]; n++; }
+      const i = (y*N + x)*4; a[i] = s0/n; a[i+1] = s1/n; a[i+2] = s2/n; } }
+  ctx.putImageData(d, 0, 0); }
+async function jpeg(ctx, q){ const im = new Image(); im.src = ctx.canvas.toDataURL('image/jpeg', q); await load(im); ctx.drawImage(im, 0, 0); }
+const R = rng(3);
+const TYPES = [
+  ['noise', async (c, s) => { base(c); const amp = [20, 45, 70, 100, 140][s]; pix(c, (r, g, b) => { const n = (R() - .5) * 2 * amp; return [clamp(r+n), clamp(g+n), clamp(b+n)]; }); }],
+  ['blur',  async (c, s) => { base(c); blur(c, [1, 2, 4, 6, 9][s]); }],
+  ['fog',   async (c, s) => { base(c); const k = [.2, .35, .5, .65, .8][s]; pix(c, (r, g, b, i) => { const y = Math.floor(i / 4 / N) / N, w = k * (.6 + .4 * y); return [r*(1-w) + 225*w, g*(1-w) + 228*w, b*(1-w) + 232*w]; }); }],
+  ['JPEG',  async (c, s) => { base(c); await jpeg(c, [.3, .15, .08, .04, .01][s]); }],
+];
+let ready = false;
+(async () => {
+  await load(img); base(document.getElementById('c0').getContext('2d'));
+  const g = document.getElementById('grid');
+  g.innerHTML = '<div></div>' + [1, 2, 3, 4, 5].map(s => `<div class="sv">severity ${s}</div>`).join('') +
+    TYPES.map(([nm], t) => `<div class="nm t${t}">${nm}</div>` + [0, 1, 2, 3, 4].map(s => `<canvas class="t${t}" id="k${t}_${s}" width="${N}" height="${N}"></canvas>`).join('')).join('');
+  for(let t = 0; t < TYPES.length; t++) for(let s = 0; s < 5; s++) await TYPES[t][1](document.getElementById(`k${t}_${s}`).getContext('2d'), s);
+  ready = true; go(beat);
+})();
+const NB = 6;
+let beat = 0;
+function go(b){ beat = b;
+  const op = (sel, on) => document.querySelectorAll(sel).forEach(e => e.style.opacity = on ? 1 : 0);
+  op('#orig', b >= 1); op('.sv', b >= 2); for(let t = 0; t < 4; t++) op('.t' + t, b >= 2 + t); op('#s6', b >= 6);
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join(''); }
+window.corruptScene = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0); },
+  resetToEnd(){ go(NB); },
+  getBeat: () => beat,
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) corruptScene.advance(); if(e.key === 'ArrowLeft') corruptScene.back(); });
+  addEventListener('click', () => corruptScene.advance());
+}
+go(0);
+</script>
+</body>
+</html>

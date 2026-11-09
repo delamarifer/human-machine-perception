@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fit here, test there</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: Shreya (Day 6, part problem). Everything drawn is computed here, seeded, so it looks the same every time.
+     Setup follows Ch. 35.3: x ~ N(mu, sigma), y = f(x) + noise, hypothesis f_theta(x) = theta0 x + theta1 x^2,
+     least squares with a small ridge. Dataset A: mu -1.5, sigma 1.5. Dataset B: mu 2.5, sigma 0.5. 5 samples each.
+     The true curve f is OUR choice (the chapter does not give it), so the picture is an illustration;
+     the error numbers students see are the chapter's Table 35.1, on the next slide. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .cite{ font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Toy example: train on one set of points, test on another</h1>
+  <div class="stagebox"><canvas id="cv"></canvas></div>
+  <div class="cite" id="cite" style="opacity:0">Our simulation of the Ch. 35 toy example (Foundations of Computer Vision); the true curve is our choice</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* BEAT 0  title only
+   BEAT 1  the world: one rule, y = f(x) + noise
+   BEAT 2  dataset A (filled dots) and the curve fitted to A
+   BEAT 3  dataset B (open dots): the A-fit misses them; misses drawn as vertical lines
+   BEAT 4  the curve fitted to B (dashed) misses A just as badly
+   No data colors: filled = A, open = B, solid fit = A, dashed fit = B. */
+const FONT = "Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif";
+const INK = '#0f172a', MUTE = '#94a3b8';
+
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const R = rng(5);   /* seed picked so both fits are close on their own data and far off on the other */
+const gauss = () => { let u = 0, v = 0; while(!u) u = R(); v = R(); return Math.sqrt(-2*Math.log(u)) * Math.cos(2*Math.PI*v); };
+
+const f = x => 0.3*Math.exp(0.9*x) + 0.4;            /* flat on the left, steep on the right (our choice) */
+const NOISE = 0.25;
+const sample = (mu, sd, n) => [...Array(n)].map(() => { const x = mu + sd*gauss(); return {x, y: f(x) + NOISE*gauss()}; });
+const A = sample(-1.5, 1.5, 5), B = sample(2.5, 0.5, 5);
+
+/* least squares for y = t0 x + t1 x^2 with ridge lambda (2x2 normal equations) */
+function fit(D, lam = 0.01){
+  let a = lam, b = 0, d = lam, u = 0, v = 0;
+  for(const {x, y} of D){ a += x*x; b += x*x*x; d += x*x*x*x; u += x*y; v += x*x*y; }
+  const det = a*d - b*b; const t0 = (d*u - b*v)/det, t1 = (a*v - b*u)/det;
+  return x => t0*x + t1*x*x;
+}
+const gA = fit(A), gB = fit(B);
+
+const NB = 4;
+let beat = 0, t0 = 0;
+const ease = p => p < .5 ? 2*p*p : 1 - Math.pow(-2*p + 2, 2)/2;
+function go(b, jump){ beat = b; t0 = performance.now() - (jump ? 1e9 : 0);
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join('');
+  document.getElementById('cite').style.opacity = b ? 1 : 0; }
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 0, H = 0;
+function size(){ const k = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W*k; cv.height = H*k; ctx.setTransform(k, 0, 0, k, 0, 0); }
+const txt = (t, x, y, sz, bold, align = 'center', base = 'middle') => { ctx.fillStyle = INK; ctx.font = `${bold ? 700 : 400} ${sz}px ${FONT}`; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(t, x, y); };
+
+const XMIN = -5, XMAX = 4, YMIN = -1, YMAX = 8;
+function frame(now){
+  if(cv.clientWidth !== W || cv.clientHeight !== H) size();
+  const p = Math.min(1, (now - t0)/1000), Aph = b => beat > b ? 1 : beat === b ? ease(p) : 0;
+  ctx.clearRect(0, 0, W, H);
+  const fs = Math.max(15, W*.016), r = Math.max(6, W*.0065);
+  const x0 = W*.06, x1 = W*.70, yb = H*.92, yt = H*.03;
+  const X = x => x0 + (x - XMIN)/(XMAX - XMIN)*(x1 - x0), Y = y => yb - (Math.max(YMIN, Math.min(YMAX, y)) - YMIN)/(YMAX - YMIN)*(yb - yt);
+  const curve = (g, upto, dash, lw, col) => { ctx.save(); ctx.beginPath(); ctx.rect(x0, yt, x1 - x0, yb - yt); ctx.clip();
+    ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.setLineDash(dash); ctx.beginPath();
+    for(let i = 0; i <= 300*upto; i++){ const x = XMIN + (XMAX - XMIN)*i/300; i ? ctx.lineTo(X(x), Y(g(x))) : ctx.moveTo(X(x), Y(g(x))); }
+    ctx.stroke(); ctx.restore(); };
+  const dots = (D, filled, a) => { ctx.globalAlpha = a; for(const {x, y} of D){ ctx.beginPath(); ctx.arc(X(x), Y(y), r, 0, 7);
+    if(filled){ ctx.fillStyle = INK; ctx.fill(); } else { ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.stroke(); } } ctx.globalAlpha = 1; };
+  const misses = (D, g, a) => { ctx.globalAlpha = a; ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+    for(const {x, y} of D){ ctx.beginPath(); ctx.moveTo(X(x), Y(y)); ctx.lineTo(X(x), Y(g(x))); ctx.stroke(); } ctx.setLineDash([]); ctx.globalAlpha = 1; };
+
+  if(Aph(1) > 0){
+    ctx.globalAlpha = Aph(1); ctx.strokeStyle = MUTE; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x0, yt); ctx.lineTo(x0, yb); ctx.lineTo(x1, yb); ctx.stroke();
+    txt('x', x1 + 10, yb, fs, true, 'left'); txt('y', x0, yt - 4, fs, true, 'center', 'bottom');
+    ctx.globalAlpha = 1;
+    curve(f, beat === 1 ? p : 1, [], 6, '#e2e8f0');
+  }
+  if(Aph(2) > 0){ dots(A, true, Aph(2)); curve(gA, beat === 2 ? p : 1, [], 3, INK); }
+  if(Aph(3) > 0){ dots(B, false, Aph(3)); misses(B, gA, Aph(3)); }
+  if(Aph(4) > 0){ curve(gB, beat === 4 ? p : 1, [12, 8], 3, INK); misses(A, gB, Aph(4)); }
+
+  /* legend, one line per beat */
+  const L = [[1, 'the world: one rule, y = f(x) + noise'], [2, 'A: 5 points on the left, fitted'], [3, 'B: 5 points on the right, missed'], [4, 'fit on B instead: now A is missed']];
+  const lx = W*.73; let ly = H*.14;
+  for(const [b, t] of L){ const a = Aph(b); if(a > 0){ ctx.globalAlpha = a*(beat === b ? 1 : .55);
+    const mx = lx + 14, my = ly;
+    if(b === 1){ ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(lx, my); ctx.lineTo(lx + 28, my); ctx.stroke(); }
+    if(b === 2){ ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(mx, my, r, 0, 7); ctx.fill(); }
+    if(b === 3){ ctx.fillStyle = '#fff'; ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(mx, my, r, 0, 7); ctx.fill(); ctx.stroke(); }
+    if(b === 4){ ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.setLineDash([12, 8]); ctx.beginPath(); ctx.moveTo(lx, my); ctx.lineTo(lx + 28, my); ctx.stroke(); ctx.setLineDash([]); }
+    ctx.font = `${beat === b ? 700 : 400} ${fs*1.15}px ${FONT}`; ctx.fillStyle = INK; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    wrap(t, lx + 40, my, W - lx - 50, fs*1.45);
+    ctx.globalAlpha = 1; } ly += H*.17; }
+  requestAnimationFrame(frame);
+}
+function wrap(t, x, y, maxw, lh){ const words = t.split(' '); let line = '', yy = y;
+  for(const w of words){ const test = line ? line + ' ' + w : w; if(ctx.measureText(test).width > maxw && line){ ctx.fillText(line, x, yy); line = w; yy += lh; } else line = test; }
+  ctx.fillText(line, x, yy); }
+
+window.toyShift = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) toyShift.advance(); if(e.key === 'ArrowLeft') toyShift.back(); });
+  addEventListener('click', () => toyShift.advance());
+}
+go(0, true); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Near-duplicates</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Owner: Shreya (Day 6, part eval-data). Every copy, fingerprint and similarity is computed here in the browser.
+     Cat photo: Keith Kissel, "June odd-eyed-cat" (cropped), CC BY 2.0, via Wikimedia Commons (changes allowed).
+     Other image: Fig. 35.3, Foundations of Computer Vision (MIT Press), CC BY-NC-ND 4.0, shown whole, only scaled. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.6vh; }
+  .row{ flex:0 0 auto; min-height:0; display:flex; justify-content:center; align-items:flex-start; gap:1.6vw; }
+  figure{ margin:0; display:flex; flex-direction:column; align-items:center; gap:.6vh; transition:opacity .7s ease; width:15vw; }
+  figure canvas{ width:15vw; height:15vw; max-width:24vh; max-height:24vh; border-radius:8px; background:#f1f5f9; }
+  figure.orig canvas{ outline:3px solid var(--ink); outline-offset:2px; }
+  .nm{ font-weight:700; font-size:clamp(.85rem, 1.25vw, 1.2rem); white-space:nowrap; }
+  .m{ font-size:clamp(.8rem, 1.15vw, 1.1rem); color:var(--ink); white-space:nowrap; transition:opacity .7s ease; text-align:center; }
+  .m code{ font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .say{ transition:opacity .7s ease; font-size:clamp(.95rem, 1.7vw, 1.6rem); line-height:1.3; }
+  .cite{ font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); margin-top:auto; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Same photo, new file: exact checks miss the copies</h1>
+  <div class="row" id="row"></div>
+  <div class="lead say" id="s3">Exact check (fingerprint of the pixels): <b id="nExact"></b> of 4 copies found</div>
+  <div class="lead say" id="s4">Similarity check: <b id="nSim"></b> of 4 copies above <span id="thr"></span>; the other image scores <b id="sOther"></b>.<span id="miss"></span></div>
+  <div class="cite">Computed in the browser: fingerprint = hash of the pixels; similarity = cosine of 16×16 gray thumbnails (a stand-in for a network's features) ·
+    Photo: Keith Kissel, CC BY 2.0 · Other: Fig. 35.3, Foundations of CV, CC BY-NC-ND 4.0</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* BEAT 0 title only · 1 the training photo · 2 four copies a web crawl might collect, plus one different image
+   3 fingerprints: every copy differs from the original · 4 similarity: copies score high, the other image low. */
+const N = 256, THR = 0.9;
+const cat = new Image(); cat.src = '../assets/broaden/june-odd-eyed-cat.jpg';
+const other = new Image(); other.src = '../assets/visionbook-ch35/dogs_with_tongues.jpg';
+const load = im => new Promise(r => im.complete && im.naturalWidth ? r() : (im.onload = r));
+
+function square(ctx, {zoom = 1, dx = 0, dy = 0} = {}){
+  const s = Math.min(cat.width, cat.height), sx = (cat.width - s)/2, sy = (cat.height - s)/2;
+  ctx.save(); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, N, N);
+  ctx.translate(N/2, N/2); ctx.scale(zoom, zoom); ctx.translate(-N/2 + dx, -N/2 + dy);
+  ctx.drawImage(cat, sx, sy, s, s, 0, 0, N, N); ctx.restore();
+}
+const mk = () => { const c = document.createElement('canvas'); c.width = c.height = N; return c; };
+async function jpeg(src, q){ const im = new Image(); im.src = src.toDataURL('image/jpeg', q); await load(im);
+  const c = mk(); c.getContext('2d').drawImage(im, 0, 0); return c; }
+
+async function build(){
+  await Promise.all([load(cat), load(other)]);
+  const orig = mk(); square(orig.getContext('2d'));
+  const small = mk(), t = document.createElement('canvas'); t.width = t.height = 64;
+  t.getContext('2d').drawImage(orig, 0, 0, 64, 64); small.getContext('2d').imageSmoothingEnabled = true;
+  small.getContext('2d').drawImage(t, 0, 0, N, N);
+  const saved = await jpeg(orig, .35);
+  const crop = mk(); square(crop.getContext('2d'), {zoom: 1.12, dx: -8, dy: 6});
+  const color = mk(); { const c = color.getContext('2d'); c.drawImage(orig, 0, 0); const d = c.getImageData(0, 0, N, N), a = d.data;
+    for(let i = 0; i < a.length; i += 4){ a[i] = Math.min(255, a[i]*1.15 + 10); a[i+1] = a[i+1]*.95; a[i+2] = a[i+2]*.8; } c.putImageData(d, 0, 0); }
+  const oth = mk(); { const c = oth.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, N, N);
+    const s = Math.min(N/other.width, N/other.height), w = other.width*s, h = other.height*s; c.drawImage(other, (N-w)/2, (N-h)/2, w, h); }
+  return [['in training', orig, 'orig'], ['resized', small], ['re-saved JPEG', saved], ['cropped', crop], ['color shift', color], ['another image', oth, 'other']];
+}
+function fnv(c){ const a = c.getContext('2d').getImageData(0, 0, N, N).data; let h = 0x811c9dc5;
+  for(let i = 0; i < a.length; i++){ if(i % 4 === 3) continue; h ^= a[i]; h = Math.imul(h, 0x01000193); } return (h >>> 0).toString(16).padStart(8, '0'); }
+function vec(c){ const t = document.createElement('canvas'); t.width = t.height = 16; const x = t.getContext('2d'); x.drawImage(c, 0, 0, 16, 16);
+  const a = x.getImageData(0, 0, 16, 16).data, v = []; for(let i = 0; i < a.length; i += 4) v.push(.299*a[i] + .587*a[i+1] + .114*a[i+2]);
+  const m = v.reduce((s, z) => s + z, 0)/v.length; const u = v.map(z => z - m); const n = Math.hypot(...u); return u.map(z => z/n); }
+const cos = (a, b) => a.reduce((s, z, i) => s + z*b[i], 0);
+
+let ready = false;
+build().then(items => {
+  const h0 = fnv(items[0][1]), v0 = vec(items[0][1]);
+  let nExact = 0, nSim = 0, sOther = 0; const missed = [];
+  document.getElementById('row').innerHTML = items.map(([nm, , k], i) => `<figure class="${k || 'copy'}" id="f${i}"><div id="cv${i}"></div>
+    <div class="nm">${nm}</div><div class="m fp" id="h${i}"></div><div class="m sim" id="v${i}"></div></figure>`).join('');
+  items.forEach(([nm, c, k], i) => {
+    document.getElementById('cv' + i).appendChild(c);
+    const h = fnv(c), s = cos(v0, vec(c));
+    document.getElementById('h' + i).innerHTML = `fingerprint <code>${h}</code>`;
+    document.getElementById('v' + i).innerHTML = k === 'orig' ? '&nbsp;' : `similarity <b>${s.toFixed(2)}</b>`;
+    if(!k){ if(h === h0) nExact++; if(s >= THR) nSim++; else missed.push(`the ${nm} copy scores ${s.toFixed(2)}`); }
+    if(k === 'other') sOther = s;
+  });
+  document.getElementById('nExact').textContent = nExact;
+  document.getElementById('nSim').textContent = nSim;
+  document.getElementById('thr').textContent = THR.toFixed(1) + ' (an example threshold)';
+  document.getElementById('sOther').textContent = sOther.toFixed(2);
+  document.getElementById('miss').innerHTML = missed.length ? ` Raw pixels move under a crop (${missed.join(', ')}): real checks use a network's features, then a person looks.` : ' A person then looks at the flagged pairs.';
+  ready = true; go(beat);
+});
+
+const NB = 4;
+let beat = 0;
+function go(b){ beat = b;
+  const op = (sel, on) => document.querySelectorAll(sel).forEach(e => e.style.opacity = on ? 1 : 0);
+  op('figure.orig', b >= 1); op('figure.copy, figure.other', b >= 2);
+  op('.fp', b >= 3); op('.sim', b >= 4); op('#s3', b >= 3); op('#s4', b >= 4);
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join(''); }
+
+window.nearDupScene = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0); },
+  resetToEnd(){ go(NB); },
+  getBeat: () => beat,
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) nearDupScene.advance(); if(e.key === 'ArrowLeft') nearDupScene.back(); });
+  addEventListener('click', () => nearDupScene.advance());
+}
+go(0);
+</script>
+</body>
+</html>
