@@ -3,7 +3,7 @@
    CLEAR Fig. 1 (project page: CC BY); DROID, Open X-Embodiment, RoboCasa (arXiv: CC BY 4.0, cropped);
    hand photo (John Beans, Wikimedia Commons, CC BY 2.0, cropped). Crop boxes were measured by script from each image. */
 {
-section('Future data');
+section('Transfer Learning');  // end of the Transfer Learning section (Shreya, 2026-11-09)
 
 const fuA = (href, t) => d6Link(href, t);
 

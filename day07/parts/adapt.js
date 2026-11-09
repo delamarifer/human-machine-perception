@@ -4,7 +4,7 @@
    Fog numbers: Sakaridis, Dai, Van Gool, IJCV 2018, Table 2 (no dehazing column), read from the paper.
    Rotated-digit numbers: read from assets/adapt/cl_results.json by the two scenes. No speaker notes. */
 {
-section('Adapting models');
+section('Transfer Learning');
 
 const adBook = t => d6Link('https://visionbook.mit.edu/transfer_learning.html', `Foundations of Computer Vision, Ch. 37${t ? ', ' + t : ''}`) + ' · CC BY-NC-ND 4.0';
 const AD_PRE = '#f3d79f', AD_FT = '#f1a3a9';   /* sampled from the book's module colors: pretrained, finetuned */
