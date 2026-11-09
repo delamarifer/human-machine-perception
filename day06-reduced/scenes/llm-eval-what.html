@@ -8,7 +8,7 @@
 <style>
   /* Part llm-eval (Day 6 reduced). Google deck p45, first of the two slides she asked for.
      Main ideas of "What is model evaluation about?" from The LLM Evaluation Guidebook (OpenEvals, Hugging Face).
-     Quoted wording: the question, the two perspectives. Nothing drawn here is measured: the samples and bars are
+     Cues only (review B6). Nothing drawn here is measured: the samples and bars are
      illustrative, the score is counted from LE_CORRECT below. */
   html, body{ background:#fff; }
   .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
@@ -38,7 +38,7 @@
 <div class="dots" id="dots"></div>
 <script>
 /* BEAT 0  title only
-   BEAT 1  the question; a model answers benchmark samples and gets a score
+   BEAT 1  a model answers benchmark samples and gets a score
    BEAT 2  the samples are a small patch of the whole capability: a proxy
    BEAT 3  the model builder: ablations against a baseline
    BEAT 4  the model user: which model for my task */
@@ -78,8 +78,6 @@ const BARX = 810;
 const bar = (b, y, w, delay = 0, fill = INK) => `<rect class="llm-eval-bar" data-b="${b}" style="transition-delay:${delay}ms" x="${BARX}" y="${y}" width="${w}" height="22" fill="${fill}"/>`;
 
 document.getElementById('fig').innerHTML = `
-  ${f(1, t(0, 30, 'How can one know if a model is <tspan font-style="italic">good</tspan>?', 30, {w:700}))}
-
   ${f(2, `<ellipse cx="${CX}" cy="${CY}" rx="${RX}" ry="${RY}" fill="#f8fafc" stroke="${MUTE}" stroke-width="2"/>${cloud}${t(CX, 154, 'capability', 26, {w:700, a:'middle'})}`)}
 
   ${f(1, `<rect x="10" y="235" width="104" height="70" rx="12" fill="#fff" stroke="${INK}" stroke-width="2.5"/>${t(62, 278, 'model', 24, {w:700, a:'middle'})}`)}
@@ -93,19 +91,19 @@ document.getElementById('fig').innerHTML = `
   ${f(2, t(CX, 500, 'a proxy for the capability, no guarantee', 24, {w:700, a:'middle'}))}
 
   ${f(3, `<line x1="650" y1="50" x2="650" y2="490" stroke="${FAINT}" stroke-width="2"/>`)}
-  ${f(3, t(680, 56, 'The model builder', 26, {w:700}) + t(680, 88, 'Am I building a strong model?', 24, {i:true}))}
-  ${f(3, t(680, 130, 'baseline', 22) + t(680, 168, 'one change', 22))}
-  ${bar(3, 113, 190)}
-  ${bar(3, 151, 250, 120)}
+  ${f(3, t(680, 74, 'model builder', 28, {w:700}))}
+  ${f(3, t(680, 126, 'baseline', 22) + t(680, 166, 'one change', 22))}
+  ${bar(3, 109, 190)}
+  ${bar(3, 149, 250, 120)}
   ${f(3, t(680, 214, 'ablations: fast, high-signal benchmarks', 22, {w:700}), 250)}
 
-  ${f(4, t(680, 290, 'The model user', 26, {w:700}) + t(680, 322, 'Which model is the best on &lt;task&gt;?', 24, {i:true}))}
-  ${f(4, t(680, 364, 'model A', 22) + t(680, 402, 'model B', 22) + t(680, 440, 'model C', 22))}
-  ${bar(4, 347, 150)}
-  ${bar(4, 385, 280, 120)}
-  ${bar(4, 423, 210, 240)}
-  ${f(4, t(1100, 402, 'best', 22, {w:700}), 400)}
-  ${f(4, t(680, 486, 'benchmarks that match your use case', 22, {w:700}), 300)}
+  ${f(4, t(680, 298, 'model user', 28, {w:700}))}
+  ${f(4, t(680, 350, 'model A', 22) + t(680, 390, 'model B', 22) + t(680, 430, 'model C', 22))}
+  ${bar(4, 333, 150)}
+  ${bar(4, 373, 280, 120)}
+  ${bar(4, 413, 210, 240)}
+  ${f(4, t(1100, 390, 'best', 22, {w:700}), 400)}
+  ${f(4, t(680, 478, 'benchmarks that match your use case', 22, {w:700}), 300)}
 `;
 
 let beat = 0;
