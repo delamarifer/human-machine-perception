@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Evaluating LLMs</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Part llm-eval (Day 6 reduced). Google deck p45, first of the two slides she asked for.
+     Main ideas of "What is model evaluation about?" from The LLM Evaluation Guidebook (OpenEvals, Hugging Face).
+     Quoted wording: the question, the two perspectives. Nothing drawn here is measured: the samples and bars are
+     illustrative, the score is counted from LE_CORRECT below. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  svg{ position:absolute; inset:0; width:100%; height:100%; }
+  svg text{ fill:var(--ink); font-family:var(--font); }
+  .cite{ position:static; margin-top:auto; font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); opacity:0; }
+  .cite a{ color:var(--mute); }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+  .llm-eval-f{ opacity:0; transition:opacity .35s ease; }
+  .llm-eval-f.on{ opacity:1; }
+  .llm-eval-d{ opacity:0; transition:opacity .25s ease; }
+  .llm-eval-d.on{ opacity:1; }
+  .llm-eval-bar{ transform-box:fill-box; transform-origin:left center; transform:scaleX(0); transition:transform .6s ease; }
+  .llm-eval-bar.on{ transform:scaleX(1); }
+  html.still *{ transition:none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Evaluating LLMs</h1>
+  <div class="stagebox"><svg id="fig" viewBox="0 0 1148 510" preserveAspectRatio="xMinYMid meet"></svg></div>
+  <div class="cite" id="cite">Main ideas from <a href="https://huggingface.co/spaces/OpenEvals/evaluation-guidebook" target="_blank" rel="noopener">The LLM Evaluation Guidebook</a> (Fourrier, Frere, Penedo, Wolf; Hugging Face, 2025), CC BY 4.0 · samples, score and bars are illustrative</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* BEAT 0  title only
+   BEAT 1  the question; a model answers benchmark samples and gets a score
+   BEAT 2  the samples are a small patch of the whole capability: a proxy
+   BEAT 3  the model builder: ablations against a baseline
+   BEAT 4  the model user: which model for my task */
+const NB = 4;
+const INK = '#0f172a', MUTE = '#94a3b8', FAINT = '#cbd5e1';
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const R = rng(7);
+
+/* Illustrative answers for 12 samples (1 right, 0 wrong). The score on screen is counted from this. */
+const LE_CORRECT = [1,1,0,1, 1,1,0,1, 1,1,0,1];
+const leRight = LE_CORRECT.reduce((a, b) => a + b, 0);
+
+const t = (x, y, s, sz, opt = {}) => `<text x="${x}" y="${y}" font-size="${sz}" text-anchor="${opt.a || 'start'}" font-weight="${opt.w || 400}" font-style="${opt.i ? 'italic' : 'normal'}">${s}</text>`;
+const arrow = (x0, x1, y) => `<line x1="${x0}" y1="${y}" x2="${x1 - 8}" y2="${y}" stroke="${INK}" stroke-width="2.5"/><path d="M${x1 - 12},${y - 7} L${x1},${y} L${x1 - 12},${y + 7} Z" fill="${INK}"/>`;
+const f = (b, inner, delay = 0) => `<g class="llm-eval-f" data-b="${b}" style="transition-delay:${delay}ms">${inner}</g>`;
+
+/* patch geometry: 4 x 3 dots */
+const PX = 292, PY = 238, PITCH = 32, CX = 340, CY = 290, RX = 185, RY = 175;
+
+/* faint dots of the capability, outside the patch and the labels */
+let cloud = '';
+for(let n = 0; n < 900 && cloud.length < 9000; n++){
+  const a = R()*Math.PI*2, r = Math.sqrt(R())*.94, x = CX + Math.cos(a)*r*RX, y = CY + Math.sin(a)*r*RY;
+  if(x > 262 && x < 418 && y > 188 && y < 356) continue;                 /* patch, its label and the key */
+  if(x > 250 && x < 430 && y > 128 && y < 164) continue;                 /* "capability" */
+  cloud += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.6" fill="${FAINT}"/>`;
+}
+
+let dots = '';
+LE_CORRECT.forEach((c, i) => {
+  const x = PX + (i % 4)*PITCH, y = PY + Math.floor(i/4)*PITCH;
+  dots += `<circle class="llm-eval-d" data-b="1" style="transition-delay:${i*25}ms" cx="${x}" cy="${y}" r="10" fill="${c ? INK : '#fff'}" stroke="${INK}" stroke-width="2.5"/>`;
+});
+
+const BARX = 810;
+const bar = (b, y, w, delay = 0, fill = INK) => `<rect class="llm-eval-bar" data-b="${b}" style="transition-delay:${delay}ms" x="${BARX}" y="${y}" width="${w}" height="22" fill="${fill}"/>`;
+
+document.getElementById('fig').innerHTML = `
+  ${f(1, t(0, 30, 'How can one know if a model is <tspan font-style="italic">good</tspan>?', 30, {w:700}))}
+
+  ${f(2, `<ellipse cx="${CX}" cy="${CY}" rx="${RX}" ry="${RY}" fill="#f8fafc" stroke="${MUTE}" stroke-width="2"/>${cloud}${t(CX, 154, 'capability', 26, {w:700, a:'middle'})}`)}
+
+  ${f(1, `<rect x="10" y="235" width="104" height="70" rx="12" fill="#fff" stroke="${INK}" stroke-width="2.5"/>${t(62, 278, 'model', 24, {w:700, a:'middle'})}`)}
+  ${f(1, arrow(122, 262, 270))}
+  ${f(1, `<rect x="270" y="222" width="140" height="96" rx="8" fill="#fff" stroke="${INK}" stroke-width="2"/>${t(340, 212, 'samples', 24, {w:700, a:'middle'})}`)}
+  ${dots}
+  ${f(1, `${t(340, 346, '● right   ○ wrong', 20, {a:'middle'})}`, 200)}
+  ${f(1, arrow(418, 524, 270), 250)}
+  ${f(1, `${t(585, 268, `${leRight} / ${LE_CORRECT.length}`, 36, {w:700, a:'middle'})}${t(585, 298, 'score', 22, {a:'middle'})}`, 350)}
+
+  ${f(2, t(CX, 500, 'a proxy for the capability, no guarantee', 24, {w:700, a:'middle'}))}
+
+  ${f(3, `<line x1="650" y1="50" x2="650" y2="490" stroke="${FAINT}" stroke-width="2"/>`)}
+  ${f(3, t(680, 56, 'The model builder', 26, {w:700}) + t(680, 88, 'Am I building a strong model?', 24, {i:true}))}
+  ${f(3, t(680, 130, 'baseline', 22) + t(680, 168, 'one change', 22))}
+  ${bar(3, 113, 190)}
+  ${bar(3, 151, 250, 120)}
+  ${f(3, t(680, 214, 'ablations: fast, high-signal benchmarks', 22, {w:700}), 250)}
+
+  ${f(4, t(680, 290, 'The model user', 26, {w:700}) + t(680, 322, 'Which model is the best on &lt;task&gt;?', 24, {i:true}))}
+  ${f(4, t(680, 364, 'model A', 22) + t(680, 402, 'model B', 22) + t(680, 440, 'model C', 22))}
+  ${bar(4, 347, 150)}
+  ${bar(4, 385, 280, 120)}
+  ${bar(4, 423, 210, 240)}
+  ${f(4, t(1100, 402, 'best', 22, {w:700}), 400)}
+  ${f(4, t(680, 486, 'benchmarks that match your use case', 22, {w:700}), 300)}
+`;
+
+let beat = 0;
+const root = document.documentElement, els = [...document.querySelectorAll('[data-b]')];
+function go(b, jump){
+  beat = b;
+  root.classList.toggle('still', !!jump);
+  els.forEach(e => e.classList.toggle('on', b >= +e.dataset.b));
+  document.getElementById('cite').style.opacity = b ? 1 : 0;
+  document.getElementById('fig').style.visibility = b ? 'visible' : 'hidden';
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join('');
+  if(jump){ void root.offsetWidth; root.classList.remove('still'); }
+}
+window.llmEvalWhat = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) llmEvalWhat.advance(); if(e.key === 'ArrowLeft') llmEvalWhat.back(); });
+  addEventListener('click', () => llmEvalWhat.advance());
+}
+go(0, true);
+</script>
+</body>
+</html>

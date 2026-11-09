@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Evaluating with existing benchmarks</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Part llm-eval (Day 6 reduced). Google deck p45, second of the two slides she asked for. The title is the guidebook's
+     section heading "Evaluating with existing benchmarks"; the four panels are from that section.
+     REAL DATA (not ours): LE_RECORDS = top score per benchmark over time, Open LLM Leaderboard, from the guidebook's
+     file app/src/content/assets/data/leaderboard_scores_over_time_old.json, reduced to the new-record points as its
+     banner chart does. LE_PHI2 = the phi-2 row, the 5 rightmost columns (semantically equivalent prompts), of the matrix
+     in the guidebook's d3-mmlu-heatmap.html (MMLU subsets, acc_norm, seed 0, 5-shot). The range is computed.
+     ILLUSTRATIVE: the contamination and the look-at-the-data panels; seeded, no numbers. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  svg{ position:absolute; inset:0; width:100%; height:100%; }
+  svg text{ fill:var(--ink); font-family:var(--font); }
+  .cite{ position:static; margin-top:auto; font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); opacity:0; }
+  .cite a{ color:var(--mute); }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+  .llm-eval-f{ opacity:0; transition:opacity .35s ease; }
+  .llm-eval-f.on{ opacity:1; }
+  .llm-eval-line{ stroke-dasharray:1; stroke-dashoffset:1; transition:stroke-dashoffset .65s ease; }
+  .llm-eval-line.on{ stroke-dashoffset:0; }
+  .llm-eval-move{ opacity:0; transform:translate(var(--x), var(--y)); transition:transform .55s ease, opacity .2s ease; }
+  .llm-eval-move.on{ opacity:1; transform:translate(0, 0); }
+  .llm-eval-growv{ transform-box:fill-box; transform-origin:center bottom; transform:scaleY(0); transition:transform .55s ease; }
+  .llm-eval-growv.on{ transform:scaleY(1); }
+  html.still *{ transition:none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Evaluating with existing benchmarks</h1>
+  <div class="stagebox"><svg id="fig" viewBox="0 0 1148 510" preserveAspectRatio="xMinYMid meet"></svg></div>
+  <div class="cite" id="cite">Headings and data from <a href="https://huggingface.co/spaces/OpenEvals/evaluation-guidebook" target="_blank" rel="noopener">The LLM Evaluation Guidebook</a> (Fourrier et al., Hugging Face, 2025), CC BY 4.0 · top scores: Open LLM Leaderboard · contamination, samples illustrative</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* BEAT 0  title only
+   BEAT 1  Saturation (real top scores on 6 benchmarks)
+   BEAT 2  Contamination (illustrative)
+   BEAT 3  Look at the data (50 random samples of a pool, illustrative)
+   BEAT 4  Different prompt (real phi-2 scores on 5 equivalent prompt formats) */
+const NB = 4;
+const INK = '#0f172a', MUTE = '#94a3b8', FAINT = '#cbd5e1';
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+const LE_RECORDS = {"ARC":[["2023-07-19",22.01],["2023-07-19",30.29],["2023-08-25",50.43],["2023-08-29",58.28],["2023-09-09",63.05],["2023-09-09",65.27],["2023-09-09",67.41],["2023-09-09",67.66],["2023-09-09",68.26],["2023-09-09",68.34],["2023-09-09",71.25],["2023-09-09",71.67],["2023-09-09",72.1],["2023-10-16",72.27],["2023-10-16",73.04],["2023-11-06",73.55],["2023-12-07",87.46]],"HellaSwag":[["2023-07-19",31.53],["2023-07-19",51.36],["2023-08-25",76.41],["2023-08-29",80.98],["2023-09-09",83.59],["2023-09-09",85.75],["2023-09-09",87.37],["2023-09-09",87.65],["2023-09-09",88.32],["2023-09-15",88.86],["2023-09-15",88.89],["2023-12-14",90.11],["2024-01-19",90.58],["2024-03-09",91.82],["2024-03-11",91.88],["2024-05-14",92.75]],"MMLU":[["2023-07-19",25.83],["2023-07-19",26.54],["2023-08-25",30.85],["2023-08-29",54.14],["2023-09-09",56.89],["2023-09-09",63.42],["2023-09-09",69.77],["2023-09-09",69.83],["2023-09-09",70.23],["2023-09-09",78.59],["2023-10-16",78.66],["2023-12-06",78.78],["2024-01-21",85.63],["2024-01-25",86.64],["2024-02-01",88.78],["2024-02-01",89.35]],"TruthfulQA":[["2023-07-19",40.69],["2023-09-09",42.13],["2023-09-09",59.03],["2023-09-09",59.16],["2023-09-09",61.05],["2023-09-09",64.85],["2023-09-09",65.02],["2023-10-16",65.81],["2023-12-07",72.79],["2023-12-18",76.73],["2024-01-17",81.5],["2024-03-29",82.29]],"Winogrande":[["2023-07-19",50.43],["2023-07-19",58.25],["2023-08-25",72.06],["2023-08-29",75.93],["2023-09-09",77.66],["2023-09-09",81.37],["2023-09-09",83.9],["2023-09-09",83.98],["2023-09-09",84.29],["2023-09-15",86.9],["2024-01-09",91.48]],"GSM8K":[["2023-07-19",0.68],["2023-07-19",1.29],["2023-08-25",6.9],["2023-08-29",9.25],["2023-09-09",9.86],["2023-09-09",24.56],["2023-09-09",29.04],["2023-09-09",30.1],["2023-09-09",34.27],["2023-09-09",43.37],["2023-09-15",45.94],["2023-10-16",54.06],["2023-11-06",60.27],["2023-11-17",60.8],["2023-11-19",62.7],["2023-12-01",63.68],["2023-12-01",72.1],["2023-12-09",72.18],["2023-12-12",73.16],["2023-12-31",73.31],["2024-01-05",74.6],["2024-01-08",75.51],["2024-01-12",76.27],["2024-01-16",76.8],["2024-01-22",78.62],["2024-02-02",78.7],["2024-02-04",79.38],["2024-02-04",80.06],["2024-04-17",82.03],["2024-04-18",85.44],["2024-04-26",86.05],["2024-04-27",86.28],["2024-05-01",88.25]]};
+const LE_PHI2 = [46.1, 47.1, 48.4, 51.7, 45.8];
+
+const t = (x, y, s, sz, opt = {}) => `<text x="${x}" y="${y}" font-size="${sz}" text-anchor="${opt.a || 'start'}" font-weight="${opt.w || 400}">${s}</text>`;
+const f = (b, inner, delay = 0) => `<g class="llm-eval-f" data-b="${b}" style="transition-delay:${delay}ms">${inner}</g>`;
+const head = (b, x, y, s) => f(b, t(x, y, s, 28, {w:700}));
+
+/* ---------- Saturation: step lines of real top scores ---------- */
+const PA = {x0:52, x1:345, yt:58, yb:208};
+const days = s => Date.parse(s + 'T00:00:00Z')/864e5;
+const allD = Object.values(LE_RECORDS).flat().map(p => days(p[0])), d0 = Math.min(...allD), d1 = Math.max(...allD);
+const AX = d => PA.x0 + (d - d0)/(d1 - d0)*(PA.x1 - PA.x0), AY = v => PA.yb - v/100*(PA.yb - PA.yt);
+const stepPath = s => { let p = `M${AX(days(s[0][0])).toFixed(1)},${AY(s[0][1]).toFixed(1)}`;
+  for(let i = 1; i < s.length; i++){ p += ` H${AX(days(s[i][0])).toFixed(1)} V${AY(s[i][1]).toFixed(1)}`; }
+  return p + ` H${PA.x1}`; };
+const saturation = `
+  ${head(1, 0, 28, 'Saturation')}
+  ${f(1, `
+    <line x1="${PA.x0}" y1="${PA.yt}" x2="${PA.x1}" y2="${PA.yt}" stroke="${FAINT}" stroke-width="1.5"/>
+    <line x1="${PA.x0}" y1="${PA.yt}" x2="${PA.x0}" y2="${PA.yb}" stroke="${MUTE}" stroke-width="2"/>
+    <line x1="${PA.x0}" y1="${PA.yb}" x2="${PA.x1}" y2="${PA.yb}" stroke="${MUTE}" stroke-width="2"/>
+    ${t(44, PA.yt + 6, '100', 17, {a:'end'})}${t(44, PA.yb + 6, '0', 17, {a:'end'})}
+    ${t(PA.x0, PA.yb + 24, 'Jul 2023', 17)}${t(PA.x1, PA.yb + 24, 'May 2024', 17, {a:'end'})}`)}
+  ${Object.values(LE_RECORDS).map(s => `<path class="llm-eval-line" data-b="1" pathLength="1" d="${stepPath(s)}" fill="none" stroke="${INK}" stroke-width="2.4"/>`).join('')}
+  ${f(1, t(368, 96, 'top score,', 22) + t(368, 124, '6 benchmarks', 22), 150)}
+  ${f(1, t(368, 172, 'no longer', 22, {w:700}) + t(368, 200, 'separates models', 22, {w:700}), 300)}
+`;
+
+/* ---------- Contamination: benchmark samples end up in the training data ---------- */
+const OB = 592, R2 = rng(11);
+const TR = {x:OB, y:54, w:170, h:134}, BM = {x:OB + 212, y:54, w:130, h:134};
+let trDots = '';
+for(let n = 0; n < 34; n++){
+  const x = TR.x + 18 + R2()*(TR.w - 36), y = TR.y + 18 + R2()*(TR.h - 36);
+  trDots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5" fill="${FAINT}"/>`;
+}
+const BMPTS = [...Array(6)].map((_, i) => [BM.x + 35 + (i % 3)*30, BM.y + 48 + Math.floor(i/3)*40]);
+const INTO = [[TR.x + 40, TR.y + 34], [TR.x + 90, TR.y + 28], [TR.x + 135, TR.y + 50], [TR.x + 55, TR.y + 88], [TR.x + 105, TR.y + 80], [TR.x + 138, TR.y + 108]];
+const CONT_BASE = 188, BX0 = OB + 382;
+const contamination = `
+  ${head(2, OB, 28, 'Contamination')}
+  ${f(2, `<rect x="${TR.x}" y="${TR.y}" width="${TR.w}" height="${TR.h}" rx="10" fill="#fff" stroke="${INK}" stroke-width="2"/>${trDots}${t(TR.x + TR.w/2, 212, 'training data', 20, {a:'middle'})}
+    <rect x="${BM.x}" y="${BM.y}" width="${BM.w}" height="${BM.h}" rx="10" fill="#fff" stroke="${INK}" stroke-width="2"/>
+    ${BMPTS.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="9" fill="${INK}"/>`).join('')}
+    ${t(BM.x + BM.w/2, 212, 'benchmark', 20, {a:'middle'})}`)}
+  ${BMPTS.map(([x, y], i) => `<circle class="llm-eval-move" data-b="2" style="--x:${x - INTO[i][0]}px;--y:${y - INTO[i][1]}px;transition-delay:${120 + i*18}ms" cx="${INTO[i][0]}" cy="${INTO[i][1]}" r="9" fill="${INK}"/>`).join('')}
+  ${f(2, `<line x1="${BX0}" y1="${CONT_BASE}" x2="${BX0 + 170}" y2="${CONT_BASE}" stroke="${MUTE}" stroke-width="2"/>
+    ${t(BX0 + 85, 44, 'score', 20, {a:'middle'})}
+    <rect x="${BX0 + 22}" y="${CONT_BASE - 62}" width="50" height="62" fill="${MUTE}"/>
+    ${t(BX0 + 47, 212, 'before', 20, {a:'middle'})}${t(BX0 + 123, 212, 'after', 20, {a:'middle'})}`)}
+  <rect class="llm-eval-growv" data-b="2" style="transition-delay:200ms" x="${BX0 + 98}" y="${CONT_BASE - 124}" width="50" height="124" fill="${INK}"/>
+  ${f(2, t(OB, 245, 'questions it already knows', 22, {w:700}), 300)}
+`;
+
+/* ---------- Look at the data: 50 random samples of a pool ---------- */
+const POOL = {x:6, y:320, cols:18, rows:11, dx:13.2, dy:15};
+const R3 = rng(23);
+const nPool = POOL.cols*POOL.rows, idx = [...Array(nPool).keys()];
+for(let i = idx.length - 1; i > 0; i--){ const j = Math.floor(R3()*(i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+const picked = idx.slice(0, 50), ORIGIN = i => [POOL.x + (i % POOL.cols)*POOL.dx, POOL.y + Math.floor(i/POOL.cols)*POOL.dy];
+const GX = 252, GY = 346, GP = 15;
+const lookData = `
+  ${head(3, 0, 291, 'Look at the data')}
+  ${f(3, [...Array(nPool).keys()].map(i => { const [x, y] = ORIGIN(i); return `<circle cx="${x}" cy="${y}" r="4.2" fill="${FAINT}"/>`; }).join('') )}
+  ${picked.map((p, i) => { const [ox, oy] = ORIGIN(p), gx = GX + (i % 10)*GP, gy = GY + Math.floor(i/10)*GP;
+      return `<circle class="llm-eval-move" data-b="3" style="--x:${ox - gx}px;--y:${oy - gy}px;transition-delay:${100 + i*3}ms" cx="${gx}" cy="${gy}" r="5.2" fill="${INK}"/>`; }).join('')}
+  ${f(3, t(GX - 5, 450, '50 random samples', 20), 200)}
+  ${f(3, t(408, 346, 'prompts clear?', 20) + t(408, 384, 'answers correct?', 20) + t(408, 422, 'information missing?', 20), 300)}
+`;
+
+/* ---------- Different prompt: real phi-2 scores, 5 semantically equivalent prompt formats ---------- */
+const PD = {x0:640, x1:1100, y:410, lo:44, hi:54};
+const DX = v => PD.x0 + (v - PD.lo)/(PD.hi - PD.lo)*(PD.x1 - PD.x0);
+const pMin = Math.min(...LE_PHI2), pMax = Math.max(...LE_PHI2), pMean = LE_PHI2.reduce((a, b) => a + b, 0)/LE_PHI2.length;
+const different = `
+  ${head(4, 592, 291, 'Different prompt')}
+  ${f(4, `<line x1="${PD.x0}" y1="${PD.y}" x2="${PD.x1}" y2="${PD.y}" stroke="${MUTE}" stroke-width="2"/>
+    ${[PD.lo, 49, PD.hi].map(v => `<line x1="${DX(v)}" y1="${PD.y}" x2="${DX(v)}" y2="${PD.y + 8}" stroke="${MUTE}" stroke-width="2"/>${t(DX(v), PD.y + 28, v, 17, {a:'middle'})}`).join('')}
+    ${t(PD.x1, PD.y + 52, 'MMLU score, 5-shot', 17, {a:'end'})}`)}
+  ${LE_PHI2.map((v, i) => `<circle class="llm-eval-move" data-b="4" style="--x:${DX(pMean) - DX(v)}px;--y:0px;transition-delay:${i*25}ms" cx="${DX(v).toFixed(1)}" cy="${PD.y - 22}" r="11" fill="${INK}"/>`).join('')}
+  ${f(4, `<path d="M${DX(pMin)},${PD.y - 44} v-10 H${DX(pMax)} v10" fill="none" stroke="${INK}" stroke-width="2.2"/>
+    ${t((DX(pMin) + DX(pMax))/2, PD.y - 64, `${(pMax - pMin).toFixed(1)} points`, 26, {w:700, a:'middle'})}`, 300)}
+  ${f(4, t(592, 492, 'phi-2: same questions, 5 prompt formats', 22, {w:700}), 200)}
+`;
+
+document.getElementById('fig').innerHTML = saturation + contamination + lookData + different;
+
+let beat = 0;
+const root = document.documentElement, els = [...document.querySelectorAll('[data-b]')];
+function go(b, jump){
+  beat = b;
+  root.classList.toggle('still', !!jump);
+  els.forEach(e => e.classList.toggle('on', b >= +e.dataset.b));
+  document.getElementById('cite').style.opacity = b ? 1 : 0;
+  document.getElementById('fig').style.visibility = b ? 'visible' : 'hidden';
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join('');
+  if(jump){ void root.offsetWidth; root.classList.remove('still'); }
+}
+window.llmEvalBenchmarks = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) llmEvalBenchmarks.advance(); if(e.key === 'ArrowLeft') llmEvalBenchmarks.back(); });
+  addEventListener('click', () => llmEvalBenchmarks.advance());
+}
+go(0, true);
+</script>
+</body>
+</html>
