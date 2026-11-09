@@ -100,6 +100,14 @@
 - New part `project` and section "Project Review" after Agents and Memory, in the Google deck's order:
   32A and 32B Project Review, 33 Project Plan Rubric, 34 Project Rubric. Each opens on its title. One click brings her outline lines in
   dashed TO DO boxes, wording as she wrote it.
-- Not added yet (also in her outline): Data Worksheet Review and Share (start of the day), Open Questions, Quiz Review.
 - [ ] Fill in each slide when the project review content is ready (ideas overview, groupings, rubrics, an example plan?).
 - [ ] Bar width for Project Review: 15 minutes is a guess.
+
+## 2026-11-09: placeholders for the rest of her outline (Shreya's request)
+- New part `worksheet` (after the title): section "Data Worksheet Review", slides 2 Data Worksheet Review (title only in her deck,
+  so its box says "Content to add") and 3 Share ("A couple guiding questions (we will have people volunteer to share out)").
+- New part `closing` (at the end): sections "Open Questions" (37: AI Review · How to use AI · How to work – tips for workspaces and such)
+  and "Quiz Review" (38: title only in her deck). The order follows her Google deck, with Quiz Review last.
+- Every section in her outline now has a place. The whole deck (41 slides, 226 clicks) walks forward and back cleanly.
+- [ ] Bar widths for the new sections (10 minutes each) are guesses.
+- [ ] Title slide still says "Adaptation and Future Data". Retitle now that the day covers worksheets, agents and projects?
