@@ -158,9 +158,35 @@ sc('adaptCl', 'scenes/adapt-cl.html');
 const AD_ROWS = [['some labeled examples', 'Fine-tuning'], ['many unlabeled examples', 'Domain adaptation'], ['only the live stream', 'Test-time adaptation'], ['a world that keeps changing', 'Continual learning']];
 const adRowY = i => 40 + i * 66;
 const AD_ROOTX = 186, AD_ROOTY = 139, AD_CX = 310, AD_CW = 370, AD_MX = 780, AD_MW = 320;
-const adNode = (x, cy, w, t, bold) => `<rect x="${x}" y="${cy - 28}" width="${w}" height="56" rx="10" fill="${bold ? '#f1f5f9' : '#fff'}" stroke="#0f172a" stroke-width="2.2"/>
+/* dd = index into AD_DD: the node becomes a button that opens its details (Fernanda's request). Clicks on it do not advance the slide. */
+const adNode = (x, cy, w, t, bold, dd) => { const box = `<rect x="${x}" y="${cy - 28}" width="${w}" height="56" rx="10" fill="${bold ? '#f1f5f9' : '#fff'}" stroke="#0f172a" stroke-width="2.2"/>
   <text x="${x + w / 2}" y="${cy + 9}" font-size="26" font-weight="${bold ? 700 : 400}" text-anchor="middle">${t}</text>`;
+  return dd == null ? box : `<g class="adapt-dd-hit" onclick="adDetail(event, ${dd})">${box}<text x="${x + w - 18}" y="${cy + 8}" font-size="22" text-anchor="middle">▾</text></g>`; };
+/* details: how / needs / fails come from day06's checked adaptation slides and table; a row with no source is left out rather than filled */
+const AD_DD = [
+  [['how', 'start from the pretrained weights, retrain on your new labeled examples'], ['needs', 'a few labeled examples from the new setting'], ['fails', 'overfits the few; forgets the old setting'], 'Foundations of CV, Ch. 37.3'],
+  [['how', 'train so a “which setting?” classifier cannot tell the features apart'], ['needs', 'labeled source, many unlabeled target images'], ['fails', 'aligns the wrong things, e.g. when the class mix differs'], 'DANN: Ganin et al. (JMLR 2016)'],
+  [['how', 're-estimate batch-norm statistics on incoming batches; Tent also lowers prediction entropy'], ['needs', 'test batches only, no labels'], ['fails', 'confident mistakes feed themselves'], 'Schneider et al. (NeurIPS 2020) · Tent: Wang et al. (ICLR 2021)'],
+  [['how', 'replay stored examples, or penalize moving important weights (EWC)'], ['needs', 'tasks that arrive one after another'], ['fails', 'forgets what it knew'], 'EWC: Kirkpatrick et al. (PNAS 2017)'],
+  [['how', 'watch embedding drift, “I don’t know” rate, per-group accuracy, user corrections'], ['needs', 'a small labeled sample, a rule for when to act'], ['fails', 'not noticing the shift at all'], 'source: to add'],
+  [['how', 'flag failures → label → check labels → retrain → test on recent data'], ['needs', 'people who can label the failures'], 'source: to add'],
+];
+const adDdY = i => i < 4 ? adRowY(i) : (i === 4 ? 330 : 400);
+const adDdPanel = (d, i) => { const rows = d.filter(r => Array.isArray(r)), src = d[d.length - 1], h = 54 + rows.length * 37, top = Math.max(4, Math.min(466 - h, adDdY(i) - h / 2));   /* sits left of the method boxes, so every button stays clickable */
+  return `<foreignObject class="adapt-dd-panel" id="adDD${i}" x="16" y="${top}" width="${AD_MX - 30}" height="${h}" style="display:none" onclick="event.stopPropagation()"><div class="adapt-dd-card">${rows.map(([k, t]) => `<div class="adapt-dd-row"><b>${k}</b><span>${t}</span></div>`).join('')}<div class="adapt-dd-src">${src}</div></div></foreignObject>`; };
+window.adDetailClose = () => document.querySelectorAll('.adapt-dd-panel').forEach(p => p.style.display = 'none');
+window.adDetail = (ev, i) => { ev.stopPropagation(); const el = document.getElementById('adDD' + i), wasOpen = el.style.display !== 'none'; adDetailClose(); if(!wasOpen) el.style.display = 'block'; };
+if(!window.adDetailWired){ window.adDetailWired = true;
+  addEventListener('keydown', adDetailClose, true);   /* moving on with the keyboard closes any open panel */
+  addEventListener('click', e => { if(!(e.target.closest && e.target.closest('.adapt-dd-hit, .adapt-dd-panel'))) adDetailClose(); }, true); }
 st(`
+  <style>
+    .adapt-dd-hit{ cursor:pointer; }
+    g.b:not(.shown) .adapt-dd-hit{ pointer-events:none; }
+    .adapt-dd-card{ box-sizing:border-box; height:100%; display:flex; flex-direction:column; gap:7px; padding:10px 16px; background:#fff; border:2px solid var(--ink); border-radius:10px; font-size:20px; line-height:1.2; color:var(--ink); }
+    .adapt-dd-row{ display:grid; grid-template-columns:4em 1fr; gap:10px; }
+    .adapt-dd-src{ margin-top:auto; font-size:14px; color:var(--mute); }
+  </style>
   <h1 class="t">When should each adaptation method be used?</h1>
   <svg class="adapt-svg" viewBox="0 0 1120 470" role="img" aria-label="Decision diagram. Some labeled examples: fine-tuning. Many unlabeled examples: domain adaptation. Only the live stream: test-time adaptation. A world that keeps changing: continual learning. After launch: monitoring. Failures that people can label: human feedback loops.">
     <defs><marker id="adTree" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0f172a"/></marker></defs>
@@ -170,14 +196,15 @@ st(`
         <path d="M${AD_ROOTX},${AD_ROOTY} C${AD_ROOTX + 60},${AD_ROOTY} ${AD_CX - 60},${y} ${AD_CX - 6},${y}" fill="none" stroke="#0f172a" stroke-width="2.4" marker-end="url(#adTree)"/>
         ${adNode(AD_CX, y, AD_CW, c)}
         <line x1="${AD_CX + AD_CW}" y1="${y}" x2="${AD_MX - 6}" y2="${y}" stroke="#0f172a" stroke-width="2.4" marker-end="url(#adTree)"/>
-        ${adNode(AD_MX, y, AD_MW, m, true)}
+        ${adNode(AD_MX, y, AD_MW, m, true, i)}
       </g>`; }).join('')}
     <line class="b" data-step="5" x1="16" y1="283" x2="1100" y2="283" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 7"/>
     ${[['any of these, after launch', 'Monitoring', 330, 5], ['failures people can label', 'Human feedback loops', 400, 6]].map(([c, m, y, k]) => `<g class="b" data-step="${k}">
       ${adNode(AD_CX, y, AD_CW, c)}
       <line x1="${AD_CX + AD_CW}" y1="${y}" x2="${AD_MX - 6}" y2="${y}" stroke="#0f172a" stroke-width="2.4" marker-end="url(#adTree)"/>
-      ${adNode(AD_MX, y, AD_MW, m, true)}
+      ${adNode(AD_MX, y, AD_MW, m, true, k - 1)}
     </g>`).join('')}
+    ${AD_DD.map(adDdPanel).join('')}
   </svg>
   ${rdCite(adBook('sections 37.3 and 37.6') + ' · our diagram; source: to add for the rows Ch. 37 does not cover')}
 `);
