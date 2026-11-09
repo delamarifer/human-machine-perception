@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Methods for checking your dataset</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Part check-data (Day 6 reduced), Google page 29. Street tiles are our drawing; labels, model outputs and votes are examples,
+     and the disagreements and order are computed from them. Similarity panel: day06/scenes/near-dup.html (Shreya), every copy,
+     fingerprint and similarity computed here in the browser.
+     Cat photo: Keith Kissel, "June odd-eyed-cat" (cropped), CC BY 2.0, via Wikimedia Commons (changes allowed).
+     Other image: Fig. 35.3, Foundations of Computer Vision (MIT Press), CC BY-NC-ND 4.0, shown whole, only scaled. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .chips{ flex:0 0 auto; display:grid; grid-template-columns:repeat(4, 1fr); gap:1.2vw; }
+  .chip{ font-size:clamp(1.05rem, 1.55vw, 1.45rem); line-height:1.2; border-top:4px solid var(--ink); padding-top:.7vh; opacity:0; transition:opacity .5s ease; font-weight:700; }
+  .chip.seen{ opacity:.4; }
+  .chip.cur{ opacity:1; }
+  .stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  .panel{ position:absolute; inset:0; opacity:0; transition:opacity .5s ease; pointer-events:none; display:flex; flex-direction:column; justify-content:center; }
+  .panel.on{ opacity:1; }
+  .tile{ position:relative; border-radius:6px; overflow:visible; transition:opacity .5s ease; }
+  .tile svg.im{ width:100%; height:auto; display:block; border-radius:6px; }
+  .tile .x{ position:absolute; right:4%; top:0; font-weight:700; font-size:clamp(1.5rem, 2.5vw, 2.3rem); line-height:1; text-shadow:0 0 6px #fff, 0 0 6px #fff, 0 0 6px #fff; opacity:0; transition:opacity .5s ease; }
+  .tile .x.on{ opacity:1; }
+  .tile .ring{ position:absolute; inset:-4px; border:4px solid var(--ink); border-radius:9px; opacity:0; transition:opacity .5s ease; pointer-events:none; }
+  .tile .ring.on{ opacity:1; }
+  .tag{ position:absolute; left:6px; bottom:6px; background:#fff; border-radius:4px; padding:0 .35em; font-size:clamp(.85rem, 1.25vw, 1.2rem); font-weight:700; }
+  /* 1: sample */
+  #sampleGrid{ display:grid; grid-template-columns:repeat(6, 1fr); gap:1vh 1vw; width:min(100%, 118vh); margin:0 auto; }
+  /* 2: trusted model */
+  .tm{ display:grid; grid-template-columns:9.5em repeat(6, 1fr); gap:1.2vh 1.1vw; align-items:center; }
+  .tm .rowh{ font-weight:700; font-size:clamp(1.05rem, 1.6vw, 1.5rem); line-height:1.15; }
+  .tm .cell{ text-align:center; font-size:clamp(1.05rem, 1.6vw, 1.5rem); transition:opacity .5s ease; }
+  .tm .later{ opacity:0; }
+  .tm.two .later{ opacity:1; }
+  /* 3: disagreements */
+  .dis{ display:grid; grid-template-columns:10.5em 1fr; gap:1vw; align-items:center; }
+  .dis .rows{ display:flex; flex-direction:column; justify-content:flex-end; }
+  .dis .rowh{ font-size:clamp(1.05rem, 1.5vw, 1.4rem); line-height:1.15; display:flex; align-items:center; gap:.4em; font-weight:700; }
+  .sw{ display:inline-block; width:1em; height:.75em; border-radius:2px; flex:0 0 auto; }
+  #disCols{ position:relative; }
+  .dc{ position:absolute; top:0; transition:left .8s ease; display:flex; flex-direction:column; }
+  .dc .bars{ display:flex; flex-direction:column; gap:.7vh; margin-top:1vh; }
+  .dc .bar{ height:2.1vh; background:#e2e8f0; border-radius:2px; position:relative; }
+  .dc .bar i{ position:absolute; left:0; top:0; bottom:0; border-radius:2px; }
+  .dc .gapv{ margin-top:.8vh; font-size:clamp(1.3rem, 2.1vw, 2rem); font-weight:700; text-align:center; line-height:1.1; }
+  #look{ position:absolute; left:0; text-align:center; font-weight:700; font-size:clamp(1.05rem, 1.6vw, 1.5rem); opacity:0; transition:opacity .5s ease; }
+  #look.on{ opacity:1; }
+  /* 4: similarity */
+  .row{ display:flex; justify-content:space-between; align-items:flex-start; gap:1vw; }
+  figure{ margin:0; display:flex; flex-direction:column; align-items:center; gap:.3vh; flex:1 1 0; min-width:0; }
+  figure canvas{ width:min(11.4vw, 20vh); height:min(11.4vw, 20vh); border-radius:8px; background:#f1f5f9; display:block; }
+  figure.orig canvas{ outline:3px solid var(--ink); outline-offset:2px; }
+  .nm{ font-weight:700; font-size:clamp(.95rem, 1.35vw, 1.3rem); white-space:nowrap; }
+  .m{ font-size:clamp(.85rem, 1.15vw, 1.1rem); color:var(--ink); white-space:nowrap; transition:opacity .5s ease; text-align:center; opacity:0; }
+  .m code{ font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .low{ display:grid; grid-template-columns:1fr 1.2fr; gap:2vw; align-items:center; flex:1 1 auto; min-height:0; }
+  .cues{ display:flex; flex-direction:column; gap:1.4vh; }
+  .cues .lead{ font-size:clamp(1.15rem, 2.05vw, 1.9rem); line-height:1.25; transition:opacity .5s ease; opacity:0; }
+  #fan{ width:100%; height:100%; min-height:0; display:block; transition:opacity .5s ease; opacity:0; }
+  #fan text{ font-family:var(--font); fill:var(--ink); }
+  #wedge{ transition:opacity .5s ease; }
+  .sim-panel{ justify-content:flex-start; gap:.8vh; }
+  .cite{ position:static; font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); padding-top:.5vh; transition:opacity .5s ease; opacity:0; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Methods for checking your dataset</h1>
+  <div class="chips">
+    <div class="chip" id="ch0">Manually sample and look at examples</div>
+    <div class="chip" id="ch1">Use models you trust already to check your dataset</div>
+    <div class="chip" id="ch2">Look at disagreements between models and people</div>
+    <div class="chip" id="ch3">Similarity checks of your images (e.g. cosine similarity)</div>
+  </div>
+  <div class="stagebox">
+    <div class="panel" id="p0"><div id="sampleGrid"></div></div>
+    <div class="panel" id="p1"><div class="tm" id="tm"></div></div>
+    <div class="panel" id="p2"><div class="dis"><div class="rows" id="disRows"></div><div id="disCols"></div></div></div>
+    <div class="panel sim-panel" id="p3">
+      <div class="row" id="row"></div>
+      <div class="low">
+        <div class="cues">
+          <div class="lead" id="s3">pixel fingerprint: <b id="nExact"></b> of 4 copies found</div>
+          <div class="lead" id="s4">cosine similarity = cos(angle) between image vectors</div>
+          <div class="lead" id="s5"><b id="nSim"></b> of 4 copies above <span id="thr"></span> · other image <b id="sOther"></b></div>
+        </div>
+        <svg id="fan" viewBox="0 0 560 220" role="img" aria-label="Angle between each image's vector and the training photo's vector"></svg>
+      </div>
+    </div>
+  </div>
+  <div class="cite" id="cite"></div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* BEAT 0 title only
+   1 method 1: dataset of tiles · 2 a random sample looked at; one tile tagged "car" has no car
+   3 method 2: dataset labels · 4 the trusted model's reading; mismatches ringed
+   5 method 3: model and people, disagreement computed · 6 sorted by disagreement; biggest first
+   7 method 4: a photo, four copies, another image · 8 pixel fingerprints miss the copies
+   9 cosine: each image as an arrow, angle = acos(similarity) · 10 threshold wedge, count above it */
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* --------- drawn street tiles --------- */
+const CAR = (fg, wh) => `<rect x="-30" y="0" width="60" height="22" rx="5" fill="${fg}"/><path d="M -16 0 L -8 -14 L 16 -14 L 24 0 Z" fill="${fg}"/><circle cx="-16" cy="24" r="7" fill="${wh}"/><circle cx="16" cy="24" r="7" fill="${wh}"/>`;
+const PERSON = (fg) => `<circle cx="0" cy="-16" r="8" fill="${fg}"/><rect x="-8" y="-7" width="16" height="24" rx="6" fill="${fg}"/><rect x="-7" y="15" width="6" height="18" rx="2" fill="${fg}"/><rect x="1" y="15" width="6" height="18" rx="2" fill="${fg}"/>`;
+function tileSVG(kind, night, shift = 0){
+  const sky = night ? '#1e293b' : '#e2e8f0', road = night ? '#0f172a' : '#cbd5e1', fg = night ? '#64748b' : '#475569', wh = night ? '#334155' : '#1e293b';
+  const g = kind === 'car' ? `<g transform="translate(${60 + shift},52) scale(1.05)">${CAR(fg, wh)}</g>` : kind === 'person' ? `<g transform="translate(${60 + shift},48) scale(1.05)">${PERSON(fg)}</g>` : '';
+  return `<svg class="im" viewBox="0 0 120 90" aria-hidden="true"><rect width="120" height="90" fill="${sky}"/><rect y="62" width="120" height="28" fill="${road}"/>${g}</svg>`;
+}
+
+/* --------- method 1: 18 tiles, 5 sampled at random; the first sampled tile is the one tagged wrongly --------- */
+const R1 = rng(29), N1 = 18;
+const order = [...Array(N1).keys()]; for(let i = N1 - 1; i > 0; i--){ const j = Math.floor(R1()*(i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+const SAMPLE = new Set(order.slice(0, 5)), BAD = order[0];
+const D1 = [...Array(N1)].map((_, i) => { const car = R1() < .6;
+  return i === BAD ? {kind: 'empty', tag: 'car', night: false, shift: 0} : {kind: car ? 'car' : 'person', tag: car ? 'car' : 'person', night: R1() < .25, shift: Math.round(R1()*40 - 20)}; });
+document.getElementById('sampleGrid').innerHTML = D1.map((d, i) => `<div class="tile" id="g${i}">${tileSVG(d.kind, d.night, d.shift)}<div class="tag">${d.tag}</div><div class="ring"></div>${i === BAD ? '<div class="x">✗</div>' : ''}</div>`).join('');
+
+/* --------- method 2: dataset label vs what a trusted model reads --------- */
+const D2 = [{k: 'car', label: 'car', model: 'car'}, {k: 'person', label: 'person', model: 'person'}, {k: 'car', label: 'person', model: 'car'},
+  {k: 'empty', label: 'car', model: 'no object'}, {k: 'person', label: 'person', model: 'person'}, {k: 'car', label: 'car', model: 'car'}];
+document.getElementById('tm').innerHTML =
+  `<div class="rowh">dataset label</div>` + D2.map(d => `<div class="cell"><b>${d.label}</b></div>`).join('') +
+  `<div></div>` + D2.map((d, i) => `<div class="tile" id="t${i}">${tileSVG(d.k, false, 0)}<div class="ring ${d.label !== d.model ? 'mis' : ''}"></div>${d.label !== d.model ? '<div class="x mis">✗</div>' : ''}</div>`).join('') +
+  `<div class="rowh later">model you trust</div>` + D2.map(d => `<div class="cell later"><b>${d.model}</b></div>`).join('');
+
+/* --------- method 3: model p(car) vs share of 5 people saying car; disagreement = |difference| --------- */
+const D3 = [{k: 'car', n: false, p: .97, v: 5}, {k: 'empty', n: false, p: .90, v: 1}, {k: 'person', n: false, p: .05, v: 0},
+  {k: 'car', n: true, p: .15, v: 5}, {k: 'car', n: false, p: .93, v: 5}, {k: 'person', n: true, p: .08, v: 0}].map(d => ({...d, gap: Math.abs(d.p - d.v/5)}));
+const RANK = [...D3.keys()].sort((a, b) => D3[b].gap - D3[a].gap);
+const DN = D3.length, COLW = 100/DN, TW = COLW*.86;
+document.getElementById('disCols').innerHTML = D3.map((d, i) => `<div class="dc" id="d${i}" style="width:${TW}%;left:${i*COLW}%">
+    <div class="tile">${tileSVG(d.k, d.n, 0)}<div class="ring"></div></div>
+    <div class="bars"><div class="bar"><i style="width:${d.p*100}%;background:#0f172a"></i></div><div class="bar"><i style="width:${d.v/5*100}%;background:#94a3b8"></i></div></div>
+    <div class="gapv">${d.gap.toFixed(2)}</div></div>`).join('') + `<div id="look">look here</div>`;
+
+/* --------- method 4: near-dup (copied from day06/scenes/near-dup.html, sentences cut to cues, fan added) --------- */
+const N = 256, THR = 0.9;
+const cat = new Image(); cat.src = '../assets/check-data/june-odd-eyed-cat.jpg';
+const other = new Image(); other.src = '../assets/check-data/dogs_with_tongues.jpg';
+const load = im => new Promise(r => im.complete && im.naturalWidth ? r() : (im.onload = r));
+function square(ctx, {zoom = 1, dx = 0, dy = 0} = {}){
+  const s = Math.min(cat.width, cat.height), sx = (cat.width - s)/2, sy = (cat.height - s)/2;
+  ctx.save(); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, N, N);
+  ctx.translate(N/2, N/2); ctx.scale(zoom, zoom); ctx.translate(-N/2 + dx, -N/2 + dy);
+  ctx.drawImage(cat, sx, sy, s, s, 0, 0, N, N); ctx.restore();
+}
+const mk = () => { const c = document.createElement('canvas'); c.width = c.height = N; c.getContext('2d', {willReadFrequently: true}); return c; };
+async function jpeg(src, q){ const im = new Image(); im.src = src.toDataURL('image/jpeg', q); await load(im);
+  const c = mk(); c.getContext('2d').drawImage(im, 0, 0); return c; }
+async function build(){
+  await Promise.all([load(cat), load(other)]);
+  const orig = mk(); square(orig.getContext('2d'));
+  const small = mk(), t = document.createElement('canvas'); t.width = t.height = 64;
+  t.getContext('2d').drawImage(orig, 0, 0, 64, 64); small.getContext('2d').imageSmoothingEnabled = true;
+  small.getContext('2d').drawImage(t, 0, 0, N, N);
+  const saved = await jpeg(orig, .35);
+  const crop = mk(); square(crop.getContext('2d'), {zoom: 1.12, dx: -8, dy: 6});
+  const color = mk(); { const c = color.getContext('2d'); c.drawImage(orig, 0, 0); const d = c.getImageData(0, 0, N, N), a = d.data;
+    for(let i = 0; i < a.length; i += 4){ a[i] = Math.min(255, a[i]*1.15 + 10); a[i+1] = a[i+1]*.95; a[i+2] = a[i+2]*.8; } c.putImageData(d, 0, 0); }
+  const oth = mk(); { const c = oth.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, N, N);
+    const s = Math.min(N/other.width, N/other.height), w = other.width*s, h = other.height*s; c.drawImage(other, (N-w)/2, (N-h)/2, w, h); }
+  return [['in training', orig, 'orig'], ['resized', small], ['re-saved JPEG', saved], ['cropped', crop], ['color shift', color], ['another image', oth, 'other']];
+}
+function fnv(c){ const a = c.getContext('2d').getImageData(0, 0, N, N).data; let h = 0x811c9dc5;
+  for(let i = 0; i < a.length; i++){ if(i % 4 === 3) continue; h ^= a[i]; h = Math.imul(h, 0x01000193); } return (h >>> 0).toString(16).padStart(8, '0'); }
+function vec(c){ const t = document.createElement('canvas'); t.width = t.height = 16; const x = t.getContext('2d', {willReadFrequently: true}); x.drawImage(c, 0, 0, 16, 16);
+  const a = x.getImageData(0, 0, 16, 16).data, v = []; for(let i = 0; i < a.length; i += 4) v.push(.299*a[i] + .587*a[i+1] + .114*a[i+2]);
+  const m = v.reduce((s, z) => s + z, 0)/v.length; const u = v.map(z => z - m); const n = Math.hypot(...u); return u.map(z => z/n); }
+const cos = (a, b) => a.reduce((s, z, i) => s + z*b[i], 0);
+
+function drawFan(items){
+  /* angle from the training photo's vector = acos(similarity): true in the plane the two vectors span */
+  const OX = 230, OY = 196, L = 165, pt = (deg, r) => [OX + r*Math.cos(deg*Math.PI/180), OY - r*Math.sin(deg*Math.PI/180)];
+  const thrDeg = Math.acos(THR)*180/Math.PI, [wx, wy] = pt(thrDeg, L);
+  let s = `<path id="wedge" d="M ${OX} ${OY} L ${OX + L} ${OY} A ${L} ${L} 0 0 0 ${wx.toFixed(1)} ${wy.toFixed(1)} Z" fill="#e2e8f0" opacity="0"/>`;
+  const arrow = (deg, w, col) => { const [x, y] = pt(deg, L); return `<line x1="${OX}" y1="${OY}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${w + 2}" fill="${col}"/>`; };
+  const above = items.filter(d => d.k === 'copy' && d.s >= THR), rest = items.filter(d => !(d.k === 'copy' && d.s >= THR));
+  above.forEach(d => s += arrow(d.deg, 3, '#64748b'));
+  rest.forEach(d => s += arrow(d.deg, 3, d.k === 'other' ? '#0f172a' : '#64748b'));
+  s += arrow(0, 5, '#0f172a');
+  const lab = (deg, t, extra = 16, anc) => { const [x, y] = pt(deg, L + extra); const a = anc || (deg > 100 ? 'end' : deg > 75 ? 'middle' : 'start'); return `<text x="${x.toFixed(1)}" y="${(y + 6).toFixed(1)}" font-size="18" text-anchor="${a}">${t}</text>`; };
+  s += `<text x="${OX + L + 12}" y="${OY + 2}" font-size="18" font-weight="700">in training</text>`;
+  if(above.length){ const m = above.reduce((a, d) => a + d.deg, 0)/above.length; s += lab(m + 2, `copies (${above.map(d => d.s.toFixed(2)).join(', ')})`, 14); }
+  rest.forEach(d => s += lab(d.deg, `${d.nm} ${d.s.toFixed(2)}`, 14));
+  document.getElementById('fan').innerHTML = s;
+}
+
+let ready = false;
+build().then(items => {
+  const h0 = fnv(items[0][1]), v0 = vec(items[0][1]);
+  let nExact = 0, nSim = 0, sOther = 0; const fan = [];
+  document.getElementById('row').innerHTML = items.map(([nm, , k], i) => `<figure class="${k || 'copy'}" id="f${i}"><div id="cv${i}"></div>
+    <div class="nm">${nm}</div><div class="m fp" id="h${i}"></div><div class="m sim" id="v${i}"></div></figure>`).join('');
+  items.forEach(([nm, c, k], i) => {
+    document.getElementById('cv' + i).appendChild(c);
+    const h = fnv(c), s = cos(v0, vec(c));
+    document.getElementById('h' + i).innerHTML = `<code>${h}</code>`;
+    document.getElementById('v' + i).innerHTML = k === 'orig' ? '&nbsp;' : `cosine <b>${s.toFixed(2)}</b>`;
+    if(!k){ if(h === h0) nExact++; if(s >= THR) nSim++; fan.push({nm, s, k: 'copy', deg: Math.acos(Math.min(1, s))*180/Math.PI}); }
+    if(k === 'other'){ sOther = s; fan.push({nm, s, k: 'other', deg: Math.acos(Math.max(-1, Math.min(1, s)))*180/Math.PI}); }
+  });
+  document.getElementById('nExact').textContent = nExact;
+  document.getElementById('nSim').textContent = nSim;
+  document.getElementById('thr').textContent = THR.toFixed(1);
+  document.getElementById('sOther').textContent = sOther.toFixed(2);
+  drawFan(fan);
+  ready = true; layout(); go(beat);
+});
+
+/* --------- layout that needs measured sizes: rows for method 3 line up with the columns --------- */
+function layout(){
+  const dc = document.getElementById('d0'); if(!dc) return;
+  const cols = document.getElementById('disCols'), hostH = dc.offsetHeight;
+  cols.style.height = (hostH + cols.clientWidth*0 + 44) + 'px';
+  const im = dc.querySelector('.tile'), barsEl = dc.querySelector('.bars'), gapEl = dc.querySelector('.gapv');
+  const look = document.getElementById('look'); look.style.width = (COLW*2 - (COLW - TW)) + '%'; look.style.top = (hostH + 8) + 'px';
+  const rows = document.getElementById('disRows'); rows.style.height = cols.style.height; rows.style.position = 'relative';
+    rows.innerHTML = `<div class="rowh" style="position:absolute;top:${barsEl.children[0].offsetTop - 4}px"><span class="sw" style="background:#0f172a"></span>model says car</div>
+    <div class="rowh" style="position:absolute;top:${barsEl.children[1].offsetTop - 4}px"><span class="sw" style="background:#94a3b8"></span>people say car</div>
+    <div class="rowh" style="position:absolute;top:${gapEl.offsetTop + 4}px">disagreement</div>`;
+}
+addEventListener('resize', () => { layout(); go(beat); });
+layout();
+
+const NB = 10;
+let beat = 0;
+const q = (sel, root = document) => [...root.querySelectorAll(sel)];
+function go(b){ beat = b;
+  const method = b === 0 ? -1 : b <= 2 ? 0 : b <= 4 ? 1 : b <= 6 ? 2 : 3;
+  for(let i = 0; i < 4; i++){ const c = document.getElementById('ch' + i); c.classList.toggle('seen', method > i); c.classList.toggle('cur', method === i); document.getElementById('p' + i).classList.toggle('on', method === i); }
+  /* 1 */
+  D1.forEach((d, i) => { const t = document.getElementById('g' + i), sel = SAMPLE.has(i); t.style.opacity = (b >= 2 && !sel) ? .22 : 1;
+    t.querySelector('.ring').classList.toggle('on', b >= 2 && sel); const x = t.querySelector('.x'); if(x) x.classList.toggle('on', b >= 2); });
+  /* 2 */
+  document.getElementById('tm').classList.toggle('two', b >= 4);
+  q('#tm .ring.mis').forEach(e => e.classList.toggle('on', b >= 4)); q('#tm .x.mis').forEach(e => e.classList.toggle('on', b >= 4));
+  /* 3 */
+  D3.forEach((d, i) => { const pos = b >= 6 ? RANK.indexOf(i) : i; const c = document.getElementById('d' + i); c.style.left = (pos*COLW) + '%';
+    c.querySelector('.ring').classList.toggle('on', b >= 6 && pos < 2); });
+  document.getElementById('look').classList.toggle('on', b >= 6);
+  /* 4 */
+  const op = (sel, on) => q(sel).forEach(e => e.style.opacity = on ? 1 : 0);
+  op('.fp', b >= 8); op('.sim', b >= 9); op('#s3', b >= 8); op('#s4', b >= 9); op('#s5', b >= 10); op('#fan', b >= 9);
+  const w = document.getElementById('wedge'); if(w) w.setAttribute('opacity', b >= 10 ? 1 : 0);
+  /* credit changes with the method */
+  const CR = ['Our drawing · example', 'Our drawing · labels and model outputs are examples', 'Our drawing · model outputs and votes are examples; disagreement = |model − people| computed',
+    'Computed in the browser: cosine of 16×16 gray thumbnails (a stand-in for a network\'s features) · 0.9 is an example threshold · Photo: Keith Kissel, CC BY 2.0 · Other: Fig. 35.3, Foundations of CV, CC BY-NC-ND 4.0'];
+  const cite = document.getElementById('cite'); cite.textContent = method >= 0 ? CR[method] : ''; cite.style.opacity = method >= 0 ? 1 : 0;
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join(''); }
+
+window.checkDataMethods = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0); },
+  resetToEnd(){ go(NB); },
+  getBeat: () => beat,
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) checkDataMethods.advance(); if(e.key === 'ArrowLeft') checkDataMethods.back(); });
+  addEventListener('click', () => checkDataMethods.advance());
+}
+go(0);
+</script>
+</body>
+</html>

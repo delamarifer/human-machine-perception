@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Label errors</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Part check-data (Day 6 reduced), Google page 28. The "dog" label on the cat photo is our example of a wrong label.
+     Waffles: at least 6% of ImageNet validation labels and at least 3.3% on average across 10 test sets,
+     Northcutt, Athalye and Mueller (NeurIPS 2021), as checked for day06. One square = 1 label in 100. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .grid{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1.15fr; gap:3vw; align-items:center; }
+  .fade{ opacity:0; transition:opacity .6s ease; }
+  .fade.on{ opacity:1; }
+  .left{ display:flex; flex-direction:column; align-items:center; gap:1.4vh; }
+  .photo{ height:42vh; width:auto; max-width:100%; display:block; border-radius:10px; }
+  .tags{ position:relative; display:grid; grid-template-columns:auto auto; column-gap:1vw; row-gap:0; }
+  .tag{ font-size:clamp(1.5rem, 2.5vw, 2.3rem); line-height:1.35; height:1.35em; white-space:nowrap; }
+  .tag b{ font-weight:700; }
+  .mk{ font-size:clamp(1.5rem, 2.5vw, 2.3rem); line-height:1.35; height:1.35em; font-weight:700; width:1.2em; text-align:center; }
+  #x{ position:absolute; right:0; top:0; transition:transform .7s ease, opacity .6s ease; transform:translateY(1.35em); font-size:clamp(1.5rem, 2.5vw, 2.3rem); line-height:1.35; font-weight:700; width:1.2em; text-align:center; opacity:0; }
+  #x.on{ opacity:1; }
+  #x.up{ transform:translateY(0); }
+  .cue{ position:relative; height:1.4em; width:100%; text-align:center; font-size:clamp(1.5rem, 2.5vw, 2.3rem); font-weight:700; }
+  .cue > div{ position:absolute; inset:0; }
+  .right{ display:flex; flex-direction:column; gap:2vh; }
+  .waffles{ display:grid; grid-template-columns:1fr 1fr; gap:2.4vw; }
+  .waffle{ display:flex; flex-direction:column; gap:1vh; }
+  .waffle svg{ width:100%; height:auto; display:block; max-height:38vh; }
+  .cite{ position:static; font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); margin-top:auto; padding-top:.8vh; transition:opacity .6s ease; opacity:0; }
+  .cite a{ color:var(--mute); }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">How do you check if it’s good data?</h1>
+  <div class="grid">
+    <div class="left">
+      <img class="photo fade" id="photo" src="../assets/check-data/june-odd-eyed-cat.jpg" alt="A cat with one blue eye and one amber eye">
+      <div class="tags">
+        <div class="tag fade" id="tagL">label: <b>dog</b></div><div class="mk"></div>
+        <div class="tag fade" id="tagM">model: <b>cat</b></div><div class="mk fade" id="ok">✓</div>
+        <div id="x">✗</div>
+      </div>
+      <div class="cue">
+        <div class="fade" id="c1">model looks wrong</div>
+        <div class="fade" id="c2">ground-truth wrongness</div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="lead fade" id="h"><b>Label Errors</b></div>
+      <div class="waffles">
+        <div class="waffle fade" id="w1"></div>
+        <div class="waffle fade" id="w2"></div>
+      </div>
+    </div>
+  </div>
+  <div class="cite" id="cite"><a href="https://arxiv.org/abs/2103.14749" target="_blank" rel="noopener">Northcutt, Athalye and Mueller, Pervasive Label Errors in Test Sets (NeurIPS 2021)</a> · <a href="https://labelerrors.com" target="_blank" rel="noopener">labelerrors.com</a> · Photo: Keith Kissel, "June odd-eyed-cat" (cropped), CC BY 2.0, via Wikimedia Commons · the "dog" label is an example</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* BEAT 0 title only · 1 the photo and its label · 2 the model disagrees, scored wrong
+   3 the mark moves to the label: ground-truth wrongness · 4 ImageNet waffle · 5 ten-test-sets waffle */
+function waffle(pct, cap){
+  const S = 22, G = 3, full = Math.floor(pct), frac = pct - full;
+  let cells = '';
+  for(let r = 0; r < 10; r++) for(let c = 0; c < 10; c++){
+    const k = r*10 + c, x = c*(S+G), y = r*(S+G);
+    cells += `<rect x="${x}" y="${y}" width="${S}" height="${S}" rx="2" fill="${k < full ? '#0f172a' : '#e2e8f0'}"/>`;
+    if(k === full && frac > 0) cells += `<rect x="${x}" y="${y}" width="${(S*frac).toFixed(2)}" height="${S}" rx="2" fill="#0f172a"/>`;
+  }
+  const W = 10*S + 9*G;
+  return `<svg viewBox="0 0 ${W} ${W}" role="img" aria-label="${pct} of 100 squares filled">${cells}</svg><div class="label">${cap}</div>`;
+}
+document.getElementById('w1').innerHTML = waffle(6, 'ImageNet validation labels: <b>at least 6%</b> wrong');
+document.getElementById('w2').innerHTML = waffle(3.3, '10 popular test sets: <b>at least 3.3%</b> wrong, on average');
+
+const NB = 5;
+let beat = 0;
+const $ = id => document.getElementById(id);
+function go(b){ beat = b;
+  const on = (id, v) => $(id).classList.toggle('on', v);
+  on('photo', b >= 1); on('tagL', b >= 1); on('tagM', b >= 2);
+  on('x', b >= 2); $('x').classList.toggle('up', b >= 3);
+  on('ok', b >= 3);
+  on('c1', b === 2); on('c2', b >= 3);
+  on('h', b >= 4); on('w1', b >= 4); on('w2', b >= 5);
+  $('cite').style.opacity = b ? 1 : 0;
+  $('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join(''); }
+
+window.checkDataLabels = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0); },
+  resetToEnd(){ go(NB); },
+  getBeat: () => beat,
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) checkDataLabels.advance(); if(e.key === 'ArrowLeft') checkDataLabels.back(); });
+  addEventListener('click', () => checkDataLabels.advance());
+}
+go(0);
+</script>
+</body>
+</html>
