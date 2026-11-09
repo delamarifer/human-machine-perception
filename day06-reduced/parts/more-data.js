@@ -44,7 +44,7 @@ sc('mdAugment', 'scenes/more-data-augment.html');
 /* ---------- p9: the flips happen on screen. Text is from her page (a screenshot of day06 parts/broaden.js). ---------- */
 st(`${mdStyle}
   <h1 class="t">Some augmentations are not safe</h1>
-  <div class="lead more-data-sub b" data-step="1">Only use changes that keep the label true</div>
+  <div class="lead more-data-sub b" data-step="1">changes that keep the label true</div>
   <div class="more-data-three">
     <div class="more-data-card b" data-step="1">
       <div class="more-data-obj"><img class="more-data-cat more-data-flip more-data-flipx b" data-step="2" src="assets/more-data/june-odd-eyed-cat.jpg" alt="A white cat with one yellow and one blue eye"></div>
@@ -70,10 +70,9 @@ st(`
   <h1 class="t">The augmentation must be physically plausible or in line with your dataset</h1>
   <div class="more-data-kin">
     <div class="lead b" data-step="1">Kinect body tracking: trained on synthetic 3D people</div>
-    <div class="lead b" data-step="2">poses from real motion capture, 15 body shapes</div>
   </div>
   <div class="more-data-kfig b" data-step="1">
-    ${rfig('assets/more-data/shotton-fig2.jpg', 3941 / 848, [{ r: [2128 / 3941, 0, 1 - 2128 / 3941, 1], k: 'cov', step: 3 }])}
+    ${rfig('assets/more-data/shotton-fig2.jpg', 3941 / 848, [{ r: [2128 / 3941, 0, 1 - 2128 / 3941, 1], k: 'cov', step: 2 }])}
   </div>
   ${rdCite('Figure 2: ' + mdA('https://www.microsoft.com/en-us/research/publication/real-time-human-pose-recognition-in-parts-from-a-single-depth-image/', 'Shotton et al., Real-Time Human Pose Recognition in Parts from Single Depth Images (CVPR 2011)'), 1)}
 `);
