@@ -69,3 +69,15 @@
   5. dreaming fades in and its three arrows draw upward one after another
   6. the next session slides in from the right and injected context is drawn into it
 - Motion runs once, right after each click; going back undoes it. It respects reduced-motion settings.
+
+## 2026-11-09: synced with Google slide 11 (Agent memory): her comment and reply
+- Her comment: "do not include this text. embed a couple relevant papers and companies here (claude, letta, trajectory, scale ai, etc)".
+  Her reply: "add dynamic and varied animations for this. not too much text". Her three lines are gone from the screen.
+- Click 1: four company tiles, each entering its own way (from the left, a pop, a drop, from the right): Claude (notes, wikis, dreaming),
+  Letta (sleep-time agents), Trajectory (learning from real use), Scale AI (learnings kept for next runs).
+- Click 2: four papers dealt onto the table: MemGPT (Packer et al. 2023), Sleep-time Compute (Lin et al. 2025),
+  Trajectory-Informed Memory (IBM Research 2026, arXiv 2603.10600), The components of agent memory (Anthropic 2026).
+- [ ] Trajectory: found only secondary sources (news, Dealroom), a 2026 startup working on continual learning. Its cite says "source to add". Is this the Trajectory you meant? Give the link.
+- [ ] Scale AI: no memory paper found. The cue comes from their long-running enterprise agents post (learnings stored and fed into future runs). Is there a Scale piece you had in mind?
+- [ ] The IBM paper's title was read from search results, not from arXiv directly. Check it before class.
+- The earlier version of this slide (three illustrated cards: who, beyond text, structure) is replaced. The flat / hierarchy / wiki drawing could come back elsewhere if wanted.

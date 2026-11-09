@@ -367,49 +367,63 @@ st(`
   ${rdCite(agPost('Claude Plays Pokémon (Figures 6–8) and the wiki graph (Figure 10)'))}
 `);
 
-/* ---------- _0_54: Agent memory, her three lines (Shreya, 2026-11-09: "improve"). Each line is a card with a picture of its question:
-   who is working on it (named projects, each with its paper or post); what a memory of a scene could be beyond text; how stored
-   pieces could relate (a flat folder, a hierarchy, a linked wiki). Drawings are ours. ---------- */
-const AG_WHO = ['Anthropic: notes, wikis, dreaming', 'Letta and UC Berkeley: sleep-time compute', 'MemGPT: memory paged like an operating system'];
-const agBeyond = `
-  <rect x="14" y="24" width="150" height="68" rx="6" fill="#fff" stroke="#0f172a" stroke-width="2.5"/>
-  ${['mug: left of sink', 'grasp by handle'].map((t, i) => `<text x="26" y="${52 + i * 26}" font-size="17">${t}</text>`).join('')}
-  <text x="89" y="114" font-size="17" text-anchor="middle" fill="#64748b">text</text>
-  <rect x="196" y="24" width="96" height="68" fill="#eef2f6" stroke="#0f172a" stroke-width="2.5"/>
-  <rect x="196" y="64" width="96" height="28" fill="#d6c7ad"/><rect x="214" y="48" width="18" height="24" rx="3" fill="#b45f4e"/><rect x="252" y="62" width="30" height="12" rx="3" fill="#94a3b8"/>
-  <text x="244" y="114" font-size="17" text-anchor="middle" fill="#64748b">image</text>
-  ${[.8, .2, .55, .9, .35, .65].map((v, i) => `<rect x="${24 + i * 22}" y="${210 - v * 60}" width="16" height="${v * 60}" fill="#94a3b8"/>`).join('')}
-  <text x="89" y="234" font-size="17" text-anchor="middle" fill="#64748b">embedding</text>
-  <path d="M 200 200 L 244 176 L 288 200 L 244 224 Z" fill="#f1f5f9" stroke="#0f172a" stroke-width="2.5"/><path d="M 244 176 V 140 M 200 200 V 164 L 244 140 L 288 164 V 200" fill="none" stroke="#0f172a" stroke-width="2.5"/>
-  <text x="244" y="246" font-size="17" text-anchor="middle" fill="#64748b">3D map</text>
-  <text x="330" y="150" font-size="56" font-weight="700" text-anchor="middle">?</text>`;
-const agNode = (x, y) => `<rect x="${x - 15}" y="${y - 19}" width="30" height="38" rx="4" fill="#fff" stroke="#0f172a" stroke-width="2.5"/>`;
-const agStruct = `
-  ${[0, 1, 2, 3].map(i => agNode(40, 40 + i * 50)).join('')}
-  <text x="40" y="250" font-size="17" text-anchor="middle" fill="#64748b">flat</text>
-  ${[[140, 50], [112, 130], [168, 130], [100, 205], [128, 205]].map(([x, y], i) => (i ? `<line x1="${i < 3 ? 140 : 112}" y1="${i < 3 ? 69 : 149}" x2="${x}" y2="${y - 19}" stroke="#0f172a" stroke-width="2"/>` : '') + agNode(x, y)).join('')}
-  <text x="140" y="250" font-size="17" text-anchor="middle" fill="#64748b">hierarchy</text>
-  ${[[230, 60], [290, 50], [262, 130], [312, 150], [236, 205], [298, 215]].reduce((acc, p, i, a) => acc + [[0, 1], [0, 2], [1, 3], [2, 3], [2, 4], [3, 5], [4, 5], [1, 2]].filter(([u]) => u === i).map(([u, v]) => `<line x1="${a[u][0]}" y1="${a[u][1]}" x2="${a[v][0]}" y2="${a[v][1]}" stroke="#0f172a" stroke-width="2"/>`).join(''), '')}
-  ${[[230, 60], [290, 50], [262, 130], [312, 150], [236, 205], [298, 215]].map(([x, y]) => agNode(x, y)).join('')}
-  <text x="270" y="250" font-size="17" text-anchor="middle" fill="#64748b">linked wiki</text>`;
+/* ---------- _0_54: Agent memory. Her comment on her Google slide 11: "do not include this text. embed a couple relevant papers and
+   companies here (claude, letta, trajectory, scale ai, etc)", reply: "add dynamic and varied animations for this. not too much text".
+   Click 1: four companies, each entering its own way (slide, pop, drop, slide). Click 2: papers dealt onto the table one by one.
+   Each cue is short and comes from that company's own post or paper, except Trajectory (only secondary sources found: source to add). ---------- */
+const AGX_CO = [
+  ['Claude', 'Anthropic', 'notes, wikis, dreaming', 'agx-l'],
+  ['Letta', 'MemGPT team', 'sleep-time agents', 'agx-pop'],
+  ['Trajectory', 'startup, 2026', 'learning from real use', 'agx-drop'],
+  ['Scale AI', 'enterprise agents', 'learnings kept for next runs', 'agx-r'],
+];
+const AGX_PAPERS = [
+  ['MemGPT', 'Packer et al., 2023', 'https://arxiv.org/abs/2310.08560', -5],
+  ['Sleep-time Compute', 'Lin et al., 2025', 'https://arxiv.org/abs/2504.13171', 3],
+  ['Trajectory-Informed Memory', 'IBM Research, 2026', 'https://arxiv.org/abs/2603.10600', -2],
+  ['The components of agent memory', 'Anthropic, 2026', 'https://www.anthropic.com/research/components-of-agent-memory', 4],
+];
 st(`
+  <style>
+    .agx-co{ flex:0 0 auto; display:grid; grid-template-columns:repeat(4, 1fr); gap:1.4vw; }
+    .agx-tile{ border:2.5px solid var(--ink); border-radius:14px; padding:2vh 1vw; text-align:center; background:#fff; display:flex; flex-direction:column; gap:.5vh; }
+    .agx-name{ font-size:clamp(1.4rem, 2.6vw, 2.5rem); font-weight:800; letter-spacing:-.01em; }
+    .agx-who{ font-size:clamp(.8rem, 1.1vw, 1.05rem); color:var(--mute); text-transform:uppercase; letter-spacing:.06em; }
+    .agx-cue{ font-size:clamp(.95rem, 1.45vw, 1.4rem); }
+    .agx-papers{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(4, 1fr); gap:1.6vw; align-items:center; padding:2vh .5vw 0; }
+    .agx-paper{ position:relative; background:#fff; border:1.5px solid #cbd5e1; border-radius:4px; padding:2.2vh 1vw 2vh; min-height:18vh;
+      box-shadow:0 6px 16px rgba(15,23,42,.12); display:flex; flex-direction:column; gap:1vh; transform:rotate(var(--rot)); }
+    .agx-paper::before{ content:""; position:absolute; left:1vw; right:1vw; top:1.1vh; height:3px; background:var(--ink); border-radius:2px; }
+    .agx-paper b{ font-size:clamp(1rem, 1.55vw, 1.5rem); line-height:1.2; margin-top:.8vh; }
+    .agx-paper span{ font-size:clamp(.8rem, 1.15vw, 1.1rem); color:var(--mute); }
+    .agx-paper .agx-lines{ margin-top:auto; display:flex; flex-direction:column; gap:.7vh; }
+    .agx-paper .agx-lines i{ display:block; height:5px; border-radius:3px; background:#e2e8f0; }
+    .agx-paper a{ color:inherit; text-decoration:none; }
+
+    /* entrances: each runs once when its click lands */
+    .b.shown .agx-l{ animation:agxL .7s cubic-bezier(.2,.9,.3,1) both; }
+    .b.shown .agx-pop{ animation:agxPop .6s cubic-bezier(.3,1.6,.5,1) .25s both; }
+    .b.shown .agx-drop{ animation:agxDrop .8s cubic-bezier(.3,1.4,.5,1) .5s both; }
+    .b.shown .agx-r{ animation:agxR .7s cubic-bezier(.2,.9,.3,1) .75s both; }
+    .b.shown .agx-paper{ animation:agxDeal .7s cubic-bezier(.2,.9,.3,1) both; }
+    @keyframes agxL{ from{ opacity:0; transform:translateX(-12vw); } to{ opacity:1; transform:none; } }
+    @keyframes agxR{ from{ opacity:0; transform:translateX(12vw); } to{ opacity:1; transform:none; } }
+    @keyframes agxPop{ from{ opacity:0; transform:scale(.3); } to{ opacity:1; transform:none; } }
+    @keyframes agxDrop{ from{ opacity:0; transform:translateY(-14vh) rotate(-6deg); } to{ opacity:1; transform:none; } }
+    @keyframes agxDeal{ from{ opacity:0; transform:translate(-30vw, 30vh) rotate(-25deg); } to{ opacity:1; transform:rotate(var(--rot)); } }
+    @media (max-width: 820px), (max-aspect-ratio: 1/1){ .agx-co, .agx-papers{ grid-template-columns:1fr 1fr; } }
+    @media (prefers-reduced-motion: reduce){ .b.shown .agx-l, .b.shown .agx-pop, .b.shown .agx-drop, .b.shown .agx-r, .b.shown .agx-paper{ animation:none; } }
+  </style>
   <h1 class="t">Agent memory</h1>
-  <div class="agents-cards">
-    <div class="d6-card b" data-step="1">
-      <div class="lead" style="font-size:clamp(1.05rem,1.75vw,1.65rem)">Many researchers and companies exploring this space</div>
-      <div style="display:flex;flex-direction:column;gap:1.2vh;margin-top:1vh;width:100%">${AG_WHO.map(t => `<div class="label" style="text-align:left;border-left:3px solid var(--ink);padding-left:.8vw">${t}</div>`).join('')}</div>
-    </div>
-    <div class="d6-card b" data-step="2">
-      <div class="lead" style="font-size:clamp(1.05rem,1.75vw,1.65rem)">Open questions on how this is handled beyond a text level</div>
-      <svg viewBox="0 0 370 260" aria-hidden="true" style="height:auto;flex:1 1 auto;min-height:0">${agBeyond}</svg>
-    </div>
-    <div class="d6-card b" data-step="3">
-      <div class="lead" style="font-size:clamp(1.05rem,1.75vw,1.65rem)">Open questions on the structure of storing information and the relation to one another</div>
-      <svg viewBox="0 0 340 260" aria-hidden="true" style="height:auto;flex:1 1 auto;min-height:0">${agStruct}</svg>
-    </div>
+  <div class="agx-co b" data-step="1">
+    ${AGX_CO.map(([n, w, c, k]) => `<div class="agx-tile ${k}"><div class="agx-who">${w}</div><div class="agx-name">${n}</div><div class="agx-cue">${c}</div></div>`).join('')}
   </div>
-  ${rdCite(agPost('') + ' · ' + d6Link('https://arxiv.org/abs/2504.13171', 'Lin et al., Sleep-time Compute (2025)') + ' · '
-    + d6Link('https://arxiv.org/abs/2310.08560', 'Packer et al., MemGPT (2023)') + ' · drawings: ours')}
+  <div class="agx-papers b" data-step="2">
+    ${AGX_PAPERS.map(([t, a, href, r], i) => `<div class="agx-paper" style="--rot:${r}deg;animation-delay:${(i * .22).toFixed(2)}s">
+      <b>${d6Link(href, t)}</b><span>${a}</span><div class="agx-lines"><i style="width:92%"></i><i style="width:78%"></i><i style="width:85%"></i></div></div>`).join('')}
+  </div>
+  ${rdCite(agPost('') + ' · ' + d6Link('https://www.letta.com/blog/memgpt-and-letta', 'Letta, MemGPT and Letta (2024)') + ' · Trajectory: source to add · '
+    + d6Link('https://scale.com/blog/agentex-temporal-tutorial', 'Scale AI, long-running enterprise agents'))}
 `);
 
 /* ---------- _0_66: Evaluation. Her two lines, then (Shreya, 2026-11-09: make it concrete) the aspects to discuss, one per click,
