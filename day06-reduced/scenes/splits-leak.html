@@ -29,12 +29,13 @@
 <script>
 /* BEATS
    1  the strip and its score; an arrow from test into training
-   2  normalizing on the full dataset before splitting: the mean is computed over test too
-   3  duplicates across splits: two training points are copied into test
-   4  features that encode the label: an extra row equal to the label
-   5  leaks removed, the score falls back: her "most common reason" claim as a cue */
+   2  the mistake: normalizing on the full dataset before splitting, the mean is computed over test too
+   3  the fix: split first, the mean comes from training only and is applied to test
+   4  duplicates across splits: two training points are copied into test
+   5  features that encode the label: an extra row equal to the label
+   6  leaks removed, the score falls back: her "most common reason" claim as a cue */
 const P = SPLITS, {INK, MUTE, VAL, LEAK, txt, ease, lerp, FOLD} = P;
-const NB = 5;
+const NB = 6;
 const D = P.makeData(98);                /* same toy data and seed as the cross-validation scene */
 const TESTF = 4, order = D.base, testIds = P.foldIds(order, TESTF), trainIds = order.filter(id => !testIds.includes(id));
 const CLEAN = P.foldScore(D, order, TESTF);
@@ -58,11 +59,12 @@ const LAY = [
   {rows: [{order, role: pos => Math.floor(pos/FOLD) === TESTF ? 'test' : 'train'}], marks: null},
   {rows: [{order, role: pos => Math.floor(pos/FOLD) === TESTF ? 'test' : 'train'}], marks: null},
   {rows: [{order, role: pos => Math.floor(pos/FOLD) === TESTF ? 'test' : 'train'}], marks: null},
+  {rows: [{order, role: pos => Math.floor(pos/FOLD) === TESTF ? 'test' : 'train'}], marks: null},
   {rows: [{order, role: pos => Math.floor(pos/FOLD) === TESTF ? 'test' : 'train'}], marks: 'class'},
   {rows: [{order, role: pos => Math.floor(pos/FOLD) === TESTF ? 'test' : 'train'}], marks: null},
 ];
-const CUE = ['', 'information from the test data sneaks into training', 'normalizing on the full dataset before splitting', 'duplicates across splits', 'features that encode the label', 'most common reason published results don\'t replicate'];
-const SCORE = [null, CLEAN, CLEAN, DUP, FEAT, CLEAN];
+const CUE = ['', 'information from the test data sneaks into training', 'mistake: normalizing on the full dataset before splitting', 'fix: split first, normalize with the training data only', 'duplicates across splits', 'features that encode the label', 'most common reason published results don\'t replicate'];
+const SCORE = [null, CLEAN, CLEAN, CLEAN, DUP, FEAT, CLEAN];
 
 const ctl = P.controller('splitsLeak', NB, b => { document.getElementById('cite').style.opacity = b ? 1 : 0; document.getElementById('cv').style.visibility = b ? 'visible' : 'hidden'; P.dots(NB, b); });
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
@@ -94,23 +96,33 @@ function frame(now){
       ctx.strokeStyle = LEAK; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(xFrom, y0 - 6); ctx.quadraticCurveTo((xFrom + xTo)/2, yUp - 8, xTo + 6, y0 - 12); ctx.stroke();
       P.arrow(ctx, xTo + 24, y0 - 20, xTo + 4, y0 - 7, LEAK, 4); ctx.restore(); }
 
-    /* 2: value bars under the strip; the mean is drawn through all of them */
-    const a2 = on(2);
-    if(a2 > 0){ ctx.save(); ctx.globalAlpha = a2;
-      const yb = y0 + S.ch + H*.5, scale = H*.17;
+    /* 2-3: value bars under the strip. Beat 2 (mistake): the mean runs through all of them, test included. Beat 3 (fix): it comes from training only. */
+    const aBars = beat === 2 ? (prev === 3 ? 1 : p) : beat === 3 ? 1 : (prev === 3 && beat === 4 ? 1 - p : 0);
+    if(aBars > 0){ ctx.save(); ctx.globalAlpha = aBars;
+      const yb = y0 + S.ch + H*.5, scale = H*.17, aMis = on(2), aFix = on(3);
       const pts = order.map(id => D.pts[id]);
       pts.forEach((pt, pos) => { const isT = Math.floor(pos/FOLD) === TESTF, x = P.cellX(S, pos), h = (pt.x1 + 3)/6*scale*2;
-        ctx.fillStyle = isT ? '#fff' : INK; ctx.fillRect(x + 2, yb - h, S.cw - 4, h); ctx.strokeStyle = isT ? LEAK : INK; ctx.lineWidth = isT ? 2.5 : 1; ctx.strokeRect(x + 2, yb - h, S.cw - 4, h); });
+        ctx.fillStyle = isT ? '#fff' : INK; ctx.fillRect(x + 2, yb - h, S.cw - 4, h); ctx.strokeStyle = INK; ctx.lineWidth = isT ? 2 : 1; ctx.strokeRect(x + 2, yb - h, S.cw - 4, h);
+        if(isT && aMis > 0){ ctx.save(); ctx.globalAlpha = aBars*aMis; ctx.strokeStyle = LEAK; ctx.lineWidth = 2.5; ctx.strokeRect(x + 2, yb - h, S.cw - 4, h); ctx.restore(); } });
       const my = v => yb - (v + 3)/6*scale*2;
-      ctx.strokeStyle = LEAK; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.moveTo(S.x - 6, my(MEAN_ALL)); ctx.lineTo(S.x + S.width + 8, my(MEAN_ALL)); ctx.stroke();
-      txt(ctx, 'mean of all points', xR, my(MEAN_ALL), fs, true);
-      /* the mean is built from the test bars too: arrows up out of the test bars into the line */
-      for(const pos of [24, 26, 28]){ const x = P.cellX(S, pos) + S.cw/2; P.arrow(ctx, x, yb - scale*.6, x, my(MEAN_ALL) + 7, LEAK, 3); }
+      if(aMis > 0){ ctx.save(); ctx.globalAlpha = aBars*aMis;
+        ctx.strokeStyle = LEAK; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.moveTo(S.x - 6, my(MEAN_ALL)); ctx.lineTo(S.x + S.width + 8, my(MEAN_ALL)); ctx.stroke();
+        txt(ctx, 'mean of all points', xR, my(MEAN_ALL), fs, true);
+        /* the mean is built from the test bars too: arrows up out of the test bars into the line */
+        for(const pos of [24, 26, 28]){ const x = P.cellX(S, pos) + S.cw/2; P.arrow(ctx, x, yb - scale*.6, x, my(MEAN_ALL) + 7, LEAK, 3); }
+        ctx.restore(); }
+      if(aFix > 0){ ctx.save(); ctx.globalAlpha = aBars*aFix; const yM2 = my(MEAN_TR), xEnd = P.cellX(S, 23) + S.cw + 4;
+        /* a white halo keeps the ink line visible across the dark training bars */
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(S.x - 6, yM2); ctx.lineTo(xEnd, yM2); ctx.stroke();
+        ctx.strokeStyle = INK; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.moveTo(S.x - 6, yM2); ctx.lineTo(xEnd, yM2); ctx.stroke();
+        ctx.setLineDash([9, 6]); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(xEnd, yM2); ctx.lineTo(S.x + S.width + 8, yM2); ctx.stroke(); ctx.setLineDash([]);
+        txt(ctx, 'mean of training only', xR, yM2 - fs*.65, fs, true); txt(ctx, 'applied to test', xR, yM2 + fs*.65, fs);
+        ctx.restore(); }
       ctx.restore(); }
 
-    /* 3: two training cells fly into the test block, as exact copies */
-    if(beat === 3 || (prev === 3 && beat === 4 && p < 1)){ const a = beat === 3 ? 1 : 1 - p;
-      ctx.save(); ctx.globalAlpha = a; const q = beat === 3 ? e : 1;
+    /* 4: two training cells fly into the test block, as exact copies */
+    if(beat === 4 || (prev === 4 && beat === 5 && p < 1)){ const a = beat === 4 ? 1 : 1 - p;
+      ctx.save(); ctx.globalAlpha = a; const q = beat === 4 ? e : 1;
       dupTest.forEach((t, k) => { const srcId = dupTrainIds[k], src = order.indexOf(srcId), dst = TESTF*FOLD + t;
         const x0 = P.cellX(S, src), x1 = P.cellX(S, dst), lift = Math.sin(q*Math.PI)*H*.13, x = lerp(x0, x1, q), y = y0 - lift;
         ctx.strokeStyle = LEAK; ctx.lineWidth = 3; ctx.strokeRect(x0 + .5, y0 + .5, S.cw - 1, S.ch - 1);          /* the original stays in training, ringed */
@@ -118,8 +130,8 @@ function frame(now){
       });
       ctx.restore(); }
 
-    /* 4: a second row, one cell per point, holding the label */
-    const a4 = on(4);
+    /* 5: a second row, one cell per point, holding the label */
+    const a4 = on(5);
     if(a4 > 0){ ctx.save(); ctx.globalAlpha = a4;
       const y = P.rowY(S, 1);
       order.forEach((id, pos) => { const x = P.cellX(S, pos), isT = Math.floor(pos/FOLD) === TESTF, col = P.ROLE[isT ? 'test' : 'train'];

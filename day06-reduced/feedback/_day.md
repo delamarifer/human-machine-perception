@@ -89,7 +89,9 @@ Content:
 ### Round 2 · 2026-11-09 · Fernanda: stratified k-fold should be built up
 Slide 39 (p37) now builds stratified k-fold in six clicks on the same slide: the data by class (20 and 10), random folds with uneven counts,
 the fold with only one of the rare class, each class cut into k parts, one part of each class per fold (a straight boundary, 4 : 2 everywhere),
-then rotate as before. Slide 39 has 17 clicks; the deck has 306.
+then rotate as before. Slide 39 has 17 clicks.
+Slide 42 (p40): the imbalance and Chen clicks now say "new example", and a tag beside the matrix says which emails it counts (40 emails, 100 emails, 100 spam).
+Slide 40 (p38): the normalization click is labeled "mistake", and one new click shows the fix (split first, mean of training only, applied to test). Slide 40 has 6 clicks; the deck has 307.
 
 ### Could not verify
 - StatQuest video: read from YouTube auto captions, not checked against the audio.
