@@ -1,6 +1,6 @@
 /* PART: more-data (Day 6 reduced). Google deck pages 7-13. One Google slide = one HTML slide. No speaker notes.
-   Figures: Shotton et al. 2011 Fig. 2 and OpenAI et al. 2019 Fig. 3, cropped by detecting whitespace; divider column of
-   Shotton Fig. 2 detected by a script (column 2122 of 3941). Sources checked against the papers on 2026-11-09. */
+   Figures: the synthetic Kinect person from her p10 (source to add) and OpenAI et al. 2019 Fig. 3, cropped by detecting
+   whitespace. Sources checked against the papers on 2026-11-09. */
 {
 section('More data');
 
@@ -20,9 +20,14 @@ const mdStyle = `<style>
   .more-data-glyph{ font-family:Georgia, 'Times New Roman', serif; font-weight:700; font-size:clamp(7rem, 17vw, 16rem); line-height:1; display:inline-block; }
   .more-data-verdict{ font-size:clamp(1.5rem, 2.5vw, 2.3rem); font-weight:700; text-align:center; }
   .more-data-kin{ display:flex; flex-direction:column; gap:1vh; }
-  .more-data-kfig{ flex:1 1 auto; min-height:0; display:flex; }
+  .more-data-kfig{ flex:1 1 auto; min-height:0; display:flex; position:relative; }
+  .more-data-pose{ position:absolute; inset:0; background:#fff; display:grid; grid-template-columns:repeat(3, 1fr); gap:2vw; align-items:stretch; }
+  .more-data-pose > div{ display:flex; flex-direction:column; align-items:center; gap:.6vh; min-height:0; }
+  .more-data-pose svg{ flex:1 1 auto; min-height:0; width:100%; display:block; }
   .more-data-ladder{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; justify-content:center; }
-  .more-data-rung{ display:grid; grid-template-columns:7vw 11vh 1fr; align-items:center; gap:1.4vw; height:15.4vh; }
+  .more-data-rung{ display:grid; grid-template-columns:7vw 11vh 1fr minmax(0, 24vw); align-items:center; gap:1.4vw; height:15.4vh; }
+  .more-data-logos{ display:flex; gap:1vw; align-items:center; justify-content:flex-end; height:100%; }
+  .more-data-logos img{ max-height:10vh; max-width:22vw; object-fit:contain; display:block; }
   .more-data-rail{ position:relative; height:100%; }
   .more-data-rail::before, .more-data-rail::after{ content:''; position:absolute; top:0; bottom:0; width:5px; background:#475569; }
   .more-data-rail::before{ left:12%; } .more-data-rail::after{ right:12%; }
@@ -65,16 +70,40 @@ st(`${mdStyle}
   ${rdCite(mdCh36 + ' (the b and d example) · ' + mdCatCredit, 1)}
 `);
 
-/* ---------- p10: Shotton et al. 2011, Fig. 2, whole. The real half is covered until its click. ---------- */
+/* ---------- p10: the synthetic Kinect person from her Google slide (1350 x 783, three panels).
+   Dividers at columns 449 and 900, detected by a script. One panel per click: skeleton, clothed body, joint labels.
+   Then her comment: a distorted vs a plausible pose, drawn by us as a stick figure (joints are our own coordinates).
+   Image source: to add (none on her slide). ---------- */
+const MD_POSE = { head: [100, 40], neck: [100, 66], hip: [100, 150], le: [78, 102], lh: [94, 132], re: [126, 96], rh: [142, 70],
+  lk: [132, 196], la: [120, 252], rk: [84, 204], ra: [54, 236] };
+/* distorted: the front knee bends the wrong way */
+const MD_BAD = { ...MD_POSE, la: [176, 226] };
+const mdStick = (P, mirror) => {
+  const L = (a, b) => `<line x1="${P[a][0]}" y1="${P[a][1]}" x2="${P[b][0]}" y2="${P[b][1]}"/>`;
+  const bones = [['neck', 'hip'], ['neck', 'le'], ['le', 'lh'], ['neck', 're'], ['re', 'rh'], ['hip', 'lk'], ['lk', 'la'], ['hip', 'rk'], ['rk', 'ra']];
+  return `<svg viewBox="0 0 200 280" aria-hidden="true"><g transform="${mirror ? 'translate(200,0) scale(-1,1)' : ''}">
+    <g stroke="#0f172a" stroke-width="7" stroke-linecap="round">${bones.map(([a, b]) => L(a, b)).join('')}</g>
+    <circle cx="${P.head[0]}" cy="${P.head[1]}" r="17" fill="#0f172a"/>
+    ${Object.keys(P).filter(k => k !== 'head').map(k => `<circle cx="${P[k][0]}" cy="${P[k][1]}" r="5.5" fill="#fff" stroke="#0f172a" stroke-width="2.5"/>`).join('')}
+  </g></svg>`;
+};
 st(`
   <h1 class="t">The augmentation must be physically plausible or in line with your dataset</h1>
   <div class="more-data-kin">
     <div class="lead b" data-step="1">Kinect body tracking: trained on synthetic 3D people</div>
   </div>
   <div class="more-data-kfig b" data-step="1">
-    ${rfig('assets/more-data/shotton-fig2.jpg', 3941 / 848, [{ r: [2128 / 3941, 0, 1 - 2128 / 3941, 1], k: 'cov', step: 2 }])}
+    ${rfig('assets/more-data/kinect-synthetic-person.jpg', 1350 / 783, [
+      { r: [449 / 1350, 0, 451 / 1350, 1], k: 'cov', step: 2 },
+      { r: [900 / 1350, 0, 450 / 1350, 1], k: 'cov', step: 3 },
+    ])}
+    <div class="more-data-pose b" data-step="4">
+      <div>${mdStick(MD_POSE)}<div class="label center">a pose</div></div>
+      <div class="b" data-step="5">${mdStick(MD_POSE, true)}<div class="label center">mirrored: still a body</div><div class="more-data-verdict">✓ plausible</div></div>
+      <div class="b" data-step="6">${mdStick(MD_BAD)}<div class="label center">knee bent the wrong way</div><div class="more-data-verdict">✗ distorted</div></div>
+    </div>
   </div>
-  ${rdCite('Figure 2: ' + mdA('https://www.microsoft.com/en-us/research/publication/real-time-human-pose-recognition-in-parts-from-a-single-depth-image/', 'Shotton et al., Real-Time Human Pose Recognition in Parts from Single Depth Images (CVPR 2011)'), 1)}
+  ${rdCite('Kinect: ' + mdA('https://www.microsoft.com/en-us/research/publication/real-time-human-pose-recognition-in-parts-from-a-single-depth-image/', 'Shotton et al., Real-Time Human Pose Recognition in Parts from Single Depth Images (CVPR 2011)') + ' · Image: source to add · Stick figures: our drawings', 1)}
 `);
 
 /* ---------- p11: her five levels as a ladder, built from the bottom. Icons are our drawings. ---------- */
@@ -85,10 +114,18 @@ const mdIcons = {
   4: `<rect x="6" y="10" width="88" height="80" rx="6" fill="#f1f5f9" stroke="#475569" stroke-width="3"/><path d="M 6 58 L 94 58 M 42 10 L 42 90" stroke="#94a3b8" stroke-width="7"/><rect x="14" y="20" width="18" height="28" fill="#64748b"/><rect x="54" y="18" width="30" height="16" fill="#475569"/><rect x="58" y="68" width="24" height="16" fill="#64748b"/><circle cx="24" cy="74" r="9" fill="#94a3b8"/>`,
   5: `<rect x="4" y="24" width="92" height="54" rx="4" fill="#0f172a"/>${[0, 1, 2].map(k => `<rect x="${10 + k * 29}" y="32" width="23" height="38" rx="2" fill="#e2e8f0"/><rect x="${10 + k * 29}" y="52" width="23" height="18" fill="#94a3b8"/><circle cx="${15 + k * 37 * .9}" cy="${58 - k * 2}" r="4" fill="#0f172a"/>`).join('')}<path d="M 82 6 L 85 14 L 93 17 L 85 20 L 82 28 L 79 20 L 71 17 L 79 14 Z" fill="#475569"/>`,
 };
+/* logos (her comment: "include a few logos from some of these tools"): each from the project's own repo, identification only */
+const MD_LOGOS = {
+  1: [['logo-albumentations.png', 'Albumentations']],
+  2: [['logo-mujoco.png', 'MuJoCo']],
+  3: [['logo-carla.png', 'CARLA']],
+  5: [['logo-nvidia-cosmos.png', 'NVIDIA Cosmos']],
+};
 const mdRung = (n, name, desc) => `<div class="more-data-rung b" data-step="${n}">
   <div class="more-data-rail"><i></i><b>${n}</b></div>
   <svg class="more-data-ico" viewBox="0 0 100 100" aria-hidden="true">${mdIcons[n]}</svg>
   <div><div class="name">${name}</div><div class="desc">${desc}</div></div>
+  <div class="more-data-logos">${(MD_LOGOS[n] || []).map(([f, alt]) => `<img src="assets/more-data/${f}" alt="${alt} logo">`).join('')}</div>
 </div>`;
 st(`
   <h1 class="t">Simulating a natural world (tools)</h1>
@@ -99,7 +136,7 @@ st(`
     ${mdRung(2, 'Physics engines', 'how things move: gravity, collisions, friction')}
     ${mdRung(1, 'Physics-based image augmentation', 'edit real images')}
   </div>
-  ${rdCite('Our drawings · ' + mdA('https://arxiv.org/abs/1711.03938', 'CARLA (Dosovitskiy et al. 2017)') + ' · ' + mdA('https://arxiv.org/abs/1705.05065', 'AirSim (Shah et al. 2017)') + ' · ' + mdA('https://arxiv.org/abs/2501.03575', 'NVIDIA Cosmos (2025)'), 1)}
+  ${rdCite('Our drawings · Logos from each project (identification only): Albumentations, MuJoCo, CARLA, NVIDIA Cosmos · ' + mdA('https://arxiv.org/abs/1711.03938', 'CARLA (Dosovitskiy et al. 2017)') + ' · ' + mdA('https://arxiv.org/abs/1705.05065', 'AirSim (Shah et al. 2017)') + ' · ' + mdA('https://arxiv.org/abs/2501.03575', 'NVIDIA Cosmos (2025)'), 1)}
 `);
 
 /* ---------- p12: two examples, one slide, same title as p11 so {sub:false} keeps its own number ---------- */
