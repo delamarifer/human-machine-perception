@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Day 7 Notes · Computer Vision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#0a0d16; --line:#25304a; --text:#e9edf6; --mute:#9aa5bd; --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa; }
+  *{ box-sizing:border-box; } html{ scroll-behavior:smooth; }
+  body{ margin:0; background:var(--bg); color:var(--text); font:16.5px/1.65 Inter, system-ui, sans-serif; }
+  a{ color:var(--cyan); }
+  .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line); display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
+  .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap; font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
+  .spine b{ color:var(--text); font-weight:500; }
+  .page{ margin-left:44px; }
+  .hero{ border-bottom:1px solid var(--line); background:radial-gradient(120% 90% at 78% 40%, #121a33 0%, var(--bg) 60%); }
+  .hero-in{ max-width:46rem; margin:0 auto; padding:8vh 24px 4vh; }
+  .back{ margin:0 0 2.2em; display:flex; align-items:center; gap:1.2em; flex-wrap:wrap; font-size:.95rem; }
+  .back a{ color:var(--mute); text-decoration:none; } .back a:hover{ color:var(--text); }
+  .back button{ margin-left:auto; font:600 .85rem/1 'Space Grotesk', sans-serif; color:var(--bg); background:var(--cyan); border:0; border-radius:999px; padding:.45em .9em; cursor:pointer; }
+  .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--cyan); }
+  h1{ margin:0 0 .35em; font:700 clamp(2.1rem, 6vw, 3.4rem)/.95 'Space Grotesk', sans-serif; text-transform:uppercase; background:linear-gradient(90deg,#fff,#c7fff4 55%,#e4d8ff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lead{ max-width:42rem; color:#d3d9e6; margin:0 0 1.2em; }
+  .toc{ display:flex; flex-wrap:wrap; gap:8px; margin:0; padding:0; list-style:none; }
+  .toc a{ color:var(--mute); text-decoration:none; font:500 .88rem/1 'Space Grotesk', sans-serif; border:1px solid var(--line); border-radius:999px; padding:.35em .75em; }
+  main{ max-width:46rem; margin:28px auto 72px; padding:36px 40px 56px; background:#fff; color:#1c1917; border-radius:18px; box-shadow:0 18px 50px rgba(0,0,0,.35); }
+  main a{ color:#0f766e; } main h2, main h3, main strong{ color:#1c1917; } main figcaption{ color:#57534e; }
+  main .callout{ background:#f5f5f4; color:#1c1917; }
+  section{ padding-top:2.2em; scroll-margin-top:1.25rem; }
+  #adapt{ --c:var(--sky); } #future{ --c:var(--cyan); }
+  h2{ margin:0 0 .7em; font:700 1.4rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
+  h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
+  h3{ margin:1.2em 0 .3em; font:700 1.05rem/1.3 'Space Grotesk', sans-serif; }
+  p{ margin:0 0 .75em; } ul,ol{ margin:0 0 .9em; padding-left:1.2em; } li{ margin:.25em 0; }
+  .callout{ margin:1em 0; padding:14px 16px; border-radius:14px; border-left:4px solid var(--c,var(--cyan)); } .callout p{ margin:0; }
+  figure{ margin:1em 0; } figure img{ width:100%; border-radius:12px; display:block; } figcaption{ margin-top:.4em; font-size:.9rem; }
+  code{ font:.9em ui-monospace, SFMono-Regular, Menlo, monospace; background:#f5f5f4; padding:.1em .3em; border-radius:5px; }
+  pre{ margin:1em 0; padding:14px 16px; background:#0f172a; color:#e2e8f0; border-radius:12px; overflow-x:auto; font:.82rem/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre code{ background:none; padding:0; font:inherit; color:inherit; }
+  pre .c{ color:#94a3b8; }
+  .code-cap{ margin:-.5em 0 1em; font-size:.9rem; color:#57534e; }
+  @media (max-width:700px){ .spine{ display:none; } .page{ margin-left:0; } main{ margin:16px; padding:24px 18px; } .back button{ margin-left:0; } }
+  @media print{ body,.page,.hero,main{ background:#fff; color:#111; box-shadow:none; } .spine,.back{ display:none; } .page,main{ margin:0; } h1{ color:#111; background:none; -webkit-text-fill-color:#111; } a{ color:#111; } }
+</style>
+</head>
+<body>
+<div class="spine" aria-hidden="true"><span><b>Computer Vision</b> &nbsp;/&nbsp; Day 7</span></div>
+<div class="page">
+<header class="hero"><div class="hero-in">
+  <div class="back"><a href="../index.html">← Home</a><a href="deck.html">Slides</a><a href="../day06-reduced/lecture-notes.html">Day 6 notes</a>
+    <button type="button" onclick="window.print()">Download PDF</button></div>
+  <p class="kicker">Day 7 · Fernanda de la Torre · Shreya Pandit</p>
+  <h1>Lecture notes</h1>
+  <p class="lead">Adaptation and future data. A trained model is a starting point, not an end. This day is about reusing what a model already knows for a new task, learning from a teacher, keeping old skills while learning new ones, and the data the next models will need.</p>
+  <nav class="toc">
+    <a href="#adapt">Adapting models</a><a href="#future">Looking ahead</a>
+  </nav>
+</div></header>
+<main>
+  <section id="adapt">
+    <h2>Adapting existing models</h2>
+    <p>Chapter 37 frames adaptation with a farm. Last season a drone learned a model <em>f</em> for fields of wheat and corn. This season the corn has become soybeans. Start from <em>f</em>, not from scratch, to get <em>f′</em>. Pretraining is how prior knowledge is acquired in the first place. Adaptation is how it is used to solve a new task.</p>
+    <figure>
+      <img src="assets/adapt/ch37-pretraining-adaptation.png" alt="Chapter 37 Figure 37.1: training from scratch compared with starting from prior knowledge">
+      <figcaption>Foundations of Computer Vision, Ch. 37, Figure 37.1. CC BY-NC-ND 4.0.</figcaption>
+    </figure>
+    <p>Training from scratch is data hungry. Starting with prior knowledge is data efficient. The methods are fine-tuning, domain adaptation, test-time adaptation, continual learning, monitoring, and human feedback loops. In fine-tuning, you can freeze some layers, fine-tune others, and train a new head from scratch (Fig. 37.3).</p>
+    <p>In PyTorch, start from a network pretrained on ImageNet. Turn off gradients for the layers you freeze, leave them on for the block you fine-tune, and replace the last layer with a new one for your classes. The fine-tuned block gets a smaller learning rate than the new head, so it stays close to what it already learned.</p>
+<pre><code>import torch, torch.nn as nn, torch.nn.functional as F
+from torchvision import models
+
+num_classes = 3                                    <span class="c"># your new task, e.g. wheat, soybeans, other</span>
+model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)  <span class="c"># f: pretrained on ImageNet</span>
+
+for p in model.parameters():                       <span class="c"># frozen: keep what f learned</span>
+    p.requires_grad = False
+for p in model.layer4.parameters():                <span class="c"># fine-tuned: the last block adapts</span>
+    p.requires_grad = True
+model.fc = nn.Linear(model.fc.in_features, num_classes)  <span class="c"># from scratch: a new head</span>
+
+optimizer = torch.optim.Adam([
+    {"params": model.layer4.parameters(), "lr": 1e-4},   <span class="c"># small steps: stay close to f</span>
+    {"params": model.fc.parameters(),     "lr": 1e-3},   <span class="c"># larger steps: new weights</span>
+])
+
+model.train()
+for x, y in loader:                                <span class="c"># your labeled images for the new task</span>
+    loss = F.cross_entropy(model(x), y)
+    optimizer.zero_grad()
+    loss.backward()                                <span class="c"># frozen layers get no gradients</span>
+    optimizer.step()</code></pre>
+    <p class="code-cap">Our code (PyTorch and torchvision). <code>loader</code> is a DataLoader of your images and labels. To fine-tune all layers, as in the fog example below, leave every <code>requires_grad</code> on. To train only the head, freeze <code>layer4</code> too.</p>
+    <p>An example: driving in the fog (Sakaridis, Dai and Van Gool, IJCV 2018). A model trained on 2,975 clear images was fine-tuned on 498 synthetic fog images and tested on 101 real fog images. Mean IoU rose from 34.9% to 37.8% over all classes, and from 52.4% to 57.4% on the frequent classes.</p>
+    <h3>Learning from a teacher</h3>
+    <p>Learning from examples is like an answer key with no explanations: the label says “cat”. A teacher can say “cat 90%, tiger 10%”, which explains that this is a tiger-like cat. Supervised learning is a teacher that puts all its belief on one class. A model as teacher gives partial credit to similar classes, so each image carries more information.</p>
+    <figure>
+      <img src="assets/adapt/ch37-kd-diagram.png" alt="Knowledge distillation diagram: a teacher network's soft outputs train a student network">
+      <figcaption>Foundations of Computer Vision, Ch. 37, Figure 37.4. CC BY-NC-ND 4.0.</figcaption>
+    </figure>
+    <p><strong>Knowledge distillation</strong> (Hinton, Vinyals and Dean, 2015) softens the teacher’s outputs with a temperature: <em>p<sub>i</sub> = exp(z<sub>i</sub>/T) / Σ<sub>j</sub> exp(z<sub>j</sub>/T)</em>. In the slide’s example, at T = 4 the teacher’s probability for “cat” falls from 0.77 to 0.40 and “tiger” rises to 0.28. The student is trained on <em>L = α · T² · KL(p ‖ q) + (1 − α) · CE</em>, where the KL term matches the teacher’s soft targets and the cross-entropy term matches the true label. With α = 0.5, the example gives KL 0.056, CE 0.571 and L 0.730. In offline distillation the teacher is frozen and only the student learns.</p>
+    <p>In PyTorch, the loss is a few lines. The teacher runs under <code>torch.no_grad()</code>, so gradients reach only the student. Here the teacher is the fine-tuned ResNet-18 from above (about 11 million parameters), and the student is a MobileNet with about 1.5 million.</p>
+<pre><code>def distillation_loss(student_logits, teacher_logits, labels, T=4.0, alpha=0.5):
+    p = F.softmax(teacher_logits / T, dim=-1)          <span class="c"># soft targets</span>
+    log_q = F.log_softmax(student_logits / T, dim=-1)
+    kl = F.kl_div(log_q, p, reduction="batchmean") * T * T
+    ce = F.cross_entropy(student_logits, labels)       <span class="c"># the true labels</span>
+    return alpha * kl + (1 - alpha) * ce
+
+teacher = model                                        <span class="c"># the fine-tuned model from above</span>
+student = models.mobilenet_v3_small(num_classes=num_classes)  <span class="c"># smaller, trained from scratch</span>
+optimizer = torch.optim.Adam(student.parameters(), lr=1e-3)
+
+teacher.eval()                                         <span class="c"># offline: frozen</span>
+student.train()
+for x, y in loader:
+    with torch.no_grad():
+        teacher_logits = teacher(x)                    <span class="c"># forward pass, no gradients</span>
+    student_logits = student(x)                        <span class="c"># forward pass</span>
+    loss = distillation_loss(student_logits, teacher_logits, y)
+    optimizer.zero_grad()
+    loss.backward()                                    <span class="c"># gradients reach only the student</span>
+    optimizer.step()</code></pre>
+    <p class="code-cap">Our code (PyTorch), the same loop as on the slide; loss as in Hinton, Vinyals and Dean (2015). With the slide’s example logits, <code>distillation_loss</code> gives KL 0.056, CE 0.571 and L 0.730, the same values as above. <code>F.kl_div</code> takes the student’s log-probabilities first and the teacher’s probabilities second. The factor T² keeps the soft-target gradients on the same scale as the label term.</p>
+    <p>Use cases: efficiency, with a smaller or faster student (Chen et al., NeurIPS 2017); Learning without Forgetting, where an ImageNet classifier is extended to a new task such as scene recognition (Li and Hoiem, ECCV 2016); and privacy, where teachers trained on private data label public data for a student (PATE, Papernot et al., ICLR 2017).</p>
+    <h3>Catastrophic forgetting and continual learning</h3>
+    <p>In our toy run on 8×8 digits with a small network, each new rotation (0°, 30°, 60°, 90°, 120°) is learned to 0.97–0.98. With plain fine-tuning, accuracy on the original 0° task falls from 0.98 to 0.18. This is the motivation for continual learning. <strong>Replay</strong> keeps a few old images (5 per digit, per angle) and mixes them into each batch. <strong>EWC</strong> (Kirkpatrick et al., PNAS 2017) keeps no images. It saves each weight’s value and its importance for the old task, then adds a penalty, like a spring, for moving important weights. Average accuracy at the end, mean of three seeds, when the digits rotate: fine-tune only 0.45, EWC 0.62, replay 0.88, all data at once 0.97. When new digits arrive: fine-tune only 0.20, EWC 0.20, replay 0.89, all data at once 0.97.</p>
+    <h3>When to use each method</h3>
+    <ul>
+      <li>Some labeled examples: fine-tuning.</li>
+      <li>Many unlabeled examples: domain adaptation.</li>
+      <li>Only the live stream: test-time adaptation.</li>
+      <li>A world that keeps changing: continual learning.</li>
+      <li>Any of these, after launch: monitoring.</li>
+      <li>Failures that people can label: human feedback loops.</li>
+    </ul>
+  </section>
+
+  <section id="future">
+    <h2>Looking ahead</h2>
+    <p>As you build, can you predict forward? ColorizeBot was trained on ImageNet photos and used on old photographs. CLEAR (Lin et al., 2021) follows Flickr images from 2004 to 2014.</p>
+    <p>Can research reduce the need for real data? One direction is reinforcement-learning environments. An agent takes an action, the environment returns an observation and a reward, and the model learns by trial and error in a realistic simulation (Rane, Scale AI blog, 2026).</p>
+    <p>Robotics is where the data gap is widest. Datasets such as DROID (2024), Open X-Embodiment (2023) and RoboCasa (2024) still face coverage shift across robots and rooms, the sim-to-real gap, human video that has no robot actions, and the need for richer labels (Levin, Scale AI blog, 2025).</p>
+    <div class="callout"><p><strong>Discussion.</strong> How would you collect the data robots are missing, and what would your method still fail to cover? What new algorithm could let a robot learn a skill from a handful of examples, without big data at all?</p></div>
+  </section>
+
+</main>
+</div>
+</body>
+</html>

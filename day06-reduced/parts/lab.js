@@ -37,7 +37,7 @@ const labStyle = `<style>
 /* ---------- Opener ---------- */
 st(`${labStyle}
   <h1 class="t">Lab · Find and check a dataset for your project</h1>
-  ${d6Roadmap(5, false)}
+  ${d6Roadmap(4, false)}
 `);
 
 /* ---------- The plan, with the shared timer ---------- */

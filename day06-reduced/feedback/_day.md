@@ -154,3 +154,8 @@ Slide 40 (p38): the normalization click is labeled "mistake", and one new click 
 - Catastrophic forgetting: one line per angle, built one training step at a time.
 - Continual learning: Replay and Elastic Weight Consolidation step by step through training and testing, with per-angle test numbers from `cl_results.json` (seed 0).
 - When should each adaptation method be used: each method opens its details on click. Monitoring and Human feedback loops: source to add.
+
+## 2026-11-09: adapting and future moved to Day 7 (Shreya's request)
+- The adapt and future parts (Google deck p43-59), their scenes and assets are now in ../day07/. Day 6 ends with the evaluation parts and the lab.
+- The agenda in lib.js drops "Adapt over time", so the lab roadmap marks Lab as row 4.
+- [ ] The Day 6 title still says "Data, Generalization and Adaptation". Keep it, or retitle now that adaptation is on Day 7?

@@ -44,7 +44,6 @@ window.D6_AGENDA = [
   ['Get better data',  'How do we get data that covers the real world?'],
   ['Check the data',   'Is this dataset right for my task?'],
   ['Check the model',  'Can we trust the test score?'],
-  ['Adapt over time',  'What do we do when the world changes?'],
   ['Lab',              ''],
 ];
 /* cur = index of the block now starting (-1 = none). build = one row per click; otherwise the whole list on click 1. */

@@ -12,8 +12,6 @@ const ORDER = [
   ['splits',      'p30-34: evaluating the model, splits, cross-validation, leakage, averages'],
   ['metrics',     'p35-39: classification, regression, baselines, uncertainty, beyond the test set'],
   ['llm-eval',    'p40-42: evaluating LLMs (two slides), checklist, NeuroAI Turing Test paper'],
-  ['adapt',       'p43-55: adapting trained models, problem setup, fine-tuning, learning from a teacher, knowledge distillation (math and code), use cases, continual learning'],
-  ['future',      'p55-59: future data, RL environments, robotics data gap, discussions'],
   ['lab',         'Lab: find and check a dataset for your project (unchanged from day06)'],
 ];
 const PARTS = ORDER.map(r => r[0]);
@@ -26,7 +24,5 @@ const SEC_MINUTES = {
   'Labeling': 6,
   'Check your data': 9,
   'Evaluating the model': 17,
-  'Adapting models': 13,
-  'Future data': 4,
   'Lab': 22,
 };
