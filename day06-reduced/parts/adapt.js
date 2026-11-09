@@ -19,10 +19,10 @@ const adStyle = `<style>
   .adapt-bridge text{ font-family:var(--font); fill:var(--ink); }
   .adapt-list{ display:grid; grid-template-columns:repeat(3, 1fr); gap:.6vh 1.6vw; flex:0 0 auto; }
   .adapt-item{ font-size:clamp(1.25rem, 2.15vw, 2rem); line-height:1.25; text-align:center; padding:.35vh .6vw; border:2px solid transparent; border-radius:10px; }
-  .adapt-dim.b{ opacity:1; transform:none; transition:opacity .6s ease; }
-  .adapt-dim.b.shown{ opacity:.28; }
-  .adapt-pick.b{ opacity:1; transform:none; transition:border-color .6s ease; }
-  .adapt-pick.b.shown{ border-color:var(--ink); font-weight:700; }
+  .adapt-dim{ opacity:.45; }
+  .adapt-pick{ border-color:var(--ink); font-weight:700; }
+  .fw .adapt-ring{ position:absolute; border:3.5px solid var(--ink); border-radius:10px; }
+  .adapt-why{ flex:0 0 auto; text-align:center; font-size:clamp(1.1rem, 1.75vw, 1.6rem); }
   .adapt-stack{ position:relative; flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center; }
   .adapt-sub{ width:min(76vw, 135vh); }
   .adapt-cues{ position:relative; height:clamp(2rem, 3.4vw, 3rem); }
@@ -42,19 +42,24 @@ st(`${adStyle}
 const AD_METHODS = [['Fine-tuning', 1], ['Domain adaptation', 0], ['Test-time adaptation', 0], ['Monitoring', 0], ['Continual learning', 1], ['Human feedback loops', 0]];
 /* detected on pretraining_and_adaptation.png: f box center .2505, f' box center .7603, divider .4983 */
 const AD_FX = 250.5, AD_FPX = 760.3;
+/* detected on the same figure (element extents, then padded): X .0424-.1370, X' .5453-.6506, Y .3590-.4545, Y' .8683-.9963; right edges of X' and Y' pulled in so the ring clears the arrow and the figure edge */
+const adRing = ([x0, x1, y0, y1, step]) => `<div class="adapt-ring b" data-step="${step}" style="left:${(x0 - .008) * 100}%;top:${(y0 - .02) * 100}%;width:${(x1 - x0 + .016) * 100}%;height:${(y1 - y0 + .04) * 100}%"></div>`;
+const AD_XPR = .6440;
+const AD_RINGS = [[.0424, .1370, .4562, .9185, 3], [.5453, AD_XPR, .4305, .9300, 3], [.3590, .4545, .4473, .8849, 4], [.8683, .9920, .4314, .8849, 4]];
 st(`
   <h1 class="t">Adaptation methods</h1>
   <div class="adapt-box" style="aspect-ratio:3.861;flex:0 0 auto">
-    ${adFig('assets/adapt/ch37-pretraining-adaptation.png', 4359 / 1129, adCov([0, 0, .49, 1], 1) + adCov([.49, 0, .51, 1], 2))}
+    ${adFig('assets/adapt/ch37-pretraining-adaptation.png', 4359 / 1129, adCov([0, 0, .49, 1], 1) + adCov([.49, 0, .51, 1], 2) + AD_RINGS.map(adRing).join(''))}
   </div>
-  <svg class="adapt-bridge b" data-step="3" viewBox="0 0 1000 56" role="img" aria-label="An arrow from f to f prime: initialize f prime as f">
+  <svg class="adapt-bridge b" data-step="5" viewBox="0 0 1000 56" role="img" aria-label="An arrow from f to f prime: initialize f prime as f">
     <defs><marker id="adBr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0f172a"/></marker></defs>
     <path d="M${AD_FX},2 V30 H${AD_FPX} V8" fill="none" stroke="#0f172a" stroke-width="2.6" marker-end="url(#adBr)"/>
     <rect x="${(AD_FX + AD_FPX) / 2 - 92}" y="14" width="184" height="32" fill="#fff"/>
     <text x="${(AD_FX + AD_FPX) / 2}" y="39" font-size="25" font-weight="700" text-anchor="middle">initialize f′ = f</text>
   </svg>
-  <div class="adapt-list b" data-step="4">
-    ${AD_METHODS.map(([m, pick]) => `<div class="adapt-item b ${pick ? 'adapt-pick' : 'adapt-dim'}" data-step="5">${m}</div>`).join('')}
+  <div class="adapt-why b" data-step="5">from scratch: data hungry · with prior knowledge: data efficient</div>
+  <div class="adapt-list b" data-step="6">
+    ${AD_METHODS.map(([m, pick]) => `<div class="adapt-item ${pick ? 'adapt-pick' : 'adapt-dim'}">${m}</div>`).join('')}
   </div>
   ${rdCite(adBook('Figure 37.1'))}
 `);
@@ -174,6 +179,6 @@ st(`
       ${adNode(AD_MX, y, AD_MW, m, true)}
     </g>`).join('')}
   </svg>
-  ${rdCite(adBook('sections 37.3 and 37.6') + ' · our diagram')}
+  ${rdCite(adBook('sections 37.3 and 37.6') + ' · our diagram; source: to add for the rows Ch. 37 does not cover')}
 `);
 }

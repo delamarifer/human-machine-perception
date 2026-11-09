@@ -25,7 +25,7 @@
 <div class="wrap">
   <h1 class="t deck-title">Continual learning</h1>
   <div class="adapt-stagebox"><svg id="sv" viewBox="0 0 1120 470" role="img" aria-label="Replay mixes stored old images into each new batch. EWC holds weights important to old tasks with a stiff spring. Bars compare average accuracy for digits that rotate and for new digits."></svg></div>
-  <div class="cite" id="cite">Our run, mean of 3 seeds, 8×8 digits · <a href="../assets/adapt/continual_learning_demo.py" target="_blank" rel="noopener">continual_learning_demo.py</a> · EWC: <a href="https://arxiv.org/abs/1612.00796" target="_blank" rel="noopener">Kirkpatrick et al. (PNAS 2017)</a> · LwF: Li and Hoiem (2016) · tiles and springs illustrative</div>
+  <div class="cite" id="cite">Toy example: our run on 8×8 digits with a small MLP, mean of 3 seeds · <a href="../assets/adapt/continual_learning_demo.py" target="_blank" rel="noopener">continual_learning_demo.py</a> · EWC: <a href="https://arxiv.org/abs/1612.00796" target="_blank" rel="noopener">Kirkpatrick et al. (PNAS 2017)</a> · tiles and springs illustrative</div>
 </div>
 <script>
 /* BEAT 0  title only
@@ -35,7 +35,7 @@
    BEAT 4  EWC: the new task pulls; the stiff weight barely moves, the loose one moves far
    BEAT 5  bars: digits rotate
    BEAT 6  bars: new digits arrive */
-const NS = 'http://www.w3.org/2000/svg', INK = '#0f172a', MUTE = '#94a3b8', BAR = '#4f6d9a';
+const NS = 'http://www.w3.org/2000/svg', INK = '#0f172a', MUTE = '#94a3b8';
 const sv = document.getElementById('sv');
 const NB = 6; let beat = 0, moved = [];
 const el = (t, a, p = sv) => { const e = document.createElementNS(NS, t); for(const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
@@ -88,18 +88,19 @@ function buildEwc(){
 }
 
 /* ---- results ---- */
-const LBL = {finetune: 'fine-tune only', ewc: 'EWC', lwf: 'LwF', replay: 'replay', joint: 'all data at once'};
-const KEYS = ['finetune', 'ewc', 'lwf', 'replay', 'joint'];
+/* ink: the two methods named on the slide; gray: the two reference runs. */
+const LBL = {finetune: 'fine-tune only', ewc: 'EWC', replay: 'replay', joint: 'all data at once'};
+const KEYS = ['finetune', 'ewc', 'replay', 'joint'], FILL = {finetune: MUTE, ewc: INK, replay: INK, joint: MUTE}, RH = 42;
 const BX0 = 816, BW = 245;
 function buildBars(data){
   [['digits rotate', 'domain_incremental', 34, 5], ['new digits arrive', 'class_incremental', 258, 6]].forEach(([name, key, y0, b]) => {
     const g = grp(b);
     txt(name, BX0 + BW / 2 - 40, y0, 25, {'font-weight': 700}, g);
-    el('line', {x1: BX0, y1: y0 + 14, x2: BX0, y2: y0 + 14 + 5 * 33, stroke: MUTE, 'stroke-width': 1.5}, g);
-    KEYS.forEach((k, i) => { const v = data[key][k].metrics.avg_acc[0], y = y0 + 18 + i * 33;
-      txt(LBL[k], BX0 - 10, y + 20, 22, {'text-anchor': 'end'}, g);
-      el('rect', {x: BX0, y, width: v * BW, height: 25, rx: 4, fill: BAR}, g);
-      txt(v.toFixed(2), BX0 + v * BW + 7, y + 20, 22, {'text-anchor': 'start', 'font-weight': 700}, g); });
+    el('line', {x1: BX0, y1: y0 + 14, x2: BX0, y2: y0 + 14 + KEYS.length * RH, stroke: MUTE, 'stroke-width': 1.5}, g);
+    KEYS.forEach((k, i) => { const v = data[key][k].metrics.avg_acc[0], y = y0 + 22 + i * RH;
+      txt(LBL[k], BX0 - 10, y + 22, 23, {'text-anchor': 'end'}, g);
+      el('rect', {x: BX0, y, width: v * BW, height: 30, rx: 4, fill: FILL[k]}, g);
+      txt(v.toFixed(2), BX0 + v * BW + 7, y + 22, 23, {'text-anchor': 'start', 'font-weight': 700}, g); });
   });
   const c = grp(5); txt('average accuracy, end of training', BX0 + BW / 2 - 40, 462, 22, {}, c);
 }

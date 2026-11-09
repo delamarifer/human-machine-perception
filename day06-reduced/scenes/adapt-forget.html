@@ -24,7 +24,7 @@
 <div class="wrap">
   <h1 class="t deck-title">Catastrophic forgetting</h1>
   <div class="adapt-stagebox"><svg id="sv" viewBox="0 0 1120 470" role="img" aria-label="Accuracy matrix of a network trained on rotated digits, one rotation after another, and a line of accuracy on the 0 degree task falling as training moves on."></svg></div>
-  <div class="cite" id="cite">Our run, seed 0: plain fine-tuning on 8×8 digits (scikit-learn), small MLP · <a href="../assets/adapt/continual_learning_demo.py" target="_blank" rel="noopener">continual_learning_demo.py</a> · rotated digit glyphs are illustrative</div>
+  <div class="cite" id="cite">Toy example: our run, seed 0, plain fine-tuning on 8×8 digits (scikit-learn), small MLP · <a href="../assets/adapt/continual_learning_demo.py" target="_blank" rel="noopener">continual_learning_demo.py</a> · rotated digit glyphs are illustrative</div>
 </div>
 <script>
 /* BEAT 0  title only
@@ -42,20 +42,20 @@ const txt = (s, x, y, sz, a = {}, p) => { const e = el('text', {x, y, 'font-size
 const grp = (b, cls = '') => { const g = el('g', {class: 'adapt-sb ' + cls}); g.dataset.b = b; return g; };
 
 function build(R){
-  const CW = 92, CH = 60, X0 = 120, Y0 = 78;
+  const CW = 92, CH = 56, X0 = 120, Y0 = 102;
   /* column headers: a digit glyph turned by the angle */
   const head = grp(1);
   txt('tested on', X0 + 2.5 * CW, 14, 24, {'font-weight': 700}, head);
   ANG.forEach((a, j) => { const cx = X0 + (j + .5) * CW;
-    txt(a + '°', cx, 70, 23, {}, head);
-    const g = el('g', {transform: `rotate(${a} ${cx} 38)`}, head);
-    txt('4', cx, 46, 25, {'font-weight': 700}, g); });
+    txt(a + '°', cx, 94, 23, {}, head);
+    const g = el('g', {transform: `rotate(${a} ${cx} 50)`}, head);
+    txt('4', cx, 63, 38, {'font-weight': 700}, g); });
   R.forEach((row, i) => {
     const g = grp(i + 1);
-    txt('after ' + ANG[i] + '°', X0 - 12, Y0 + i * CH + 37, 24, {'text-anchor': 'end'}, g);
+    txt('after ' + ANG[i] + '°', X0 - 12, Y0 + i * CH + 36, 24, {'text-anchor': 'end'}, g);
     for(let j = 0; j <= i; j++){ const v = row[j], c = Math.round(244 - v * 205), dark = v > .55;
       el('rect', {x: X0 + j * CW + 1, y: Y0 + i * CH + 1, width: CW - 2, height: CH - 2, rx: 4, fill: `rgb(${c},${c + 3},${c + 7})`}, g);
-      txt(v.toFixed(2), X0 + (j + .5) * CW, Y0 + i * CH + 38, 24, {'font-weight': 700, style: `fill:${dark ? '#f8fafc' : INK}`}, g); }
+      txt(v.toFixed(2), X0 + (j + .5) * CW, Y0 + i * CH + 36, 24, {'font-weight': 700, style: `fill:${dark ? '#f8fafc' : INK}`}, g); }
   });
   /* rings */
   const d = grp(6);
