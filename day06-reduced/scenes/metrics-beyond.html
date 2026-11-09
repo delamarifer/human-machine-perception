@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Beyond the test set</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Day 6 reduced, part metrics. p44. The tiles are computed here from one photo with the code of day06/scenes/corrupt.html
+     (our versions of four ImageNet-C corruption types). Photo: Keith Kissel, "June odd-eyed-cat" (cropped), CC BY 2.0, via Wikimedia Commons.
+     Error percentages and reference sums below are an example; CE and mCE computed. Logits are day06's example. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.2vh; }
+  .metrics-cue{ min-height:1.35em; font-size:clamp(1.15rem, 2vw, 1.9rem); font-weight:700; transition:opacity .4s ease; }
+  .metrics-main{ flex:1 1 auto; min-height:0; display:flex; gap:2vw; align-items:center; }
+  .metrics-grid{ display:grid; grid-template-columns:auto 11.8vh repeat(5, 11.8vh) repeat(3, 8.4vh); gap:.6vh .55vw; align-items:center; }
+  .metrics-cell{ transition:opacity .6s ease; }
+  .metrics-grid canvas{ width:11.8vh; height:11.8vh; display:block; border-radius:5px; }
+  .metrics-tile{ position:relative; }
+  .metrics-err{ position:absolute; right:3px; bottom:3px; background:rgba(255,255,255,.88); color:#0f172a; border-radius:3px; padding:0 4px; font-weight:700; font-size:clamp(13px, 1.9vh, 1.05rem); line-height:1.3; transition:opacity .6s ease; }
+  .metrics-rh{ font-weight:700; font-size:clamp(.95rem, 2.2vh, 1.3rem); text-align:right; padding-right:.5vw; white-space:nowrap; }
+  .metrics-ch{ font-size:clamp(.85rem, 2vh, 1.15rem); text-align:center; font-weight:600; white-space:nowrap; }
+  .metrics-num{ font-size:clamp(1rem, 2.5vh, 1.45rem); text-align:center; font-weight:700; white-space:nowrap; }
+  .metrics-mce{ grid-column:9 / 11; text-align:right; font-size:clamp(1.05rem, 2.6vh, 1.5rem); font-weight:700; white-space:nowrap; }
+  .metrics-side{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; justify-content:center; gap:1.6vh; }
+  .metrics-fam{ display:grid; grid-template-columns:11.2vh 1fr auto; gap:.8vh .8vw; align-items:center; transition:opacity .6s ease; }
+  .metrics-fam canvas{ width:11.2vh; height:11.2vh; border-radius:5px; display:block; }
+  .metrics-bars{ display:flex; flex-direction:column; gap:.55vh; }
+  .metrics-bars i{ display:block; height:2vh; background:#94a3b8; border-radius:2px; }
+  .metrics-bars i.top{ background:#0f172a; }
+  .metrics-score{ font-size:clamp(1.3rem, 3vh, 1.8rem); font-weight:700; }
+  .metrics-flag{ grid-column:1 / 4; font-size:clamp(1rem, 2.4vh, 1.35rem); font-weight:700; }
+  .metrics-extra{ display:grid; grid-template-columns:auto 1fr; gap:.7vh 1vw; align-items:center; transition:opacity .6s ease; }
+  .metrics-extra .metrics-lab{ font-size:clamp(1rem, 2.4vh, 1.35rem); font-weight:700; white-space:nowrap; }
+  .metrics-extra .metrics-val{ font-size:clamp(1rem, 2.4vh, 1.35rem); }
+  svg#metrics-scat{ width:100%; height:14.5vh; display:block; }
+  svg#metrics-scat text{ font-size:17px; fill:#0f172a; font-family:inherit; }
+  .metrics-head{ font-size:clamp(1rem, 2.4vh, 1.35rem); font-weight:700; transition:opacity .6s ease; }
+  .cite{ font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); }
+  .cite a{ color:var(--mute); }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Beyond the test set</h1>
+  <div class="metrics-cue" id="cue" style="opacity:0"></div>
+  <div class="metrics-main">
+    <div class="metrics-grid" id="grid"></div>
+    <div class="metrics-side">
+      <div class="metrics-head" id="famhead" style="opacity:0">top softmax</div>
+      <div class="metrics-fam" id="fam1" style="opacity:0">
+        <canvas id="f1" width="300" height="300"></canvas>
+        <div class="metrics-bars" id="b1"></div>
+        <div class="metrics-score" id="s1"></div>
+      </div>
+      <div class="metrics-fam" id="fam2" style="opacity:0">
+        <canvas id="f2" width="300" height="300"></canvas>
+        <div class="metrics-bars" id="b2"></div>
+        <div class="metrics-score" id="s2"></div>
+        <div class="metrics-flag" id="flag">flag: "I don't know"</div>
+      </div>
+      <div class="metrics-extra" id="extra" style="opacity:0">
+        <div class="metrics-lab">energy</div><div class="metrics-val" id="en"></div>
+        <div class="metrics-lab">distance</div><svg id="metrics-scat" viewBox="0 0 260 100"></svg>
+      </div>
+    </div>
+  </div>
+  <div class="cite" id="cite" style="opacity:0">Example: our versions of four corruption types; error rates and logits are examples, CE and scores computed · Hendrycks &amp; Dietterich 2019 · Hendrycks &amp; Gimpel 2017 · Liu et al. 2020 · Lee et al. 2018 · Photo: Keith Kissel, CC BY 2.0</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* BEAT 0 title only
+   1 "Add noise across different parameters": clean tile, one row of noise severities
+   2 "Examples of corrupted data": blur, fog, JPEG rows
+   3 "Add up the error across different corruptions": error on each tile, sum per row
+   4 divide by the reference: CE per row, mCE
+   5 "Familiarity scores": top softmax for a clean image and a heavily noisy one
+   6 energy and distance to class center */
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const N = 300, img = new Image(); img.src = '../assets/metrics/june-odd-eyed-cat.jpg';
+const load = im => new Promise(r => im.complete && im.naturalWidth ? r() : (im.onload = r));
+function base(ctx){ const s = Math.min(img.width, img.height); ctx.drawImage(img, (img.width - s)/2, (img.height - s)/2, s, s, 0, 0, N, N); }
+const clamp = v => Math.max(0, Math.min(255, v));
+function pix(ctx, f){ const d = ctx.getImageData(0, 0, N, N), a = d.data; for(let i = 0; i < a.length; i += 4){ const o = f(a[i], a[i+1], a[i+2], i); a[i] = o[0]; a[i+1] = o[1]; a[i+2] = o[2]; } ctx.putImageData(d, 0, 0); }
+function blur(ctx, r){ if(r < 1) return; const d = ctx.getImageData(0, 0, N, N), a = d.data;
+  for(let pass = 0; pass < 2; pass++){ const src = a.slice();
+    for(let y = 0; y < N; y++) for(let x = 0; x < N; x++){ let s0 = 0, s1 = 0, s2 = 0, n = 0;
+      for(let k = -r; k <= r; k++){ const xx = pass ? x : Math.min(N-1, Math.max(0, x+k)), yy = pass ? Math.min(N-1, Math.max(0, y+k)) : y; const j = (yy*N + xx)*4; s0 += src[j]; s1 += src[j+1]; s2 += src[j+2]; n++; }
+      const i = (y*N + x)*4; a[i] = s0/n; a[i+1] = s1/n; a[i+2] = s2/n; } }
+  ctx.putImageData(d, 0, 0); }
+async function jpeg(ctx, q){ const im = new Image(); im.src = ctx.canvas.toDataURL('image/jpeg', q); await load(im); ctx.drawImage(im, 0, 0); }
+const R = rng(3);
+const TYPES = [
+  ['noise', async (c, s) => { base(c); const amp = [20, 45, 70, 100, 140][s]; pix(c, (r, g, b) => { const n = (R() - .5) * 2 * amp; return [clamp(r+n), clamp(g+n), clamp(b+n)]; }); }],
+  ['blur',  async (c, s) => { base(c); blur(c, [1, 2, 4, 6, 9][s]); }],
+  ['fog',   async (c, s) => { base(c); const k = [.2, .35, .5, .65, .8][s]; pix(c, (r, g, b, i) => { const y = Math.floor(i / 4 / N) / N, w = k * (.6 + .4 * y); return [r*(1-w) + 225*w, g*(1-w) + 228*w, b*(1-w) + 232*w]; }); }],
+  ['JPEG',  async (c, s) => { base(c); await jpeg(c, [.3, .15, .08, .04, .01][s]); }],
+];
+/* example error rates (%), by corruption and severity; the reference sums play the role of AlexNet's in ImageNet-C. Fog matches day06's 150 / 300 example. */
+const ERR = [[15, 30, 45, 60, 75], [12, 22, 32, 42, 52], [10, 20, 30, 40, 50], [8, 14, 20, 26, 32]];
+const REF = [350, 300, 300, 250];
+const SUM = ERR.map(r => r.reduce((a, b) => a + b, 0));
+const CE = SUM.map((s, i) => s/REF[i]);
+const MCE = CE.reduce((a, b) => a + b, 0)/CE.length;
+
+const grid = document.getElementById('grid');
+let html = '<div></div><div class="metrics-ch metrics-cell c-head">clean</div>' + [1, 2, 3, 4, 5].map(s => `<div class="metrics-ch metrics-cell c-head">severity ${s}</div>`).join('') +
+  '<div class="metrics-ch metrics-cell c-sum">Σ error</div><div class="metrics-ch metrics-cell c-ce">÷ AlexNet</div><div class="metrics-ch metrics-cell c-ce">CE</div>';
+TYPES.forEach(([nm], t) => {
+  html += `<div class="metrics-rh metrics-cell t${t}">${nm}</div>`;
+  html += t === 0 ? `<div class="metrics-cell t0"><canvas id="clean" width="${N}" height="${N}"></canvas></div>` : '<div></div>';
+  for(let s = 0; s < 5; s++) html += `<div class="metrics-tile metrics-cell t${t}"><canvas id="k${t}_${s}" width="${N}" height="${N}"></canvas><span class="metrics-err" id="e${t}_${s}">${ERR[t][s]}%</span></div>`;
+  html += `<div class="metrics-num metrics-cell c-sum">${SUM[t]}</div><div class="metrics-num metrics-cell c-ce">${REF[t]}</div><div class="metrics-num metrics-cell c-ce">${CE[t].toFixed(2)}</div>`;
+});
+html += `<div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div class="metrics-mce metrics-cell c-ce">mCE ${MCE.toFixed(2)}</div>`;
+grid.innerHTML = html;
+
+let ready = false, beat = 0, rendering = false;
+(async () => {
+  await load(img); base(document.getElementById('clean').getContext('2d'));
+  for(let t = 0; t < TYPES.length; t++) for(let s = 0; s < 5; s++) await TYPES[t][1](document.getElementById(`k${t}_${s}`).getContext('2d'), s);
+  base(document.getElementById('f1').getContext('2d'));
+  document.getElementById('f2').getContext('2d').drawImage(document.getElementById('k0_4'), 0, 0);
+  ready = true; go(beat);
+})();
+
+/* softmax and energy from day06's example logits; distance computed from a seeded 2-D cluster */
+const emSoft = z => { const m = Math.max(...z), e = z.map(v => Math.exp(v - m)), s = e.reduce((a, b) => a + b, 0); return e.map(v => v / s); };
+const emEnergy = z => -Math.log(z.reduce((a, v) => a + Math.exp(v), 0));
+const Z1 = [5, 1, 0], Z2 = [2, 1.9, 1.8];
+const P1 = emSoft(Z1), P2 = emSoft(Z2);
+const barsHTML = p => { const top = Math.max(...p); return p.map(v => `<i class="${v === top ? 'top' : ''}" style="width:${(v*100).toFixed(1)}%"></i>`).join(''); };
+document.getElementById('b1').innerHTML = barsHTML(P1); document.getElementById('s1').textContent = Math.max(...P1).toFixed(2);
+document.getElementById('b2').innerHTML = barsHTML(P2); document.getElementById('s2').textContent = Math.max(...P2).toFixed(2);
+document.getElementById('en').textContent = `${emEnergy(Z1).toFixed(1)} vs ${emEnergy(Z2).toFixed(1)}`;
+
+/* Mahalanobis-style distance: axis-aligned spread estimated from a seeded cluster; near and far probes */
+const Rg = rng(7), gs = () => { let u = 0; while(!u) u = Rg(); const v = Rg(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); };
+const cl = [...Array(22)].map(() => ({x: 72 + 14*gs(), y: 52 + 13*gs()}));
+const mx = cl.reduce((a, p) => a + p.x, 0)/cl.length, my = cl.reduce((a, p) => a + p.y, 0)/cl.length;
+const sx = Math.sqrt(cl.reduce((a, p) => a + (p.x - mx)**2, 0)/(cl.length - 1)), sy = Math.sqrt(cl.reduce((a, p) => a + (p.y - my)**2, 0)/(cl.length - 1));
+const dist = p => Math.sqrt(((p.x - mx)/sx)**2 + ((p.y - my)/sy)**2);
+const near = {x: 94, y: 58}, far = {x: 192, y: 22};
+document.getElementById('metrics-scat').innerHTML =
+  cl.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="#94a3b8"/>`).join('') +
+  `<ellipse cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" rx="${(2*sx).toFixed(1)}" ry="${(2*sy).toFixed(1)}" fill="none" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="4 3"/>` +
+  `<line x1="${mx.toFixed(1)}" y1="${my.toFixed(1)}" x2="${near.x}" y2="${near.y}" stroke="#0f172a" stroke-width="1.5"/><circle cx="${near.x}" cy="${near.y}" r="5" fill="#0f172a"/>` +
+  `<text x="${near.x + 10}" y="${near.y + 26}" font-weight="700">${dist(near).toFixed(1)}</text>` +
+  `<line x1="${mx.toFixed(1)}" y1="${my.toFixed(1)}" x2="${far.x}" y2="${far.y}" stroke="#0f172a" stroke-width="1.5"/><circle cx="${far.x}" cy="${far.y}" r="5" fill="#fff" stroke="#0f172a" stroke-width="2"/>` +
+  `<text x="${far.x + 9}" y="${far.y + 6}" font-weight="700">${dist(far).toFixed(1)}</text>`;
+
+const CUES = [
+  [1, 1, 'Add noise across different parameters'],
+  [2, 2, 'Examples of corrupted data'],
+  [3, 4, 'Add up the error across different corruptions'],
+  [5, 6, 'Familiarity scores'],
+];
+const NB = 6;
+function go(b){ beat = b;
+  const op = (sel, on) => document.querySelectorAll(sel).forEach(e => e.style.opacity = on ? 1 : 0);
+  document.getElementById('cite').style.opacity = b ? 1 : 0;
+  op('.c-head', b >= 1); op('.t0', b >= 1); op('.t1', b >= 2); op('.t2', b >= 2); op('.t3', b >= 2);
+  op('.c-sum', b >= 3); op('.c-ce', b >= 4); op('.metrics-err', b >= 3);
+  document.getElementById('famhead').style.opacity = b >= 5 ? 1 : 0;
+  document.getElementById('fam1').style.opacity = b >= 5 ? 1 : 0;
+  document.getElementById('fam2').style.opacity = b >= 5 ? 1 : 0;
+  document.getElementById('extra').style.opacity = b >= 6 ? 1 : 0;
+  const cue = CUES.find(([lo, hi]) => b >= lo && b <= hi);
+  const cueEl = document.getElementById('cue'); cueEl.textContent = cue ? cue[2] : ''; cueEl.style.opacity = cue ? 1 : 0;
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join('');
+}
+window.metricsBeyond = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0); },
+  resetToEnd(){ go(NB); },
+  getBeat: () => beat,
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) metricsBeyond.advance(); if(e.key === 'ArrowLeft') metricsBeyond.back(); });
+  addEventListener('click', () => metricsBeyond.advance());
+}
+go(0);
+</script>
+</body>
+</html>

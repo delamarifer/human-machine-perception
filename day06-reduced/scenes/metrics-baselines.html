@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Baselines</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Day 6 reduced, part metrics. p42. Reuses the p40 emails and the p41 points from assets/metrics/metrics-kit.js. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .metrics-box{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .cite{ font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Baselines</h1>
+  <div class="metrics-box"><canvas id="cv"></canvas></div>
+  <div class="cite" id="cite" style="opacity:0">Example: the same 40 simulated emails and 8 simulated points as the two slides before; accuracies computed at threshold 0.5</div>
+</div>
+<div class="dots" id="dots"></div>
+<script src="../assets/metrics/metrics-kit.js"></script>
+<script>
+/* BEAT 0 title only
+   1  majority class: always predict "not spam" (the p40 matrix)
+   2  the mean: predict the average (the p41 plot and the mean line)
+   3  logistic regression: on one simple feature, fitted in the kit
+   4  fancy model: the p40 scores; one more email right than logistic regression */
+const E = MK.emailData(), RD = MK.regData(), {INK, MID, SOFT, txt, dot, lerp, ease, clamp01} = MK;
+const f2 = n => n.toFixed(2);
+/* always-majority: every email predicted not spam */
+const majC = {TP: 0, FP: 0, FN: E.P, TN: E.N};
+const majAcc = E.N/40;
+const logC = E.counts(.5, E.logScore), logAcc = (logC.TP + logC.TN)/40;
+const fancy = E.counts(.5), fancyAcc = (fancy.TP + fancy.TN)/40;
+
+MK.scene('metricsBaselines', 4, ({ctx: c, W, H, beat, p, raw, A}) => {
+  if(beat === 0) return;
+  const fs = Math.max(15, W*.0165), sfs = Math.max(13.5, W*.0138);
+  const head = (t, x, a) => txt(c, t, x, H*.03, fs*1.2, true, 'center', 'middle', a);
+
+  /* column 1: majority class. Same matrix as p40, every email in the left column. */
+  const a1 = A(1);
+  head('majority class', W*.195, a1);
+  const g = MK.matrixGeom(W*.10, H*.195, W*.29, H*.62);
+  c.save(); c.globalAlpha = a1;
+  MK.drawMatrix(c, g, sfs, {shade: n => ({TN: 2, FN: 1, TP: 1, FP: 1})[n], showNames: true, short: true});
+  MK.matrixHeads(c, g, sfs, 1);
+  c.restore();
+  for(const r0 of [0, 1]) for(const k of [0, 1]){ const rc = g.cell(r0, k), n = majC[rc.name];
+    txt(c, String(n), rc.x + rc.w - 8, rc.y + 16, sfs*1.15, true, 'right', 'middle', a1); }
+  /* dots land in the left column */
+  const dr = Math.max(6, W*.0058), notSlots = MK.slots(g.cell(0, 0), E.N, dr, 30), spamSlots = MK.slots(g.cell(1, 0), E.P, dr, 30);
+  const emN = E.em.filter(e => !e.spam), emS = E.em.filter(e => e.spam);
+  [...emN.map((e, i) => [e, notSlots[i]]), ...emS.map((e, i) => [e, spamSlots[i]])].forEach(([e, s], idx) => {
+    const q = beat === 1 ? ease(clamp01(raw*1.3 - idx/40*.3)) : 1;
+    dot(c, lerp(s.x, g.x + g.cw*.5, 0)*q + lerp(g.x + g.w*.5, s.x, 0)*(1 - q), lerp(H*.08, s.y, q), dr, e.spam, a1); });
+  txt(c, `accuracy ${E.N}/40 = ${f2(majAcc)}`, g.x + g.w/2, H*.93, fs*1.15, true, 'center', 'middle', a1);
+
+  /* column 2: the mean (the p41 plot) */
+  const a2 = A(2);
+  if(a2 > 0){
+    head('the mean', W*.565, a2);
+    const rg = MK.regGeom(W*.405, H*.125, W*.325, H*.62, 16, 14), {X, Y} = rg;
+    MK.regAxes(c, rg, sfs, a2);
+    c.save(); c.globalAlpha = a2*.8; MK.line(c, X(0), Y(RD.f(0)), X(16), Y(RD.f(16)), MID, 2); c.restore();
+    c.save(); c.globalAlpha = a2; MK.line(c, X(0), Y(RD.my), X(16), Y(RD.my), INK, 2.8, [10, 6]); c.restore();
+    txt(c, 'the mean', X(16), Y(RD.my) + sfs*1.0, sfs, true, 'right', 'middle', a2);
+    RD.pts.forEach(pt => { c.save(); c.globalAlpha = a2; MK.line(c, X(pt.x), Y(pt.y), X(pt.x), Y(RD.my), INK, 1.4, [3, 3]); c.restore(); dot(c, X(pt.x), Y(pt.y), 6.5, true, a2); });
+    txt(c, `MSE: the mean ${f2(RD.mseMean)} · the line ${f2(RD.clean.mse)}`, rg.x0 + (rg.x1 - rg.x0)/2, H*.93, fs*1.05, true, 'center', 'middle', a2);
+  }
+
+  /* column 3: accuracy bars; the fancy model barely beats logistic regression */
+  const a3 = A(3);
+  if(a3 > 0){
+    head('logistic regression', W*.86, a3);
+    const bars = [['majority class', majAcc, 3], ['logistic regression', logAcc, 3], ['fancy model', fancyAcc, 4]];
+    const bx = W*.755, bw = W*.066, gap = W*.016, by1 = H*.80, bH = H*.62;
+    bars.forEach(([nm, v, b], i) => { const a = b === 3 ? a3 : A(4); if(a <= 0) return; const x = bx + i*(bw + gap);
+      const hh = bH*v*(b === 3 ? p : (beat === 4 ? p : 1)); const h = b === 3 ? bH*v*(beat === 3 ? p : 1) : hh;
+      c.save(); c.globalAlpha = a; c.fillStyle = nm === 'fancy model' ? INK : MID; c.fillRect(x, by1 - h, bw, h); c.restore();
+      txt(c, f2(v), x + bw/2, by1 - h - 12, fs*.96, true, 'center', 'middle', a);
+      const lines = nm.split(' '); lines.forEach((ln, j) => txt(c, ln, x + bw/2, by1 + 14 + j*(sfs*1.15), sfs, false, 'center', 'middle', a)); });
+    c.save(); c.globalAlpha = a3; MK.line(c, bx - 6, by1, bx + 3*bw + 2*gap + 6, by1, MID, 1.5); c.restore();
+    if(beat === 4){ const lx = bx + 2*(bw + gap) + bw/2, ly1 = H*.80 - bH*fancyAcc, ly0 = H*.80 - bH*logAcc;
+      const yTop = ly1 - fs*2.4;
+      txt(c, '+1 email of 40', lx - bw*.2, yTop, fs*1.08, true, 'center', 'middle', p); }
+  }
+}, {});
+</script>
+</body>
+</html>

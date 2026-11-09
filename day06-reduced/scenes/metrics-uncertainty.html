@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Uncertainty and comparing models</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Day 6 reduced, part metrics. p43. Fold data in assets/metrics/metrics-kit.js (foldData, seed 32). Filled = model A, open = model B. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .metrics-box{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .cite{ font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Uncertainty and comparing models</h1>
+  <div class="metrics-box"><canvas id="cv"></canvas></div>
+  <div class="cite" id="cite" style="opacity:0">Example: two models, 10 simulated folds (same splits, same data on every click); SD, SE and 95% CI (t, 9 df) computed</div>
+</div>
+<div class="dots" id="dots"></div>
+<script src="../assets/metrics/metrics-kit.js"></script>
+<script>
+/* BEAT 0 title only
+   1  a single number per model
+   2  the per-fold scores behind it
+   3  standard deviation bars
+   4  standard error bars
+   5  95% confidence interval bars
+   6  the same folds connected: A and B on each split
+   7  paired differences A - B, their mean and CI: includes 0 */
+const D = MK.foldData(), {INK, MID, SOFT, txt, dot, mean} = MK;
+const f1 = n => n.toFixed(1), f2 = n => n.toFixed(2);
+const sgn = n => (n >= 0 ? '+' : '−') + f2(Math.abs(n));
+const all = [...D.A, ...D.B], yMin = Math.floor(Math.min(...all)) - 1, yMax = Math.ceil(Math.max(...all)) + 1;
+
+MK.scene('metricsUncertainty', 7, ({ctx: c, W, H, beat, p, A}) => {
+  if(beat === 0) return;
+  const fs = Math.max(15, W*.0165);
+  const x0 = W*.06, x1 = W*.715, y0 = H*.05, y1 = H*.79;
+  const Y = v => y1 - (v - yMin)/(yMax - yMin)*(y1 - y0);
+
+  /* axis */
+  c.save(); c.globalAlpha = A(1);
+  MK.line(c, x0, y0, x0, y1, MID, 1.5); MK.line(c, x0, y1, x1, y1, MID, 1.5);
+  for(let v = yMin; v <= yMax; v += 2){ MK.line(c, x0 - 5, Y(v), x0, Y(v), MID, 1.5); txt(c, String(v), x0 - 9, Y(v), fs*.9, false, 'right'); }
+  txt(c, 'accuracy (%)', x0, y0 - 8, fs*.95, true, 'left', 'bottom');
+  /* model key */
+  dot(c, x1 - 230, y0 + 6, 7, true); txt(c, 'model A', x1 - 218, y0 + 6, fs, false, 'left');
+  dot(c, x1 - 110, y0 + 6, 7, false); txt(c, 'model B', x1 - 98, y0 + 6, fs, false, 'left');
+  c.restore();
+
+  /* groups */
+  const gx = i => x0 + (x1 - x0)*[.14, .42, .64, .86][i];
+  const dx0 = W*.045, dxG = W*.03;
+  const gLabel = (i, a, l1, l2, l3) => { if(a <= 0) return; const x = gx(i);
+    txt(c, l1, x, y1 + fs*.95, fs*1.02, true, 'center', 'middle', a);
+    if(l2) txt(c, l2, x, y1 + fs*2.1, fs*.93, false, 'center', 'middle', a);
+    if(l3) txt(c, l3, x, y1 + fs*3.2, fs*.86, false, 'center', 'middle', a); };
+
+  /* group 0: means, then raw folds */
+  const xA0 = gx(0) - dx0, xB0 = gx(0) + dx0;
+  const fx = (i, sideX) => sideX + ((i % 3) - 1)*6;
+  if(beat >= 6){ const q = beat === 6 ? p : 1; D.A.forEach((a, i) => { MK.line(c, fx(i, xA0), Y(a), fx(i, xA0) + (fx(i, xB0) - fx(i, xA0))*q, Y(a) + (Y(D.B[i]) - Y(a))*q, MID, 1.5); }); }
+  if(beat >= 2){ const a = beat === 2 ? p : 1; D.A.forEach((v, i) => dot(c, fx(i, xA0), Y(v), 5.5, true, a*.9)); D.B.forEach((v, i) => dot(c, fx(i, xB0), Y(v), 5.5, false, a*.9)); }
+  /* the single numbers: big marks */
+  dot(c, xA0, Y(D.a.m), 10, true, A(1)); dot(c, xB0, Y(D.b.m), 10, false, A(1));
+  txt(c, f1(D.a.m), xA0 - 16, Y(D.a.m), fs*1.08, true, 'right', 'middle', A(1));
+  txt(c, f1(D.b.m), xB0 + 16, Y(D.b.m), fs*1.08, true, 'left', 'middle', A(1));
+  gLabel(0, A(1), beat >= 2 ? '10 folds' : 'one number', '', '');
+
+  /* error-bar groups: same data, three ways */
+  const bar = (i, half, a) => { if(a <= 0) return; const x = gx(i), xa = x - dxG, xb = x + dxG, ya = Y(D.a.m), yb = Y(D.b.m);
+    c.save(); c.globalAlpha = a;
+    for(const [xx, yy, h] of [[xa, ya, half.a], [xb, yb, half.b]]){ MK.line(c, xx, Y(yy === ya ? D.a.m + h : D.b.m + h), xx, Y(yy === ya ? D.a.m - h : D.b.m - h), INK, 2.5); const yt = Y(yy === ya ? D.a.m + h : D.b.m + h), yb2 = Y(yy === ya ? D.a.m - h : D.b.m - h); MK.line(c, xx - 8, yt, xx + 8, yt, INK, 2.5); MK.line(c, xx - 8, yb2, xx + 8, yb2, INK, 2.5); }
+    c.restore();
+    dot(c, xa, ya, 8.5, true, a); dot(c, xb, yb, 8.5, false, a); };
+  const grp = (i, b, label, sub, half) => { const a = A(b); bar(i, half, a); gLabel(i, a, label, sub, `A ±${f2(half.a)} · B ±${f2(half.b)}`); };
+  grp(1, 3, 'standard deviation', 'spread of the folds', {a: D.a.s, b: D.b.s});
+  grp(2, 4, 'standard error', 'SD ÷ √10', {a: D.a.se, b: D.b.se});
+  grp(3, 5, '95% CI', `± ${D.t.toFixed(2)} × SE`, {a: D.a.ci, b: D.b.ci});
+
+  /* paired differences */
+  if(beat >= 7){ const a = p;
+    const px0 = W*.77, px1 = W*.985, py0 = H*.05, py1 = y1;
+    const d = D.d, h = Math.max(...d.map(Math.abs), D.diff.ci + Math.abs(D.diff.m)) + .4;
+    const Yd = v => py1 - (v + h)/(2*h)*(py1 - py0);
+    c.save(); c.globalAlpha = a;
+    txt(c, 'A − B, same split', (px0 + px1)/2, py0 - 8, fs, true, 'center', 'bottom');
+    MK.line(c, px0, Yd(0), px1, Yd(0), INK, 2.2, [9, 5]);
+    txt(c, '0', px0 - 8, Yd(0), fs*.9, false, 'right');
+    d.forEach((v, i) => dot(c, px0 + (i + .7)*(px1 - px0 - W*.05)/10, Yd(v), 5.5, true));
+    const mx = px1 - W*.02, m = D.diff.m, ci = D.diff.ci;
+    MK.line(c, mx, Yd(m + ci), mx, Yd(m - ci), INK, 3); MK.line(c, mx - 9, Yd(m + ci), mx + 9, Yd(m + ci), INK, 3); MK.line(c, mx - 9, Yd(m - ci), mx + 9, Yd(m - ci), INK, 3);
+    dot(c, mx, Yd(m), 9, true);
+    c.restore();
+    const cx = (px0 + px1)/2;
+    txt(c, `mean ${sgn(m)}`, cx, y1 + fs*.95, fs*1.02, true, 'center', 'middle', a);
+    txt(c, `95% CI ${sgn(m - ci)} to ${sgn(m + ci)}`, cx, y1 + fs*2.1, fs*.93, false, 'center', 'middle', a);
+    txt(c, 'includes 0', cx, y1 + fs*3.2, fs*.93, true, 'center', 'middle', a);
+  }
+}, {});
+</script>
+</body>
+</html>

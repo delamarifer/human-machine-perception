@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Metrics for classification</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Day 6 reduced, part metrics. p40. Toy data and the matrix drawing live in assets/metrics/metrics-kit.js. Filled dot = spam, open dot = not spam. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .metrics-box{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .cite{ font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); }
+  .cite a{ color:var(--mute); }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Metrics for classification</h1>
+  <div class="metrics-box"><canvas id="cv"></canvas></div>
+  <div class="cite" id="cite" style="opacity:0">Example: 40 simulated emails, counts computed · rare case: not-spam counted 10× · logic after <a href="https://www.mit.edu/~edchen93/posts/precision-recall-f1-confusion-matrix-classification-metrics/" target="_blank" rel="noopener" onclick="event.stopPropagation()">M.-C. E. Chen, Guide to Confusion Matrix</a></div>
+</div>
+<div class="dots" id="dots"></div>
+<script src="../assets/metrics/metrics-kit.js"></script>
+<script>
+/* BEAT 0 title only
+   1  40 emails lined up by spam score, threshold 0.5
+   2  they fall into the four cells (rows actual, columns predicted)
+   3  accuracy: the diagonal over everything
+   4  99% not spam: always predicting "not spam" gets 99%
+   5  precision: the predicted-spam column
+   6  recall: the actual-spam row
+   7  F1: harmonic mean, bars
+   8  precision 1.00, recall 0.01 (the Chen post's worked example): the mean stays high, F1 collapses
+   9  emails back on the score axis; this threshold is one point on the ROC curve
+   10 sweep the threshold 1 to 0: the ROC curve, ROC-AUC
+   11 sweep again: the PR curve, PR-AUC
+   12 same model, 10x more not spam: ROC identical, PR falls
+   Back jumps; forward clicks tween. Nothing advances by itself. */
+const D = MK.emailData(), {INK, MID, SOFT, txt, dot, frac, lerp, ease, clamp01} = MK;
+const T0 = .5, C0 = D.counts(T0);
+const acc = (C0.TP + C0.TN)/40, prec = C0.TP/(C0.TP + C0.FP), rec = C0.TP/(C0.TP + C0.FN), f1 = 2*prec*rec/(prec + rec);
+const f2 = n => n.toFixed(2);
+const P9 = 1, R9 = .01, F9 = 2*P9*R9/(P9 + R9), MEAN9 = (P9 + R9)/2;   /* Chen's worked example */
+const RATE = C0.TP/(C0.TP + C0.FN), FPR0 = C0.FP/(C0.FP + C0.TN);
+
+/* the 100-email set of beat 4: 1 spam, 99 not spam; the rule "always not spam" */
+const E100 = [...Array(100)].map((_, i) => ({i, spam: i === 0}));
+
+MK.scene('metricsClassification', 12, ({ctx: c, W, H, beat, p, raw, A}) => {
+  if(beat === 0) return;
+  const fs = Math.max(15, W*.0165);
+  /* left block: score strip above, matrix below, columns line up with the score axis */
+  const mx0 = W*.105, mxw = W*.44, mT = H*.325, mB = H*.985;
+  const g = MK.matrixGeom(mx0, mT, mxw, mB - mT);
+  const stripBase = H*.17, stripX = s => mx0 + s*mxw;
+  const em = D.em;
+
+  /* strip positions: stack by column of width 2r + 3 */
+  const r = Math.max(6, W*.0062), r100 = Math.max(4.5, W*.0048);
+  const bins = {}, stripPos = em.map(e => ({x: 0, y: 0}));
+  [...em].sort((a, b) => a.score - b.score).forEach(e => { const k = Math.round(stripX(e.score)/(2*r + 3)); bins[k] = (bins[k] || 0); stripPos[e.i] = {x: k*(2*r + 3), y: stripBase - r - 3 - bins[k]*(2*r + 2)}; bins[k]++; });
+
+  /* cell positions at the working threshold */
+  const inCell = (r0, k) => em.filter(e => (e.spam ? 1 : 0) === r0 && (e.score >= T0 ? 1 : 0) === k);
+  const cellPos = em.map(() => ({x: 0, y: 0}));
+  for(const r0 of [0, 1]) for(const k of [0, 1]){ const list = inCell(r0, k), s = MK.slots(g.cell(r0, k), list.length, Math.max(7, W*.0078), 32); list.forEach((e, n) => cellPos[e.i] = s[n]); }
+
+  /* axis and threshold (hidden on beat 4, when the rule is "always not spam") */
+  const stripA = beat === 4 ? 1 - p : (beat === 5 ? p : (beat < 4 ? A(1) : 1));
+  const tNow = beat <= 9 ? T0 : beat === 10 || beat === 11 ? lerp(1.0, 0, raw) : 0;
+  if(stripA > 0 && !(beat === 4 && p === 1)){
+    c.save(); c.globalAlpha = stripA;
+    MK.line(c, mx0, stripBase, mx0 + mxw, stripBase, MID, 1.5);
+    txt(c, '0', mx0, stripBase + 13, fs*.85); txt(c, '1', mx0 + mxw, stripBase + 13, fs*.85); txt(c, 'spam score', mx0 - 12, stripBase - 2, fs*.9, true, 'right', 'middle');
+    const tx = stripX(tNow);
+    MK.line(c, tx, H*.005, tx, stripBase + 5, INK, 2.5, [7, 4]);
+    txt(c, 'threshold ' + f2(tNow), Math.min(Math.max(tx, mx0 + 70), mx0 + mxw - 70), stripBase + 13, fs*.95, true, 'center', 'middle');
+    c.restore();
+  }
+
+  /* matrix */
+  const hlSets = {3: {TP: 2, TN: 2, FP: 1, FN: 1}, 4: {TN: 2, FN: 1, TP: 1, FP: 1}, 5: {TP: 2, FP: 1}, 6: {TP: 2, FN: 1}, 7: {TP: 2, FP: 1, FN: 1}, 8: {TP: 2, FP: 1, FN: 1}};
+  const prevHl = hlSets[beat - 1] || {};
+  const hl = hlSets[beat] || {};
+  const matrixA = A(1);
+  c.save(); c.globalAlpha = matrixA;
+  MK.drawMatrix(c, g, fs, {shade: n => {
+    const lv = hl[n] || 0, pv = prevHl[n] || 0;
+    if(beat === 2) return 0;
+    if(lv === pv) return lv;
+    /* crossfade one level to the other by drawing the new level when past halfway */
+    return p > .5 ? lv : pv; }, showNames: beat >= 2, a: 1});
+  MK.matrixHeads(c, g, fs, 1);
+  c.restore();
+
+  /* counts in each cell */
+  const curCounts = beat === 4 ? {TP: 0, FP: 0, FN: 1, TN: 99} : beat <= 9 ? C0 : D.counts(tNow);
+  if(beat >= 2){ for(const r0 of [0, 1]) for(const k of [0, 1]){ const rc = g.cell(r0, k), n = curCounts[rc.name];
+      const big = beat >= 9;
+      if(!big){ txt(c, String(n), rc.x + rc.w - 8, rc.y + 16, fs*1.15, true, 'right', 'middle', A(2)); }
+      else { txt(c, String(n), rc.x + rc.w/2, rc.y + rc.h/2 + 8, fs*2.1, true, 'center', 'middle'); } } }
+
+  /* the 40 emails: on the strip (beat 1), fall (2), gone during beat 4, back at the cells 5-8, rise (9) */
+  if(beat >= 1 && !(beat === 4 && p === 1)){
+    const sa = beat === 4 ? 1 - p : (beat === 5 ? p : 1);
+    em.forEach(e => {
+      const si = stripPos[e.i], ce = cellPos[e.i]; let x, y;
+      if(beat === 1){ x = si.x; y = si.y; c.globalAlpha = 1; dot(c, x, y, r, e.spam, A(1)); return; }
+      if(beat === 2){ const q = ease(clamp01((raw*1.3 - e.i/em.length*.3))); x = lerp(si.x, ce.x, q); y = lerp(si.y, ce.y, q); }
+      else if(beat === 9){ x = lerp(ce.x, si.x, p); y = lerp(ce.y, si.y, p); }
+      else if(beat > 9){ x = si.x; y = si.y; }
+      else { x = ce.x; y = ce.y; }
+      const beyond = beat >= 10 ? (e.score >= tNow ? 1 : .32) : 1;
+      dot(c, x, y, r, e.spam, sa*beyond);
+    });
+  }
+
+  /* beat 4: 100 emails, 1 spam */
+  if(beat === 4){
+    const g100 = [...Array(100)].map((_, i) => ({x: mx0 + (i % 34)*(mxw/33.5), y: H*.03 + Math.floor(i/34)*H*.05}));
+    const notSpam = MK.slots(g.cell(0, 0), 99, r100, 32), spamS = MK.slots(g.cell(1, 0), 1, r100*1.5, 32);
+    E100.forEach(e => { const q = ease(clamp01((raw*1.3 - e.i/100*.3)));
+      const t = e.spam ? spamS[0] : notSpam[e.i - 1];
+      dot(c, lerp(g100[e.i].x, t.x, q), lerp(g100[e.i].y, t.y, q), e.spam ? r100*1.5 : r100, e.spam, Math.min(1, p*3)); });
+    txt(c, 'always predict: not spam', mx0 + mxw/2, H*.17, fs*1.25, true, 'center', 'middle', p);
+  }
+
+  /* metric rows */
+  const px0 = W*.585, rowY = i => H*.05 + i*H*.155, rowsA = beat >= 9 ? (beat === 9 ? 1 - p : 0) : 1;
+  const row = (i, name, sub, top, bot, nTop, nBot, val, alpha) => { if(alpha <= 0) return; const a = alpha*rowsA; const y = rowY(i) + H*.06;
+    txt(c, name, px0, y - (sub ? fs*.5 : 0), fs*1.22, true, 'left', 'middle', a);
+    if(sub) txt(c, sub, px0, y + fs*.7, fs*.88, false, 'left', 'middle', a);
+    c.font = `400 ${fs}px ${MK.FONT}`;
+    c.globalAlpha = a; frac(c, top, bot, px0 + W*.175, y, fs); c.globalAlpha = 1;
+    if(nTop != null){ txt(c, '=', px0 + W*.245, y, fs, false, 'center', 'middle', a); c.globalAlpha = a; frac(c, nTop, nBot, px0 + W*.285, y, fs); c.globalAlpha = 1; }
+    if(val) txt(c, '= ' + val, px0 + W*.325, y, fs*1.18, true, 'left', 'middle', a); };
+  const act = b => beat === b ? 1 : .55;
+
+  if(beat >= 3 && rowsA > 0){
+    if(beat === 4) row(0, 'Accuracy', '', 'TP + TN', 'all', '99', '100', '0.99', 1);
+    else row(0, 'Accuracy', '', 'TP + TN', 'all', String(C0.TP + C0.TN), '40', f2(acc), (beat === 3 ? p : 1)*act(3));
+    if(beat === 4) txt(c, 'spam caught: 0 of 1', px0, rowY(1) + H*.06, fs*1.15, true, 'left', 'middle', p);
+    row(1, 'Precision', '', 'TP', 'TP + FP', String(C0.TP), String(C0.TP + C0.FP), f2(prec), (beat === 5 ? p : beat > 5 ? 1 : 0)*act(5));
+    row(2, 'Recall', '', 'TP', 'TP + FN', String(C0.TP), String(C0.TP + C0.FN), f2(rec), (beat === 6 ? p : beat > 6 ? 1 : 0)*act(6));
+    row(3, 'F1', 'harmonic mean', '2 · P · R', 'P + R', null, null, f2(f1), (beat === 7 ? p : beat > 7 ? 1 : 0)*(beat === 7 || beat === 8 ? 1 : .55));
+  }
+
+  /* F1 vs plain average: bars, tween to P = 1.00, R = 0.01 on beat 8 */
+  if(beat >= 7 && rowsA > 0){
+    const tg = beat === 7 ? 0 : beat === 8 ? p : 1;
+    const pv = lerp(prec, P9, tg), rv = lerp(rec, R9, tg);
+    const fv = 2*pv*rv/(pv + rv), av = (pv + rv)/2;
+    const bx = px0 + W*.135, by = H*.70, bh = H*.05, gap = H*.075, bw = W*.22, ba = (beat === 7 ? p : 1)*rowsA;
+    [['precision', pv, 0], ['recall', rv, 0], ['average', av, 0], ['F1', fv, 1]].forEach(([nm, v, bold], i) => {
+      const y = by + i*gap;
+      txt(c, nm, bx - 12, y + bh/2, fs*(bold ? 1.05 : .98), !!bold, 'right', 'middle', ba);
+      c.save(); c.globalAlpha = ba; c.fillStyle = bold ? INK : MID; c.fillRect(bx, y, bw*v, bh); c.restore();
+      txt(c, f2(v), bx + bw*v + 8, y + bh/2, fs, !!bold, 'left', 'middle', ba); });
+  }
+
+  /* ROC and PR */
+  if(beat >= 9){
+    const plotY0 = H*.12, plotY1 = H*.79;
+    const rx0 = W*.60, rx1 = W*.775, prx0 = W*.815, prx1 = W*.99;
+    const axA = beat === 9 ? p : 1;
+    const axes = (x0, x1, xl, yl, a) => { c.save(); c.globalAlpha = a; MK.line(c, x0, plotY0, x0, plotY1, MID, 1.5); MK.line(c, x0, plotY1, x1, plotY1, MID, 1.5);
+      txt(c, xl, (x0 + x1)/2, plotY1 + fs*1.2, fs*.82, false, 'center', 'top'); c.restore();
+      c.save(); c.translate(x0 - fs*.95, (plotY0 + plotY1)/2); c.rotate(-Math.PI/2); c.globalAlpha = a; txt(c, yl, 0, 0, fs*.82); c.restore(); };
+    const X = (x0, x1, v) => x0 + v*(x1 - x0), Y = v => plotY1 - v*(plotY1 - plotY0);
+    axes(rx0, rx1, 'false positive rate', 'true positive rate (recall)', axA);
+    c.save(); c.globalAlpha = axA; MK.line(c, X(rx0, rx1, 0), Y(0), X(rx0, rx1, 1), Y(1), MID, 1.5, [6, 5]); c.restore();
+    /* how much of the curve is drawn */
+    const rocUpto = beat === 9 ? -1 : beat === 10 ? tNow : 0;
+    const rocPts = D.base.roc.filter(q => q[2] >= rocUpto);
+    const area = (list, x0, x1, a) => { if(a <= 0 || !list.length) return; c.save(); c.globalAlpha = a; c.fillStyle = SOFT; c.beginPath(); c.moveTo(X(x0, x1, list[0][0]), Y(0)); list.forEach(q => c.lineTo(X(x0, x1, q[0]), Y(q[1]))); c.lineTo(X(x0, x1, list[list.length - 1][0]), Y(0)); c.fill(); c.restore(); };
+
+    if(beat === 9){ const fp = C0.FP/(C0.FP + C0.TN), tp = C0.TP/(C0.TP + C0.FN);
+      dot(c, X(rx0, rx1, fp), Y(tp), 8, true, p); txt(c, `threshold ${f2(T0)}: FPR ${f2(fp)}, TPR ${f2(tp)}`, (rx0 + rx1)/2, plotY0 - fs*.1, fs*.88, false, 'center', 'bottom', p); }
+    if(beat >= 10){
+      if(beat === 10) area(rocPts, rx0, rx1, raw);
+      else area(D.base.roc, rx0, rx1, 1);
+      MK.poly(c, rocPts.map(q => [X(rx0, rx1, q[0]), Y(q[1])]), INK, 3);
+      if(beat === 10){ const last = rocPts[rocPts.length - 1]; dot(c, X(rx0, rx1, last[0]), Y(last[1]), 8, true); }
+      const lab = beat === 10 && raw < 1 ? 'ROC' : `ROC-AUC ${f2(D.base.rocAuc)}`;
+      txt(c, lab, (rx0 + rx1)/2, plotY0 - fs*.9, fs*1.15, true, 'center', 'middle');
+    }
+    if(beat >= 11){
+      axes(prx0, prx1, 'recall', 'precision', beat === 11 ? Math.min(1, raw*3) : 1);
+      const prUpto = beat === 11 ? tNow : -1;
+      const prPts = D.base.pr.filter(q => q[2] >= prUpto);
+      if(beat === 11){ area(prPts.map(q => [q[0], q[1]]), prx0, prx1, raw); }
+      else area(D.base.pr.map(q => [q[0], q[1]]), prx0, prx1, 1);
+      MK.poly(c, prPts.map(q => [X(prx0, prx1, q[0]), Y(q[1])]), INK, 3);
+      if(beat === 11 && prPts.length){ const last = prPts[prPts.length - 1]; dot(c, X(prx0, prx1, last[0]), Y(last[1]), 8, true); }
+      const lab = beat === 11 && raw < 1 ? 'PR' : `PR-AUC ${f2(D.base.prAuc)}`;
+      txt(c, lab, (prx0 + prx1)/2, plotY0 - fs*.9, fs*1.15, true, 'center', 'middle');
+      if(beat >= 12){
+        MK.poly(c, D.rare.roc.map(q => [X(rx0, rx1, q[0]), Y(q[1])]), INK, 3.2, [9, 6]);
+        MK.poly(c, D.rare.pr.map(q => [X(prx0, prx1, q[0]), Y(q[1])]), INK, 3.2, [9, 6]);
+        txt(c, `ROC-AUC ${f2(D.rare.rocAuc)}`, (rx0 + rx1)/2, plotY1 + fs*2.9, fs*1.05, true, 'center', 'middle', p);
+        txt(c, `PR-AUC ${f2(D.rare.prAuc)}`, (prx0 + prx1)/2, plotY1 + fs*2.9, fs*1.05, true, 'center', 'middle', p);
+        /* key */
+        const keyX = (rx0 + prx1)/2, keyY = plotY1 + fs*4.4;
+        c.save(); c.globalAlpha = p; MK.line(c, keyX - 110, keyY, keyX - 70, keyY, INK, 3.2, [9, 6]); c.restore();
+        txt(c, '10× more not spam', keyX - 60, keyY, fs*.95, false, 'left', 'middle', p);
+      }
+    }
+  }
+}, { dur: b => (b === 10 || b === 11) ? 1600 : 950 });
+</script>
+</body>
+</html>

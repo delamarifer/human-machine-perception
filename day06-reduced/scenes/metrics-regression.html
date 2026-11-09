@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Metrics for regression</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Day 6 reduced, part metrics. p41. Data and geometry in assets/metrics/metrics-kit.js. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .metrics-box{ position:relative; flex:1 1 auto; min-height:0; }
+  canvas{ position:absolute; inset:0; width:100%; height:100%; }
+  .cite{ font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Metrics for regression</h1>
+  <div class="metrics-box"><canvas id="cv"></canvas></div>
+  <div class="cite" id="cite" style="opacity:0">Example: 8 simulated points, y = 2 + 0.5x + noise, least-squares line; outlier 4.5 above the line; all values computed</div>
+</div>
+<div class="dots" id="dots"></div>
+<script src="../assets/metrics/metrics-kit.js"></script>
+<script>
+/* BEAT 0 title only
+   1  points, the fitted line, residuals
+   2  residuals become squares: MSE
+   3  RMSE: the side of the average square
+   4  squares give way to absolute bars: MAE
+   5  an outlier appears: MSE and RMSE jump, MAE moves little
+   6  outlier gone: the mean line and its squares
+   7  the model's squares beside the mean's: R² */
+const D = MK.regData(), {INK, MID, SOFT, txt, dot, lerp} = MK;
+const f2 = n => n.toFixed(2), f3 = n => n.toFixed(2);
+const pts = D.pts, O = D.out;
+
+MK.scene('metricsRegression', 7, ({ctx: c, W, H, beat, p, A}) => {
+  if(beat === 0) return;
+  const fs = Math.max(15, W*.0165);
+  const g = MK.regGeom(W*.03, H*.03, W*.57, H*.90), {X, Y, u} = g;
+
+  /* line and points */
+  MK.regAxes(c, g, fs, A(1));
+  c.save(); c.globalAlpha = A(1); MK.line(c, X(0), Y(D.f(0)), X(16), Y(D.f(16)), INK, 2.5); c.restore();
+
+  /* residuals */
+  const lineShow = beat <= 5;
+  const r = D.clean.r;
+  pts.forEach((pt, i) => {
+    const px = X(pt.x), py = Y(pt.y), fy = Y(D.f(pt.x)), side = Math.abs(r[i])*u;
+    /* the square sits left of the residual, between the point and the line */
+    if(beat >= 2 && beat <= 5){ const sqA = beat === 2 ? p : beat === 3 ? 1 : beat === 4 ? 1 - p : .8;
+      const q = beat === 2 ? p : 1; const s = side*q;
+      if(sqA > 0){ c.save(); c.globalAlpha = sqA*.9; c.fillStyle = MID; c.fillRect(px - s, Math.min(py, fy), s, Math.abs(py - fy)*(beat === 2 ? q : 1)); c.restore(); } }
+    if(lineShow){ c.save(); c.globalAlpha = A(1); MK.line(c, px, py, px, fy, INK, 2, [4, 3]); c.restore(); }
+    if(beat === 4 || beat === 5){ /* absolute bars: same length as the residual, drawn as a thick bar at the point */
+      const a = beat === 4 ? p : 1; c.save(); c.globalAlpha = a; c.fillStyle = INK; c.fillRect(px - 3.5, Math.min(py, fy), 7, Math.abs(py - fy)); c.restore(); }
+  });
+
+  /* outlier */
+  if(beat === 5){
+    const px = X(O.x), py = Y(O.y), fy = Y(D.f(O.x)), side = (O.y - D.f(O.x))*u;
+    c.save(); c.globalAlpha = .55*p; c.fillStyle = MID; c.fillRect(px - side*p, py, side*p, fy - py); c.restore();
+    MK.line(c, px, py, px, fy, INK, 2, [4, 3]);
+    c.save(); c.globalAlpha = p; c.fillStyle = INK; c.fillRect(px - 3.5, py, 7, fy - py); c.restore();
+    dot(c, px, py, 9, true, p);
+    txt(c, 'outlier', px + 13, py, fs, true, 'left', 'middle', p);
+  }
+
+  /* mean line */
+  if(beat >= 6){
+    c.save(); c.globalAlpha = beat === 6 ? p : 1; MK.line(c, X(0), Y(D.my), X(16), Y(D.my), INK, 2.5, [10, 6]); c.restore();
+    txt(c, 'the mean', X(0) + 8, Y(D.my) - fs*.9, fs, true, 'left', 'middle', beat === 6 ? p : 1);
+    pts.forEach(pt => { const px = X(pt.x), py = Y(pt.y), my = Y(D.my), side = Math.abs(pt.y - D.my)*u;
+      const a = beat === 6 ? p : 1;
+      c.save(); c.globalAlpha = a*.4; c.fillStyle = MID; c.fillRect(pt.y > D.my ? px - side : px, Math.min(py, my), side, Math.abs(py - my)); c.restore();
+      c.save(); c.globalAlpha = a; MK.line(c, px, py, px, my, INK, 1.4, [3, 3]); c.restore(); });
+    if(beat === 7){
+      pts.forEach((pt, i) => { const px = X(pt.x), py = Y(pt.y), fy = Y(D.f(pt.x)), side = Math.abs(D.clean.r[i])*u;
+        c.save(); c.globalAlpha = p*.9; c.fillStyle = INK; c.fillRect(px - side, Math.min(py, fy), side, Math.abs(py - fy)); c.restore(); });
+      MK.line(c, X(0), Y(D.f(0)), X(16), Y(D.f(16)), INK, 2.5);
+    }
+  }
+
+  /* points on top */
+  pts.forEach(pt => dot(c, X(pt.x), Y(pt.y), 7.5, true, A(1)));
+
+  /* panel */
+  const px0 = W*.645, row = (i, nm, sub, val, a, extra) => { if(a <= 0) return; const y = H*.07 + i*H*.2;
+    txt(c, nm, px0, y, fs*1.3, true, 'left', 'middle', a);
+    if(sub) txt(c, sub, px0, y + fs*1.25, fs*.92, false, 'left', 'middle', a);
+    if(val) txt(c, val, px0 + W*.33, y, fs*1.3, true, 'right', 'middle', a);
+    if(extra) txt(c, extra, px0 + W*.33, y + fs*1.25, fs*.95, false, 'right', 'middle', a); };
+  const act = b => beat === b ? 1 : .55;
+  const {clean: C, withOut: Wo} = D;
+  const jump = (a, b) => `${f2(a)} → ${f2(b)}`, ratio = (a, b) => `×${(b/a).toFixed(1)}`;
+
+  if(beat >= 2){
+    if(beat === 5){ row(0, 'MSE', 'mean of squares', jump(C.mse, Wo.mse), p, ratio(C.mse, Wo.mse)); }
+    else row(0, 'MSE', 'mean of squares', f2(C.mse), (beat === 2 ? p : 1)*act(2), null);
+  }
+  if(beat >= 3){
+    if(beat === 5){ row(1, 'RMSE', '√MSE', jump(C.rmse, Wo.rmse), p, ratio(C.rmse, Wo.rmse)); }
+    else row(1, 'RMSE', '√MSE', f2(C.rmse), (beat === 3 ? p : 1)*act(3), null);
+  }
+  if(beat >= 4){
+    if(beat === 5){ row(2, 'MAE', 'mean of |residuals|', jump(C.mae, Wo.mae), p, ratio(C.mae, Wo.mae)); }
+    else row(2, 'MAE', 'mean of |residuals|', f2(C.mae), (beat === 4 ? p : 1)*act(4), null);
+  }
+  if(beat === 7){ const a = p; row(3, 'R²', '1 − model squares ÷ mean squares', f2(D.r2), a, null);
+    /* area bars, to scale */
+    const by = H*.82, bw = W*.33, bh = H*.05;
+    txt(c, 'mean squares', px0, by, fs, false, 'left', 'middle', a); c.save(); c.globalAlpha = a; c.fillStyle = MID; c.fillRect(px0 + W*.14, by - bh/2, bw*.55, bh); c.restore();
+    txt(c, 'model squares', px0, by + H*.09, fs, false, 'left', 'middle', a); c.save(); c.globalAlpha = a; c.fillStyle = INK; c.fillRect(px0 + W*.14, by + H*.09 - bh/2, bw*.55*D.ssr/D.sst, bh); c.restore();
+  }
+
+  /* RMSE as a square at true size */
+  if(beat >= 3 && beat <= 4){ const side = C.rmse*u, a = beat === 3 ? p : (beat === 4 ? 1 - p : 1);
+    c.save(); c.globalAlpha = a; c.fillStyle = MID; const sx = px0 + W*.17, sy = H*.27 + H*.01; c.fillRect(sx, sy, side, side); c.restore(); }
+}, {});
+</script>
+</body>
+</html>
