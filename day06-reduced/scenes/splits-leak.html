@@ -32,10 +32,10 @@
    2  normalizing on the full dataset before splitting: the mean is computed over test too
    3  duplicates across splits: two training points are copied into test
    4  features that encode the label: an extra row equal to the label
-   5  her sentence */
+   5  leaks removed, the score falls back: her "most common reason" claim as a cue */
 const P = SPLITS, {INK, MUTE, VAL, LEAK, txt, ease, lerp, FOLD} = P;
 const NB = 5;
-const D = P.makeData(1);                 /* same toy data and seed as the cross-validation scene */
+const D = P.makeData(98);                /* same toy data and seed as the cross-validation scene */
 const TESTF = 4, order = D.base, testIds = P.foldIds(order, TESTF), trainIds = order.filter(id => !testIds.includes(id));
 const CLEAN = P.foldScore(D, order, TESTF);
 
@@ -61,8 +61,8 @@ const LAY = [
   {rows: [{order, role: pos => Math.floor(pos/FOLD) === TESTF ? 'test' : 'train'}], marks: 'class'},
   {rows: [{order, role: pos => Math.floor(pos/FOLD) === TESTF ? 'test' : 'train'}], marks: null},
 ];
-const CUE = ['', 'information from the test data sneaks into training', 'normalizing on the full dataset before splitting', 'duplicates across splits', 'features that encode the label', ''];
-const SCORE = [null, CLEAN, CLEAN, DUP, FEAT, null];
+const CUE = ['', 'information from the test data sneaks into training', 'normalizing on the full dataset before splitting', 'duplicates across splits', 'features that encode the label', 'most common reason published results don\'t replicate'];
+const SCORE = [null, CLEAN, CLEAN, DUP, FEAT, CLEAN];
 
 const ctl = P.controller('splitsLeak', NB, b => { document.getElementById('cite').style.opacity = b ? 1 : 0; document.getElementById('cv').style.visibility = b ? 'visible' : 'hidden'; P.dots(NB, b); });
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
@@ -127,10 +127,6 @@ function frame(now){
       txt(ctx, '= label', xR, y + S.ch/2, fs, true);
       ctx.restore(); }
 
-    /* 5: her sentence */
-    const a5 = on(5);
-    if(a5 > 0){ ctx.save(); ctx.globalAlpha = a5; ctx.fillStyle = INK; ctx.font = `700 ${fs*1.55}px ${P.FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      P.wrap(ctx, "Leakage is the most common reason published results don't replicate", W*.5, H*.58, W*.8, fs*2.1); ctx.restore(); }
   }
   requestAnimationFrame(frame);
 }

@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="../../deck/deck.css">
 <style>
   /* Owner: splits part (Day 6 reduced). Google p39, empty on her slide. Filled from day06/parts/eval-data.js (ED_G):
-     day 900 images at 96%, night 100 images at 60%. Average and weights computed below. */
+     day 900 images at 96%, night 100 images at 60%. Average computed below. */
   html, body{ background:#fff; }
   .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
   .splits-box{ position:relative; flex:1 1 auto; min-height:0; }
@@ -22,7 +22,7 @@
 <div class="wrap">
   <h1 class="t deck-title">Averages of model performance can be misleading</h1>
   <div class="splits-box"><canvas id="cv"></canvas></div>
-  <div class="cite" id="cite" style="opacity:0">Counts and accuracies are an example; average and weights computed</div>
+  <div class="cite" id="cite" style="opacity:0">Counts and accuracies are an example; average computed</div>
 </div>
 <div class="dots" id="dots"></div>
 <script src="../assets/splits/folds.js"></script>
@@ -30,15 +30,12 @@
 /* BEATS
    1  two groups, each square one test image: filled right, open wrong
    2  the groups collapse into one pool: the average
-   3  back apart: the worst group
-   4  reweighting: each group counts the same */
+   3  back apart: the worst group */
 const P = SPLITS, {INK, MUTE, txt, ease, lerp} = P;
-const NB = 4;
+const NB = 3;
 const G = [{n: 'day', N: 900, acc: .96}, {n: 'night', N: 100, acc: .60}];       /* same inputs as day06/parts/eval-data.js */
 const TOT = G.reduce((s, g) => s + g.N, 0), AVG = G.reduce((s, g) => s + g.N*g.acc, 0)/TOT;
-const WT = g => TOT/(G.length*g.N);
 const pct = v => (Math.round(v*1000)/10).toFixed(1) + '%';
-const BAL = G.reduce((s, g) => s + WT(g)*g.N*g.acc, 0)/G.reduce((s, g) => s + WT(g)*g.N, 0);
 /* one square per test image, correct ones first inside each group */
 const SQ = []; G.forEach((g, gi) => { const right = Math.round(g.N*g.acc); for(let i = 0; i < g.N; i++) SQ.push({gi, i, ok: i < right}); });
 /* the pooled order: every correct image first, so the wrong ones gather at the end */
@@ -56,8 +53,7 @@ function layout(beat){
     SQ.forEach((q, i) => { const k = poolPos[i], c = k % 40, r = Math.floor(k/40); out.push({x: x0 + c*s, y: yb - 25*s + r*s, s}); });
     return out;
   }
-  const sc = beat === 4 ? g => s*Math.sqrt(WT(g)) : () => s;
-  const sd = sc(G[0]), sn = sc(G[1]);
+  const sd = s, sn = s;
   const xd = x0, xn = xd + 30*sd + W*.045;
   SQ.forEach(q => { if(q.gi === 0){ const c = q.i % 30, r = Math.floor(q.i/30); out.push({x: xd + c*sd, y: yb - 30*sd + r*sd, s: sd}); }
     else { const c = q.i % 10, r = Math.floor(q.i/10); out.push({x: xn + c*sn, y: yb - 10*sn + r*sn, s: sn}); } });
@@ -85,13 +81,12 @@ function frame(now){
 
     const xr = W*.66;
     /* group labels under each block, except while pooled */
-    const lab = beat === 1 ? e : (beat === 3 || beat === 4) ? 1 : 1 - (beat === 2 ? e : 0);
     if(beat !== 2 || p < 1){
       const d = B[0], n = B[900];
       ctx.save(); ctx.globalAlpha = (prev === 0 && beat === 1) ? e : (beat === 2 ? 1 - e : 1);
       const yl = H*.86 + fs*1.0;
       txt(ctx, `${G[0].n} · ${G[0].N} images · ${pct(G[0].acc)}`, W*.02, yl, fs*1.1, true);
-      if(beat !== 4 || p > 0) txt(ctx, `${G[1].n} · ${G[1].N} · ${pct(G[1].acc)}`, n.x, yl, fs*1.1, true);
+      txt(ctx, `${G[1].n} · ${G[1].N} · ${pct(G[1].acc)}`, n.x, yl, fs*1.1, true);
       ctx.restore();
     }
     /* the average */
@@ -101,12 +96,6 @@ function frame(now){
     const a3 = on(3);
     if(a3 > 0){ ctx.save(); ctx.globalAlpha = a3; txt(ctx, 'worst group', xr, H*.34, fs*1.25); txt(ctx, pct(G[1].acc), xr, H*.5, fs*4, true);
       txt(ctx, `average ${pct(AVG)}`, xr, H*.68, fs*1.1); ctx.restore(); }
-    /* reweighting */
-    const a4 = on(4);
-    if(a4 > 0){ ctx.save(); ctx.globalAlpha = a4; ctx.fillStyle = INK; ctx.font = `700 ${fs*1.1}px ${P.FONT}`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; P.wrap(ctx, 'reweight: each group counts the same', xr, H*.13, W - xr - 4, fs*1.4);
-      txt(ctx, 'weight = total ÷ (groups × group size)', xr, H*.31, fs);
-      txt(ctx, `day ${WT(G[0]).toFixed(2)} · night ${WT(G[1]).toFixed(2)}`, xr, H*.44, fs*1.6, true);
-      txt(ctx, `balanced ${pct(BAL)}`, xr, H*.6, fs*1.6, true); txt(ctx, `average ${pct(AVG)}`, xr, H*.71, fs*1.1); ctx.restore(); }
   }
   requestAnimationFrame(frame);
 }

@@ -143,3 +143,27 @@ function dots(NB, b){ const el = document.getElementById('dots'); if(el) el.inne
 g.SPLITS = { FONT, INK, MUTE, VAL, EMPTY, LEAK, N, K, FOLD, PATIENTS, ROLE, rng, gaussOf, shuffled, ease, lerp, makeData, knnAcc, foldIds, foldScore, foldScores, mean,
   polyFit, rmse, strip, cellX, rowY, txt, drawCell, drawMark, renderRows, legend, arrow, wrap, rgb, mixRole, controller, dots };
 })(typeof window !== 'undefined' ? window : globalThis);
+
+/* Three methods on the same folds, for "which method?": 1-nearest-neighbor (above), logistic regression and a linear SVM.
+   Both linear models: full-batch gradient descent from zero, no randomness, fitted on the training folds only. */
+(function(g){
+const S = g.SPLITS;
+function linFit(train, loss, steps = 3000, lr = .05, l2 = .01){
+  let w = [0, 0, 0];
+  const feat = p => [p.x1, p.x2, 1];
+  for(let t = 0; t < steps; t++){ const G = [0, 0, 0];
+    for(const p of train){ const x = feat(p), s = p.y ? 1 : -1, m = s*(w[0]*x[0] + w[1]*x[1] + w[2]*x[2]), d = loss(m);
+      for(let i = 0; i < 3; i++) G[i] += -d*s*x[i]/train.length; }
+    for(let i = 0; i < 3; i++) w[i] -= lr*(G[i] + (i < 2 ? l2*w[i] : 0)); }
+  return w;
+}
+const logistic = m => 1/(1 + Math.exp(m)), hinge = m => m < 1 ? 1 : 0;
+const linAcc = (train, test, loss) => { const w = linFit(train, loss); return test.filter(p => ((w[0]*p.x1 + w[1]*p.x2 + w[2]) > 0 ? 1 : 0) === p.y).length/test.length; };
+const METHODS = [
+  {name: 'neighbors', acc: (tr, te) => S.knnAcc(tr, te)},
+  {name: 'logistic', acc: (tr, te) => linAcc(tr, te, logistic)},
+  {name: 'SVM', acc: (tr, te) => linAcc(tr, te, hinge)},
+];
+S.METHODS = METHODS;
+S.methodScores = (D, order, m) => [...Array(S.K)].map((_, f) => { const te = new Set(S.foldIds(order, f)); return m.acc(D.pts.filter(p => !te.has(p.id)), D.pts.filter(p => te.has(p.id))); });
+})(typeof window !== 'undefined' ? window : globalThis);

@@ -22,7 +22,7 @@
 <div class="wrap">
   <h1 class="t deck-title">Cross-validation</h1>
   <div class="splits-box"><canvas id="cv"></canvas></div>
-  <div class="cite" id="cite" style="opacity:0">Toy example: 30 points, 2 classes, 1-nearest-neighbor, scores computed · motivation and mechanism after <a href="https://www.youtube.com/watch?v=fSytzGwwBVw" target="_blank" rel="noopener">StatQuest, Machine Learning Fundamentals: Cross Validation</a></div>
+  <div class="cite" id="cite" style="opacity:0">Toy example: 30 points, 2 classes; logistic regression, 1-nearest-neighbor, linear SVM; scores computed · motivation and mechanism after <a href="https://www.youtube.com/watch?v=fSytzGwwBVw" target="_blank" rel="noopener">StatQuest, Machine Learning Fundamentals: Cross Validation</a></div>
 </div>
 <div class="dots" id="dots"></div>
 <script src="../assets/splits/folds.js"></script>
@@ -33,16 +33,20 @@
    3  cut into k parts; first rotation
    4  the other rotations
    5  average; five or ten folds
-   6  classes appear: random folds are uneven
-   7  stratified: the same proportions in each fold
-   8  group split: whole patients
-   9  time-based split: train before test
-   10 nested: an inner loop inside the training part of an outer row
-   11 her decision: large datasets, small datasets */
+   6  which method? the same folds, three methods side by side
+   7  the method with the best average
+   8  classes appear: random folds are uneven
+   9  stratified: the same proportions in each fold
+   10 group split: whole patients
+   11 time-based split: train before test
+   12 nested: an inner loop inside the training part of an outer row
+   13 her decision: large datasets, small datasets */
 const P = SPLITS, {INK, MUTE, VAL, txt, ease, lerp, FOLD, K} = P;
-const NB = 11;
-const D = P.makeData(1);                 /* seed 1 picked so random folds are visibly uneven in class and in score */
+const NB = 13;
+const D = P.makeData(98);                /* seed 98 picked so random folds are visibly uneven and the three methods do not tie */
 const SC = P.foldScores(D, D.base), AVG = P.mean(SC);
+const MS = P.METHODS.map(m => { const sc = P.methodScores(D, D.base, m); return {name: m.name, sc, avg: P.mean(sc)}; });
+const BEST = MS.reduce((b, m, i) => m.avg > MS[b].avg ? i : b, 0);
 
 const testFold = f => pos => Math.floor(pos/FOLD) === f ? 'test' : 'train';
 const kfRows = (order, n = K) => [...Array(n)].map((_, f) => ({order, role: testFold(f)}));
@@ -54,6 +58,8 @@ const LAY = [
   {rows: [{order: D.base, role: testFold(0)}], marks: null, cut: 1},
   {rows: kfRows(D.base), marks: null, cut: 1},
   {rows: kfRows(D.base), marks: null, cut: 1},
+  {rows: kfRows(D.base), marks: null, cut: 1},
+  {rows: kfRows(D.base), marks: null, cut: 1},
   {rows: kfRows(D.base), marks: 'class', cut: 1},
   {rows: kfRows(D.strat), marks: 'class', cut: 1},
   {rows: kfRows(D.group), marks: 'patient', cut: 1},
@@ -62,6 +68,7 @@ const LAY = [
   {rows: kfRows(D.base), marks: null, cut: 1},
 ];
 const CUE = ['', '', 'which part should be the test?', 'k parts: train on k−1, test on the rest', 'rotate', 'average · five or ten folds',
+  'which method?', `best average: ${MS[BEST].name}`,
   'classes in each fold', 'Stratified k-fold: same class proportions in each fold', 'Group split: same patient, same subject',
   'Time-based split: time series', 'Nested CV: inner loop for tuning, outer loop for evaluation', ''];
 
@@ -94,19 +101,29 @@ function frame(now){
       for(const [r, s] of shownRows){ const q = beat === 4 && r > 0 ? Math.max(0, Math.min(1, p*6 - r)) : (beat === 1 || beat === 2 ? p : 1);
         ctx.save(); ctx.globalAlpha = q; txt(ctx, s.toFixed(2), xR, P.rowY(S, r) + S.ch/2, fs*1.1, true); ctx.restore(); }
     }
-    if(beat === 5 || (beat === 6 && prev === 5)){ const a = beat === 5 ? e : 1 - p; ctx.save(); ctx.globalAlpha = a;
+    if(beat === 5){ const a = e; ctx.save(); ctx.globalAlpha = a;
       const x = xR + W*.075, y0 = P.rowY(S, 0), y1 = P.rowY(S, 4) + S.ch;
       ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x - 10, y0); ctx.lineTo(x, y0); ctx.lineTo(x, y1); ctx.lineTo(x - 10, y1); ctx.stroke();
       txt(ctx, 'average', x + 14, (y0 + y1)/2 - fs*.9, fs); txt(ctx, AVG.toFixed(2), x + 14, (y0 + y1)/2 + fs*.6, fs*2, true); ctx.restore(); }
-    if(beat === 6 || beat === 7){ const order = beat === 6 ? D.base : D.strat, a = beat > prev ? (beat === 6 ? e : 1) : 1;
+    /* ---- three methods on the same folds; the best average wins ---- */
+    if(beat === 6 || beat === 7){
+      const colX = i => xR + i*W*.095, yAvg = P.rowY(S, K) + S.ch/2, a6 = beat === 6 && prev === 5 ? e : 1, win = beat === 7 ? (prev === 6 ? e : 1) : 0;
+      MS.forEach((m, i) => { const dim = i === BEST ? 1 : lerp(1, .35, win);
+        ctx.save(); ctx.globalAlpha = (i === 0 ? 1 : a6)*dim; txt(ctx, m.name, colX(i), S.y0 - fs*.65, fs*.95, i === BEST && win > 0);
+        m.sc.forEach((s, f) => txt(ctx, s.toFixed(2), colX(i), P.rowY(S, f) + S.ch/2, fs*1.1, true)); ctx.restore();
+        ctx.save(); ctx.globalAlpha = a6*dim; txt(ctx, m.avg.toFixed(2), colX(i), yAvg, fs*1.25, true); ctx.restore(); });
+      ctx.save(); ctx.globalAlpha = a6; txt(ctx, 'average', S.x + S.width, yAvg, fs, false, 'right'); ctx.restore();
+      if(win > 0){ ctx.save(); ctx.globalAlpha = win; ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.strokeRect(colX(BEST) - 9, S.y0 - fs*1.35, W*.08, yAvg + fs*.95 - (S.y0 - fs*1.35)); ctx.restore(); }
+    }
+    if(beat === 8 || beat === 9){ const order = beat === 8 ? D.base : D.strat, a = beat > prev ? (beat === 8 ? e : 1) : 1;
       ctx.save(); ctx.globalAlpha = a; txt(ctx, '●  :  ✕', xR, S.y0 - fs*.75, fs*.95);
       for(let f = 0; f < K; f++) txt(ctx, ratio(order, f), xR + 2, P.rowY(S, f) + S.ch/2, fs*1.1, true);
       ctx.restore(); }
-    if(beat === 8){ const a = e; ctx.save(); ctx.globalAlpha = a; for(let f = 0; f < K; f++) txt(ctx, `patient ${P.PATIENTS[f]}`, xR, P.rowY(S, f) + S.ch/2, fs); ctx.restore(); }
-    if(beat === 9){ const a = e; ctx.save(); ctx.globalAlpha = a; const y = P.rowY(S, 4) + S.ch*.5; P.arrow(ctx, S.x, y, S.x + S.width, y, INK, 3); txt(ctx, 'time', S.x, y + fs*.9, fs); ctx.restore(); }
+    if(beat === 10){ const a = e; ctx.save(); ctx.globalAlpha = a; for(let f = 0; f < K; f++) txt(ctx, `patient ${P.PATIENTS[f]}`, xR, P.rowY(S, f) + S.ch/2, fs); ctx.restore(); }
+    if(beat === 11){ const a = e; ctx.save(); ctx.globalAlpha = a; const y = P.rowY(S, 4) + S.ch*.5; P.arrow(ctx, S.x, y, S.x + S.width, y, INK, 3); txt(ctx, 'time', S.x, y + fs*.9, fs); ctx.restore(); }
 
     /* ---- nested CV: inner folds inside the training part of the first outer row ---- */
-    const aN = on(10);
+    const aN = on(12);
     if(aN > 0){ ctx.save(); ctx.globalAlpha = aN;
       const y0 = P.rowY(S, K) + 4, iH = Math.round(S.ch*.62), iG = Math.max(3, Math.round(S.rowGap*.4));
       const inner = {...S, ch: iH};
@@ -126,7 +143,7 @@ function frame(now){
       ctx.restore(); }
 
     /* ---- her decision, drawn ---- */
-    const aT = on(11);
+    const aT = on(13);
     if(aT > 0){ ctx.save(); ctx.globalAlpha = aT;
       const cx = S.x + S.width/2, yRoot = P.rowY(S, K) + fs*1.1, yK = yRoot + H*.14, dx = S.width*.27;
       txt(ctx, 'Cross-Validation', cx, yRoot, fs*1.2, true, 'center');

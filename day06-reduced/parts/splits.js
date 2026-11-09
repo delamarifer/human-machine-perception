@@ -6,8 +6,9 @@ section('Evaluating the model');
 
 /* p35: transition, her title. The sentence is hers, moved here from p36 (technical slides carry cues only). */
 st(`
-  <h1 class="t">Evaluating the model</h1>
-  <div style="flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:center">
+  <style>.splits-trans{ margin:auto; text-align:center; display:flex; flex-direction:column; gap:2.4vh; }</style>
+  <div class="splits-trans">
+    <h1 class="t">Evaluating the model</h1>
     <div class="statement b" data-step="1">We know why evaluation is important for any real-world application</div>
   </div>
 `);
