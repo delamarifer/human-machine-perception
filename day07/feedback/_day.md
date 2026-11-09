@@ -111,3 +111,14 @@
 - Every section in her outline now has a place. The whole deck (41 slides, 226 clicks) walks forward and back cleanly.
 - [ ] Bar widths for the new sections (10 minutes each) are guesses.
 - [x] Retitled "Adaptation and Agents" (Shreya, 2026-11-09): title slide, browser tab, and the home page's Day 7 card (title and one-line description).
+
+## 2026-11-10: Project Plan Rubric built, with an example plan, solo vs team (Shreya's request)
+- 33 Project Plan Rubric: the detailed proposal's four sections, 25% each, one per click (from templates.html, Step 2):
+  problem and motivation · approach · evaluation · a realistic plan.
+- 34 (new) "Example plan: one person vs a team", labelled an example, not a template to copy. One idea (the Day 6 lab's sign-language app
+  for doctors, Build a demo track), planned in the same four sections. Solo and team share the problem and the smallest version (3 signs
+  end to end by Day 13). The team adds a Gradio app, its own recorded test set, an owner for each piece, and an integration risk.
+- [ ] Team size: no rule found in the syllabus or templates. The example uses three. What are the real limits (solo allowed? up to 3? 4)?
+- [ ] Add a second example for the Run an experiment track (e.g., one model, two conditions)?
+- [ ] Put the example plans on templates.html too (an additive link under Step 2)? That file is shared.
+- [ ] Project Review (32A, 32B) and Project Rubric (35) are still placeholders.
