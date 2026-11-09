@@ -58,6 +58,15 @@ st(`${agStyle}
   ${rdCite('Our drawings')}
 `);
 
+/* ---------- Shreya (2026-11-09): once the slides reach agents, a section of its own, so the progress bar shows the class has moved past
+   transfer learning. "Where does learning live?" stays above as the bridge. Opens on a transition slide like the adapt part's. ---------- */
+section('Agents and Memory');
+st(`
+  <div class="adapt-transition" style="flex:1 1 auto;display:flex;align-items:center;justify-content:center;text-align:center">
+    <h1 class="t" style="font-size:clamp(2.4rem, 5vw, 4.6rem);line-height:1.16">Agents and Memory</h1>
+  </div>
+`);
+
 /* ---------- _0_30: From model to agent. Her three lines, then her request: "a diagram of an agent loop with all the main parts,
    agent, tools, etc. it should be computer vision related". Shreya (2026-11-09): a richer diagram and a concrete CV example.
    Slide 1: the loop part by part (our drawing). Slide 2: one pass around the loop on one task (our drawing, illustrative). ---------- */
@@ -201,23 +210,65 @@ st(`
   ${rdCite('Based on Malmberg et al., 2019 (as on our Google slide; full reference: to add) · redrawn')}
 `);
 
-/* ---------- _0_78: Memory in humans. Her four cues, one per click; the last click adds what each one looks like in an agent
-   (from the Anthropic post's own comparison, plus the one-file-per-fact memory this deck's Claude sessions use).
+/* ---------- _0_78: Memory in humans. Her four cues build a schematic (our drawing, not anatomy): experience → hippocampus (fast, an index)
+   → replay during sleep → neocortex (slow, general knowledge, schemas) → recall makes it editable again. The last click lines each
+   one up with its agent counterpart (the Anthropic post's own comparison, and the one-file-per-fact memory of this deck's sessions).
    References checked on PubMed 2026-11-09: McClelland 1995, Teyler 1986, Tse 2007. Nader 2000: not yet checked (logged). ---------- */
 const AG_HUMAN = [
-  ['Hippocampus', 'captures experiences fast; keeps an index that points to traces across the cortex', 'transcripts and notes, an index file'],
-  ['Replay during sleep', 'recent experiences are replayed and slowly folded into the neocortex', 'dreaming: an offline pass over past sessions'],
-  ['Existing schema', 'new information that fits what you already know is consolidated faster', 'add to an existing wiki page, not a new file'],
-  ['Recalling a memory', 'recall makes a memory editable again', 'a note is checked and corrected when it is read'],
+  ['Hippocampus', 'transcripts and notes, an index file'],
+  ['Replay during sleep', 'dreaming: an offline pass over past sessions'],
+  ['Existing schema', 'add to an existing wiki page, not a new file'],
+  ['Recalling a memory', 'a note is checked and corrected when it is read'],
 ];
+const agTrace = (x, y) => `<circle cx="${x}" cy="${y}" r="9" fill="${AG_PRE}" stroke="#0f172a" stroke-width="2"/>`;
+const AG_TR = [[520, 130], [600, 100], [660, 160], [560, 200], [640, 230]];
+const AG_ROWY = [90, 200, 300, 400];
 st(`
   <h1 class="t">Memory in humans</h1>
-  <div class="agents-grid4">
-    ${AG_HUMAN.map(([h, t, a], i) => `<div class="d6-card b" data-step="${i + 1}"><div class="lead"><b>${h}</b></div><div class="label">${t}</div>
-      <div class="label agents-in b" data-step="5">in an agent: ${a}</div></div>`).join('')}
-  </div>
+  <svg class="agents-svg" viewBox="0 0 1180 450" role="img" aria-label="Schematic of memory in humans. An experience is captured fast by the hippocampus, which keeps an index pointing to traces across the neocortex. During sleep, recent experiences are replayed and slowly folded into the neocortex. New information that fits an existing schema is consolidated faster. Recalling a memory makes it editable again. Each step is matched with its counterpart in an agent.">
+    ${agArrowDefs('agH')}
+    <g class="b" data-step="1">
+      <rect x="20" y="62" width="120" height="56" rx="10" fill="#fff" stroke="#0f172a" stroke-width="2.5"/>
+      <text x="80" y="97" font-size="21" text-anchor="middle">experience</text>
+      <line x1="144" y1="90" x2="186" y2="90" stroke="#0f172a" stroke-width="3" marker-end="url(#agH)"/>
+      <rect x="192" y="40" width="210" height="100" rx="12" fill="#e2e8f0" stroke="#0f172a" stroke-width="3"/>
+      <text x="297" y="78" font-size="25" font-weight="700" text-anchor="middle">Hippocampus</text>
+      <text x="297" y="106" font-size="19" text-anchor="middle">fast · keeps an index</text>
+      <rect x="452" y="40" width="300" height="380" rx="18" fill="#f8fafc" stroke="#0f172a" stroke-width="3"/>
+      <text x="602" y="72" font-size="25" font-weight="700" text-anchor="middle">Neocortex</text>
+      ${AG_TR.map(([x, y]) => agTrace(x, y)).join('')}
+      ${AG_TR.map(([x, y]) => `<line x1="404" y1="90" x2="${x - 10}" y2="${y}" stroke="#64748b" stroke-width="1.6" stroke-dasharray="4 4"/>`).join('')}
+    </g>
+    <g class="b" data-step="2">
+      <path d="M 297 144 C 297 250, 380 270, 470 270" fill="none" stroke="#0f172a" stroke-width="3" marker-end="url(#agH)"/>
+      <path d="M 222 226 a 18 18 0 1 0 22 -24 a 14 14 0 1 1 -22 24 z" fill="#0f172a"/>
+      <text x="100" y="268" font-size="20">replay during sleep</text>
+      <text x="602" y="276" font-size="19" text-anchor="middle">slow · general knowledge</text>
+    </g>
+    <g class="b" data-step="3">
+      <line x1="520" y1="130" x2="600" y2="100" stroke="#0f172a" stroke-width="2.5"/><line x1="600" y1="100" x2="660" y2="160" stroke="#0f172a" stroke-width="2.5"/>
+      <line x1="520" y1="130" x2="560" y2="200" stroke="#0f172a" stroke-width="2.5"/><line x1="560" y1="200" x2="660" y2="160" stroke="#0f172a" stroke-width="2.5"/>
+      <line x1="660" y1="160" x2="640" y2="230" stroke="#0f172a" stroke-width="2.5"/>
+      <circle cx="712" cy="214" r="10" fill="${AG_FT}" stroke="#0f172a" stroke-width="2.5"/>
+      <line x1="702" y1="219" x2="650" y2="230" stroke="#0f172a" stroke-width="2.5" stroke-dasharray="5 3"/>
+      <text x="602" y="312" font-size="19" text-anchor="middle">fits an existing schema → faster</text>
+    </g>
+    <g class="b" data-step="4">
+      <line x1="448" y1="356" x2="338" y2="356" stroke="#0f172a" stroke-width="3" marker-end="url(#agH)"/>
+      <line x1="338" y1="396" x2="446" y2="396" stroke="#0f172a" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#agH)"/>
+      <text x="320" y="363" font-size="20" text-anchor="end">recall</text>
+      <text x="320" y="403" font-size="20" text-anchor="end">editable again</text>
+    </g>
+    <g class="b" data-step="5">
+      <line x1="782" y1="30" x2="782" y2="430" stroke="#cbd5e1" stroke-width="2"/>
+      <text x="800" y="44" font-size="21" font-weight="700">In an agent</text>
+      ${AG_HUMAN.map(([h, a], i) => `<text x="800" y="${AG_ROWY[i] + 2}" font-size="19" font-weight="700">${h}</text>
+        <text x="800" y="${AG_ROWY[i] + 28}" font-size="18">${a.length > 34 ? a.slice(0, a.lastIndexOf(' ', 34)) : a}</text>
+        ${a.length > 34 ? `<text x="800" y="${AG_ROWY[i] + 52}" font-size="18">${a.slice(a.lastIndexOf(' ', 34) + 1)}</text>` : ''}`).join('')}
+    </g>
+  </svg>
   ${rdCite(d6Link('https://pubmed.ncbi.nlm.nih.gov/7624455/', 'McClelland, McNaughton, O’Reilly (1995)') + ' · ' + d6Link('https://pubmed.ncbi.nlm.nih.gov/3008780/', 'Teyler, DiScenna (1986)') + ' · '
-    + d6Link('https://pubmed.ncbi.nlm.nih.gov/17412951/', 'Tse et al. (2007)') + ' · Nader, Schafe, LeDoux (2000)')}
+    + d6Link('https://pubmed.ncbi.nlm.nih.gov/17412951/', 'Tse et al. (2007)') + ' · Nader, Schafe, LeDoux (2000) · our schematic, not anatomy')}
   <div class="cite b" data-step="5" style="margin-top:0;padding-top:0">Agent side: ${agPost('')}</div>
 `);
 
@@ -287,12 +338,48 @@ st(`
   </div>
 `);
 
-/* ---------- _0_66: Evaluation, her two lines. ---------- */
+/* ---------- _0_66: Evaluation. Her two lines, then (Shreya, 2026-11-09: make it concrete) the aspects to discuss, one per click,
+   each with what you would measure and an example from the Anthropic post. Second slide: the post's Figure 3 numbers. ---------- */
+const AG_EVAL = [
+  ['Does it help?', 'task score with memory vs without', 'database task: higher with memory for all 6 models, by 0.03 to 0.32'],
+  ['Is the memory right?', 'notes checked against what happened', 'a wrong “Mt Moon DONE” note made Claude loop'],
+  ['Is it used?', 'how often the right note is read in time', 'Sonnet 5 read memory first 9 of 10 times; Sonnet 4.6 under half'],
+  ['What does it cost?', 'tokens, compute, memory size', 'one wiki grew to 1.77× its source'],
+  ['Does it keep improving?', 'score across sessions and across tasks', 'wiki helped multi-document questions, not single-document ones'],
+];
 st(`
   <h1 class="t">Evaluation</h1>
-  <div class="agents-center">
-    <div class="statement b" data-step="1">This can be tricky</div>
-    <div class="question b" data-step="2">Think about the different aspects of how you would evaluate this</div>
+  <div class="agents-lines">
+    <div class="lead b" data-step="1">This can be tricky</div>
+    <div class="lead b" data-step="2"><b>Think about the different aspects of how you would evaluate this</b></div>
   </div>
+  <table class="d6-tbl" style="width:100%;margin-top:2vh;font-size:clamp(.95rem,1.55vw,1.5rem)">
+    <tr class="b" data-step="3"><th style="text-align:left">Aspect</th><th style="text-align:left">Measure</th><th style="text-align:left">Example</th></tr>
+    ${AG_EVAL.map(([a, m, e], i) => `<tr class="b" data-step="${i + 3}"><td class="rowh">${a}</td><td style="text-align:left">${m}</td><td style="text-align:left">${e}</td></tr>`).join('')}
+  </table>
+  ${rdCite(agPost('Figures 3, 5, 6–8, 11 and 12'), 3)}
+`);
+
+/* Second slide: Figure 3 of the post, CL-Bench 1.0 database task, mean reward, stateless vs memory store (read from the post). */
+const AG_CL = [['Opus 5.5', .655, .838], ['Sonnet 5.5', .644, .833], ['Opus 5', .564, .828], ['Opus 4.7', .383, .700], ['Sonnet 5', .306, .610], ['Sonnet 4.6', .330, .364]];
+const AG_BX = 250, AG_BW = 780;
+st(`
+  <h1 class="t">Evaluation</h1>
+  <div class="lead b" data-step="1">One test: the same 30 database questions, with and without a memory store</div>
+  <svg class="agents-svg" viewBox="0 0 1180 400" role="img" aria-label="Mean reward on a database task without and with a memory store. ${AG_CL.map(([m, a, b]) => `${m}: ${a} without, ${b} with`).join('; ')}.">
+    <g class="b" data-step="1">
+      <line x1="${AG_BX}" y1="10" x2="${AG_BX}" y2="${20 + AG_CL.length * 60}" stroke="#94a3b8" stroke-width="2"/>
+      ${AG_CL.map(([m], i) => `<text x="${AG_BX - 14}" y="${50 + i * 60}" font-size="22" font-weight="700" text-anchor="end">${m}</text>`).join('')}
+      <rect x="${AG_BX}" y="${30 + AG_CL.length * 60}" width="18" height="18" fill="#cbd5e1" stroke="#0f172a"/><text x="${AG_BX + 26}" y="${45 + AG_CL.length * 60}" font-size="20">no memory</text>
+    </g>
+    <g class="b" data-step="2">${AG_CL.map(([, a], i) => `<rect x="${AG_BX}" y="${22 + i * 60}" width="${a * AG_BW}" height="22" fill="#cbd5e1" stroke="#0f172a" stroke-width="1.5"/>
+      <text x="${AG_BX + a * AG_BW + 8}" y="${40 + i * 60}" font-size="18">${a.toFixed(3)}</text>`).join('')}</g>
+    <g class="b" data-step="3">${AG_CL.map(([, , b], i) => `<rect x="${AG_BX}" y="${46 + i * 60}" width="${b * AG_BW}" height="22" fill="#0f172a"/>
+      <text x="${AG_BX + b * AG_BW + 8}" y="${64 + i * 60}" font-size="18" font-weight="700">${b.toFixed(3)}</text>`).join('')}
+      <rect x="${AG_BX + 180}" y="${30 + AG_CL.length * 60}" width="18" height="18" fill="#0f172a"/><text x="${AG_BX + 206}" y="${45 + AG_CL.length * 60}" font-size="20">memory store</text>
+      <text x="${AG_BX + 400}" y="${45 + AG_CL.length * 60}" font-size="20" fill="#64748b">mean reward (0 to 1)</text></g>
+  </svg>
+  <div class="lead b" data-step="4" style="text-align:center">Same memory, very different gains: what the model writes and reads matters</div>
+  ${rdCite(agPost('Figure 3 (CL-Bench 1.0, internal evaluation)'))}
 `);
 }

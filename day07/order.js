@@ -1,7 +1,8 @@
 /* Day 7 running order. Follows the Google deck "Day 7" (fileId 1-d7HaWYSEP3EMU8Eu3EZsc9huoF877sANLRL4F8uW2U), an outline:
      1. Data Worksheet Review        (not built yet)
      2. Transfer Learning            = the adapt and future parts, moved from day06-reduced (Google Day 6 deck p43-59),
-                                       then the agents part (Google Day 7 deck: Where does learning live? to Evaluation)
+                                       then "Where does learning live?" (start of the agents part)
+        Agents and Memory               = the rest of the agents part (Google Day 7 deck: From model to agent to Evaluation)
      3. Quiz Review                  (not built yet)
      4. Project Review: ideas, what we liked, what people did not consider   (not built yet)
      5. Project Review: groupings, what goes into the project plan            (not built yet)
@@ -19,4 +20,5 @@ const PARTS = ORDER.map(r => r[0]);
 const SEC_MINUTES = {
   'Start': 2,
   'Transfer Learning': 17,
+  'Agents and Memory': 15,   /* a guess for the bar width only (Shreya to set) */
 };

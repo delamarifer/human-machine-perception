@@ -32,3 +32,14 @@
   (vision-language model, with the task coming in) → actions (screen and robot) → back to the environment, plus memory read and write.
 - 21B (new): one pass around the loop for "put the mug in the sink": see, perceive, decide, act, remember. An illustrative example, not a real run.
 - [ ] Is the mug-and-sink example the right one, or would a screen task (filling a web form) fit the class better?
+
+## 2026-11-09: Memory in humans, Evaluation, and an Agents and Memory section (Shreya's request)
+- New section "Agents and Memory" in the progress bar, opening on a title slide, starting at "From model to agent".
+  "Where does learning live?" stays at the end of Transfer Learning as the bridge.
+  - [ ] Bar width: 15 minutes is a guess. What is the real time for this section?
+- Memory in humans: her four cues now build a schematic (experience → hippocampus with an index into the neocortex → replay during
+  sleep → schema → recall, editable again). The last click adds an "In an agent" column. Our drawing, labelled "not anatomy".
+- Evaluation: her two lines, then a table of five aspects (does it help, is it right, is it used, what does it cost, does it keep
+  improving), each with a measure and an example from the Anthropic post. New second slide: the post's Figure 3 numbers
+  (database task, six models, without and with memory).
+  - [ ] The Figure 3 numbers were read from the post by a page-reading agent, not from the figure image. Check them against the figure before class.
