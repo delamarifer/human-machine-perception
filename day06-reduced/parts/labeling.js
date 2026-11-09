@@ -29,19 +29,18 @@ const lbStyle = `<style>
   .labeling-bar-row{ display:grid; grid-template-columns:7.2em 1fr; gap:.7vw; align-items:center; }
   .labeling-bar-row i{ display:block; height:2.5vh; background:var(--ink); border-radius:3px; }
   .labeling-bar-row.light i{ background:#94a3b8; }
-  .labeling-stats{ display:grid; grid-template-columns:repeat(4, auto); gap:2vw; justify-content:space-between; align-items:baseline; }
   .labeling-lanes{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:3vh; }
   .labeling-lane{ display:grid; grid-template-columns:11vw minmax(0, 1fr) minmax(0, 1.05fr); gap:2vw; align-items:center; }
   .labeling-lane svg{ width:100%; height:12vh; display:block; }
-  .labeling-names s{ color:var(--mute); }
+  .labeling-platform{ grid-template-columns:11vw 17vw minmax(0, 1fr); }
+  .labeling-platform .labeling-logo-set{ gap:3.2vw; min-height:0; }
+  .labeling-platform .labeling-logo-set img{ height:6.6vh; }
   .labeling-stages{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr auto 1fr auto 1fr auto 1fr; gap:.8vw; align-items:stretch; align-content:center; }
   .labeling-stages .d6-card{ justify-content:flex-start; align-items:center; text-align:center; padding:2vh 1vw; gap:1.4vh; }
   .labeling-stages .labeling-arrow{ align-self:center; font-size:clamp(1.4rem, 2.4vw, 2.2rem); color:var(--mute); }
   .labeling-votes{ display:flex; justify-content:space-between; gap:.6vw; }
   .labeling-vote{ display:flex; flex-direction:column; align-items:center; gap:.4vh; flex:1 1 0; }
   .labeling-vote svg{ width:100%; height:9vh; display:block; }
-  .labeling-prob{ display:grid; grid-template-columns:6.2em 1fr 2.8em; gap:.5vh .7vw; align-items:center; font-size:clamp(.9rem, 1.3vw, 1.25rem); }
-  .labeling-prob i{ display:block; height:1.8vh; background:#64748b; border-radius:3px; }
   .labeling-thread{ display:flex; flex-direction:column; gap:1vh; }
   @media (max-width: 820px), (max-aspect-ratio: 1/1){
     .labeling-three, .labeling-stages{ grid-template-columns:1fr; }
@@ -128,8 +127,8 @@ const lbTile = (i) => {
     ${wrong
       ? `<text class="labeling-old b" data-step="5" x="36" y="94" font-size="21" text-anchor="middle">${LB_NAME[lbGiven[i]]}</text><text class="b" data-step="5" x="36" y="94" font-size="21" font-weight="700" text-anchor="middle">${LB_NAME[LB_TRUE[i]]}</text>`
       : `<text x="36" y="94" font-size="21" text-anchor="middle">${LB_NAME[lbGiven[i]]}</text>`}
-    <g class="b" data-step="2">${wrong ? lbMark(76, 34, 'A', okA, 'labeling-old b', 5) + lbMark(76, 34, 'A', okA2, 'b', 5) : lbMark(76, 34, 'A', okA)}</g>
-    <g class="b" data-step="3">${wrong ? lbMark(76, 64, 'B', okB, 'labeling-old b', 5) + lbMark(76, 64, 'B', okB2, 'b', 5) : lbMark(76, 64, 'B', okB)}</g>
+    <g class="b" data-step="2">${wrong ? lbMark(76, 34, 'A', okA, 'labeling-old b', 6) + lbMark(76, 34, 'A', okA2, 'b', 6) : lbMark(76, 34, 'A', okA)}</g>
+    <g class="b" data-step="3">${wrong ? lbMark(76, 64, 'B', okB, 'labeling-old b', 6) + lbMark(76, 64, 'B', okB2, 'b', 6) : lbMark(76, 64, 'B', okB)}</g>
     ${wrong ? `<rect class="b" data-step="4" x="-1" y="-1" width="120" height="110" rx="8" fill="none" stroke="#0f172a" stroke-width="5"/>` : ''}
   </g>`;
 };
@@ -144,25 +143,19 @@ st(`
       <div class="label b" data-step="2"><b>Scored on the given labels</b></div>
       ${lbBar('Model A', lbScore(lbAnsA, lbGiven), 2)}
       ${lbBar('Model B', lbScore(lbAnsB, lbGiven), 3, true)}
-      <div class="label b" data-step="5" style="margin-top:1.2vh"><b>Scored on the corrected labels</b></div>
-      ${lbBar('Model A', lbScore(lbAnsA, LB_TRUE), 5)}
-      ${lbBar('Model B', lbScore(lbAnsB, LB_TRUE), 5, true)}
-      <div class="labeling-cue b" data-step="5" style="margin-top:1.2vh"><b>Mislabeled ground truth can inflate the performance</b></div>
+      <div class="label b" data-step="6" style="margin-top:1.2vh"><b>Scored on the corrected labels</b></div>
+      ${lbBar('Model A', lbScore(lbAnsA, LB_TRUE), 6)}
+      ${lbBar('Model B', lbScore(lbAnsB, LB_TRUE), 6, true)}
+      <div class="labeling-cue b" data-step="7" style="margin-top:1.2vh"><b>mislabeled ground truth → inflated performance</b></div>
     </div>
   </div>
-  <div class="labeling-stats b" data-step="6">
-    <div class="label"><b>≥ 6%</b> of ImageNet validation labels wrong</div>
-    <div class="label"><b>≥ 3.3%</b> average, 10 test sets</div>
-    <div class="label">ResNet-18 beats ResNet-50 at <b>+6%</b> mislabeled</div>
-    <div class="label">${lbA('https://labelerrors.com/', '<b>labelerrors.com</b>')}</div>
-  </div>
-  ${rdCite('Our drawing; the test set and both models are an example, scores computed · ' + LB_NORTH)}
+  ${rdCite('Our drawing; the test set and both models are an example, scores computed · ' + lbA('https://labelerrors.com/', 'labelerrors.com') + ' · ' + LB_NORTH)}
 `);
 
 /* ---------- p17: the annotator workflow, one drawn driving scene ---------- */
 sc('labelingWorkflow', 'scenes/labeling-workflow.html');
 
-/* ---------- p18: a fixed hour of labeling. Times from Segment Anything section 5: 14 s per mask is
+/* ---------- p18: a fixed hour of labeling. Times from Segment Anything section 4: 14 s per mask is
    6.5x faster than COCO masks and 2x slower than boxes with extreme points. Everything else computed. ---------- */
 const LB_MASK_S = 14 * 6.5, LB_BOX_S = 14 / 2, LB_HOUR = 3600;
 const LB_NBOX = Math.floor(LB_HOUR / LB_BOX_S), LB_NMASK = Math.floor(LB_HOUR / LB_MASK_S);
@@ -186,22 +179,21 @@ st(`
     ${lbPanel(0, 'box', LB_BOX_S, `<rect x="-30" y="-14" width="60" height="45" fill="none" stroke="#0f172a" stroke-width="1.6"/>`, LB_NBOX)}
     ${lbPanel(530, 'mask', LB_MASK_S, `<polygon points="${LB_POLY}" fill="#0f172a" opacity=".78"/>`, LB_NMASK)}
   </svg>
-  <div class="labeling-cue b" data-step="3" style="text-align:center"><b>The cheapest label that answers your question</b></div>
-  ${rdCite('Our drawing · times computed from ' + LB_SAM + ', section 5: 14 s per assisted mask, 6.5× faster than COCO masks, 2× slower than boxes with extreme points')}
+  ${rdCite('Our drawing · times computed from ' + LB_SAM + ', section 4: 14 s per assisted mask, 6.5× faster than COCO masks, 2× slower than boxes with extreme points')}
 `);
 
-/* ---------- p19: where to get labels. Each name checked on its own site, 2026-11-09. Trade-offs as in broaden.js (Scale guide). ---------- */
+/* ---------- p19: where to get labels. Each company checked on its own site, 2026-11-09. Names and logos only. ---------- */
 const LB_LANE1 = `<svg viewBox="0 0 170 110" aria-hidden="true">${lbPerson(52, 60, 1.5)}<rect x="96" y="44" width="60" height="42" rx="4" fill="#fff" stroke="#0f172a" stroke-width="4"/><rect x="106" y="54" width="26" height="20" fill="none" stroke="#0f172a" stroke-width="3" stroke-dasharray="5 3"/><line x1="88" y1="92" x2="164" y2="92" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/></svg>`;
 const LB_LANE2 = `<svg viewBox="0 0 170 110" aria-hidden="true">${[[34, 40], [85, 34], [136, 40], [58, 82], [112, 82]].map(([x, y]) => lbPerson(x, y, .85)).join('')}</svg>`;
 const LB_LANE3 = `<svg viewBox="0 0 170 110" aria-hidden="true"><rect x="50" y="10" width="70" height="92" fill="#94a3b8" stroke="#0f172a" stroke-width="4"/>${[0, 1, 2].map(r => [0, 1].map(c => `<rect x="${62 + c * 26}" y="${22 + r * 24}" width="18" height="14" fill="#fff" stroke="#0f172a" stroke-width="2"/>`).join('')).join('')}</svg>`;
 st(`
   <h1 class="t">Labeling - platforms you can use to get labeled data</h1>
   <div class="labeling-lanes">
-    <div class="labeling-lane b" data-step="1">${LB_LANE1}<div class="labeling-cue labeling-names"><b>Your own team</b><br>CVAT · Label Studio (open source)</div><div class="labeling-cue">full control; you train and manage the labelers</div></div>
-    <div class="labeling-lane b" data-step="2">${LB_LANE2}<div class="labeling-cue labeling-names"><b>A crowd</b><br>Prolific · <s>Mechanical Turk</s> (closed 30 Sep 2026)</div><div class="labeling-cue">many labelers, fast; uneven quality</div></div>
-    <div class="labeling-lane b" data-step="3">${LB_LANE3}<div class="labeling-cue labeling-names"><b>A labeling company</b><br>Scale AI · Appen · iMerit</div><div class="labeling-cue">trained labelers, tools, checks; less control</div></div>
+    <div class="labeling-lane labeling-platform b" data-step="1">${LB_LANE1}<div class="labeling-cue"><b>Your own team</b></div><div class="labeling-logo-set"><img src="assets/labeling/cvat.svg" alt="CVAT logo"><img src="assets/labeling/labelstudio.svg" alt="Label Studio logo"></div></div>
+    <div class="labeling-lane labeling-platform b" data-step="2">${LB_LANE2}<div class="labeling-cue"><b>A crowd</b></div><div class="labeling-logo-set"><img src="assets/labeling/prolific.svg" alt="Prolific logo"></div></div>
+    <div class="labeling-lane labeling-platform b" data-step="3">${LB_LANE3}<div class="labeling-cue"><b>A labeling company</b></div><div class="labeling-logo-set"><img src="assets/labeling/scale.png" alt="Scale AI logo"><img src="assets/labeling/appen.svg" alt="Appen logo"><img src="assets/labeling/imerit.svg" alt="iMerit logo"></div></div>
   </div>
-  ${rdCite(lbA('https://www.cvat.ai/', 'cvat.ai') + ' · ' + lbA('https://labelstud.io/', 'labelstud.io') + ' · ' + lbA('https://www.prolific.com/', 'prolific.com') + ' · ' + lbA('https://www.mturk.com/', 'mturk.com') + ' · trade-offs from ' + LB_SCALE)}
+  ${rdCite('Logos are trademarks of their owners, used only to identify the companies, from ' + lbA('https://www.cvat.ai/', 'cvat.ai') + ' · ' + lbA('https://labelstud.io/', 'labelstud.io') + ' · ' + lbA('https://www.prolific.com/', 'prolific.com') + ' · ' + lbA('https://scale.com/data-engine', 'scale.com') + ' · ' + lbA('https://www.appen.com/', 'appen.com') + ' · ' + lbA('https://imerit.ai/', 'imerit.ai'))}
 `);
 
 /* ---------- p20: double checks. Boxes are an example (same as broaden.js), IoU computed; vote computed from the binomial. ---------- */
@@ -223,12 +215,10 @@ st(`
         <g transform="translate(166,118) scale(1.55)">${LB_CAR}</g>
         ${lbRect(LB_BA, false)}${lbRect(LB_BB, true)}
       </svg>
-      <div class="labeling-cue b" data-step="1" style="text-align:center">two people, one car</div>
       <div class="d6-eq b" data-step="2" style="align-self:stretch;text-align:center">IoU = overlap ÷ union = ${LB_IOU.i.toLocaleString('en-US')} ÷ ${LB_IOU.u.toLocaleString('en-US')} = ${LB_IOU.v.toFixed(2)}</div>
     </div>
     <div class="labeling-col">
       <div class="labeling-votes b" data-step="3">${LB_VOTES.map(lbVoteFig).join('')}</div>
-      <div class="labeling-cue b" data-step="3" style="text-align:center">each right ${lbPct(LB_P)} of the time</div>
       <div class="b" data-step="4" style="display:flex;flex-direction:column;gap:1vh">
         <div class="labeling-bar-row light"><div class="label">one person</div><div style="display:flex;align-items:center;gap:.6vw"><i style="width:${(LB_P * 76).toFixed(1)}%"></i><span class="label"><b>${lbPct(LB_P)}</b></span></div></div>
         <div class="labeling-bar-row"><div class="label">vote of 5</div><div style="display:flex;align-items:center;gap:.6vw"><i style="width:${(lbMaj(LB_P) * 76).toFixed(1)}%"></i><span class="label"><b>${lbPct(lbMaj(LB_P))}</b></span></div></div>
@@ -238,7 +228,7 @@ st(`
   ${rdCite('Our drawing; boxes (pixels) and the 70% are an example; IoU and the vote computed (binomial, majority of 5)')}
 `);
 
-/* ---------- p21: onboarding. Steps and the pedestrian rule from the Scale guide, as in broaden.js. ---------- */
+/* ---------- p21: onboarding. Steps from the Scale guide, as in broaden.js. ---------- */
 const LB_ST_RULES = `<svg class="labeling-icon" viewBox="0 0 170 130" aria-hidden="true"><rect x="45" y="8" width="80" height="112" rx="6" fill="#fff" stroke="#0f172a" stroke-width="4"/>${[28, 46, 64, 82, 100].map(y => `<line x1="58" y1="${y}" x2="${y === 100 ? 90 : 112}" y2="${y}" stroke="#64748b" stroke-width="5" stroke-linecap="round"/>`).join('')}</svg>`;
 const LB_ST_BATCH = `<svg class="labeling-icon" viewBox="0 0 170 130" aria-hidden="true">${[0, 1, 2].map(i => `<rect x="${30 + i * 16}" y="${16 + i * 16}" width="84" height="66" rx="5" fill="${i === 2 ? '#cbd5e1' : '#fff'}" stroke="#0f172a" stroke-width="4"/>`).join('')}</svg>`;
 const LB_ST_GOLD = `<svg class="labeling-icon" viewBox="0 0 170 130" aria-hidden="true">${[0, 1, 2, 3, 4, 5].map(k => { const x = 26 + (k % 3) * 42, y = 18 + Math.floor(k / 3) * 50, g = k === 4;
@@ -247,16 +237,15 @@ const LB_ST_KEEP = `<svg class="labeling-icon" viewBox="0 0 170 130" aria-hidden
 st(`
   <h1 class="t">Labeling - companies, onboarding trainers</h1>
   <div class="labeling-stages">
-    <div class="d6-card b" data-step="1">${LB_ST_RULES}<div class="labeling-cue"><b>Rules</b></div><div class="label">classes, good and bad examples, edge cases</div></div>
+    <div class="d6-card b" data-step="1">${LB_ST_RULES}<div class="labeling-cue"><b>Rules</b></div></div>
     <div class="labeling-arrow b" data-step="2">→</div>
-    <div class="d6-card b" data-step="2">${LB_ST_BATCH}<div class="labeling-cue"><b>Small batch</b></div><div class="label">read the disagreements, fix the rules</div></div>
+    <div class="d6-card b" data-step="2">${LB_ST_BATCH}<div class="labeling-cue"><b>Small batch</b></div></div>
     <div class="labeling-arrow b" data-step="3">→</div>
-    <div class="d6-card b" data-step="3">${LB_ST_GOLD}<div class="labeling-cue"><b>Gold items</b></div><div class="label">known answers hidden in the work</div></div>
+    <div class="d6-card b" data-step="3">${LB_ST_GOLD}<div class="labeling-cue"><b>Gold items</b></div></div>
     <div class="labeling-arrow b" data-step="4">→</div>
-    <div class="d6-card b" data-step="4">${LB_ST_KEEP}<div class="labeling-cue"><b>Retrain or remove</b></div><div class="label">labelers who miss them</div></div>
+    <div class="d6-card b" data-step="4">${LB_ST_KEEP}<div class="labeling-cue"><b>Retrain or remove</b></div></div>
   </div>
-  <div class="d6-eq b" data-step="1" style="align-self:center">“pedestrian”: include what they carry, not a stroller or suitcase they push or pull</div>
-  ${rdCite('Our drawing · steps and the pedestrian rule from ' + LB_SCALE + ' (“Best practices for high-quality labels”)')}
+  ${rdCite('Our drawing · steps from ' + LB_SCALE + ' (“Best Practices for Achieving High-Quality Labels”)')}
 `);
 
 /* ---------- p22: the labeling process as a loop. Steps from the Scale guide, as in broaden.js. ---------- */
@@ -285,19 +274,15 @@ st(`
       <text x="700" y="355" font-size="32" font-weight="700" text-anchor="middle">new edge cases</text>
     </g>
   </svg>
-  ${rdCite('Our drawing · steps from ' + LB_SCALE + ' (“Best practices for high-quality labels”)')}
+  ${rdCite('Our drawing · steps from ' + LB_SCALE + ' (“Best Practices for Achieving High-Quality Labels”)')}
 `);
 
-/* ---------- p23: model plus person. Segment Anything numbers as in broaden.js; probabilities are an example, entropy computed. ---------- */
-const lbEnt = ps => -ps.reduce((s, p) => s + (p > 0 ? p * Math.log(p) : 0), 0);
-const LB_DAY = [.98, .01, .01], LB_NIGHT = [.40, .35, .25], LB_CLS = ['car', 'pedestrian', 'cyclist'];
-const lbProbs = ps => `<div class="labeling-prob">${ps.map((p, i) => `<span>${LB_CLS[i]}</span><i style="width:${p * 100}%"></i><span>${p.toFixed(2)}</span>`).join('')}</div>`;
+/* ---------- p23: model plus person. Segment Anything numbers as in broaden.js. ---------- */
 const LB_PROP = '-34,-2 -30,-8 -18,-8 -10,-20 20,-20 30,-6 36,0 36,26 28,36 12,38 -12,38 -28,36 -36,24';
 st(`
   <h1 class="t">Labeling - an existing model (in combination with a human)</h1>
-  <div class="d6-cols" style="align-items:center;grid-template-columns:1fr 1.05fr">
-    <div class="labeling-col">
-      <svg class="labeling-svg b" data-step="1" viewBox="0 0 430 250" style="max-height:34vh" role="img" aria-label="A drawn car with a dashed outline proposed by a model and a solid outline corrected by a person">
+  <div class="d6-cols" style="align-items:center;grid-template-columns:1.3fr 1fr">
+      <svg class="labeling-svg b" data-step="1" viewBox="0 0 430 250" style="max-height:58vh" role="img" aria-label="A drawn car with a dashed outline proposed by a model and a solid outline corrected by a person">
         <rect x="2" y="2" width="426" height="246" rx="8" fill="#f1f5f9" stroke="#cbd5e1"/><rect x="2" y="190" width="426" height="58" fill="#e2e8f0"/>
         <g transform="translate(215,118) scale(3)">${LB_CAR}
           <polygon class="labeling-old b" data-step="2" points="${LB_PROP}" fill="none" stroke="#0f172a" stroke-width="1" stroke-dasharray="3.2 2.2"/>
@@ -311,14 +296,8 @@ st(`
         <div class="labeling-bar-row light"><div class="label">start</div><div style="display:flex;align-items:center;gap:.6vw"><i style="width:80%"></i><span class="label"><b>34 s</b></span></div></div>
         <div class="labeling-bar-row"><div class="label">improved</div><div style="display:flex;align-items:center;gap:.6vw"><i style="width:${(14 / 34 * 80).toFixed(1)}%"></i><span class="label"><b>14 s</b></span></div></div>
       </div>
-    </div>
-    <div class="labeling-col">
-      <div class="d6-card b" data-step="4"><div class="label"><b>Clear day</b> · uncertainty ${lbEnt(LB_DAY).toFixed(2)}</div>${lbProbs(LB_DAY)}</div>
-      <div class="d6-card b" data-step="4" style="border:3px solid var(--ink)"><div class="label"><b>Night</b> · uncertainty ${lbEnt(LB_NIGHT).toFixed(2)} → to a person</div>${lbProbs(LB_NIGHT)}</div>
-      <div class="b" data-step="5" style="text-align:center"><div class="statement" style="line-height:1.1"><b>99.1%</b></div><div class="labeling-cue">of 1.1 billion masks fully automatic</div></div>
-    </div>
   </div>
-  ${rdCite(LB_SAM + ', sections 4 and 5 · probabilities are an example; uncertainty = entropy (natural log), computed')}
+  ${rdCite(LB_SAM + ', section 4 (annotation time per mask); our drawing')}
 `);
 
 /* ---------- p24: her three points as cues; drawings only illustrate them ---------- */
