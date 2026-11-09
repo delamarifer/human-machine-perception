@@ -1,4 +1,4 @@
-/* Day 6 (reduced) running order: Data, Generalization and Adaptation.
+/* Day 6 (reduced) running order: Data, Generalization and Evaluation.
    Built from the Google Slides deck Fernanda and Shreya reduced (fileId 1-OynnZhoK9D_oMjT_CGkjYtwdNXkHZi0RQjO_ZAimUs).
    One Google slide = one HTML slide (exception: Evaluating LLMs, two slides, her comment).
    Avoid apostrophes inside the strings. */

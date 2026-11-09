@@ -1,4 +1,4 @@
-# Day 6 reduced · Data, Generalization and Adaptation: feedback and open questions
+# Day 6 reduced · Data, Generalization and Evaluation: feedback and open questions
 
 Built from the Google Slides deck Fernanda and Shreya reduced (fileId `1-OynnZhoK9D_oMjT_CGkjYtwdNXkHZi0RQjO_ZAimUs`, PDF export of
 2026-11-09, 59 pages). Shreya's `day06/` is untouched. Preview: `python3 -m http.server 8146` from the repo root, then
@@ -158,4 +158,4 @@ Slide 40 (p38): the normalization click is labeled "mistake", and one new click 
 ## 2026-11-09: adapting and future moved to Day 7 (Shreya's request)
 - The adapt and future parts (Google deck p43-59), their scenes and assets are now in ../day07/. Day 6 ends with the evaluation parts and the lab.
 - The agenda in lib.js drops "Adapt over time", so the lab roadmap marks Lab as row 4.
-- [ ] The Day 6 title still says "Data, Generalization and Adaptation". Keep it, or retitle now that adaptation is on Day 7?
+- [x] Day 6 retitled "Data, Generalization and Evaluation" now that adaptation is on Day 7 (Shreya: "the title can be updated to what is accurate now").

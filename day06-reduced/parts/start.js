@@ -54,7 +54,7 @@ st(`
 
 st(`
   <div class="center" style="margin:auto">
-    <div class="statement" style="font-weight:700;font-size:clamp(2rem,3.7vw,3.3rem)">Data, Generalization and Adaptation</div>
+    <div class="statement" style="font-weight:700;font-size:clamp(2rem,3.7vw,3.3rem)">Data, Generalization and Evaluation</div>
     <div class="label" style="margin-top:2.2vh">Day 6 · Visual Perception</div>
     <div class="label" style="margin-top:.8vh">Fernanda De La Torre · Shreya Pandit</div>
   </div>
