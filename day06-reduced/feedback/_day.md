@@ -35,7 +35,10 @@ and its comments with the HTML. Now 69 HTML slides.
 - **Slide 61 (p57, new page): RL Environments.** Her comment: a short line of the main claim. A direct quote from the Scale post (under
   15 words), then our drawing of the agent-environment loop, one arrow per click. The post's figure is Scale's artwork and is not reused;
   in it the reward arrow points from agent to environment, ours follows the usual direction (environment to agent).
-- **Slide 48 (p45, new page).** Problem Setup: the book's two definitions, then the examples of this section as 𝒳 → 𝒴 and 𝒳′ → 𝒴′.
+- **Slide 46 (Problem Setup, now before Adaptation methods as in her deck).** Her comment: frame it on the book's farm and drone scenario.
+  Drawn: last season wheat and corn → f; this season corn → soybeans → f′, started from f; then the book's two definitions. The table of
+  examples from the first Round 2 version is gone.
+- [ ] Open, not built: her new comment on Synthetic generator, "include images for why this could be useful (time, cost, resources)".
 - **Slide 50 (p47).** Now "Finetuning subparts of a network" only; Figure 37.4 moved to slide 53.
 - **Slide 52 (p49, new).** Learning from a Teacher: the book's two diagrams with the cat photo, "answer key", the 90% / 10% example,
   her four use cases as chips.
