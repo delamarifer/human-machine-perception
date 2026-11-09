@@ -54,60 +54,15 @@ st(`${adStyle}
 `);
 
 /* ---------- p44 (Round 2): Problem Setup, before Adaptation methods as in her deck. Her comment: "this problem framing should be on
-   the scenario presented on farm and the drones". The scenario, the two definitions and f, f' are the book's (section 37.2);
-   the drone and fields are our drawings. One idea per click: last season, this season, start from f, the two names. ---------- */
-const adField = (x, y, crops) => crops.map((c, k) => {
-  const X = x + k * 94, rows = [];
-  if(c === 'wheat') for(let r = 0; r < 6; r++) rows.push(`<line x1="${X + 10}" y1="${y + 12 + r * 14}" x2="${X + 76}" y2="${y + 12 + r * 14}" stroke="#b08d2e" stroke-width="5" stroke-dasharray="4 5"/>`);
-  if(c === 'corn') for(let r = 0; r < 4; r++) rows.push(`<line x1="${X + 16 + r * 18}" y1="${y + 8}" x2="${X + 16 + r * 18}" y2="${y + 88}" stroke="#3f7a3a" stroke-width="7"/>`);
-  if(c === 'soybeans') for(let r = 0; r < 4; r++) for(let q = 0; q < 4; q++) rows.push(`<circle cx="${X + 16 + q * 18}" cy="${y + 16 + r * 22}" r="6" fill="#6aa84f"/>`);
-  return `<rect x="${X}" y="${y}" width="86" height="96" rx="4" fill="${c === 'wheat' ? '#f3e3a8' : '#dcebd2'}" stroke="#0f172a" stroke-width="2"/>${rows.join('')}
-    <text x="${X + 43}" y="${y + 122}" font-size="22" text-anchor="middle">${c}</text>`;
-}).join('');
-const adDrone = (x, y) => `<g transform="translate(${x},${y})"><rect x="-26" y="-9" width="52" height="18" rx="7" fill="#0f172a"/>
-  <line x1="-44" y1="-14" x2="-14" y2="-14" stroke="#0f172a" stroke-width="5"/><line x1="14" y1="-14" x2="44" y2="-14" stroke="#0f172a" stroke-width="5"/>
-  <circle cx="0" cy="13" r="6" fill="#64748b"/><path d="M -6 18 L -40 70 M 6 18 L 40 70" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 4"/></g>`;
-const adMod = (x, y, fill, t, out) => `<rect x="${x}" y="${y}" width="110" height="70" rx="6" fill="${fill}" stroke="#0f172a" stroke-width="2.5"/>
-  <text x="${x + 55}" y="${y + 45}" font-size="30" font-style="italic" text-anchor="middle">${t}</text>
-  <line x1="${x + 116}" y1="${y + 35}" x2="${x + 150}" y2="${y + 35}" stroke="#0f172a" stroke-width="3" marker-end="url(#adP)"/>
-  <text x="${x + 158}" y="${y + 44}" font-size="24">${out}</text>`;
-st(`
-  <h1 class="t">Problem Setup</h1>
-  <svg class="adapt-svg" viewBox="0 0 1180 470" role="img" aria-label="Last season a drone photographs fields of wheat and corn and a classifier f labels them. This season soybeans replace corn, and a new classifier f prime starts from f.">
-    <defs><marker id="adP" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0f172a"/></marker></defs>
-    <g class="b" data-step="1">
-      <text x="20" y="34" font-size="26" font-weight="700">Last season</text>
-      ${adDrone(110, 70)}
-      ${adField(20, 130, ['wheat', 'corn'])}
-      <line x1="206" y1="178" x2="240" y2="178" stroke="#0f172a" stroke-width="3" marker-end="url(#adP)"/>
-      ${adMod(248, 143, AD_PRE, 'f', '{wheat, corn}')}
-    </g>
-    <g class="b" data-step="2">
-      <line x1="572" y1="20" x2="572" y2="250" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="8 6"/>
-      <text x="590" y="34" font-size="26" font-weight="700">This season: corn → soybeans</text>
-      ${adDrone(680, 70)}
-      ${adField(590, 130, ['wheat', 'soybeans'])}
-      <line x1="776" y1="178" x2="810" y2="178" stroke="#0f172a" stroke-width="3" marker-end="url(#adP)"/>
-      <rect x="818" y="143" width="110" height="70" rx="6" fill="#fff" stroke="#0f172a" stroke-width="2.5" stroke-dasharray="7 5"/>
-      <text x="873" y="188" font-size="30" font-style="italic" text-anchor="middle">?</text>
-      <line x1="934" y1="178" x2="968" y2="178" stroke="#0f172a" stroke-width="3" marker-end="url(#adP)"/>
-      <text x="976" y="187" font-size="24">{wheat, soybeans}</text>
-    </g>
-    <g class="b" data-step="3">
-      <rect x="818" y="143" width="110" height="70" rx="6" fill="${AD_FT}" stroke="#0f172a" stroke-width="2.5"/>
-      <text x="873" y="188" font-size="30" font-style="italic" text-anchor="middle">f′</text>
-      <path d="M 303 216 C 303 310, 873 310, 873 222" fill="none" stroke="#0f172a" stroke-width="3.5" marker-end="url(#adP)"/>
-      <rect x="438" y="268" width="300" height="36" fill="#fff"/>
-      <text x="588" y="294" font-size="25" font-weight="700" text-anchor="middle">start from f, not from scratch</text>
-    </g>
-    <g class="b" data-step="4">
-      <text x="20" y="372" font-size="25"><tspan font-weight="700">Pretraining:</tspan> how to acquire prior knowledge in the first place</text>
-      <text x="20" y="412" font-size="25"><tspan font-weight="700">Adaptation:</tspan> how to use prior knowledge to solve a new task</text>
-      <text x="20" y="452" font-size="22" fill="#64748b">f: 𝒳 → 𝒴  ·  f′: 𝒳′ → 𝒴′</text>
-    </g>
-  </svg>
-  ${rdCite(adBook('section 37.2, the farm and drone example') + ' · drone and fields: our drawings')}
-`);
+   the scenario presented on farm and the drones". Shreya (2026-11-09): a scene that opens on last season and animates to this one.
+   scenes/adapt-setup.html: last season (drone, wheat and corn, f), this season (corn turns into soybeans, f answers corn ✗),
+   f′ starts from f, then the two names. The scenario, the definitions and f, f′ are the book's (section 37.2). ---------- */
+sc('adaptSetup', 'scenes/adapt-setup.html');
+
+/* Code slides (Shreya, 2026-11-09: "a code embedding, similar to distillation, on fine tuning, and then for subnetwork as well").
+   PyTorch; checked to run with random tensors on 2026-11-09. One block per click; <c>…</c> marks a comment. */
+const adCodeEsc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/&lt;c>/g, '<span class="c">').replace(/&lt;\/c>/g, '</span>');
+const adCode = rows => `<pre class="adapt-code">${rows.map(([k, t]) => `<span class="ln b" data-step="${k}">${adCodeEsc(t) || ' '}</span>`).join('')}</pre>`;
 
 /* ---------- p49: the book's concept, then her list, then the two explained in depth ---------- */
 const AD_METHODS = [['Fine-tuning', 1], ['Domain adaptation', 0], ['Test-time adaptation', 0], ['Monitoring', 0], ['Continual learning', 1], ['Human feedback loops', 0]];
@@ -147,6 +102,28 @@ st(`
   ${rdCite(adBook('Figure 37.2'))}
 `);
 
+/* ---------- Code: fine-tuning all layers, on the farm example (f was trained on {wheat, corn}; f′ answers {wheat, soybeans}). ---------- */
+st(`
+  <h1 class="t">Fine-tuning in a training loop</h1>
+  ${adCode([
+    [1, 'import torch, torchvision'],
+    [1, 'from torch import nn'],
+    [1, ''],
+    [1, 'model = torchvision.models.resnet18(weights="IMAGENET1K_V1")    <c># f: pretrained weights</c>'],
+    [2, 'model.fc = nn.Linear(model.fc.in_features, 2)                   <c># new head: {wheat, soybeans}</c>'],
+    [3, 'optimizer = torch.optim.SGD(model.parameters(), lr=1e-3, momentum=0.9)'],
+    [3, '                                                <c># every layer learns; a small lr stays close to f</c>'],
+    [4, ''],
+    [4, 'model.train()'],
+    [4, 'for x, y in loader:                             <c># this season’s labeled photos</c>'],
+    [5, '    loss = nn.functional.cross_entropy(model(x), y)'],
+    [5, '    optimizer.zero_grad()'],
+    [5, '    loss.backward()                             <c># gradients reach every layer</c>'],
+    [5, '    optimizer.step()'],
+  ])}
+  ${rdCite('Our code (PyTorch, torchvision ResNet-18) · ' + adBook('section 37.3'))}
+`);
+
 /* ---------- p47 "More slides of fine-tuning": finetuning subparts of a network. The teacher figure that was here moved to the
    Knowledge Distillation slide her deck now has. Subparts figure, detected: featurize ends x .2863; middle modules end x .5861;
    module centers .2074, .5069, .8067. ---------- */
@@ -163,6 +140,27 @@ st(`
     </div>
   </div>
   ${rdCite(adBook('Figure 37.3 (section 37.3.1)'))}
+`);
+
+/* ---------- Code: finetuning subparts, matching Figure 37.3: frozen early layers, finetuned last block, a new head from scratch. ---------- */
+st(`
+  <h1 class="t">Finetuning subparts in code</h1>
+  ${adCode([
+    [1, 'model = torchvision.models.resnet18(weights="IMAGENET1K_V1")'],
+    [1, 'for p in model.parameters():'],
+    [1, '    p.requires_grad = False                     <c># frozen: keep f’s features</c>'],
+    [2, 'for p in model.layer4.parameters():'],
+    [2, '    p.requires_grad = True                      <c># finetuned: the last block</c>'],
+    [3, 'model.fc = nn.Linear(model.fc.in_features, 2)   <c># from scratch: a new head</c>'],
+    [4, ''],
+    [4, 'optimizer = torch.optim.SGD(['],
+    [4, '    {"params": model.layer4.parameters(), "lr": 1e-4},   <c># small steps: finetuned</c>'],
+    [4, '    {"params": model.fc.parameters(),     "lr": 1e-2},   <c># bigger steps: from scratch</c>'],
+    [4, '], momentum=0.9)'],
+    [5, ''],
+    [5, '<c># same training loop; gradients stop at the frozen layers</c>'],
+  ])}
+  ${rdCite('Our code (PyTorch, torchvision ResNet-18) · ' + adBook('Figure 37.3 (section 37.3.1)'))}
 `);
 
 /* ---------- p52: fine-tuning example. Road drawings are ours (no Cityscapes images); numbers from Table 2. ---------- */

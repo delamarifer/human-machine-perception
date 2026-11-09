@@ -43,3 +43,12 @@
   improving), each with a measure and an example from the Anthropic post. New second slide: the post's Figure 3 numbers
   (database task, six models, without and with memory).
   - [ ] The Figure 3 numbers were read from the post by a page-reading agent, not from the figure image. Check them against the figure before class.
+
+## 2026-11-09: Problem Setup as a scene; fine-tuning and subnetwork code (Shreya's request)
+- Problem Setup is now scenes/adapt-setup.html (4 clicks): last season (the drone flies in over wheat and corn, f says "corn ✓"),
+  this season (the corn turns into soybeans, f still says "corn ✗", having never seen soybeans), f′ grows out of f ("soybeans ✓"), then the two names.
+  The farm and drone are our drawings. "f calls soybeans corn" is our illustration: f can only answer with its trained classes.
+- New code slides, in the same style as the distillation code: "Fine-tuning in a training loop" (after Pre-training vs fine-tuning) and
+  "Finetuning subparts in code" (frozen / finetuned / from scratch, after the subparts figure). Both ran on random tensors with
+  torch 2.13 and torchvision 0.28. The check confirmed the frozen layers do not change.
+- [ ] The code uses ResNet-18 and the farm's two classes. Use another model or dataset to match the lab notebook once it exists?
