@@ -54,14 +54,20 @@ window.MK = (() => {
     const n = 10, t = 2.262;   /* t quantile, 97.5%, df = 9 */
     const sum = v => { const m = mean(v), s = sd(v), se = s/Math.sqrt(n); return {m, s, se, ci: t*se}; };
     const d = A.map((a, i) => a - B[i]);
-    return {A, B, d, n, t, a: sum(A), b: sum(B), diff: sum(d)};
+    /* bootstrap: resample the 10 folds with replacement, 1000 times, same indices for A and B; own seed so the folds above do not change */
+    const bootR = rng(11), NB = 1000, idxs = [...Array(NB)].map(() => [...Array(n)].map(() => Math.floor(bootR()*n)));
+    const bootOf = v => idxs.map(ix => mean(ix.map(i => v[i])));
+    const pct = (arr, q) => { const s = [...arr].sort((u, w) => u - w), h = (s.length - 1)*q, lo = Math.floor(h), hi = Math.ceil(h); return s[lo] + (s[hi] - s[lo])*(h - lo); };
+    const bootA = bootOf(A), bootB = bootOf(B);
+    const boot = {NB, idxs, A: bootA, B: bootB, ciA: [pct(bootA, .025), pct(bootA, .975)], ciB: [pct(bootB, .025), pct(bootB, .975)]};
+    return {A, B, d, n, t, a: sum(A), b: sum(B), diff: sum(d), boot};
   }
 
   /* ---- canvas helpers ---- */
-  function txt(c, t, x, y, sz, bold, align = 'center', base = 'middle', a = 1){ c.globalAlpha *= a; c.fillStyle = INK; c.font = `${bold ? 700 : 400} ${sz}px ${FONT}`; c.textAlign = align; c.textBaseline = base; c.fillText(t, x, y); c.globalAlpha /= a; }
-  function dot(c, x, y, r, filled, a = 1){ if(a <= 0) return; c.globalAlpha *= a; c.beginPath(); c.arc(x, y, r, 0, 7); if(filled){ c.fillStyle = INK; c.fill(); } else { c.fillStyle = '#fff'; c.fill(); c.strokeStyle = INK; c.lineWidth = Math.max(1.6, r*.32); c.stroke(); } c.globalAlpha /= a; }
-  function frac(c, top, bot, x, y, sz, a = 1){ c.globalAlpha *= a; const w = Math.max(c.measureText ? (c.font = `400 ${sz}px ${FONT}`, c.measureText(top).width) : 0, c.measureText(bot).width) + 8;
-    c.fillStyle = INK; c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.fillText(top, x, y - 5); c.fillText(bot, x, y + sz + 3); c.strokeStyle = INK; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x - w/2, y); c.lineTo(x + w/2, y); c.stroke(); c.globalAlpha /= a; return w; }
+  function txt(c, t, x, y, sz, bold, align = 'center', base = 'middle', a = 1){ if(a <= 0) return; c.save(); c.globalAlpha *= a; c.fillStyle = INK; c.font = `${bold ? 700 : 400} ${sz}px ${FONT}`; c.textAlign = align; c.textBaseline = base; c.fillText(t, x, y); c.restore(); }
+  function dot(c, x, y, r, filled, a = 1){ if(a <= 0) return; c.save(); c.globalAlpha *= a; c.beginPath(); c.arc(x, y, r, 0, 7); if(filled){ c.fillStyle = INK; c.fill(); } else { c.fillStyle = '#fff'; c.fill(); c.strokeStyle = INK; c.lineWidth = Math.max(1.6, r*.32); c.stroke(); } c.restore(); }
+  function frac(c, top, bot, x, y, sz, a = 1){ if(a <= 0) return 0; c.save(); c.globalAlpha *= a; const w = Math.max(c.measureText ? (c.font = `400 ${sz}px ${FONT}`, c.measureText(top).width) : 0, c.measureText(bot).width) + 8;
+    c.fillStyle = INK; c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.fillText(top, x, y - 5); c.fillText(bot, x, y + sz + 3); c.strokeStyle = INK; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x - w/2, y); c.lineTo(x + w/2, y); c.stroke(); c.restore(); return w; }
 
   /* The confusion matrix used by the classification slide and the baselines slide. rows: 0 actual not spam, 1 actual spam;
      columns: 0 predicted not spam, 1 predicted spam. cell(row, col) returns {x, y, w, h} and the name of the cell. */
@@ -87,6 +93,9 @@ window.MK = (() => {
   function regAxes(c, g, fs, a = 1){ c.save(); c.globalAlpha = a; c.strokeStyle = MID; c.lineWidth = 1.5; c.beginPath(); c.moveTo(g.x0, g.y0); c.lineTo(g.x0, g.y1); c.lineTo(g.x1, g.y1); c.stroke();
     txt(c, 'x', g.x1 + 8, g.y1, fs, true, 'left'); txt(c, 'y', g.x0 + 8, g.y0 + fs*.55, fs, true, 'left', 'middle'); c.restore(); }
   function line(c, x1, y1, x2, y2, col = INK, lw = 2, dash = []){ c.save(); c.strokeStyle = col; c.lineWidth = lw; c.setLineDash(dash); c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke(); c.restore(); }
+  /* an arrow from (x1, y1) to (x2, y2) */
+  function arrow(c, x1, y1, x2, y2, a = 1, col = MID, lw = 2.2){ if(a <= 0) return; const ang = Math.atan2(y2 - y1, x2 - x1), hs = 9; c.save(); c.globalAlpha *= a; c.strokeStyle = col; c.fillStyle = col; c.lineWidth = lw; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2 - Math.cos(ang)*hs*.7, y2 - Math.sin(ang)*hs*.7); c.stroke();
+    c.beginPath(); c.moveTo(x2, y2); c.lineTo(x2 - hs*Math.cos(ang - .45), y2 - hs*Math.sin(ang - .45)); c.lineTo(x2 - hs*Math.cos(ang + .45), y2 - hs*Math.sin(ang + .45)); c.closePath(); c.fill(); c.restore(); }
   function poly(c, pts, col = INK, lw = 2.5, dash = []){ if(pts.length < 2) return; c.save(); c.strokeStyle = col; c.lineWidth = lw; c.setLineDash(dash); c.lineJoin = 'round'; c.beginPath(); pts.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.stroke(); c.restore(); }
 
   /* Beat controller for a canvas scene. draw({ctx, W, H, beat, p, raw, A}) is called each frame; A(b) is 0 before beat b,
@@ -109,5 +118,5 @@ window.MK = (() => {
     return window[name];
   }
 
-  return {INK, MID, SOFT, FONT, rng, gaussOf, sig, mean, sd, clamp01, ease, lerp, emailData, regData, foldData, txt, dot, frac, matrixGeom, slots, drawMatrix, matrixHeads, regGeom, regAxes, line, poly, scene};
+  return {INK, MID, SOFT, FONT, rng, gaussOf, sig, mean, sd, clamp01, ease, lerp, emailData, regData, foldData, txt, dot, frac, matrixGeom, slots, drawMatrix, matrixHeads, regGeom, regAxes, line, poly, arrow, scene};
 })();

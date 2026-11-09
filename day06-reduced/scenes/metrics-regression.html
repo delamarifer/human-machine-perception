@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="../../deck/deck.css">
 <style>
-  /* Day 6 reduced, part metrics. p41. Data and geometry in assets/metrics/metrics-kit.js. */
+  /* Day 6 reduced, part metrics. p41. Data and geometry in assets/metrics/metrics-kit.js. Colored words on this slide only, at Fernanda's request. */
   html, body{ background:#fff; }
   .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
   .metrics-box{ position:relative; flex:1 1 auto; min-height:0; }
@@ -21,106 +21,128 @@
 <div class="wrap">
   <h1 class="t deck-title">Metrics for regression</h1>
   <div class="metrics-box"><canvas id="cv"></canvas></div>
-  <div class="cite" id="cite" style="opacity:0">Example: 8 simulated points, y = 2 + 0.5x + noise, least-squares line; outlier 4.5 above the line; all values computed</div>
+  <div class="cite" id="cite" style="opacity:0">Example: 8 simulated points, least-squares line; outlier 4.5 above the line; each change to the points is stated in the code; all values computed</div>
 </div>
 <div class="dots" id="dots"></div>
 <script src="../assets/metrics/metrics-kit.js"></script>
 <script>
+/* The two colors of this slide. To turn the colored words off, set both to '#0f172a'. */
+const GOOD_COLOR = '#15803d', FAILS_COLOR = '#b91c1c';
+
 /* BEAT 0 title only
    1  points, the fitted line, residuals
-   2  residuals become squares: MSE
-   3  RMSE: the side of the average square
-   4  squares give way to absolute bars: MAE
-   5  an outlier appears: MSE and RMSE jump, MAE moves little
-   6  outlier gone: the mean line and its squares
-   7  the model's squares beside the mean's: R² */
-const D = MK.regData(), {INK, MID, SOFT, txt, dot, lerp} = MK;
-const f2 = n => n.toFixed(2), f3 = n => n.toFixed(2);
-const pts = D.pts, O = D.out;
+   2  residuals become squares: MSE, what it is good for
+   3  MSE fails: the outlier appears, its square dominates; the square is in units squared
+   4  so RMSE: the side of the average square, same units as y (outlier gone)
+   5  RMSE fails: the outlier returns, it still dominates
+   6  so MAE: squares give way to bars; the outlier moves the mean less
+   7  MAE fails: the outlier's error is spread over all 9 points (Σ|r| unchanged): same MAE, different errors
+   8  so R²: the points return, the mean line and its squares
+   9  the model's squares against the mean's: R²
+   10 R² fails: stretch y by 1.5 about its mean: errors 1.5x bigger, R² unchanged
+   11 R² fails: flatten the line, keep the same residuals: errors unchanged, R² falls */
+const D = MK.regData(), {INK, MID, txt, dot, lerp, mean} = MK;
+const f2 = n => n.toFixed(2);
+const pts = D.pts, O = D.out, xs = [...pts.map(p => p.x), O.x];
+const r = D.clean.r, baseY = pts.map(p => p.y), f = D.f, my = D.my;
 
-MK.scene('metricsRegression', 7, ({ctx: c, W, H, beat, p, A}) => {
+/* beat 7: outlier residual 4.5 goes to 0.5; each of the other 8 points moves 0.5 further from the line */
+const movedY = [...pts.map((p, i) => f(p.x) + Math.sign(r[i])*(Math.abs(r[i]) + .5)), f(O.x) + .5];
+const movedR = movedY.map((y, i) => y - f(xs[i]));
+const maeMoved = mean(movedR.map(Math.abs)), mseMoved = mean(movedR.map(v => v*v));
+/* beat 10: stretch y about its mean */
+const K = 1.5, stretchY = baseY.map(y => my + K*(y - my)), lineStretch = x => my + K*(f(x) - my);
+const rmseStretch = Math.sqrt(mean(stretchY.map((y, i) => (y - lineStretch(pts[i].x))**2)));
+const ssTot = ys => ys.reduce((s, y) => s + (y - my)**2, 0);
+const r2Stretch = 1 - stretchY.reduce((s, y, i) => s + (y - lineStretch(pts[i].x))**2, 0)/ssTot(stretchY);
+/* beat 11: flatten the line, same residuals */
+const FLAT = .35, lineFlat = x => my + FLAT*(f(x) - my), flatY = pts.map((p, i) => lineFlat(p.x) + r[i]);
+const r2Flat = 1 - flatY.reduce((s, y, i) => s + (y - lineFlat(pts[i].x))**2, 0)/ssTot(flatY);
+
+const line = (a, b) => [a, b];
+function state(b){
+  const s = {ys: [...baseY, O.y], line: line(f(0), f(16)), out: 0, sq: 0, bar: 0, mean: 0, dark: 0};
+  if(b === 2) s.sq = 1;
+  if(b === 3){ s.sq = 1; s.out = 1; }
+  if(b === 4) s.sq = 1;
+  if(b === 5){ s.sq = 1; s.out = 1; }
+  if(b === 6){ s.bar = 1; s.out = 1; }
+  if(b === 7){ s.bar = 1; s.out = 1; s.ys = movedY; }
+  if(b === 8){ s.mean = 1; }
+  if(b >= 9){ s.mean = 1; s.dark = 1; }
+  if(b === 10){ s.ys = [...stretchY, O.y]; s.line = line(lineStretch(0), lineStretch(16)); }
+  if(b === 11){ s.ys = [...flatY, O.y]; s.line = line(lineFlat(0), lineFlat(16)); }
+  return s;
+}
+
+MK.scene('metricsRegression', 11, ({ctx: c, W, H, beat, p, A}) => {
   if(beat === 0) return;
   const fs = Math.max(15, W*.0165);
-  const g = MK.regGeom(W*.03, H*.03, W*.57, H*.90), {X, Y, u} = g;
+  const g = MK.regGeom(W*.03, H*.03, W*.55, H*.90), {X, Y, u} = g;
+  const S0 = state(beat - 1), S1 = state(beat), S = {};
+  for(const k of ['out', 'sq', 'bar', 'mean', 'dark']) S[k] = lerp(S0[k], S1[k], p);
+  const ys = S1.ys.map((y, i) => lerp(S0.ys[i], y, p));
+  const lineNow = x => lerp(lerp(S0.line[0], S0.line[1], x/16), lerp(S1.line[0], S1.line[1], x/16), p);
 
-  /* line and points */
   MK.regAxes(c, g, fs, A(1));
-  c.save(); c.globalAlpha = A(1); MK.line(c, X(0), Y(D.f(0)), X(16), Y(D.f(16)), INK, 2.5); c.restore();
+  /* model line; mean line */
+  c.save(); c.globalAlpha = A(1); MK.line(c, X(0), Y(lineNow(0)), X(16), Y(lineNow(16)), INK, 2.5); c.restore();
+  if(S.mean > 0){ c.save(); c.globalAlpha = S.mean; MK.line(c, X(0), Y(my), X(16), Y(my), INK, 2.5, [10, 6]); c.restore();
+    txt(c, 'the mean', X(0) + 8, Y(my) - fs*.9, fs, true, 'left', 'middle', S.mean); }
 
-  /* residuals */
-  const lineShow = beat <= 5;
-  const r = D.clean.r;
-  pts.forEach((pt, i) => {
-    const px = X(pt.x), py = Y(pt.y), fy = Y(D.f(pt.x)), side = Math.abs(r[i])*u;
-    /* the square sits left of the residual, between the point and the line */
-    if(beat >= 2 && beat <= 5){ const sqA = beat === 2 ? p : beat === 3 ? 1 : beat === 4 ? 1 - p : .8;
-      const q = beat === 2 ? p : 1; const s = side*q;
-      if(sqA > 0){ c.save(); c.globalAlpha = sqA*.9; c.fillStyle = MID; c.fillRect(px - s, Math.min(py, fy), s, Math.abs(py - fy)*(beat === 2 ? q : 1)); c.restore(); } }
-    if(lineShow){ c.save(); c.globalAlpha = A(1); MK.line(c, px, py, px, fy, INK, 2, [4, 3]); c.restore(); }
-    if(beat === 4 || beat === 5){ /* absolute bars: same length as the residual, drawn as a thick bar at the point */
-      const a = beat === 4 ? p : 1; c.save(); c.globalAlpha = a; c.fillStyle = INK; c.fillRect(px - 3.5, Math.min(py, fy), 7, Math.abs(py - fy)); c.restore(); }
-  });
-
-  /* outlier */
-  if(beat === 5){
-    const px = X(O.x), py = Y(O.y), fy = Y(D.f(O.x)), side = (O.y - D.f(O.x))*u;
-    c.save(); c.globalAlpha = .55*p; c.fillStyle = MID; c.fillRect(px - side*p, py, side*p, fy - py); c.restore();
-    MK.line(c, px, py, px, fy, INK, 2, [4, 3]);
-    c.save(); c.globalAlpha = p; c.fillStyle = INK; c.fillRect(px - 3.5, py, 7, fy - py); c.restore();
-    dot(c, px, py, 9, true, p);
-    txt(c, 'outlier', px + 13, py, fs, true, 'left', 'middle', p);
+  const nPts = ys.length;
+  for(let i = 0; i < nPts; i++){
+    const isOut = i === 8, a = isOut ? S.out : 1; if(a <= 0) continue;
+    const x = xs[i], px = X(x), py = Y(ys[i]), fy = Y(lineNow(x)), rr = ys[i] - lineNow(x), side = Math.abs(rr)*u;
+    /* squares, left of the residual */
+    if(S.sq > 0){ c.save(); c.globalAlpha = a*S.sq*(isOut ? .55 : .9); c.fillStyle = MID; const s = side*(beat === 2 ? p : 1); c.fillRect(px - s, Math.min(py, fy), s, Math.abs(py - fy)); c.restore(); }
+    /* the mean's squares, drawn toward the middle of the plot so they stay on it */
+    if(S.mean > 0 && !isOut){ const my0 = Y(my), sd = Math.abs(ys[i] - my)*u; c.save(); c.globalAlpha = S.mean*.4; c.fillStyle = MID; c.fillRect(ys[i] > my ? px - sd : px, Math.min(py, my0), sd, Math.abs(py - my0)); c.restore();
+      c.save(); c.globalAlpha = S.mean; MK.line(c, px, py, px, my0, INK, 1.4, [3, 3]); c.restore(); }
+    /* the model's squares, dark, for R² */
+    if(S.dark > 0 && !isOut){ c.save(); c.globalAlpha = S.dark*.9; c.fillStyle = INK; c.fillRect(px - side, Math.min(py, fy), side, Math.abs(py - fy)); c.restore(); }
+    /* residual line and absolute bar */
+    if(beat <= 7){ c.save(); c.globalAlpha = a*A(1); MK.line(c, px, py, px, fy, INK, 2, [4, 3]); c.restore(); }
+    if(S.bar > 0){ c.save(); c.globalAlpha = a*S.bar; c.fillStyle = INK; c.fillRect(px - 3.5, Math.min(py, fy), 7, Math.abs(py - fy)); c.restore(); }
+    dot(c, px, py, isOut ? 8.5 : 7.5, true, a*A(1));
+    if(isOut && beat !== 7) txt(c, 'outlier', px + 12, py, fs, true, 'left', 'middle', a);
+    if(isOut && beat === 3){ txt(c, 'units²', px - side/2, py + Math.abs(py - fy)/2, fs*1.15, true, 'center', 'middle', a*p); }
   }
 
-  /* mean line */
-  if(beat >= 6){
-    c.save(); c.globalAlpha = beat === 6 ? p : 1; MK.line(c, X(0), Y(D.my), X(16), Y(D.my), INK, 2.5, [10, 6]); c.restore();
-    txt(c, 'the mean', X(0) + 8, Y(D.my) - fs*.9, fs, true, 'left', 'middle', beat === 6 ? p : 1);
-    pts.forEach(pt => { const px = X(pt.x), py = Y(pt.y), my = Y(D.my), side = Math.abs(pt.y - D.my)*u;
-      const a = beat === 6 ? p : 1;
-      c.save(); c.globalAlpha = a*.4; c.fillStyle = MID; c.fillRect(pt.y > D.my ? px - side : px, Math.min(py, my), side, Math.abs(py - my)); c.restore();
-      c.save(); c.globalAlpha = a; MK.line(c, px, py, px, my, INK, 1.4, [3, 3]); c.restore(); });
-    if(beat === 7){
-      pts.forEach((pt, i) => { const px = X(pt.x), py = Y(pt.y), fy = Y(D.f(pt.x)), side = Math.abs(D.clean.r[i])*u;
-        c.save(); c.globalAlpha = p*.9; c.fillStyle = INK; c.fillRect(px - side, Math.min(py, fy), side, Math.abs(py - fy)); c.restore(); });
-      MK.line(c, X(0), Y(D.f(0)), X(16), Y(D.f(16)), INK, 2.5);
-    }
-  }
-
-  /* points on top */
-  pts.forEach(pt => dot(c, X(pt.x), Y(pt.y), 7.5, true, A(1)));
+  /* beat 4: the average square, at true size; side = RMSE */
+  if(beat === 4){ const s = D.clean.rmse*u, x = X(.8), y = Y(12.8); c.save(); c.globalAlpha = p*.9; c.fillStyle = MID; c.fillRect(x, y, s, s); c.restore();
+    txt(c, 'side of the average square', x + s + 10, y + s/2, fs*.95, false, 'left', 'middle', p); }
 
   /* panel */
-  const px0 = W*.645, row = (i, nm, sub, val, a, extra) => { if(a <= 0) return; const y = H*.07 + i*H*.2;
-    txt(c, nm, px0, y, fs*1.3, true, 'left', 'middle', a);
-    if(sub) txt(c, sub, px0, y + fs*1.25, fs*.92, false, 'left', 'middle', a);
-    if(val) txt(c, val, px0 + W*.33, y, fs*1.3, true, 'right', 'middle', a);
-    if(extra) txt(c, extra, px0 + W*.33, y + fs*1.25, fs*.95, false, 'right', 'middle', a); };
-  const act = b => beat === b ? 1 : .55;
+  const px0 = W*.605, pw = W*.385, rowY = i => H*.015 + i*H*.222;
+  const cueLines = (t, col, x, y, sz, a) => { if(a <= 0) return 1; c.save(); c.globalAlpha = a; c.fillStyle = col; c.font = `700 ${sz}px ${MK.FONT}`; c.textAlign = 'left'; c.textBaseline = 'middle';
+    const lh = sz*1.2; let line = '', yy = y; for(const w of t.split(' ')){ const test = line ? line + ' ' + w : w; if(c.measureText(test).width > pw && line){ c.fillText(line, x, yy); line = w; yy += lh; } else line = test; }
+    c.fillText(line, x, yy); c.restore(); return Math.round((yy - y)/lh) + 1; };
   const {clean: C, withOut: Wo} = D;
   const jump = (a, b) => `${f2(a)} → ${f2(b)}`, ratio = (a, b) => `×${(b/a).toFixed(1)}`;
+  const row = (i, opts) => { const {nm, sub, val, extra, good, bad, a, cueA = 0, badA = 0} = opts; if(a <= 0) return; let y = rowY(i) + fs*.7;
+    txt(c, nm, px0, y, fs*1.3, true, 'left', 'middle', a);
+    if(val) txt(c, val, px0 + pw, y, fs*1.3, true, 'right', 'middle', a);
+    y += fs*1.2;
+    if(sub) txt(c, sub, px0, y, fs*.92, false, 'left', 'middle', a);
+    if(extra) txt(c, extra, px0 + pw, y, fs*.95, false, 'right', 'middle', a);
+    y += fs*1.15;
+    let n = cueLines(good, GOOD_COLOR, px0, y, fs*.98, a*cueA);
+    y += fs*1.18*n;
+    (bad || []).forEach((t, j) => { n = cueLines(t, FAILS_COLOR, px0, y, fs*.98, a*badA[j]); y += fs*1.18*n; }); };
+  const active = (...bs) => bs.includes(beat) ? 1 : .55;
+  const cA = bs => bs.includes(beat) ? p : (beat > bs[0] ? 1 : 0);
 
-  if(beat >= 2){
-    if(beat === 5){ row(0, 'MSE', 'mean of squares', jump(C.mse, Wo.mse), p, ratio(C.mse, Wo.mse)); }
-    else row(0, 'MSE', 'mean of squares', f2(C.mse), (beat === 2 ? p : 1)*act(2), null);
-  }
-  if(beat >= 3){
-    if(beat === 5){ row(1, 'RMSE', '√MSE', jump(C.rmse, Wo.rmse), p, ratio(C.rmse, Wo.rmse)); }
-    else row(1, 'RMSE', '√MSE', f2(C.rmse), (beat === 3 ? p : 1)*act(3), null);
-  }
-  if(beat >= 4){
-    if(beat === 5){ row(2, 'MAE', 'mean of |residuals|', jump(C.mae, Wo.mae), p, ratio(C.mae, Wo.mae)); }
-    else row(2, 'MAE', 'mean of |residuals|', f2(C.mae), (beat === 4 ? p : 1)*act(4), null);
-  }
-  if(beat === 7){ const a = p; row(3, 'R²', '1 − model squares ÷ mean squares', f2(D.r2), a, null);
-    /* area bars, to scale */
-    const by = H*.82, bw = W*.33, bh = H*.05;
-    txt(c, 'mean squares', px0, by, fs, false, 'left', 'middle', a); c.save(); c.globalAlpha = a; c.fillStyle = MID; c.fillRect(px0 + W*.14, by - bh/2, bw*.55, bh); c.restore();
-    txt(c, 'model squares', px0, by + H*.09, fs, false, 'left', 'middle', a); c.save(); c.globalAlpha = a; c.fillStyle = INK; c.fillRect(px0 + W*.14, by + H*.09 - bh/2, bw*.55*D.ssr/D.sst, bh); c.restore();
-  }
-
-  /* RMSE as a square at true size */
-  if(beat >= 3 && beat <= 4){ const side = C.rmse*u, a = beat === 3 ? p : (beat === 4 ? 1 - p : 1);
-    c.save(); c.globalAlpha = a; c.fillStyle = MID; const sx = px0 + W*.17, sy = H*.27 + H*.01; c.fillRect(sx, sy, side, side); c.restore(); }
+  if(beat >= 2) row(0, {nm: 'MSE', sub: 'mean of squares', val: beat === 3 ? jump(C.mse, Wo.mse) : f2(C.mse), extra: beat === 3 ? ratio(C.mse, Wo.mse) : null,
+    good: 'good for: punishing big errors', bad: ['fails: one outlier dominates, units are squared'], a: (beat === 2 ? p : 1)*active(2, 3), cueA: cA([2]), badA: [cA([3])]});
+  if(beat >= 4) row(1, {nm: '→ RMSE', sub: '√MSE', val: beat === 5 ? jump(C.rmse, Wo.rmse) : beat === 10 ? jump(C.rmse, rmseStretch) : f2(C.rmse),
+    extra: beat === 5 ? ratio(C.rmse, Wo.rmse) : beat === 10 ? ratio(C.rmse, rmseStretch) : null,
+    good: 'good for: same units as y', bad: ['fails: the outlier still dominates'], a: (beat === 4 ? p : 1)*active(4, 5, 10, 11), cueA: cA([4]), badA: [cA([5])]});
+  if(beat >= 6) row(2, {nm: '→ MAE', sub: 'mean of |residuals|', val: beat === 6 ? jump(C.mae, Wo.mae) : beat === 7 ? jump(Wo.mae, maeMoved) : f2(C.mae),
+    extra: beat === 6 ? ratio(C.mae, Wo.mae) : beat === 7 ? `MSE ${f2(Wo.mse)} → ${f2(mseMoved)}` : null,
+    good: 'good for: robust to outliers, typical error', bad: ['fails: treats a big error like many small ones'], a: (beat === 6 ? p : 1)*active(6, 7), cueA: cA([6]), badA: [cA([7])]});
+  if(beat >= 8) row(3, {nm: '→ R²', sub: '1 − model squares ÷ mean squares', val: beat === 8 ? '' : beat === 10 ? jump(D.r2, r2Stretch) : beat === 11 ? jump(D.r2, r2Flat) : f2(D.r2), extra: null,
+    good: 'good for: comparing to just predicting the mean, unit-free', bad: ['fails: says nothing about the size of the errors', 'fails: depends on how spread out y is'], a: beat === 8 ? p : 1, cueA: cA([9]), badA: [cA([10]), cA([11])]});
 }, {});
 </script>
 </body>

@@ -24,18 +24,7 @@
   .metrics-mce{ grid-column:9 / 11; text-align:right; font-size:clamp(1.05rem, 2.6vh, 1.5rem); font-weight:700; white-space:nowrap; }
   .metrics-main{ position:relative; }
   .metrics-grid{ transition:opacity .6s ease; }
-  .metrics-panel{ position:absolute; inset:0; display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:2.4vw; align-items:stretch; }
-  .metrics-col{ display:flex; flex-direction:column; gap:1.2vh; min-height:0; min-width:0; transition:opacity .6s ease; }
-  .metrics-colh{ font-weight:700; font-size:clamp(1.15rem, 3vh, 1.7rem); text-align:center; white-space:nowrap; }
-  .metrics-fam{ display:grid; grid-template-columns:21vh 1fr auto; gap:.8vw; align-items:center; }
-  .metrics-fam canvas{ width:21vh; height:21vh; border-radius:6px; display:block; }
-  .metrics-bars{ display:flex; flex-direction:column; gap:.9vh; }
-  .metrics-bars i{ display:block; height:3.4vh; background:#94a3b8; border-radius:2px; }
-  .metrics-bars i.top{ background:#0f172a; }
-  .metrics-score{ font-size:clamp(1.7rem, 5vh, 2.6rem); font-weight:700; }
-  .metrics-flag{ font-size:clamp(1.15rem, 3vh, 1.7rem); font-weight:700; text-align:center; }
-  .metrics-viz{ flex:1 1 auto; min-height:0; width:100%; display:block; }
-  .metrics-viz text{ fill:#0f172a; font-family:inherit; }
+  #cv{ position:absolute; inset:0; width:100%; height:100%; }
   .cite{ font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); }
   .cite a{ color:var(--mute); }
   .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
@@ -49,29 +38,29 @@
   <div class="metrics-cue" id="cue" style="opacity:0"></div>
   <div class="metrics-main">
     <div class="metrics-grid" id="grid"></div>
-    <div class="metrics-panel">
-      <div class="metrics-col" id="col1" style="opacity:0">
-        <div class="metrics-colh">top softmax</div>
-        <div class="metrics-fam"><canvas id="f1" width="300" height="300"></canvas><div class="metrics-bars" id="b1"></div><div class="metrics-score" id="s1"></div></div>
-        <div class="metrics-fam"><canvas id="f2" width="300" height="300"></canvas><div class="metrics-bars" id="b2"></div><div class="metrics-score" id="s2"></div></div>
-        <div class="metrics-flag">flag: "I don't know"</div>
-      </div>
-      <div class="metrics-col" id="col2" style="opacity:0"><div class="metrics-colh">energy</div><svg class="metrics-viz" id="viz-energy" viewBox="0 0 280 420" preserveAspectRatio="xMidYMid meet"></svg></div>
-      <div class="metrics-col" id="col3" style="opacity:0"><div class="metrics-colh">distance to class center</div><svg class="metrics-viz" id="viz-dist" viewBox="0 0 320 420" preserveAspectRatio="xMidYMid meet"></svg></div>
-    </div>
+    <canvas id="cv"></canvas>
   </div>
   <div class="cite" id="cite" style="opacity:0">Example: our versions of four corruption types; error rates and logits are examples, CE and scores computed · Hendrycks &amp; Dietterich 2019 · Hendrycks &amp; Gimpel 2017 · Liu et al. 2020 · Lee et al. 2018 · Photo: Keith Kissel, CC BY 2.0</div>
 </div>
 <div class="dots" id="dots"></div>
+<script src="../assets/metrics/metrics-kit.js"></script>
 <script>
 /* BEAT 0 title only
    1 "Add noise across different parameters": clean tile, one row of noise severities
    2 "Examples of corrupted data": blur, fog, JPEG rows
    3 "Add up the error across different corruptions": error on each tile, sum per row
    4 divide by the reference: CE per row, mCE
-   5 "Familiarity scores": the grid fades; top softmax for a clean image and a heavily noisy one, large
-   6 energy, on its own axis
-   7 distance to the class center */
+   Familiarity scores: the grid fades and each score gets the whole stage, built from where its number comes from.
+   5  softmax: image -> network -> one raw score (logit) per class, both images
+   6  softmax turns the logits into probabilities that sum to 1
+   7  the top one is the score (0.98 vs 0.37); low score flags "I don't know"
+   8  energy: the same logits -> exp of each
+   9  add them up
+   10 -log of the sum = energy, landing on the axis (T = 1, Liu et al. 2020)
+   11 distance: training images of the class -> same network -> grey points in feature space
+   12 the + is their average
+   13 each new image -> same network -> a dark point
+   14 measure its distance from the +, in the class's spread */
 function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
   t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const N = 300, img = new Image(); img.src = '../assets/metrics/june-odd-eyed-cat.jpg';
@@ -112,86 +101,171 @@ TYPES.forEach(([nm], t) => {
 html += `<div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div class="metrics-mce metrics-cell c-ce">mCE ${MCE.toFixed(2)}</div>`;
 grid.innerHTML = html;
 
-let ready = false, beat = 0, rendering = false;
+let ready = false;
+const mkThumb = () => { const k = document.createElement('canvas'); k.width = N; k.height = N; return k; };
+const thumbClean = mkThumb(), thumbNoisy = mkThumb();
 (async () => {
   await load(img); base(document.getElementById('clean').getContext('2d'));
   for(let t = 0; t < TYPES.length; t++) for(let s = 0; s < 5; s++) await TYPES[t][1](document.getElementById(`k${t}_${s}`).getContext('2d'), s);
-  base(document.getElementById('f1').getContext('2d'));
-  document.getElementById('f2').getContext('2d').drawImage(document.getElementById('k0_4'), 0, 0);
-  drawViz();
-  ready = true; go(beat);
+  thumbClean.getContext('2d').drawImage(document.getElementById('clean'), 0, 0);
+  thumbNoisy.getContext('2d').drawImage(document.getElementById('k0_4'), 0, 0);
+  ready = true;
 })();
 
-/* softmax and energy from day06's example logits; distance computed from a seeded 2-D cluster */
-const emSoft = z => { const m = Math.max(...z), e = z.map(v => Math.exp(v - m)), s = e.reduce((a, b) => a + b, 0); return e.map(v => v / s); };
-const emEnergy = z => -Math.log(z.reduce((a, v) => a + Math.exp(v), 0));
-const Z1 = [5, 1, 0], Z2 = [2, 1.9, 1.8];
-const P1 = emSoft(Z1), P2 = emSoft(Z2);
-const barsHTML = p => { const top = Math.max(...p); return p.map(v => `<i class="${v === top ? 'top' : ''}" style="width:${(v*100).toFixed(1)}%"></i>`).join(''); };
-document.getElementById('b1').innerHTML = barsHTML(P1); document.getElementById('s1').textContent = Math.max(...P1).toFixed(2);
-document.getElementById('b2').innerHTML = barsHTML(P2); document.getElementById('s2').textContent = Math.max(...P2).toFixed(2);
+/* Logits are day06's example (the plan doc's); softmax, exp, sum and energy are computed from them. Distance points are a seeded schematic. */
+const {INK, MID, SOFT, txt, dot, lerp, ease, clamp01} = MK;
+const Z = [[5, 1, 0], [2, 1.9, 1.8]];
+const P = Z.map(z => { const e = z.map(v => Math.exp(v)), s = e.reduce((a, b) => a + b, 0); return e.map(v => v/s); });
+const EXP = Z.map(z => z.map(Math.exp)), SUM_E = EXP.map(e => e.reduce((a, b) => a + b, 0)), ENERGY = SUM_E.map(s => -Math.log(s));
+const TOP = P.map(p => Math.max(...p));
+const fmtE = v => v.toFixed(1).replace('-', '−');
+const fmtX = v => v >= 100 ? v.toFixed(1) : v.toFixed(1);
 
-/* Mahalanobis-style distance: axis-aligned spread estimated from a seeded cluster; near and far probes */
+/* feature space, in unit square: the training images of the class are seeded points; each new image is one more point */
 const Rg = rng(7), gs = () => { let u = 0; while(!u) u = Rg(); const v = Rg(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); };
-const cl = [...Array(26)].map(() => ({x: 112 + 26*gs(), y: 262 + 24*gs()}));
+const cl = [...Array(26)].map(() => ({x: .28 + .075*gs(), y: .66 + .07*gs()}));
 const mx = cl.reduce((a, p) => a + p.x, 0)/cl.length, my = cl.reduce((a, p) => a + p.y, 0)/cl.length;
 const sx = Math.sqrt(cl.reduce((a, p) => a + (p.x - mx)**2, 0)/(cl.length - 1)), sy = Math.sqrt(cl.reduce((a, p) => a + (p.y - my)**2, 0)/(cl.length - 1));
 const dist = p => Math.sqrt(((p.x - mx)/sx)**2 + ((p.y - my)/sy)**2);
-const near = {x: 136, y: 276}, far = {x: 262, y: 72};
-const fmt = v => v.toFixed(1).replace('-', '−');
-function drawViz(){
-  const u1 = document.getElementById('f1').toDataURL('image/jpeg', .85), u2 = document.getElementById('f2').toDataURL('image/jpeg', .85);
-  /* energy axis: lower = more familiar; -6 at the bottom, -2 at the top */
-  const E1 = emEnergy(Z1), E2 = emEnergy(Z2), Y = v => 385 - (v + 6)/4*355;
-  let e = `<line x1="62" y1="${Y(-2)}" x2="62" y2="${Y(-6)}" stroke="#94a3b8" stroke-width="2"/>`;
-  for(const v of [-6, -5, -4, -3, -2]) e += `<line x1="56" y1="${Y(v)}" x2="62" y2="${Y(v)}" stroke="#94a3b8" stroke-width="2"/><text x="50" y="${Y(v) + 6}" font-size="18" text-anchor="end">${fmt(v).replace('.0', '')}</text>`;
-  [[E1, u1], [E2, u2]].forEach(([v, u]) => { e += `<line x1="62" y1="${Y(v)}" x2="104" y2="${Y(v)}" stroke="#0f172a" stroke-width="2"/><circle cx="62" cy="${Y(v)}" r="8" fill="#0f172a"/><image href="${u}" x="104" y="${Y(v) - 44}" width="88" height="88"/><text x="202" y="${Y(v) + 9}" font-size="27" font-weight="700">${fmt(v)}</text>`; });
-  e += `<text x="80" y="372" font-size="18" text-anchor="start">lower = more familiar</text>`;
-  document.getElementById('viz-energy').innerHTML = e;
-  /* distance: class cluster, 2-sigma ellipse, center, one near and one far input */
-  let d = cl.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5" fill="#94a3b8"/>`).join('');
-  d += `<ellipse cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" rx="${(2*sx).toFixed(1)}" ry="${(2*sy).toFixed(1)}" fill="none" stroke="#0f172a" stroke-width="2" stroke-dasharray="6 4"/>`;
-  d += `<path d="M${mx - 9} ${my}H${mx + 9}M${mx} ${my - 9}V${my + 9}" stroke="#0f172a" stroke-width="3"/>`;
-  for(const q of [near, far]) d += `<line x1="${mx.toFixed(1)}" y1="${my.toFixed(1)}" x2="${q.x}" y2="${q.y}" stroke="#0f172a" stroke-width="2"/><circle cx="${q.x}" cy="${q.y}" r="8" fill="#0f172a"/>`;
-  d += `<image href="${u1}" x="170" y="300" width="84" height="84"/><text x="262" y="350" font-size="27" font-weight="700">${fmt(dist(near))}</text>`;
-  d += `<image href="${u2}" x="120" y="30" width="84" height="84"/><text x="210" y="62" font-size="27" font-weight="700">${fmt(dist(far))}</text>`;
-  document.getElementById('viz-dist').innerHTML = d;
-}
+const near = {x: .34, y: .72}, far = {x: .82, y: .22};
 
 const CUES = [
   [1, 1, 'Add noise across different parameters'],
   [2, 2, 'Examples of corrupted data'],
   [3, 4, 'Add up the error across different corruptions'],
-  [5, 7, 'Familiarity scores'],
+  [5, 14, 'Familiarity scores'],
 ];
-const NB = 7;
-function go(b){ beat = b;
+let synced = -1;
+function sync(b){ if(b === synced) return; synced = b;
   const op = (sel, on) => document.querySelectorAll(sel).forEach(e => e.style.opacity = on ? 1 : 0);
-  document.getElementById('cite').style.opacity = b ? 1 : 0;
   op('.c-head', b >= 1); op('.t0', b >= 1); op('.t1', b >= 2); op('.t2', b >= 2); op('.t3', b >= 2);
   op('.c-sum', b >= 3); op('.c-ce', b >= 4); op('.metrics-err', b >= 3);
   document.getElementById('grid').style.opacity = b >= 5 ? 0 : 1;
-  document.getElementById('col1').style.opacity = b >= 5 ? 1 : 0;
-  document.getElementById('col2').style.opacity = b >= 6 ? 1 : 0;
-  document.getElementById('col3').style.opacity = b >= 7 ? 1 : 0;
   const cue = CUES.find(([lo, hi]) => b >= lo && b <= hi);
   const cueEl = document.getElementById('cue'); cueEl.textContent = cue ? cue[2] : ''; cueEl.style.opacity = cue ? 1 : 0;
-  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join('');
 }
-window.metricsBeyond = {
-  advance(){ if(beat < NB) go(beat + 1); },
-  back(){ if(beat > 0) go(beat - 1); },
-  atStart: () => beat === 0,
-  atEnd: () => beat === NB,
-  reset(){ go(0); },
-  resetToEnd(){ go(NB); },
-  getBeat: () => beat,
-};
-if(window.parent === window){
-  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) metricsBeyond.advance(); if(e.key === 'ArrowLeft') metricsBeyond.back(); });
-  addEventListener('click', () => metricsBeyond.advance());
-}
-go(0);
+sync(0);
+
+function thumb(c, img, x, y, s, a = 1){ if(a <= 0) return; c.save(); c.globalAlpha *= a; c.drawImage(img, x, y, s, s); c.restore(); }
+function netBox(c, x, y, w, h, fs, a = 1){ if(a <= 0) return; c.save(); c.globalAlpha *= a; c.fillStyle = '#f1f5f9'; c.strokeStyle = INK; c.lineWidth = 2; c.beginPath();
+  c.moveTo(x, y + h*.1); c.lineTo(x + w, y); c.lineTo(x + w, y + h); c.lineTo(x, y + h*.9); c.closePath(); c.fill(); c.stroke();
+  c.restore(); txt(c, 'network', x + w/2, y + h/2, fs, true, 'center', 'middle', a); }
+function barsH(c, x, yc, maxW, vals, maxV, bh, gap, a, opts = {}){ const n = vals.length, tot = n*bh + (n - 1)*gap, top = yc - tot/2, col = opts.colors || (() => MID);
+  c.save(); c.globalAlpha *= a; vals.forEach((v, i) => { const y = top + i*(bh + gap), w = Math.max(1.5, v/maxV*maxW); c.fillStyle = col(i); c.fillRect(x, y, w*(opts.grow != null ? opts.grow : 1), bh); });
+  c.restore();
+  if(opts.text){ vals.forEach((v, i) => { const y = top + i*(bh + gap) + bh/2, w = Math.max(1.5, v/maxV*maxW); txt(c, opts.text(v, i), x + w*(opts.grow != null ? opts.grow : 1) + 8, y, opts.sz || 16, false, 'left', 'middle', a); }); } }
+
+MK.scene('metricsBeyond', 14, ({ctx: c, W, H, beat, p, raw, A}) => {
+  sync(beat);
+  if(beat < 5 || !ready) return;
+  const fs = Math.max(15, W*.0165);
+  const pA = (from, to) => beat < from ? 0 : beat > to + 1 ? 0 : beat === from ? p : beat === to + 1 ? 1 - p : 1;
+  const a1 = pA(5, 7), a2 = pA(8, 10), a3 = beat >= 11 ? (beat === 11 ? p : 1) : 0;
+  const imgs = [thumbClean, thumbNoisy];
+
+  /* ---- top softmax ---- */
+  if(a1 > 0){ c.save(); c.globalAlpha = a1;
+    txt(c, 'top softmax', 0, fs*.8, fs*1.2, true, 'left', 'middle');
+    const yc = [H*.34, H*.77], s = H*.32, sx0 = W*.005, netX = sx0 + s + W*.03, netW = W*.085, netY = H*.14, netH = H*.8;
+    netBox(c, netX, netY, netW, netH, fs*.95, A(5));
+    yc.forEach((y, i) => {
+      thumb(c, imgs[i], sx0, y - s/2, s, A(5));
+      MK.arrow(c, sx0 + s + 6, y, netX - 4, y, A(5));
+      MK.arrow(c, netX + netW + 6, y, netX + netW + W*.04, y, A(5));
+      /* logits */
+      barsH(c, netX + netW + W*.05, y, W*.14, Z[i], 5, H*.062, H*.012, A(5), {text: v => v.toFixed(1), sz: fs*.98, colors: () => '#475569'});
+      /* softmax */
+      if(beat >= 6){ const a = beat === 6 ? p : 1; MK.arrow(c, netX + netW + W*.25, y, netX + netW + W*.33, y, a);
+        barsH(c, netX + netW + W*.35, y, W*.17, P[i], 1, H*.062, H*.012, a, {text: v => v.toFixed(2), sz: fs*.98, colors: j => (beat >= 7 && P[i][j] === TOP[i]) ? INK : MID}); }
+      /* score */
+      if(beat >= 7){ txt(c, TOP[i].toFixed(2), W*.965, y, fs*1.95, true, 'center', 'middle', beat === 7 ? p : 1); }
+    });
+    const hY = H*.1, hd = (t, x, a) => txt(c, t, x, hY, fs*.98, true, 'center', 'middle', a);
+    hd('one raw score per class (logit)', netX + netW + W*.13, A(5));
+    if(beat >= 6) hd('softmax: probabilities, sum to 1', netX + netW + W*.42, beat === 6 ? p : 1);
+    if(beat >= 7){ hd('score', W*.965, beat === 7 ? p : 1); txt(c, 'flag: "I don\'t know"', W*.965, yc[1] + H*.135, fs*1.05, true, 'right', 'middle', beat === 7 ? p : 1); }
+    c.restore(); }
+
+  /* ---- energy ---- */
+  if(a2 > 0){ c.save(); c.globalAlpha = a2;
+    txt(c, 'energy = −log Σ exp(logit)    (T = 1)', 0, fs*.8, fs*1.2, true, 'left', 'middle');
+    const yc = [H*.36, H*.78], s = H*.24, sx0 = W*.005, cxL = sx0 + s + W*.018, wL = W*.085, cxE = cxL + wL + W*.075, wE = W*.15, cxS = cxE + wE + W*.09, wS = W*.11, cxV = cxS + wS + W*.105;
+    const axX = W*.875, axT = H*.13, axB = H*.93, axY = v => axB - (v + 6)/4*(axB - axT);
+    const hY = H*.1, hd = (t, x, a) => txt(c, t, x, hY, fs*.98, true, 'center', 'middle', a);
+    hd('logits', cxL + wL/2, A(8)); hd('exp of each', cxE + wE/2, A(8));
+    if(beat >= 9) hd('add them up', cxS + wS/2, beat === 9 ? p : 1);
+    if(beat >= 10) hd('−log', cxV + W*.02, beat === 10 ? p : 1);
+    const maxE = Math.max(...SUM_E);
+    yc.forEach((y, i) => {
+      thumb(c, imgs[i], sx0, y - s/2, s, A(8));
+      barsH(c, cxL, y, wL, Z[i], 5, H*.05, H*.01, A(8), {text: v => v.toFixed(1), sz: fs*.95, colors: () => '#475569'});
+      MK.arrow(c, cxL + wL + W*.038, y, cxE - 8, y, A(8));
+      /* exp bars; on beat 9 they slide end to end into one sum bar */
+      const q = beat === 9 ? ease(p) : beat > 9 ? 1 : 0;
+      const n = 3, bh = H*.05, gap = H*.01, tot = n*bh + (n - 1)*gap, top = y - tot/2;
+      let cum = 0;
+      EXP[i].forEach((v, j) => { const w = v/maxE*wE, x0 = cxE, yy = top + j*(bh + gap), sw = v/maxE*wS, sx1 = cxS + cum;
+        c.save(); c.globalAlpha = A(8); c.fillStyle = MID; c.fillRect(x0, yy, Math.max(1.5, w), bh); c.restore();
+        txt(c, fmtX(v), x0 + w + 8, yy + bh/2, fs*.95, false, 'left', 'middle', A(8));
+        if(q > 0){ const x = lerp(x0, sx1, q), yNow = lerp(yy, y - bh/2, q), wNow = lerp(w, sw, q); c.save(); c.fillStyle = INK; c.fillRect(x, yNow, Math.max(1.5, wNow), bh); c.restore(); }
+        cum += sw; });
+      if(beat >= 9){ const a = beat === 9 ? p : 1; MK.arrow(c, cxE + wE + W*.03, y, cxS - 8, y, a);
+        txt(c, fmtX(SUM_E[i]), cxS + SUM_E[i]/maxE*wS + 8, y, fs*1.05, true, 'left', 'middle', a); }
+      if(beat >= 10){ const a = beat === 10 ? p : 1; MK.arrow(c, cxS + wS + W*.06, y, cxV - 8, y, a);
+        txt(c, fmtE(ENERGY[i]), cxV, y, fs*1.5, true, 'left', 'middle', a);
+        /* the value lands on the axis */
+        const yEnd = axY(ENERGY[i]), yNow = lerp(y, yEnd, ease(p)*(beat === 10 ? 1 : 0) + (beat > 10 ? 1 : 0));
+        dot(c, axX, yNow, 8, true, a);
+        thumb(c, imgs[i], axX + 14, yEnd - 26, 52, a);
+        txt(c, fmtE(ENERGY[i]), axX + 72, yEnd, fs*1.05, true, 'left', 'middle', a); }
+    });
+    if(beat >= 10){ const a = beat === 10 ? p : 1; c.save(); c.globalAlpha = a; MK.line(c, axX, axT, axX, axB, MID, 2);
+      for(const v of [-6, -5, -4, -3, -2]){ MK.line(c, axX - 6, axY(v), axX, axY(v), MID, 2); txt(c, fmtE(v).replace('.0', ''), axX - 10, axY(v), fs*.92, false, 'right'); }
+      txt(c, 'lower = more familiar', axX - 34, axB - fs*.3, fs*.92, false, 'right', 'bottom');
+      c.restore(); }
+    c.restore(); }
+
+  /* ---- distance to the class center ---- */
+  if(a3 > 0){ c.save(); c.globalAlpha = a3;
+    txt(c, 'distance to class center', 0, fs*.8, fs*1.2, true, 'left', 'middle');
+    const netX = W*.235, netW = W*.08, netY = H*.12, netH = H*.8, rA = H*.33, rB = H*.77;
+    const fx0 = W*.365, fx1 = W*.985, fy0 = H*.1, fy1 = H*.93, FX = v => fx0 + v*(fx1 - fx0), FY = v => fy0 + v*(fy1 - fy0);
+    netBox(c, netX, netY, netW, netH, fs*.95, 1);
+    c.strokeStyle = MID; c.lineWidth = 1.5; c.strokeRect(fx0, fy0, fx1 - fx0, fy1 - fy0);
+    txt(c, 'feature space (schematic)', fx0 + 10, fy0 + 16, fs*.95, true, 'left', 'middle');
+    /* training images of the class: grey placeholders */
+    const tile = H*.075, tilesX = W*.005, gapT = 7;
+    for(let i = 0; i < 8; i++){ c.save(); c.globalAlpha = .8; c.fillStyle = '#cbd5e1'; c.fillRect(tilesX + (i % 4)*(tile + gapT), rA - H*.12 + Math.floor(i/4)*(tile + gapT), tile, tile); c.restore(); }
+    txt(c, 'training images,', tilesX, rA + H*.115, fs*.92, true, 'left', 'middle'); txt(c, 'this class', tilesX, rA + H*.115 + fs*1.1, fs*.92, true, 'left', 'middle');
+    MK.arrow(c, tilesX + 4*(tile + gapT) + 4, rA, netX - 4, rA, 1);
+    MK.arrow(c, netX + netW + 4, rA, fx0 - 6, rA, 1);
+    /* grey points */
+    const nCl = cl.length, st = beat === 11 ? raw*1.3 : 1.3;
+    cl.forEach((pt, i) => { const q = beat === 11 ? ease(clamp01(st - i/nCl*.3)) : 1, tx = FX(pt.x), ty = FY(pt.y), ox = netX + netW + 4, oy = rA;
+      if(q <= 0) return; dot(c, lerp(ox, tx, q), lerp(oy, ty, q), Math.max(5, W*.0046), true, .42); });
+    /* the average */
+    if(beat >= 12){ const a = beat === 12 ? p : 1, cx = FX(mx), cy = FY(my); c.save(); c.globalAlpha = a; c.strokeStyle = INK; c.lineWidth = 3.5; c.beginPath(); c.moveTo(cx - 11, cy); c.lineTo(cx + 11, cy); c.moveTo(cx, cy - 11); c.lineTo(cx, cy + 11); c.stroke(); c.restore();
+      txt(c, '+ their average', fx0 + 10, fy0 + 16 + fs*2.3, fs*.95, false, 'left', 'middle', a); }
+    txt(c, 'grey point: one training image of the class', fx0 + 10, fy0 + 16 + fs*1.2, fs*.95, false, 'left', 'middle', beat === 11 ? p : 1);
+    /* new images */
+    if(beat >= 13){ const a = beat === 13 ? p : 1, ts = H*.17, tx = W*.005, gapI = W*.012;
+      txt(c, 'new images', tx, rB - ts/2 - fs*.8, fs*.92, true, 'left', 'middle', a);
+      thumb(c, imgs[0], tx, rB - ts/2, ts, a); thumb(c, imgs[1], tx + ts + gapI, rB - ts/2, ts, a);
+      MK.arrow(c, tx + 2*ts + gapI + 4, rB, netX - 4, rB, a); MK.arrow(c, netX + netW + 4, rB, fx0 - 6, rB, a);
+      [near, far].forEach((pt, i) => { const q = beat === 13 ? ease(p) : 1, ox = netX + netW + 4, oy = rB, tx1 = FX(pt.x), ty1 = FY(pt.y), x = lerp(ox, tx1, q), y = lerp(oy, ty1, q);
+        dot(c, x, y, 9, true, a);
+        const th = i === 0 ? [tx1 + 44, ty1 + 34] : [tx1 + 12, ty1 - 28];
+        if(i === 0){ c.save(); c.globalAlpha = a*q; MK.line(c, tx1, ty1, th[0], th[1], MID, 1.5); c.restore(); }
+        thumb(c, imgs[i], th[0], th[1], 56, a*q); });
+      txt(c, 'dark point: a new image', fx0 + 10, fy0 + 16 + fs*3.4, fs*.95, false, 'left', 'middle', a); }
+    /* distances, in the class's spread */
+    if(beat >= 14){ const a = p, cx = FX(mx), cy = FY(my);
+      c.save(); c.globalAlpha = a; c.strokeStyle = INK; c.setLineDash([6, 4]); c.lineWidth = 2; c.beginPath(); c.ellipse(cx, cy, 2*sx*(fx1 - fx0), 2*sy*(fy1 - fy0), 0, 0, 7); c.stroke(); c.restore();
+      [near, far].forEach((pt, i) => { const px = FX(pt.x), py = FY(pt.y); c.save(); c.globalAlpha = a; MK.line(c, cx, cy, px, py, INK, 2.2); c.restore();
+        const lab = i === 0 ? [px + 106, py + 62, 'left'] : [px - 14, py - 8, 'right'];
+        txt(c, fmtE(dist(pt)), lab[0], lab[1], fs*1.45, true, lab[2], i === 0 ? 'middle' : 'bottom', a); }); }
+    c.restore(); }
+}, {});
 </script>
 </body>
 </html>

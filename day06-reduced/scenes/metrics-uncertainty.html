@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="../../deck/deck.css">
 <style>
-  /* Day 6 reduced, part metrics. p43. Fold data in assets/metrics/metrics-kit.js (foldData, seed 32). Filled = model A, open = model B. */
+  /* Day 6 reduced, part metrics. p43. Fold data and the bootstrap in assets/metrics/metrics-kit.js (foldData, seed 32; bootstrap seed 11). Filled = model A, open = model B. */
   html, body{ background:#fff; }
   .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
   .metrics-box{ position:relative; flex:1 1 auto; min-height:0; }
@@ -21,90 +21,166 @@
 <div class="wrap">
   <h1 class="t deck-title">Uncertainty and comparing models</h1>
   <div class="metrics-box"><canvas id="cv"></canvas></div>
-  <div class="cite" id="cite" style="opacity:0">Example: two models, 10 simulated folds (same splits, same data on every click); SD, SE and 95% CI (t, 9 df) computed</div>
+  <div class="cite" id="cite" style="opacity:0">Example: two models, 10 simulated folds (same data on every click); SD, SE, 95% CI (t, 9 df) and bootstrap (1000 resamples of the folds) computed</div>
 </div>
 <div class="dots" id="dots"></div>
 <script src="../assets/metrics/metrics-kit.js"></script>
 <script>
-/* BEAT 0 title only
+/* BEAT 0  title only
    1  a single number per model
-   2  the per-fold scores behind it
-   3  standard deviation bars
-   4  standard error bars
-   5  95% confidence interval bars
-   6  the same folds connected: A and B on each split
-   7  paired differences A - B, their mean and CI: includes 0 */
-const D = MK.foldData(), {INK, MID, SOFT, txt, dot, mean} = MK;
+   2  the 10 fold scores behind it
+   3  each fold's distance from the mean
+   4  the distances collapse into the standard deviation bar
+   5  the SD bar shrinks by the square root of 10: standard error
+   6  the SE bar stretches by 2.26: 95% CI
+   7  bootstrap: draw 10 folds with replacement, take their mean, into the histogram
+   8  repeat four more, one after another
+   9  all 1000 at once
+   10 read the 2.5% and 97.5% percentiles: a fourth bar beside the 95% CI
+   11 the same folds connected: A and B on each split (histogram fades)
+   12 paired differences A - B, their mean and CI: includes 0 */
+const D = MK.foldData(), {INK, MID, SOFT, txt, dot, lerp, clamp01, ease} = MK;
 const f1 = n => n.toFixed(1), f2 = n => n.toFixed(2);
 const sgn = n => (n >= 0 ? '+' : '−') + f2(Math.abs(n));
 const all = [...D.A, ...D.B], yMin = Math.floor(Math.min(...all)) - 1, yMax = Math.ceil(Math.max(...all)) + 1;
+const B = D.boot;
+const lo = Math.min(...B.A), hi = Math.max(...B.A), binW = .25;
+const bin = v => Math.floor((v - lo)/binW);
+const nBins = bin(hi) + 1;
+const histOf = vals => { const h = new Array(nBins).fill(0); vals.forEach(v => h[bin(v)]++); return h; };
+const full = histOf(B.A), maxFull = Math.max(...full);
 
-MK.scene('metricsUncertainty', 7, ({ctx: c, W, H, beat, p, A}) => {
+MK.scene('metricsUncertainty', 12, ({ctx: c, W, H, beat, p, raw, A}) => {
   if(beat === 0) return;
   const fs = Math.max(15, W*.0165);
-  const x0 = W*.06, x1 = W*.715, y0 = H*.05, y1 = H*.79;
+  const x0 = W*.055, x1 = W*.72, y0 = H*.05, y1 = H*.755;
   const Y = v => y1 - (v - yMin)/(yMax - yMin)*(y1 - y0);
+  /* finished bars fade while the bootstrap is the point */
+  const dimBars = beat >= 7 && beat <= 9 ? .45 : 1;
 
   /* axis */
   c.save(); c.globalAlpha = A(1);
   MK.line(c, x0, y0, x0, y1, MID, 1.5); MK.line(c, x0, y1, x1, y1, MID, 1.5);
   for(let v = yMin; v <= yMax; v += 2){ MK.line(c, x0 - 5, Y(v), x0, Y(v), MID, 1.5); txt(c, String(v), x0 - 9, Y(v), fs*.9, false, 'right'); }
   txt(c, 'accuracy (%)', x0, y0 - 8, fs*.95, true, 'left', 'bottom');
-  /* model key */
   dot(c, x1 - 230, y0 + 6, 7, true); txt(c, 'model A', x1 - 218, y0 + 6, fs, false, 'left');
   dot(c, x1 - 110, y0 + 6, 7, false); txt(c, 'model B', x1 - 98, y0 + 6, fs, false, 'left');
   c.restore();
 
-  /* groups */
-  const gx = i => x0 + (x1 - x0)*[.14, .42, .64, .86][i];
-  const dx0 = W*.045, dxG = W*.03;
-  const gLabel = (i, a, l1, l2, l3) => { if(a <= 0) return; const x = gx(i);
-    txt(c, l1, x, y1 + fs*.95, fs*1.02, true, 'center', 'middle', a);
-    if(l2) txt(c, l2, x, y1 + fs*2.1, fs*.93, false, 'center', 'middle', a);
-    if(l3) txt(c, l3, x, y1 + fs*3.2, fs*.86, false, 'center', 'middle', a); };
+  /* group centers: folds, SD, SE, 95% CI, bootstrap */
+  const gx = i => x0 + (x1 - x0)*[.135, .34, .53, .72, .905][i];
+  const dx0 = W*.04, dxG = W*.028;
+  const gLabel = (i, a, l1, l2, l3, l4) => { if(a <= 0) return; const x = gx(i); let y = y1 + fs*.8;
+    (Array.isArray(l1) ? l1 : [l1]).forEach(t => { txt(c, t, x, y, fs*.98, true, 'center', 'middle', a); y += fs*1.05; });
+    if(l2){ txt(c, l2, x, y, fs*.88, false, 'center', 'middle', a); y += fs*1.05; }
+    if(l3){ txt(c, l3, x, y, fs*.84, false, 'center', 'middle', a); y += fs; }
+    if(l4) txt(c, l4, x, y, fs*.84, false, 'center', 'middle', a); };
 
-  /* group 0: means, then raw folds */
-  const xA0 = gx(0) - dx0, xB0 = gx(0) + dx0;
-  const fx = (i, sideX) => sideX + ((i % 3) - 1)*6;
-  if(beat >= 6){ const q = beat === 6 ? p : 1; D.A.forEach((a, i) => { MK.line(c, fx(i, xA0), Y(a), fx(i, xA0) + (fx(i, xB0) - fx(i, xA0))*q, Y(a) + (Y(D.B[i]) - Y(a))*q, MID, 1.5); }); }
+  /* group 0: means and raw folds */
+  const xA0 = gx(0) - dx0, xB0 = gx(0) + dx0, fx = (i, xs) => xs + ((i % 3) - 1)*6;
+  const R0 = D.A.map((v, i) => [v, fx(i, xA0), D.a.m]), R1 = D.B.map((v, i) => [v, fx(i, xB0), D.b.m]);
+  if(beat >= 11){ const q = beat === 11 ? p : 1; D.A.forEach((a, i) => MK.line(c, fx(i, xA0), Y(a), fx(i, xA0) + (fx(i, xB0) - fx(i, xA0))*q, Y(a) + (Y(D.B[i]) - Y(a))*q, MID, 1.5)); }
   if(beat >= 2){ const a = beat === 2 ? p : 1; D.A.forEach((v, i) => dot(c, fx(i, xA0), Y(v), 5.5, true, a*.9)); D.B.forEach((v, i) => dot(c, fx(i, xB0), Y(v), 5.5, false, a*.9)); }
-  /* the single numbers: big marks */
   dot(c, xA0, Y(D.a.m), 10, true, A(1)); dot(c, xB0, Y(D.b.m), 10, false, A(1));
   txt(c, f1(D.a.m), xA0 - 16, Y(D.a.m), fs*1.08, true, 'right', 'middle', A(1));
   txt(c, f1(D.b.m), xB0 + 16, Y(D.b.m), fs*1.08, true, 'left', 'middle', A(1));
   gLabel(0, A(1), beat >= 2 ? '10 folds' : 'one number', '', '');
 
-  /* error-bar groups: same data, three ways */
-  const bar = (i, half, a) => { if(a <= 0) return; const x = gx(i), xa = x - dxG, xb = x + dxG, ya = Y(D.a.m), yb = Y(D.b.m);
-    c.save(); c.globalAlpha = a;
-    for(const [xx, yy, h] of [[xa, ya, half.a], [xb, yb, half.b]]){ MK.line(c, xx, Y(yy === ya ? D.a.m + h : D.b.m + h), xx, Y(yy === ya ? D.a.m - h : D.b.m - h), INK, 2.5); const yt = Y(yy === ya ? D.a.m + h : D.b.m + h), yb2 = Y(yy === ya ? D.a.m - h : D.b.m - h); MK.line(c, xx - 8, yt, xx + 8, yt, INK, 2.5); MK.line(c, xx - 8, yb2, xx + 8, yb2, INK, 2.5); }
+  /* beat 3: each fold's distance from the mean. beat 4: those distances collapse into the bar. */
+  const sideS = v => v >= 0 ? 1 : -1;
+  if(beat === 3 || beat === 4){
+    const q = beat === 4 ? ease(clamp01(p/.9)) : 0, a = beat === 3 ? p : 1 - clamp01((p - .75)/.25);
+    [[R0, gx(1) - dxG, D.a.s], [R1, gx(1) + dxG, D.b.s]].forEach(([list, tx, s], m) => { const mean = m === 0 ? D.a.m : D.b.m;
+      list.forEach(([v, sx]) => { const sn = sideS(v - mean); const yStart = Y(v), yEnd = Y(mean + sn*s); const x = lerp(sx, tx, q), ya = lerp(yStart, yEnd, q), yb = Y(mean);
+        c.save(); c.globalAlpha = a; MK.line(c, x, ya, x, yb, INK, beat === 3 ? 1.8 : 2.2); c.restore(); });
+      if(beat === 3){ c.save(); c.globalAlpha = p; MK.line(c, (m ? xB0 : xA0) - 22, Y(mean), (m ? xB0 : xA0) + 22, Y(mean), INK, 2.5); c.restore(); } });
+  }
+  if(beat === 3) txt(c, 'distance from the mean', gx(0), Y(yMin) - fs*.4, fs*.9, true, 'center', 'bottom', p);
+
+  /* error bars; lo/hi are absolute accuracy values, so a bar need not be symmetric */
+  const bar = (i, a0, aLo, aHi, bLo, bHi) => { if(a0 <= 0) return; const x = gx(i), xa = x - dxG, xb = x + dxG;
+    c.save(); c.globalAlpha = a0;
+    for(const [xx, l, h] of [[xa, aLo, aHi], [xb, bLo, bHi]]){ MK.line(c, xx, Y(h), xx, Y(l), INK, 2.5); MK.line(c, xx - 8, Y(h), xx + 8, Y(h), INK, 2.5); MK.line(c, xx - 8, Y(l), xx + 8, Y(l), INK, 2.5); }
     c.restore();
-    dot(c, xa, ya, 8.5, true, a); dot(c, xb, yb, 8.5, false, a); };
-  const grp = (i, b, label, sub, half) => { const a = A(b); bar(i, half, a); gLabel(i, a, label, sub, `A ±${f2(half.a)} · B ±${f2(half.b)}`); };
-  grp(1, 3, 'standard deviation', 'spread of the folds', {a: D.a.s, b: D.b.s});
-  grp(2, 4, 'standard error', 'SD ÷ √10', {a: D.a.se, b: D.b.se});
-  grp(3, 5, '95% CI', `± ${D.t.toFixed(2)} × SE`, {a: D.a.ci, b: D.b.ci});
+    dot(c, xa, Y(D.a.m), 8.5, true, a0); dot(c, xb, Y(D.b.m), 8.5, false, a0); };
+  const sym = (i, a, half) => bar(i, a, D.a.m - half.a, D.a.m + half.a, D.b.m - half.b, D.b.m + half.b);
+  const vals = half => `A ±${f2(half.a)} · B ±${f2(half.b)}`;
+  const sd = {a: D.a.s, b: D.b.s}, se = {a: D.a.se, b: D.b.se}, ci = {a: D.a.ci, b: D.b.ci};
+  const lerpH = (x, y, q) => ({a: lerp(x.a, y.a, q), b: lerp(x.b, y.b, q)});
+  const big = (i, t, a) => txt(c, t, gx(i), Y(yMax) + fs*1.3, fs*1.3, true, 'center', 'middle', a);
+
+  /* SD: appears as the distances land */
+  if(beat >= 4){ const a = beat === 4 ? clamp01((p - .55)/.45) : 1; sym(1, a*dimBars, sd); gLabel(1, a*dimBars, ['standard', 'deviation'], '√(mean distance²)', vals(sd)); }
+  /* SE: starts at the SD bar and shrinks by √10 */
+  if(beat >= 5){ const q = beat === 5 ? p : 1; sym(2, dimBars, lerpH(sd, se, q)); gLabel(2, A(5)*dimBars, ['standard', 'error'], 'SD ÷ √10', vals(se));
+    if(beat === 5){ big(2, '÷ √10', p); txt(c, '10 folds', gx(2), Y(yMax) + fs*2.7, fs*.95, false, 'center', 'middle', p); } }
+  /* 95% CI: starts at the SE bar and stretches by 2.26 */
+  if(beat >= 6){ const q = beat === 6 ? p : 1; sym(3, dimBars, lerpH(se, ci, q)); gLabel(3, A(6)*dimBars, '95% CI', `SE × ${D.t.toFixed(2)}`, vals(ci));
+    if(beat === 6) big(3, `× ${D.t.toFixed(2)}`, p); }
+  /* bootstrap: read from the percentiles */
+  if(beat >= 10){ const a = beat === 10 ? p : 1; bar(4, a, B.ciA[0], B.ciA[1], B.ciB[0], B.ciB[1]);
+    gLabel(4, a, ['bootstrap', '95%'], 'percentiles', `A ${f1(B.ciA[0])} to ${f1(B.ciA[1])}`, `B ${f1(B.ciB[0])} to ${f1(B.ciB[1])}`); }
+
+  /* right panel: bootstrap for model A (beats 7-10), then the paired panel */
+  const px0 = W*.755, px1 = W*.985;
+  if(beat >= 7 && beat <= 11){
+    const a = beat === 7 ? Math.min(1, p*2) : beat === 11 ? 1 - p : 1;
+    txt(c, 'bootstrap, model A', (px0 + px1)/2, H*.03, fs, true, 'center', 'middle', a);
+    /* which resample is on screen */
+    let cur = 0, fall = 0, done = 0;
+    if(beat === 7){ cur = 0; fall = clamp01((raw - .42)/.5); done = raw >= .9 ? 1 : 0; }
+    else if(beat === 8){ const ph = raw*4, k = Math.min(3, Math.floor(ph)), fr = ph - k; cur = 1 + k; fall = clamp01((fr - .35)/.55); done = 1 + k + (fr >= .9 ? 1 : 0); }
+    else { cur = 4; fall = 1; done = 5; }
+    /* the 10 folds of this resample: count how often each is drawn */
+    const rowY = H*.20, rowA = (beat === 7 || beat === 8) ? a : beat === 9 ? 1 - p : 0, sp = (px1 - px0)/10, rD = Math.max(5, W*.0048);
+    if(rowA > 0){ const ix = B.idxs[cur], cnt = new Array(10).fill(0); ix.forEach(i => cnt[i]++);
+      txt(c, 'draw 10 folds, with replacement', (px0 + px1)/2, H*.075, fs*.9, false, 'center', 'middle', rowA);
+      cnt.forEach((n, i) => { const x = px0 + sp*(i + .5);
+        if(n === 0){ c.save(); c.globalAlpha = rowA*.5; c.strokeStyle = MID; c.lineWidth = 1.5; c.beginPath(); c.arc(x, rowY, rD, 0, 7); c.stroke(); c.restore(); }
+        else for(let j = 0; j < n; j++) dot(c, x, rowY - j*(2*rD + 2), rD, true, rowA); });
+      const m = B.A[cur];
+      txt(c, `mean ${f1(m)}`, (px0 + px1)/2, rowY + fs*1.15, fs*.95, true, 'center', 'middle', rowA);
+    }
+    /* histogram */
+    const hTop = H*.36, hBase = H*.745, hW = px1 - px0, hX = v => px0 + (v - lo)/(hi - lo + binW)*hW, unit = Math.min(14, (hBase - hTop)/5), fullUnit = (hBase - hTop)/maxFull;
+    const small = histOf(B.A.slice(0, done));
+    MK.line(c, px0, hBase, px1, hBase, MID, 1.5);
+    txt(c, f1(lo), px0, hBase + fs*.7, fs*.85, false, 'left', 'middle', a); txt(c, f1(hi), px1, hBase + fs*.7, fs*.85, false, 'right', 'middle', a);
+    txt(c, 'mean of each resample', (px0 + px1)/2, hBase + fs*.7, fs*.85, false, 'center', 'middle', a);
+    const barW = hX(lo + binW) - hX(lo) - 1;
+    c.save(); c.globalAlpha = a; c.fillStyle = INK;
+    for(let i = 0; i < nBins; i++){ const x = hX(lo + i*binW);
+      let h; if(beat <= 8) h = small[i]*unit; else if(beat === 9) h = lerp(small[i]*unit, full[i]*fullUnit, ease(clamp01(raw))); else h = full[i]*fullUnit;
+      if(h > 0) c.fillRect(x, hBase - h, barW, h); }
+    c.restore();
+    /* the mean falling */
+    if((beat === 7 || beat === 8) && fall > 0 && fall < 1){ const m = B.A[cur], x = hX(m), yy = lerp(rowY + fs*1.15, hBase - 4, ease(fall)); dot(c, x, yy, 5, true, 1); }
+    const nShown = beat <= 8 ? done : beat === 9 ? Math.round(lerp(5, B.NB, clamp01(raw))) : B.NB;
+    txt(c, `${nShown} resample${nShown === 1 ? '' : 's'}`, px1, hTop - fs*1.35, fs*.95, true, 'right', 'bottom', a);
+    /* percentiles */
+    if(beat >= 10){ const pa = beat === 10 ? p : (beat === 11 ? 1 - p : 1); B.ciA.forEach((v, j) => { const x = hX(v); c.save(); c.globalAlpha = pa; MK.line(c, x, hTop + 2, x, hBase, INK, 2.4, [7, 4]); c.restore();
+        txt(c, j ? '97.5%' : '2.5%', x, hTop - fs*.1, fs*.92, true, j ? 'left' : 'right', 'bottom', pa); }); }
+  }
 
   /* paired differences */
-  if(beat >= 7){ const a = p;
-    const px0 = W*.77, px1 = W*.985, py0 = H*.05, py1 = y1;
-    const d = D.d, h = Math.max(...d.map(Math.abs), D.diff.ci + Math.abs(D.diff.m)) + .4;
+  if(beat >= 12){ const a = p;
+    const py0 = H*.05, py1 = y1, d = D.d, h = Math.max(...d.map(Math.abs), D.diff.ci + Math.abs(D.diff.m)) + .4;
     const Yd = v => py1 - (v + h)/(2*h)*(py1 - py0);
     c.save(); c.globalAlpha = a;
     txt(c, 'A − B, same split', (px0 + px1)/2, py0 - 8, fs, true, 'center', 'bottom');
     MK.line(c, px0, Yd(0), px1, Yd(0), INK, 2.2, [9, 5]);
     txt(c, '0', px0 - 8, Yd(0), fs*.9, false, 'right');
     d.forEach((v, i) => dot(c, px0 + (i + .7)*(px1 - px0 - W*.05)/10, Yd(v), 5.5, true));
-    const mx = px1 - W*.02, m = D.diff.m, ci = D.diff.ci;
-    MK.line(c, mx, Yd(m + ci), mx, Yd(m - ci), INK, 3); MK.line(c, mx - 9, Yd(m + ci), mx + 9, Yd(m + ci), INK, 3); MK.line(c, mx - 9, Yd(m - ci), mx + 9, Yd(m - ci), INK, 3);
+    const mx = px1 - W*.02, m = D.diff.m, ci2 = D.diff.ci;
+    MK.line(c, mx, Yd(m + ci2), mx, Yd(m - ci2), INK, 3); MK.line(c, mx - 9, Yd(m + ci2), mx + 9, Yd(m + ci2), INK, 3); MK.line(c, mx - 9, Yd(m - ci2), mx + 9, Yd(m - ci2), INK, 3);
     dot(c, mx, Yd(m), 9, true);
     c.restore();
     const cx = (px0 + px1)/2;
     txt(c, `mean ${sgn(m)}`, cx, y1 + fs*.95, fs*1.02, true, 'center', 'middle', a);
-    txt(c, `95% CI ${sgn(m - ci)} to ${sgn(m + ci)}`, cx, y1 + fs*2.1, fs*.93, false, 'center', 'middle', a);
+    txt(c, `95% CI ${sgn(m - ci2)} to ${sgn(m + ci2)}`, cx, y1 + fs*2.1, fs*.93, false, 'center', 'middle', a);
     txt(c, 'includes 0', cx, y1 + fs*3.2, fs*.93, true, 'center', 'middle', a);
   }
-}, {});
+}, {dur: b => b === 8 ? 1750 : b === 9 ? 1500 : 900});
 </script>
 </body>
 </html>

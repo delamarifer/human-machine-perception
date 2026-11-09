@@ -6,8 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="../../deck/deck.css">
 <style>
-  /* Part adapt. Bars read from assets/adapt/cl_results.json (avg_acc mean over 3 seeds). Tiles and springs are
-     illustrative: they show the mechanism, no numbers come from them. */
+  /* Part adapt. Numbers read from assets/adapt/cl_results.json: test accuracies are R_seed0, bars are avg_acc means over 3 seeds.
+     Tiles, network and springs are illustrative: no numbers come from them. */
   html, body{ background:#fff; }
   .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
   .adapt-stagebox{ position:relative; flex:1 1 auto; min-height:0; }
@@ -15,7 +15,12 @@
   svg text{ font-family:var(--font); fill:var(--ink); }
   .adapt-sb{ opacity:0; transition:opacity .5s ease; }
   .adapt-sb.on{ opacity:1; }
-  .adapt-mv{ transition:transform .9s ease; }
+  .adapt-sb.adapt-late.on{ transition-delay:.6s; }
+  .adapt-mv{ transition:transform .8s ease; }
+  .adapt-mv.moved{ transform:translateX(var(--dx)); transition-delay:.35s; }
+  .adapt-fl{ opacity:0; }
+  .adapt-fl.go{ animation:adapt-flow 1s ease forwards; }
+  @keyframes adapt-flow{ 0%{ opacity:1; transform:translate(0,0); } 75%{ opacity:1; } 100%{ opacity:0; transform:translate(var(--dx),var(--dy)); } }
   .cite{ position:static; font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); opacity:0; transition:opacity .5s ease; }
   .cite.on{ opacity:1; }
   .cite a{ color:var(--mute); }
@@ -24,104 +29,205 @@
 <body>
 <div class="wrap">
   <h1 class="t deck-title">Continual learning</h1>
-  <div class="adapt-stagebox"><svg id="sv" viewBox="0 0 1120 470" role="img" aria-label="Replay mixes stored old images into each new batch. EWC holds weights important to old tasks with a stiff spring. Bars compare average accuracy for digits that rotate and for new digits."></svg></div>
-  <div class="cite" id="cite">Toy example: our run on 8×8 digits with a small MLP, mean of 3 seeds · <a href="../assets/adapt/continual_learning_demo.py" target="_blank" rel="noopener">continual_learning_demo.py</a> · EWC: <a href="https://arxiv.org/abs/1612.00796" target="_blank" rel="noopener">Kirkpatrick et al. (PNAS 2017)</a> · tiles and springs illustrative</div>
+  <div class="adapt-stagebox"><svg id="sv" viewBox="0 0 1120 470" role="img" aria-label="Replay and Elastic Weight Consolidation, step by step: training, keeping images or saving weights, testing on every angle seen so far; then bars of average accuracy."></svg></div>
+  <div class="cite" id="cite">Toy example: our run, 8×8 digits, small MLP · test accuracies seed 0, bars mean of 3 seeds · <a href="../assets/adapt/continual_learning_demo.py" target="_blank" rel="noopener">continual_learning_demo.py</a> · EWC: <a href="https://arxiv.org/abs/1612.00796" target="_blank" rel="noopener">Kirkpatrick et al. (PNAS 2017)</a> · drawings illustrative</div>
 </div>
 <script>
-/* BEAT 0  title only
-   BEAT 1  replay: the new batch and the stored old images
-   BEAT 2  replay: stored images slide into the batch
-   BEAT 3  EWC: two weights on springs at their old-task values
-   BEAT 4  EWC: the new task pulls; the stiff weight barely moves, the loose one moves far
-   BEAT 5  bars: digits rotate
-   BEAT 6  bars: new digits arrive */
-const NS = 'http://www.w3.org/2000/svg', INK = '#0f172a', MUTE = '#94a3b8';
+/* BEAT 0      title only
+   BEATS 1-6   Replay, one step per click: train 0°; keep a few images; test 0°; train 30° on new + memory; test 0° and 30°; keep 30° too, repeat
+   BEATS 7-11  EWC: train 0°; save weights and Fisher importance; test 0°; train 30° with the penalty; test 0° and 30°
+   BEATS 12-13 result bars: digits rotate; new digits arrive
+   Step order follows continual_learning_demo.py run(): train, end-of-task bookkeeping (keep images, or save weights and Fisher), then test.
+   Test accuracies are R_seed0 from cl_results.json (rotated digits); bars are avg_acc means over 3 seeds. */
+const NS = 'http://www.w3.org/2000/svg', INK = '#0f172a', MUTE = '#94a3b8', PALE = '#cbd5e1';
 const sv = document.getElementById('sv');
-const NB = 6; let beat = 0, moved = [];
+const NB = 13; let beat = 0, ready = false;
 const el = (t, a, p = sv) => { const e = document.createElementNS(NS, t); for(const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
 const txt = (s, x, y, sz, a = {}, p) => { const e = el('text', {x, y, 'font-size': sz, 'text-anchor': 'middle', ...a}, p); e.textContent = s; return e; };
-const grp = (b, off) => { const g = el('g', {class: 'adapt-sb'}); g.dataset.b = b; if(off) g.dataset.off = off; return g; };
+/* a group shown on a list of beats, or from b up to (not including) off */
+const on = beats => { const g = el('g', {class: 'adapt-sb'}); g.dataset.beats = beats.join(','); return g; };
+const span = (b, off, cls = '') => { const g = el('g', {class: 'adapt-sb ' + cls}); g.dataset.b = b; if(off) g.dataset.off = off; return g; };
+const late = g => { g.classList.add('adapt-late'); return g; };
 
 /* a digit tile: a glyph turned by the task's rotation */
-const tile = (p, x, y, digit, ang, fill = '#f1f5f9') => { const g = el('g', {}, p);
-  el('rect', {x, y, width: 46, height: 46, rx: 5, fill, stroke: INK, 'stroke-width': 1.6}, g);
-  const r = el('g', {transform: `rotate(${ang} ${x + 23} ${y + 23})`}, g); txt(digit, x + 23, y + 33, 28, {'font-weight': 700}, r); return g; };
+const tile = (p, x, y, digit, ang, o = {}) => { const s = o.s || 46, g = el('g', {}, p);
+  el('rect', {x, y, width: s, height: s, rx: 5, fill: o.fill || '#f1f5f9', stroke: INK, 'stroke-width': 1.6, ...(o.dash ? {'stroke-dasharray': '5 4'} : {})}, g);
+  const r = el('g', {transform: `rotate(${ang} ${x + s / 2} ${y + s / 2})`}, g);
+  txt(digit, x + s / 2, y + s * .72, s * .61, {'font-weight': 700}, r); return g; };
 
-/* ---- replay ---- */
-const TX0 = 226, TW = 50, BY = 44, MY = 134;
-function buildReplay(){
-  const a = grp(1);
-  txt('Replay', 10, 30, 30, {'text-anchor': 'start', 'font-weight': 700}, a);
-  txt('new task', TX0 - 14, BY + 31, 24, {'text-anchor': 'end'}, a);
-  [3, 8, 1, 6, 2].forEach((d, i) => tile(a, TX0 + i * TW, BY, d, 120));
-  txt('stored old images', TX0 - 14, MY + 31, 24, {'text-anchor': 'end'}, a);
-  const OLD = [[4, 0], [7, 30], [5, 60], [9, 90], [0, 0], [2, 30], [6, 60], [1, 90]];
-  OLD.forEach(([d, r], i) => tile(a, TX0 + i * TW, MY, d, r, '#fff'));
-  /* three stored tiles travel up to the end of the batch */
-  const b = grp(2);
-  [0, 2, 5].forEach((k, n) => { const m = el('g', {class: 'adapt-mv', 'data-dx': (5 + n - k) * TW, 'data-dy': BY - MY}, b); moved.push(m);
-    tile(m, TX0 + k * TW, MY, OLD[k][0], OLD[k][1], '#fff'); });
-}
+/* copies of tiles that travel on the click: they only run going forward */
+const flows = [];
+const flow = (b, list, tx, ty, o = {}) => list.forEach(([x, y, d, a], i) => {
+  const g = el('g', {class: 'adapt-fl', style: `--dx:${tx - x - 23}px;--dy:${ty - y - 23}px;animation-delay:${i * Math.min(.04, .24 / list.length)}s`});
+  g.dataset.fl = b; tile(g, x, y, d, a, o); flows.push(g); });
 
-/* ---- EWC: a spring is a zigzag between the post and the weight ---- */
-const zig = (x0, x1, y, n, amp) => { const pts = [[x0, y]]; const dx = (x1 - x0) / (2 * n + 1);
-  for(let i = 1; i <= 2 * n; i++) pts.push([x0 + i * dx, y + (i % 2 ? -amp : amp)]); pts.push([x1, y]); return pts.map(p => p.map(v => v.toFixed(1)).join(',')).join(' '); };
-const POST = 266, OLDX = 400, RAIL1 = 590;
-function buildEwc(){
-  const a = grp(3);
-  txt('EWC', 10, 262, 30, {'text-anchor': 'start', 'font-weight': 700}, a);
-  const rows = [['important to old tasks', 316, 5, 10, 4.6, 16], ['not important', 412, 3, 12, 2, 150]];
-  rows.forEach(([lab, y, n, amp, sw, move]) => {
-    txt(lab, POST - 16, y + 8, 24, {'text-anchor': 'end'}, a);
-    el('line', {x1: POST, y1: y + 20, x2: RAIL1, y2: y + 20, stroke: MUTE, 'stroke-width': 1.5}, a);
-    el('rect', {x: POST - 8, y: y - 24, width: 8, height: 48, fill: INK}, a);
-    /* old-task value */
-    el('line', {x1: OLDX, y1: y - 26, x2: OLDX, y2: y + 26, stroke: INK, 'stroke-width': 2, 'stroke-dasharray': '5 5'}, a);
-    const rest = el('polyline', {points: zig(POST, OLDX, y, n, amp), fill: 'none', stroke: INK, 'stroke-width': sw}, grp(3, 4));
-    rest.parentNode.dataset.b = 3;
-    const pulled = el('polyline', {points: zig(POST, OLDX + move, y, n, amp), fill: 'none', stroke: INK, 'stroke-width': sw}, grp(4));
-    pulled.parentNode.dataset.b = 4;
-    const w = el('g', {class: 'adapt-mv', 'data-dx': move, 'data-dy': 0}, a); moved.push(w);
-    el('circle', {cx: OLDX, cy: y, r: 13, fill: INK}, w);
+const DIG = [3, 8, 1, 6, 2, 7];
+const AX = 40, AY = 128, TW = 56;                 /* the new-images row */
+const row = (ang, y = AY, n = DIG.length) => DIG.slice(0, n).map((d, i) => [AX + i * TW, y, d, ang]);
+const tiles = (p, list, o) => list.forEach(([x, y, d, a]) => tile(p, x, y, d, a, o));
+
+/* ---- the network: a small drawing, the same for both methods ---- */
+const NETX = [470, 520, 570, 620], NETN = [4, 6, 6, 4], NETY = 245, NETGAP = 34;
+const nodeY = (c, k) => NETY + (k - (NETN[c] - 1) / 2) * NETGAP;
+function edges(p, col, w){ for(let c = 0; c < 3; c++) for(let a = 0; a < NETN[c]; a++) for(let b = 0; b < NETN[c + 1]; b++)
+  el('line', {x1: NETX[c], y1: nodeY(c, a), x2: NETX[c + 1], y2: nodeY(c + 1, b), stroke: col, 'stroke-width': w}, p); }
+function nodes(p){ NETX.forEach((x, c) => { for(let k = 0; k < NETN[c]; k++) el('circle', {cx: x, cy: nodeY(c, k), r: 7.5, fill: '#fff', stroke: INK, 'stroke-width': 2}, p); }); }
+
+/* ---- the row of steps across the top ---- */
+function steps(b0, names){ const n = names.length, x0 = 10, gap = 8, w = (1100 - gap * (n - 1)) / n, y = 44, h = 36;
+  const base = span(b0, b0 + n);
+  names.forEach((t, i) => { const x = x0 + i * (w + gap);
+    el('rect', {x, y, width: w, height: h, rx: 8, fill: '#fff', stroke: PALE, 'stroke-width': 1.6}, base);
+    txt(t, x + w / 2, y + 25, 21, {style: 'fill:#64748b'}, base);
+    const g = on([b0 + i]);
+    el('rect', {x, y, width: w, height: h, rx: 8, fill: INK}, g);
+    txt(t, x + w / 2, y + 25, 21, {'font-weight': 700, style: 'fill:#f8fafc'}, g); }); }
+
+const label = (beats, t) => txt(t, AX, 112, 25, {'text-anchor': 'start', 'font-weight': 700}, on(beats));
+const DX = 890;
+function outcome(beats, lines){ const g = on(beats);
+  el('line', {x1: 640, y1: NETY, x2: 694, y2: NETY, stroke: INK, 'stroke-width': 2.6, 'marker-end': 'url(#adArr)'}, g);
+  lines.forEach((t, i) => txt(t, DX, NETY + 9 + (i - (lines.length - 1) / 2) * 42, 26, {'font-weight': i ? 400 : 700}, g)); }
+function updates(beats){ const g = on(beats);
+  el('path', {d: `M640,${NETY - 96} C600,${NETY - 128} 490,${NETY - 128} 450,${NETY - 96}`, fill: 'none', stroke: INK, 'stroke-width': 2.6, 'marker-end': 'url(#adArr)'}, g);
+  txt('update weights', 545, NETY - 130, 23, {'font-weight': 700}, g); }
+function frozen(beats){ txt('no weight updates', 545, NETY - 124, 23, {style: 'fill:#64748b'}, on(beats)); }
+function testPanel(beats, rows){ const g = on(beats);
+  txt('test accuracy', DX, 136, 26, {'font-weight': 700}, g);
+  rows.forEach(([a, v], i) => { const y = 176 + i * 76;
+    tile(g, DX - 118, y, DIG[i + 2], a, {dash: true});
+    txt(a + '°', DX - 40, y + 32, 25, {}, g);
+    txt(v.toFixed(2), DX + 62, y + 37, 44, {'font-weight': 700}, g); }); }
+
+function build(data){
+  const rot = data.domain_incremental, RR = rot.replay.R_seed0, RE = rot.ewc.R_seed0;
+  const defs = el('defs', {}); const mk = el('marker', {id: 'adArr', viewBox: '0 0 10 10', refX: 8, refY: 5, markerWidth: 5.5, markerHeight: 5.5, orient: 'auto'}, defs); el('path', {d: 'M0,0 L10,5 L0,10 z', fill: INK}, mk);
+
+  /* network: in place for both methods; the darker copy shows data passing through */
+  const net = span(1, 12); edges(net, PALE, 1.1);
+  edges(on([1, 3, 4, 5, 7, 9, 10, 11]), '#475569', 1.5);
+  nodes(net);
+
+  /* ================ Replay ================ */
+  txt('Replay', 10, 30, 30, {'text-anchor': 'start', 'font-weight': 700}, span(1, 7));
+  steps(1, ['train 0°', 'keep a few', 'test 0°', 'train 30°', 'test 0°, 30°', 'keep 30°, repeat']);
+
+  /* the memory box */
+  const MX = 40, MY1 = 306, MY2 = 354, MS = 40, MW = 44, MD = [4, 7, 5, 9, 0, 2, 6, 1];
+  const box = span(2, 7);
+  el('rect', {x: 30, y: 262, width: 372, height: 148, rx: 10, fill: '#fff', stroke: INK, 'stroke-width': 2}, box);
+  txt('memory: 5 per digit, per angle', 216, 290, 23, {'font-weight': 700}, box);
+  const mem = (ang, y) => MD.map((d, i) => [MX + i * MW, y, d, ang]);
+  const m0 = late(span(2, 7)); mem(0, MY1).forEach(([x, y, d, a]) => tile(m0, x, y, d, a, {s: MS, fill: '#fff'}));
+  const m30 = late(span(6, 7)); mem(30, MY2).forEach(([x, y, d, a]) => tile(m30, x, y, d, a, {s: MS, fill: '#fff'}));
+  txt('not used for testing', 216, MY2 + 28, 23, {style: 'fill:#64748b'}, on([3, 5]));
+
+  /* step 1 */
+  label([1], 'training images, 0°'); tiles(on([1]), row(0)); flow(1, row(0), NETX[0], NETY);
+  outcome([1], ['digit labels 0–9']); updates([1]);
+  /* step 2 */
+  label([2], 'keep a few training images'); tiles(on([2]), row(0));
+  flow(2, row(0), 216, MY1 + 20);
+  /* step 3 */
+  label([3], 'separate test images, 0°'); tiles(on([3]), row(0), {dash: true, fill: '#fff'}); flow(3, row(0), NETX[0], NETY, {dash: true, fill: '#fff'});
+  frozen([3]); testPanel([3], [[0, RR[0][0]]]);
+  /* step 4 */
+  label([4], 'training images, 30°'); tiles(on([4]), row(30));
+  flow(4, row(30).concat(mem(0, MY1).slice(0, 6).map(([x, y, d, a]) => [x, y, d, a])), NETX[0], NETY);
+  outcome([4], ['batch: 32 new + 32 from memory', 'same digit labels 0–9']); updates([4]);
+  /* step 5 */
+  label([5], 'test images, 0° and 30°');
+  const t2 = on([5]); tiles(t2, row(0, AY - 4, 5), {dash: true, fill: '#fff', }); tiles(t2, row(30, AY + 50, 5), {dash: true, fill: '#fff'});
+  flow(5, row(0, AY - 4, 5).concat(row(30, AY + 50, 5)), NETX[0], NETY, {dash: true, fill: '#fff'});
+  frozen([5]); testPanel([5], [[0, RR[1][0]], [30, RR[1][1]]]);
+  /* step 6 */
+  label([6], 'keep some 30° images too'); tiles(on([6]), row(30)); flow(6, row(30), 216, MY2 + 20);
+  outcome([6], ['repeat: 60°, 90°, 120°']);
+
+  /* ================ EWC ================ */
+  txt('Elastic Weight Consolidation (EWC)', 10, 30, 30, {'text-anchor': 'start', 'font-weight': 700}, span(7, 12));
+  steps(7, ['train 0°', 'save weights, Fisher', 'test 0°', 'train 30°', 'test 0°, 30°']);
+
+  label([7], 'training images, 0°'); tiles(on([7]), row(0)); flow(7, row(0), NETX[0], NETY);
+  outcome([7], ['digit labels 0–9']); updates([7]);
+
+  const noimg = span(8, 12);
+  el('rect', {x: 30, y: 262, width: 372, height: 148, rx: 10, fill: '#fff', stroke: MUTE, 'stroke-width': 2, 'stroke-dasharray': '7 6'}, noimg);
+  txt('no images kept', 216, 346, 27, {style: 'fill:#64748b'}, noimg);
+
+  label([8], 'after training on 0°');
+  const save = on([8]);
+  txt("save each weight's value", 40, 168, 26, {'text-anchor': 'start'}, save);
+  txt('measure its importance (Fisher)', 40, 210, 26, {'text-anchor': 'start'}, save);
+
+  label([9], 'separate test images, 0°'); tiles(on([9]), row(0), {dash: true, fill: '#fff'}); flow(9, row(0), NETX[0], NETY, {dash: true, fill: '#fff'});
+  frozen([9]); testPanel([9], [[0, RE[0][0]]]);
+
+  label([10], 'new images only, 30°'); tiles(on([10]), row(30)); flow(10, row(30), NETX[0], NETY); updates([10]);
+  label([11], 'test images, 0° and 30°');
+  const t3 = on([11]); tiles(t3, row(0, AY - 4, 5), {dash: true, fill: '#fff'}); tiles(t3, row(30, AY + 50, 5), {dash: true, fill: '#fff'});
+  flow(11, row(0, AY - 4, 5).concat(row(30, AY + 50, 5)), NETX[0], NETY, {dash: true, fill: '#fff'});
+  frozen([11]); testPanel([11], [[0, RE[1][0]], [30, RE[1][1]]]);
+
+  /* the weights: shown while saving and while training on 30°, hidden on the test clicks */
+  const POST = 716, SAVED = 836, END = 1104;
+  const zig = (x0, x1, y, n, amp) => { const pts = [[x0, y]], dx = (x1 - x0) / (2 * n + 1);
+    for(let i = 1; i <= 2 * n; i++) pts.push([x0 + i * dx, y + (i % 2 ? -amp : amp)]); pts.push([x1, y]); return pts.map(p => p.map(v => v.toFixed(1)).join(',')).join(' '); };
+  const w = on([8, 10]);
+  txt('value of one network weight', 910, 112, 25, {'font-weight': 700}, w);
+  txt('no y axis', 910, 140, 22, {style: 'fill:#64748b'}, w);
+  txt('saved value', SAVED, 176, 22, {}, w);
+  [['important for 0°: stiff', 214, 5, 10, 4.6, 16], ['not important: loose', 306, 3, 12, 2, 176]].forEach(([lab, y, n, amp, sw, move]) => {
+    txt(lab, POST + 2, y + 47, 22, {'text-anchor': 'start'}, w);
+    el('line', {x1: POST, y1: y + 22, x2: END, y2: y + 22, stroke: MUTE, 'stroke-width': 1.5}, w);
+    el('rect', {x: POST - 8, y: y - 22, width: 8, height: 46, fill: INK}, w);
+    el('line', {x1: SAVED, y1: y - 24, x2: SAVED, y2: y + 26, stroke: INK, 'stroke-width': 2, 'stroke-dasharray': '5 5'}, w);
+    el('polyline', {points: zig(POST, SAVED, y, n, amp), fill: 'none', stroke: INK, 'stroke-width': sw}, on([8]));
+    el('polyline', {points: zig(POST, SAVED + move, y, n, amp), fill: 'none', stroke: INK, 'stroke-width': sw}, late(on([10])));
+    const ball = el('g', {class: 'adapt-mv', style: `--dx:${move}px`}, w);
+    el('circle', {cx: SAVED, cy: y, r: 13, fill: INK}, ball);
+    const pull = late(on([10]));
+    el('line', {x1: SAVED + move + 18, y1: y, x2: SAVED + move + 62, y2: y, stroke: INK, 'stroke-width': 3, 'marker-end': 'url(#adArr)'}, pull);
   });
-  txt('old-task value', OLDX, 282, 22, {}, a);
-}
+  txt('new task pulls', 1032, 188, 22, {'font-weight': 700}, late(on([10])));
+  txt('spring = penalty for moving away', 910, 396, 24, {'font-weight': 700}, w);
+  const lossBox = on([10]);
+  el('rect', {x: 32, y: 264, width: 368, height: 144, rx: 9, fill: '#fff'}, lossBox);
+  txt('no images kept', 216, 312, 25, {style: 'fill:#64748b'}, lossBox);
+  txt('loss = error on 30° + penalty', 216, 362, 27, {'font-weight': 700}, lossBox);
 
-/* ---- results ---- */
-/* ink: the two methods named on the slide; gray: the two reference runs. */
-const LBL = {finetune: 'fine-tune only', ewc: 'EWC', replay: 'replay', joint: 'all data at once'};
-const KEYS = ['finetune', 'ewc', 'replay', 'joint'], FILL = {finetune: MUTE, ewc: INK, replay: INK, joint: MUTE}, RH = 42;
-const BX0 = 816, BW = 245;
-function buildBars(data){
-  [['digits rotate', 'domain_incremental', 34, 5], ['new digits arrive', 'class_incremental', 258, 6]].forEach(([name, key, y0, b]) => {
-    const g = grp(b);
-    txt(name, BX0 + BW / 2 - 40, y0, 25, {'font-weight': 700}, g);
-    el('line', {x1: BX0, y1: y0 + 14, x2: BX0, y2: y0 + 14 + KEYS.length * RH, stroke: MUTE, 'stroke-width': 1.5}, g);
-    KEYS.forEach((k, i) => { const v = data[key][k].metrics.avg_acc[0], y = y0 + 22 + i * RH;
-      txt(LBL[k], BX0 - 10, y + 22, 23, {'text-anchor': 'end'}, g);
-      el('rect', {x: BX0, y, width: v * BW, height: 30, rx: 4, fill: FILL[k]}, g);
-      txt(v.toFixed(2), BX0 + v * BW + 7, y + 22, 23, {'text-anchor': 'start', 'font-weight': 700}, g); });
+  /* ================ result bars ================ */
+  const LBL = {finetune: 'fine-tune only', ewc: 'EWC', replay: 'replay', joint: 'all data at once'};
+  const KEYS = ['finetune', 'ewc', 'replay', 'joint'], FILL = {finetune: MUTE, ewc: INK, replay: INK, joint: MUTE};   /* ink: the two methods on this slide; gray: the two reference runs */
+  [['digits rotate', 'domain_incremental', 232, 12], ['new digits arrive', 'class_incremental', 772, 13]].forEach(([name, key, BX, b]) => {
+    const g = span(b), BW = 230, Y0 = 92, RH = 62;
+    txt(name, BX + BW / 2, Y0 - 12, 30, {'font-weight': 700}, g);
+    el('line', {x1: BX, y1: Y0 + 8, x2: BX, y2: Y0 + 8 + KEYS.length * RH, stroke: MUTE, 'stroke-width': 1.5}, g);
+    KEYS.forEach((k, i) => { const v = data[key][k].metrics.avg_acc[0], y = Y0 + 16 + i * RH;
+      txt(LBL[k], BX - 12, y + 30, 25, {'text-anchor': 'end'}, g);
+      el('rect', {x: BX, y, width: v * BW, height: 44, rx: 4, fill: FILL[k]}, g);
+      txt(v.toFixed(2), BX + v * BW + 9, y + 31, 26, {'text-anchor': 'start', 'font-weight': 700}, g); });
   });
-  const c = grp(5); txt('average accuracy, end of training', BX0 + BW / 2 - 40, 462, 22, {}, c);
+  txt('average accuracy, end of training, mean of 3 seeds', 560, 400, 25, {}, span(12));
+  ready = true; render(0);
 }
 
-function render(){
-  sv.querySelectorAll('.adapt-sb').forEach(g => g.classList.toggle('on', beat >= +g.dataset.b && !(g.dataset.off && beat >= +g.dataset.off)));
-  moved.forEach(m => { const on = (m.dataset.dy != 0 && beat >= 2) || (m.dataset.dy == 0 && beat >= 4);
-    m.style.transform = on ? `translate(${m.dataset.dx}px,${m.dataset.dy}px)` : 'translate(0,0)'; });
+function render(dir){
+  sv.querySelectorAll('.adapt-sb').forEach(g => { const d = g.dataset;
+    g.classList.toggle('on', d.beats !== undefined ? d.beats.split(',').includes(String(beat)) : beat >= +d.b && !(d.off && beat >= +d.off)); });
+  flows.forEach(f => f.classList.toggle('go', dir > 0 && beat === +f.dataset.fl));
+  sv.querySelectorAll('.adapt-mv').forEach(m => m.classList.toggle('moved', beat === 10));
   document.getElementById('cite').classList.toggle('on', beat >= 1);
 }
-buildReplay(); buildEwc();
-fetch('../assets/adapt/cl_results.json').then(r => r.text()).then(t => { buildBars(JSON.parse(t.replace(/\bNaN\b/g, 'null'))); render(); });
-render();
+fetch('../assets/adapt/cl_results.json').then(r => r.text()).then(t => build(JSON.parse(t.replace(/\bNaN\b/g, 'null'))));
 
 window.adaptCl = {
-  advance(){ if(beat < NB){ beat++; render(); } },
-  back(){ if(beat > 0){ beat--; render(); } },
+  advance(){ if(beat < NB){ beat++; render(1); } },
+  back(){ if(beat > 0){ beat--; render(-1); } },
   atStart: () => beat === 0,
   atEnd: () => beat === NB,
-  reset(){ beat = 0; render(); },
-  resetToEnd(){ beat = NB; render(); },
+  reset(){ beat = 0; render(0); },
+  resetToEnd(){ beat = NB; render(0); },
   getBeat: () => beat,
 };
 if(window.parent === window){

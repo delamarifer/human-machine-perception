@@ -140,3 +140,11 @@ Slide 40 (p38): the normalization click is labeled "mistake", and one new click 
 - StatQuest video: read from YouTube auto captions, not checked against the audio.
 - That `continual_learning_demo.py` still reproduces `cl_results.json` was checked in day06 Round 17, not rerun here.
 - The Ego4D figure is no longer on the slide. SAM timings and WLASL figures come from day06's checked material.
+
+### 2026-11-09 · Fernanda's walk-through (merged with Shreya's Round 2 above)
+- Metrics for regression: colored "good for" and "fails" cues at her request, the one exception to the no-colored-words rule (two constants at the top of the scene switch them off). Each metric's failure leads into the next.
+- Uncertainty: SD, SE and 95% CI each grow out of the fold points; a bootstrap adds a fourth bar. The bootstrap over 10 folds is an illustration, since folds are not independent.
+- Beyond the test set: softmax, energy and distance each show where the number comes from. Example logits; the distance plot is a schematic. Still open: are these what she meant by "Familiarity scores"?
+- Catastrophic forgetting: one line per angle, built one training step at a time.
+- Continual learning: Replay and Elastic Weight Consolidation step by step through training and testing, with per-angle test numbers from `cl_results.json` (seed 0).
+- When should each adaptation method be used: each method opens its details on click. Monitoring and Human feedback loops: source to add.
