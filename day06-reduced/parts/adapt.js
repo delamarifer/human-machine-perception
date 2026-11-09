@@ -1,4 +1,4 @@
-/* PART: adapt (Day 6 reduced). Google deck pages 48-55, one HTML slide per page.
+/* PART: adapt (Day 6 reduced). Google deck pages 43-55 (as of 12:35 on 2026-11-09), one HTML slide per page, plus a code slide for p51.
    Figures: Foundations of Computer Vision, Ch. 37 (CC BY-NC-ND 4.0), shown whole with covers that fade off.
    Panel coordinates detected by script from the original images (normalized x, y, w, h below).
    Fog numbers: Sakaridis, Dai, Van Gool, IJCV 2018, Table 2 (no dehazing column), read from the paper.
@@ -31,6 +31,26 @@ const adStyle = `<style>
   .adapt-kd > div{ width:min(62vw, 110vh); aspect-ratio:1.68; }
   .adapt-svg{ flex:1 1 auto; min-height:0; width:100%; display:block; }
   .adapt-svg text{ font-family:var(--font); fill:var(--ink); }
+  .adapt-defs{ display:grid; grid-template-columns:1fr 1fr; gap:2vw; flex:0 0 auto; }
+  .adapt-tbl{ width:100%; border-collapse:collapse; font-size:clamp(1rem, 1.6vw, 1.5rem); }
+  .adapt-tbl th{ text-align:left; padding:.8vh 1vw; border-bottom:2px solid var(--ink); }
+  .adapt-tbl td{ padding:1vh 1vw; border-bottom:1px solid var(--line); vertical-align:top; }
+  .adapt-tbl td:first-child{ font-weight:700; white-space:nowrap; }
+  .adapt-chips{ display:flex; flex-wrap:wrap; gap:1vh 1vw; justify-content:center; flex:0 0 auto; }
+  .adapt-chip{ border:2px solid var(--ink); border-radius:999px; padding:.5vh 1.2vw; font-size:clamp(1rem, 1.6vw, 1.5rem); }
+  .adapt-math{ display:grid; grid-template-columns:minmax(0, 1.05fr) minmax(0, 1fr); gap:2vw; flex:1 1 auto; min-height:0; align-items:center; }
+  .adapt-eqs{ display:flex; flex-direction:column; gap:1.2vh; }
+  .adapt-eqs .d6-eq{ font-family:var(--font); font-weight:500; }
+  .adapt-eqs .d6-eq b{ font-weight:700; }
+  .adapt-eqs .d6-eq .v{ float:right; font-weight:700; }
+  .adapt-code{ flex:1 1 auto; min-height:0; margin:0; padding:1.6vh 1.6vw; background:#f8fafc; border:1px solid var(--line); border-radius:10px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:clamp(.82rem, 1.42vw, 1.36rem); line-height:1.5; color:#0f172a; overflow:hidden; }
+  .adapt-code .ln{ display:block; white-space:pre; }
+  .adapt-code .c{ color:#64748b; }
+  .adapt-cards{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:1.6vw; align-items:stretch; }
+  .adapt-cards .d6-card{ align-items:center; text-align:center; justify-content:flex-start; }
+  .adapt-cards svg{ width:100%; height:20vh; display:block; }
+  .adapt-cards svg text{ font-family:var(--font); fill:var(--ink); }
 </style>`;
 
 /* ---------- p48: transition ---------- */
@@ -64,6 +84,27 @@ st(`
   ${rdCite(adBook('Figure 37.1'))}
 `);
 
+/* ---------- p45 (new in her deck since the build): Problem Setup. Her note: "Use this problem setting to frame the examples
+   we will discuss". The two definitions are the book's words (section 37.2); each row is one example from this section. ---------- */
+const AD_SETUP = [
+  ['Farm (the book)', 'aerial crop photos → {wheat, corn}', 'aerial crop photos → {wheat, soybeans}'],
+  ['Driving in the fog', 'clear street images → class per pixel', 'foggy street images → same classes'],
+  ['Learning from a teacher', 'labeled images → teacher t', 'teacher’s answers → student f<sub>θ</sub>'],
+  ['Continual learning', 'digits → digit labels', 'rotated digits → same labels'],
+];
+st(`
+  <h1 class="t">Problem Setup</h1>
+  <div class="adapt-defs">
+    <div class="d6-card b" data-step="1"><div class="lead"><b>Pretraining:</b> how to acquire prior knowledge in the first place</div><div class="label">learn f: 𝒳 → 𝒴</div></div>
+    <div class="d6-card b" data-step="2"><div class="lead"><b>Adaptation:</b> how to use prior knowledge to solve a new task</div><div class="label">learn f′: 𝒳′ → 𝒴′, starting from f</div></div>
+  </div>
+  <table class="adapt-tbl">
+    <tr class="b" data-step="3"><th></th><th>pretraining: 𝒳 → 𝒴</th><th>adaptation: 𝒳′ → 𝒴′</th></tr>
+    ${AD_SETUP.map(([e, a, b], i) => `<tr class="b" data-step="${i + 3}"><td>${e}</td><td>${a}</td><td>${b}</td></tr>`).join('')}
+  </table>
+  ${rdCite(adBook('section 37.2') + ' · rows: the examples on the next slides')}
+`);
+
 /* ---------- p50: panel by panel. Detected on finetuning_stages.png: divider x .4841; panel 2 ends y .5368;
    big arrow and panel 3 start y .5877; legend rows .7781-.8482, .8535-.9228, .9289-.9982. ---------- */
 st(`
@@ -76,11 +117,11 @@ st(`
   ${rdCite(adBook('Figure 37.2'))}
 `);
 
-/* ---------- p51: finetuning subparts of a network, then learning from a teacher.
-   Subparts figure, detected: featurize ends x .2863; middle modules end x .5861; module centers .2074, .5069, .8067.
-   KD figure, detected: top row ends y .4308, dotted line y .4706, bottom plots start x .6025, student ends x .5191. ---------- */
+/* ---------- p47 "More slides of fine-tuning": finetuning subparts of a network. The teacher figure that was here moved to the
+   Knowledge Distillation slide her deck now has. Subparts figure, detected: featurize ends x .2863; middle modules end x .5861;
+   module centers .2074, .5069, .8067. ---------- */
 st(`
-  <h1 class="t">Finetuning subparts; learning from a teacher</h1>
+  <h1 class="t">Finetuning subparts of a network</h1>
   <div class="adapt-stack">
     <div class="adapt-sub">
       <div style="aspect-ratio:${3042 / 1372}">
@@ -90,11 +131,8 @@ st(`
         ${[['frozen', .2074, 1], ['finetuned', .5069, 2], ['from scratch', .8067, 3]].map(([t, x, s]) => `<div class="adapt-cue" style="left:${x * 100}%"><div class="lead b" data-step="${s}">${t}</div></div>`).join('')}
       </div>
     </div>
-    <div class="adapt-kd b" data-step="4"><div>
-      ${adFig('assets/adapt/ch37-kd-diagram.png', 6715 / 3997, adCov([0, .45, .56, .55], 5) + adCov([.56, .45, .44, .03], 5) + adCov([.56, .48, .44, .52], 6))}
-    </div></div>
   </div>
-  ${rdCite(adBook('Figure 37.3 and Figure 37.4 (sections 37.3.1, 37.4, 37.4.1)'))}
+  ${rdCite(adBook('Figure 37.3 (section 37.3.1)'))}
 `);
 
 /* ---------- p52: fine-tuning example. Road drawings are ours (no Cityscapes images); numbers from Table 2. ---------- */
@@ -148,6 +186,157 @@ st(`
     </g>
   </svg>
   ${rdCite(d6Link('https://arxiv.org/abs/1708.07819', 'Sakaridis, Dai, Van Gool, Semantic Foggy Scene Understanding with Synthetic Data (IJCV 2018)') + ', Table 2 (no dehazing) · road drawings are ours, illustrative')}
+`);
+
+/* ---------- p49 (new since the build): Learning from a Teacher. Her comments: "include a visual for this to show how learning from
+   examples is a type of learning from a teacher" and "a few images ... but not too much text". The two rows are the book's two
+   diagrams (section 37.4); "answer key" is the book's lazy-teacher analogy; 90% / 10% is the book's cat and tiger example (37.4.1). ---------- */
+const AD_CAT = 'assets/more-data/june-odd-eyed-cat.jpg';
+const adLearn = (y, t) => `<rect x="560" y="${y - 44}" width="330" height="88" rx="6" fill="#d9d9d9" stroke="#0f172a" stroke-width="3"/>
+  <text x="725" y="${y + 9}" font-size="26" font-weight="700" text-anchor="middle">${t}</text>
+  <line x1="896" y1="${y}" x2="966" y2="${y}" stroke="#0f172a" stroke-width="3" marker-end="url(#adT)"/>
+  <text x="1010" y="${y + 12}" font-size="36" font-style="italic" text-anchor="middle">f<tspan font-size="24" dy="8">θ</tspan></text>`;
+const adCatCard = (x, y) => `<image href="${AD_CAT}" x="${x}" y="${y}" width="104" height="104" preserveAspectRatio="xMidYMid slice"/><rect x="${x}" y="${y}" width="104" height="104" fill="none" stroke="#0f172a" stroke-width="2"/>`;
+st(`
+  <h1 class="t">Learning from a Teacher</h1>
+  <svg class="adapt-svg" viewBox="0 0 1100 470" role="img" aria-label="Top: an image with its label goes into learning from examples, which gives f theta. Bottom: the same image goes to a teacher that answers cat 90 percent, tiger 10 percent, which goes into learning from a teacher.">
+    <defs><marker id="adT" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0f172a"/></marker></defs>
+    <g class="b" data-step="1">
+      ${adCatCard(30, 40)}
+      <rect x="146" y="70" width="96" height="44" rx="6" fill="#fff" stroke="#0f172a" stroke-width="2.5"/><text x="194" y="101" font-size="26" font-weight="700" text-anchor="middle">cat</text>
+      <text x="136" y="176" font-size="22" text-anchor="middle">{ x, y } examples</text>
+      <line x1="256" y1="92" x2="550" y2="92" stroke="#0f172a" stroke-width="3" marker-end="url(#adT)"/>
+      ${adLearn(92, 'Learning from examples')}
+    </g>
+    <g class="b" data-step="2">
+      <text x="403" y="70" font-size="23" text-anchor="middle">an answer key,</text>
+      <text x="403" y="126" font-size="23" text-anchor="middle">no explanations</text>
+    </g>
+    <g class="b" data-step="3">
+      <line x1="20" y1="226" x2="1080" y2="226" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="8 6"/>
+      ${adCatCard(30, 288)}
+      <line x1="140" y1="340" x2="196" y2="340" stroke="#0f172a" stroke-width="3" marker-end="url(#adT)"/>
+      <path d="M 206 396 L 230 286 L 290 286 L 314 396 Z" fill="${AD_PRE}" stroke="#0f172a" stroke-width="3"/>
+      <text x="260" y="356" font-size="38" font-style="italic" text-anchor="middle">t</text>
+      <text x="260" y="428" font-size="22" text-anchor="middle">teacher</text>
+      <line x1="320" y1="340" x2="350" y2="340" stroke="#0f172a" stroke-width="3"/>
+      <text x="356" y="320" font-size="24" font-weight="700">cat 90%</text>
+      <text x="356" y="352" font-size="24">tiger 10%</text>
+      <text x="356" y="396" font-size="20" fill="#64748b">explains: a tiger-like cat</text>
+      <line x1="486" y1="340" x2="550" y2="340" stroke="#0f172a" stroke-width="3" marker-end="url(#adT)"/>
+      ${adLearn(340, 'Learning from a teacher')}
+    </g>
+  </svg>
+  <div class="adapt-chips b" data-step="4">
+    ${['Model compression &amp; speed', 'Better generalization &amp; regularization', 'Cross-modal transfer', 'Multi-task &amp; domain adaptation'].map(t => `<div class="adapt-chip">${t}</div>`).join('')}
+  </div>
+  ${rdCite(adBook('section 37.4 and 37.4.1') + ' · Photo: Keith Kissel, “June odd-eyed-cat” (cropped), CC BY 2.0, via Wikimedia Commons')}
+`);
+
+/* ---------- p50 (new since the build): Knowledge Distillation, comparison to supervised learning. Her comment: "explain and animate from
+   the book how supervised learning is a type of learning teacher mechanism". Figure 37.4, detected: top row ends y .4308, dotted line
+   y .4706, bottom plots start x .6025, student ends x .5191 (the covers that were on the old subparts slide). ---------- */
+st(`
+  <h1 class="t">Knowledge Distillation</h1>
+  <div class="adapt-stack"><div style="width:min(62vw, 100vh);aspect-ratio:1.68">
+    ${adFig('assets/adapt/ch37-kd-diagram.png', 6715 / 3997, adCov([0, .45, .56, .55], 2) + adCov([.56, .45, .44, .03], 2) + adCov([.56, .48, .44, .52], 3))}
+  </div></div>
+  <div class="adapt-why b" data-step="1">supervised learning: the label is a teacher that puts all its belief on one class</div>
+  <div class="adapt-why b" data-step="4"><b>a teacher gives partial credit to similar classes: more information per image</b></div>
+  ${rdCite(adBook('Figure 37.4 (section 37.4.1)'))}
+`);
+
+/* ---------- p51 (new since the build): Knowledge Distillation, the setup and the loss. Her comment: "include the math formulas that are
+   relevant during the calculation". Worked example: the logits, T and alpha are example inputs; every value is computed below.
+   Loss as in Hinton, Vinyals and Dean 2015 (soft targets at temperature T, scaled by T squared, plus cross-entropy on the labels).
+   Response-, feature- and relation-based: the categories of Gou et al., IJCV 2021. ---------- */
+const AD_K = ['cat', 'tiger', 'giraffe', 'dog'];
+const AD_ZT = [5.0, 3.6, 1.0, 1.4], AD_ZS = [2.2, 0.4, 0.9, 1.1], AD_T = 4, AD_A = 0.5, AD_Y = 0;
+const adSoft = (z, T) => { const e = z.map(v => Math.exp(v / T)), s = e.reduce((a, b) => a + b, 0); return e.map(v => v / s); };
+const AD_P1 = adSoft(AD_ZT, 1), AD_PT = adSoft(AD_ZT, AD_T), AD_QT = adSoft(AD_ZS, AD_T), AD_Q1 = adSoft(AD_ZS, 1);
+const AD_KL = AD_PT.reduce((a, p, i) => a + p * Math.log(p / AD_QT[i]), 0);
+const AD_CE = -Math.log(AD_Q1[AD_Y]);
+const AD_L = AD_A * AD_T * AD_T * AD_KL + (1 - AD_A) * AD_CE;
+const f2 = v => v.toFixed(2), f3 = v => v.toFixed(3);
+const adBars = (y0, vals, step, fill, dx, name) => vals.map((v, i) => `<rect class="b" data-step="${step}" x="${70 + i * 120 + dx}" y="${(y0 - v * 150).toFixed(1)}" width="40" height="${(v * 150).toFixed(1)}" fill="${fill}" stroke="#0f172a" stroke-width="1.5"/>`).join('');
+const adAxis = (y0, label) => `<line x1="50" y1="${y0}" x2="540" y2="${y0}" stroke="#94a3b8" stroke-width="2"/>${AD_K.map((k, i) => `<text x="${110 + i * 120}" y="${y0 + 28}" font-size="22" text-anchor="middle"${i === AD_Y ? ' font-weight="700"' : ''}>${k}</text>`).join('')}<text x="50" y="${y0 - 164}" font-size="22" font-weight="700">${label}</text>`;
+st(`
+  <h1 class="t">Knowledge Distillation</h1>
+  <div class="adapt-math">
+    <div class="adapt-eqs">
+      <div class="d6-eq b" data-step="1"><b>Soft targets:</b> p<sub>i</sub> = exp(z<sub>i</sub>/T) / Σ<sub>j</sub> exp(z<sub>j</sub>/T)</div>
+      <div class="d6-eq b" data-step="2">teacher at T = ${AD_T}: p<sub>cat</sub> falls from ${f2(AD_P1[0])} to ${f2(AD_PT[0])}; p<sub>tiger</sub> rises to ${f2(AD_PT[1])}</div>
+      <div class="d6-eq b" data-step="3"><b>Teacher vs. student:</b> student q at the same T</div>
+      <div class="d6-eq b" data-step="4"><b>KL</b>(p ‖ q) = Σ<sub>i</sub> p<sub>i</sub> log(p<sub>i</sub>/q<sub>i</sub>) <span class="v">= ${f3(AD_KL)}</span></div>
+      <div class="d6-eq b" data-step="5"><b>CE</b> with the label: −log q<sub>cat</sub> (T = 1) <span class="v">= ${f3(AD_CE)}</span></div>
+      <div class="d6-eq b" data-step="6"><b>L</b> = α · T² · KL + (1 − α) · CE, α = ${AD_A} <span class="v">= ${f3(AD_L)}</span></div>
+      <div class="label b" data-step="7"><b>Offline distillation:</b> the teacher is frozen; only the student learns · Types: response-, feature- and relation-based</div>
+    </div>
+    <svg class="adapt-svg" viewBox="0 0 560 470" role="img" aria-label="Bar charts of the teacher's probabilities at temperature 1 and 4 and the student's probabilities at temperature 4, over cat, tiger, giraffe and dog">
+      <g class="b" data-step="1">${adAxis(200, 'teacher, T = 1')}${adBars(200, AD_P1, 1, '#0f172a', 0)}</g>
+      <g class="b" data-step="2">${adAxis(430, 'teacher vs. student, T = ' + AD_T)}${adBars(430, AD_PT, 2, '#0f172a', -2)}</g>
+      <g class="b" data-step="3">${adBars(430, AD_QT, 3, '#cbd5e1', 40)}
+        <rect x="380" y="250" width="16" height="16" fill="#0f172a"/><text x="402" y="264" font-size="20">teacher p</text>
+        <rect x="380" y="276" width="16" height="16" fill="#cbd5e1" stroke="#0f172a"/><text x="402" y="290" font-size="20">student q</text></g>
+    </svg>
+  </div>
+  ${rdCite('Logits, T and α are an example; values computed · ' + d6Link('https://arxiv.org/abs/1503.02531', 'Hinton, Vinyals and Dean, Distilling the Knowledge in a Neural Network (2015)') + ' · types: ' + d6Link('https://arxiv.org/abs/2006.05525', 'Gou et al., Knowledge Distillation: A Survey (IJCV 2021)'))}
+`);
+
+/* ---------- p51, second slide (her reply: "include a code snippet (on a different slide as needed) to show distillation_loss and
+   forward pass usage inside a training loop"). PyTorch; checked to run on random tensors on 2026-11-09. One block per click. ---------- */
+const AD_CODE = [
+  [1, 'import torch, torch.nn.functional as F'],
+  [1, ''],
+  [1, 'def distillation_loss(student_logits, teacher_logits, labels, T=4.0, alpha=0.5):'],
+  [2, '    p = F.softmax(teacher_logits / T, dim=-1)          <c># soft targets</c>'],
+  [2, '    log_q = F.log_softmax(student_logits / T, dim=-1)'],
+  [2, '    kl = F.kl_div(log_q, p, reduction="batchmean") * T * T'],
+  [3, '    ce = F.cross_entropy(student_logits, labels)       <c># the true labels</c>'],
+  [3, '    return alpha * kl + (1 - alpha) * ce'],
+  [4, ''],
+  [4, 'teacher.eval()                                         <c># offline: frozen</c>'],
+  [4, 'for x, y in loader:'],
+  [4, '    with torch.no_grad():'],
+  [4, '        teacher_logits = teacher(x)                    <c># forward pass, no gradients</c>'],
+  [5, '    student_logits = student(x)                        <c># forward pass</c>'],
+  [5, '    loss = distillation_loss(student_logits, teacher_logits, y)'],
+  [6, '    optimizer.zero_grad()'],
+  [6, '    loss.backward()                                    <c># gradients reach only the student</c>'],
+  [6, '    optimizer.step()'],
+];
+const adEsc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/&lt;c>/g, '<span class="c">').replace(/&lt;\/c>/g, '</span>');
+st(`
+  <h1 class="t">Knowledge Distillation in a training loop</h1>
+  <pre class="adapt-code">${AD_CODE.map(([k, t]) => `<span class="ln b" data-step="${k}">${adEsc(t) || ' '}</span>`).join('')}</pre>
+  ${rdCite('Our code (PyTorch) · loss as in ' + d6Link('https://arxiv.org/abs/1503.02531', 'Hinton, Vinyals and Dean (2015)'))}
+`);
+
+/* ---------- p52 (new since the build): Use Cases, her three. Drawings are ours. ---------- */
+const AD_UC = [
+  ['Efficiency', 'student smaller or faster', `<path d="M 30 150 L 70 30 L 150 30 L 190 150 Z" fill="${AD_PRE}" stroke="#0f172a" stroke-width="4"/><text x="110" y="110" font-size="40" font-style="italic" text-anchor="middle">t</text>
+    <line x1="200" y1="90" x2="250" y2="90" stroke="#0f172a" stroke-width="4" marker-end="url(#adU)"/>
+    <path d="M 262 150 L 282 90 L 318 90 L 338 150 Z" fill="#fff" stroke="#0f172a" stroke-width="4"/><text x="300" y="136" font-size="28" font-style="italic" text-anchor="middle">f</text>`,
+    d6Link('https://cseweb.ucsd.edu/~mkchandraker/pdf/nips17_distillationdetection.pdf', 'Chen et al., NeurIPS 2017')],
+  ['Learning without Forgetting', 'an ImageNet classifier is extended to a new task (e.g., scene recognition)', `<rect x="40" y="70" width="110" height="60" rx="6" fill="${AD_PRE}" stroke="#0f172a" stroke-width="4"/><text x="95" y="108" font-size="24" text-anchor="middle">shared</text>
+    <line x1="150" y1="90" x2="210" y2="50" stroke="#0f172a" stroke-width="4"/><line x1="150" y1="110" x2="210" y2="150" stroke="#0f172a" stroke-width="4"/>
+    <rect x="212" y="26" width="128" height="46" rx="6" fill="#fff" stroke="#0f172a" stroke-width="3"/><text x="276" y="57" font-size="22" text-anchor="middle">ImageNet</text>
+    <rect x="212" y="128" width="128" height="46" rx="6" fill="#fff" stroke="#0f172a" stroke-width="3"/><text x="276" y="159" font-size="22" text-anchor="middle">scenes</text>`,
+    d6Link('https://arxiv.org/abs/1606.09282', 'Li and Hoiem, Learning without Forgetting (ECCV 2016)')],
+  ['Privacy', 'models trained on private images → extend to public', `<rect x="34" y="60" width="120" height="90" rx="8" fill="#e2e8f0" stroke="#0f172a" stroke-width="4"/><rect x="74" y="86" width="40" height="32" rx="4" fill="#0f172a"/><path d="M 82 86 v -10 a 12 12 0 0 1 24 0 v 10" fill="none" stroke="#0f172a" stroke-width="5"/>
+    <text x="94" y="176" font-size="22" text-anchor="middle">private data</text>
+    <line x1="164" y1="105" x2="226" y2="105" stroke="#0f172a" stroke-width="4" marker-end="url(#adU)"/>
+    <rect x="236" y="60" width="120" height="90" rx="8" fill="#fff" stroke="#0f172a" stroke-width="4"/><text x="296" y="114" font-size="26" font-style="italic" text-anchor="middle">f</text>
+    <text x="296" y="176" font-size="22" text-anchor="middle">public model</text>`,
+    d6Link('https://arxiv.org/abs/1610.05755', 'Papernot et al., PATE (ICLR 2017)')],
+];
+st(`
+  <h1 class="t">Use Cases</h1>
+  <svg width="0" height="0" style="position:absolute"><defs><marker id="adU" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0f172a"/></marker></defs></svg>
+  <div class="adapt-cards">
+    ${AD_UC.map(([h, t, g], i) => `<div class="d6-card b" data-step="${i + 1}"><svg viewBox="0 0 380 190" aria-hidden="true">${g}</svg><div class="lead"><b>${h}</b></div><div class="label">${t}</div></div>`).join('')}
+  </div>
+  ${rdCite('Our drawings · ' + AD_UC.map(u => u[3]).join(' · '))}
 `);
 
 /* ---------- p53, p54: scenes read assets/adapt/cl_results.json ---------- */

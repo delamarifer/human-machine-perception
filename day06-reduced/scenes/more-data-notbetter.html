@@ -14,7 +14,9 @@
   .md-cols{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:2.4vw; align-content:center; }
   .md-col{ display:flex; flex-direction:column; gap:.6vh; min-height:0; transition:opacity .7s ease; }
   .md-col h2{ font-size:clamp(1.3rem, 2.1vw, 2rem); font-weight:700; }
-  .md-col svg{ width:100%; height:auto; aspect-ratio:360/320; max-height:64vh; display:block; }
+  .md-col svg{ width:100%; height:auto; aspect-ratio:360/320; max-height:40vh; display:block; }
+  .md-photo{ position:relative; width:100%; aspect-ratio:16/9; max-height:21vh; margin-bottom:1vh; }
+  .md-photo img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:6px; border:1.5px solid #64748b; transition:transform .7s ease, opacity .7s ease; }
   svg text{ font-family:var(--font); fill:var(--ink); font-size:17px; }
   svg .bold{ font-weight:700; }
   svg .md-t{ transition:opacity .7s ease; }
@@ -32,13 +34,12 @@
 <body>
 <div class="wrap" id="wrap">
   <h1 class="t deck-title">More data? Not always better</h1>
-  <div class="label md-fade" id="av" style="opacity:0">Autonomous vehicle dataset example</div>
   <div class="md-cols">
-    <div class="md-col" id="c1" style="opacity:0"><h2>1. Redundancy</h2><svg id="s1" viewBox="0 0 360 320" role="img" aria-label="A pile of near-identical driving frames grows; cost grows, new intelligence does not"></svg></div>
-    <div class="md-col" id="c2" style="opacity:0"><h2>2. Class Imbalance</h2><svg id="s2" viewBox="0 0 360 320" role="img" aria-label="A long-tailed bar chart: cars and adult pedestrians are tall bars, safety-critical edge cases are tiny"></svg></div>
-    <div class="md-col" id="c3" style="opacity:0"><h2>3. Harder Discovery</h2><svg id="s3" viewBox="0 0 360 320" role="img" aria-label="A grid of frames with three rare frames; more hours are added and the rare frames are buried"></svg></div>
+    <div class="md-col" id="c1" style="opacity:0"><h2>1. Redundancy</h2><div class="md-photo" id="ph1"><img class="md-dup" data-k="2" src="../assets/more-data/drive-highway-i75.jpg" alt=""><img class="md-dup" data-k="1" src="../assets/more-data/drive-highway-i75.jpg" alt=""><img src="../assets/more-data/drive-highway-i75.jpg" alt="A dashcam frame of an empty highway"></div><svg id="s1" viewBox="0 0 360 320" role="img" aria-label="A pile of near-identical driving frames grows; cost grows, new intelligence does not"></svg></div>
+    <div class="md-col" id="c2" style="opacity:0"><h2>2. Class Imbalance</h2><div class="md-photo"><img src="../assets/more-data/drive-highway-tifton.jpg" alt="A dashcam frame of a highway with cars and trucks ahead"></div><svg id="s2" viewBox="0 0 360 320" role="img" aria-label="A long-tailed bar chart: cars and adult pedestrians are tall bars, safety-critical edge cases are tiny"></svg></div>
+    <div class="md-col" id="c3" style="opacity:0"><h2>3. Harder Discovery</h2><div class="md-photo"><img src="../assets/more-data/drive-deer-crossing.jpg" alt="Two deer crossing a street in front of parked cars"></div><svg id="s3" viewBox="0 0 360 320" role="img" aria-label="A grid of frames with three rare frames; more hours are added and the rare frames are buried"></svg></div>
   </div>
-  <div class="cite" id="cite" style="opacity:0">Illustrative: schematic frames and bars, no measured data</div>
+  <div class="cite" id="cite" style="opacity:0">Photos: Michael Rivera, dashcam frames on I-75 (Florida and Tifton, Georgia), CC0; Amaury Laporte, "Deer in Suburbia - Two Young Bucks and Postal Van 1", CC BY 2.0; both via Wikimedia Commons · Frames and bars below the photos are schematic, no measured data</div>
 </div>
 <div class="dots" id="dots"></div>
 <script>
@@ -125,7 +126,10 @@ function go(b, jump){
   const w = $('wrap');
   if(jump) w.classList.add('no-anim');
   const op = (id, on) => { $(id).style.opacity = on ? 1 : 0; };
-  op('av', b >= 1); op('cite', b >= 1);
+  op('cite', b >= 1);
+  /* the same highway frame again and again: copies slide out behind it when the pile grows */
+  document.querySelectorAll('.md-dup').forEach(im => { const k = +im.dataset.k, on = b >= 2;
+    im.style.transform = on ? `translate(${k*10}px,${-k*8}px)` : 'none'; im.style.opacity = on ? 1 : 0; });
   op('c1', b >= 1); op('c2', b >= 3); op('c3', b >= 5);
 
   document.querySelectorAll('.md-frame').forEach(f => f.style.opacity = (+f.dataset.i < 3 || b >= 2) ? 1 : 0);

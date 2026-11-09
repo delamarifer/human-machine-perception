@@ -9,6 +9,47 @@ explanations using images. If something is complex it can just be animated withi
 that we are not asking for." and "Full sentences that get the point across in only transition slides would be good, otherwise for
 technical content, do an animation that explains the statistical or the math concept but all within the slide it was included in."
 
+## Round 2 · 2026-11-09 · Google deck edits after 11:00 (Shreya)
+
+The Google deck was edited until 12:35, after the Round 1 build. Changes found by comparing the live deck (PowerPoint export at 12:37)
+and its comments with the HTML. Now 69 HTML slides.
+
+- **Slide 9 (p7).** Her comment: an image of the driving set for each reason, no vehicle text. One photo per reason (CC0 dashcam
+  frames by Michael Rivera; deer crossing a street by Amaury Laporte, CC BY 2.0, all via Wikimedia Commons). The line "Autonomous
+  vehicle dataset example" is removed. The schematic animation stays under the photos.
+- **Slide 12 (p10).** Her image (synthetic skeleton, clothed body, joint labels) replaces Shotton Fig. 2, one panel per click. Her comment
+  "show an animation of a distorted vs plausible pose": three drawn stick figures (a pose, mirrored ✓, knee bent the wrong way ✗).
+- **Slide 13 (p11).** Her comment: a few logos. Albumentations, MuJoCo, CARLA (GitHub org avatars and repo banner) and NVIDIA Cosmos
+  (cropped from the cosmos-predict2 repo header) on rungs 1, 2, 3 and 5. AirSim has no logo; rung 4 names no tool.
+- **Slide 14 (p12).** Her comment "figures from the papers, not all this text" was already met in Round 1 (Rubik's Fig. 3, fog computed
+  on a photo, short cues). Unchanged.
+- **Old slide 17 (p15), "Many companies are trying to solve this problem".** Removed at Shreya's request; later slides move up by one.
+- **Slide 18 (p16).** Her note "Embed from https://labelerrors.com/ instead of making": the site is embedded live; the toy cat and dog
+  example is gone. Her sentence is the click-2 cue.
+- **Slide 19 (p17).** Her six "Labeling - ..." pages became one "Annotators" page (setup: onboarding; platform), before the workflow.
+  Old slides 20-25 are removed. The new slide reuses the onboarding steps and platform logos.
+- **Slide 19, Annotator workflow (Google p17).** Her comment: visuals from Scale's Quality docs, and the auditors (Customer, Experts (SMEs),
+  Quality staff, Automated checks, Taskers & reviewers → label). Two steps added at the end: who labels, then the four auditor layers above,
+  in her order. Scale's own images are dashboard screenshots with no reuse license, so they are not used; icons are ours.
+- **Slide 14 (p12).** Retitled "Simulation examples", as in her deck.
+- **Slide 61 (p57, new page): RL Environments.** Her comment: a short line of the main claim. A direct quote from the Scale post (under
+  15 words), then our drawing of the agent-environment loop, one arrow per click. The post's figure is Scale's artwork and is not reused;
+  in it the reward arrow points from agent to environment, ours follows the usual direction (environment to agent).
+- **Slide 48 (p45, new page).** Problem Setup: the book's two definitions, then the examples of this section as 𝒳 → 𝒴 and 𝒳′ → 𝒴′.
+- **Slide 50 (p47).** Now "Finetuning subparts of a network" only; Figure 37.4 moved to slide 53.
+- **Slide 52 (p49, new).** Learning from a Teacher: the book's two diagrams with the cat photo, "answer key", the 90% / 10% example,
+  her four use cases as chips.
+- **Slide 53 (p50, new).** Figure 37.4 animated: supervised row, then teacher and student, then soft targets.
+- **Slides 54-55 (p51, new).** The loss with a worked example (example logits, T = 4, α = 0.5; values computed and checked against
+  PyTorch), then a code slide (distillation_loss and the training loop; run on random tensors).
+- **Slide 56 (p52, new).** Use Cases: efficiency (her Chen et al. link), Learning without Forgetting, privacy (PATE).
+
+Questions:
+- [ ] **p53/p54.** Fernanda's comment links an x.com post for continual learning. X needs a login, so it was not read. What should it add?
+- [ ] **Slide 54.** The example logits are made up (labeled so). Fine, or use real teacher outputs?
+- [ ] **Slide 56.** PATE is our pick for "privacy"; LwF is back because her page names it (Round 1 had removed it from another slide).
+- [ ] **Slide 13.** Logos are trademarks, used only for identification.
+
 ## Round 1 · 2026-11-09 · first build
 
 68 HTML slides, 302 clicks. Google page → HTML slide:
@@ -67,6 +108,8 @@ Content:
       steps 1, 2, 5 say source to add.
 - [ ] **p46.** Only "Baseline" is on her page; the other five items come from day06.
 - [ ] **p10.** What was the empty second bullet for?
+- [ ] **p10 (slide 12).** Shotton Fig. 2 replaced by the synthetic Kinect person from her Google slide (skeleton, clothed body, joint labels,
+      one per click). Image source: to add. Which paper or page is it from, and may we reuse it?
 - [ ] **p12.** Restore any dropped tools as cues (stereo matching, superpixels and RANSAC, guided filter, modern equivalents)? Her line says
       CARLA is "Level 5" but her p11 ladder has CARLA at 3. "No real data" is also not quite so: the paper calibrates MuJoCo on the real robot.
 - [ ] **p40.** 12 clicks on one slide: keep all, or cut the harmonic-mean bars?

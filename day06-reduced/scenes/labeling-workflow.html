@@ -27,6 +27,16 @@
   .labeling-tag{ font-weight:700; }
   .labeling-flag{ font-weight:700; }
   .labeling-ring{ fill:none; stroke:#0f172a; stroke-width:5; stroke-dasharray:9 7; transition:opacity .4s ease; }
+  .labeling-panel{ position:relative; }
+  .labeling-aud{ position:absolute; inset:0; background:#fff; display:flex; flex-direction:column; justify-content:center; gap:1.1vh; padding:0 4%; opacity:0; transition:opacity .5s ease; }
+  .labeling-aud.on{ opacity:1; }
+  .labeling-aud .row{ display:grid; grid-template-columns:2.2em 1fr auto; align-items:center; gap:1vw; border:2px solid #0f172a; border-radius:10px; padding:1.1vh 1.2vw;
+    font-size:clamp(1.05rem, 1.7vw, 1.6rem); transition:opacity .5s ease; }
+  .labeling-aud .row .k{ color:#64748b; font-size:.8em; }
+  .labeling-aud .row.label{ background:#0f172a; color:#fff; }
+  .labeling-aud .row.label .k{ color:#cbd5e1; }
+  .labeling-aud .row.off{ opacity:0; }
+  .labeling-aud svg{ width:1.8em; height:1.8em; display:block; }
   .labeling-strip{ flex:0 0 auto; min-height:9vh; display:flex; align-items:center; justify-content:center; gap:1vw; flex-wrap:wrap; font-size:clamp(1.05rem, 1.6vw, 1.5rem); }
   .labeling-chip{ border:2px solid #cbd5e1; border-radius:8px; padding:.5vh .8vw; }
   .labeling-chip.on{ border-color:#0f172a; border-width:3px; font-weight:700; }
@@ -43,14 +53,24 @@
     <div class="labeling-rail" id="rail"></div>
     <div class="labeling-panel">
       <svg id="labeling-scene" viewBox="0 0 1000 560" role="img" aria-label="A drawn street scene with cars, a truck, a pedestrian, a cyclist and a billboard, labeled step by step"></svg>
+      <div class="labeling-aud" id="aud"></div>
       <div class="labeling-strip" id="strip"></div>
     </div>
   </div>
-  <div class="cite" id="cite">Our drawing; boxes, classes and the IoU ≥ 0.5 match rule are an example; occlusion, precision and recall computed from the drawing</div>
+  <div class="cite" id="cite">Our drawing; boxes, classes and the IoU ≥ 0.5 match rule are an example; occlusion, precision and recall computed from the drawing · auditors: <a href="https://scale.com/docs/pro-or-quality" target="_blank" rel="noopener" style="color:inherit">Scale AI, Quality tab docs</a></div>
 </div>
 <script>
 const STEPS = ['Defined task', 'Taxonomy and guidelines', 'Pre-annotated by a model', 'Tight to the pixel edges', 'Attributes per object',
-  'Edge cases: special classes', 'Submit for review', 'Precision and recall', 'Tasker quality score'];
+  'Edge cases: special classes', 'Submit for review', 'Precision and recall', 'Tasker quality score', 'Who labels', 'Who audits'];
+/* The last two steps: her list of auditors (her comment on Google page 17, from Scale's Quality docs), top to bottom as she wrote it. */
+const AUD = [['Customer', 'audits'], ['Experts (SMEs)', 'audit'], ['Quality staff', 'audits'], ['Automated checks', 'audit'], ['Taskers & reviewers', 'label']];
+const AUD_ICO = {
+  'Customer': '<rect x="6" y="10" width="28" height="22" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><path d="M 13 21 l 5 5 l 9 -10" fill="none" stroke="currentColor" stroke-width="3"/>',
+  'Experts (SMEs)': '<path d="M 4 14 L 20 7 L 36 14 L 20 21 Z" fill="currentColor"/><circle cx="20" cy="27" r="6" fill="currentColor"/>',
+  'Quality staff': '<circle cx="17" cy="17" r="9" fill="none" stroke="currentColor" stroke-width="3.5"/><line x1="24" y1="24" x2="34" y2="34" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>',
+  'Automated checks': '<rect x="8" y="10" width="24" height="20" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="15" cy="20" r="2.5" fill="currentColor"/><circle cx="25" cy="20" r="2.5" fill="currentColor"/><line x1="20" y1="4" x2="20" y2="10" stroke="currentColor" stroke-width="3"/>',
+  'Taskers & reviewers': '<circle cx="13" cy="14" r="5" fill="currentColor"/><circle cx="27" cy="14" r="5" fill="currentColor"/><path d="M 4 34 C 4 22, 22 22, 22 34 Z M 18 34 C 18 22, 36 22, 36 34 Z" fill="currentColor"/>',
+};
 const NB = STEPS.length;
 
 /* Gold boxes: the drawn objects' own extents (the truck is cut off by the image edge at x = 1000). */
@@ -193,6 +213,9 @@ function render(b, jump){
   show(ring, b >= 7);
   for(const k in flags) show(flags[k], b >= 7);
   document.getElementById('strip').innerHTML = (strips[b] ? strips[b]() : '');
+  document.getElementById('aud').classList.toggle('on', b >= 10);
+  document.getElementById('aud').innerHTML = AUD.map(([n, v], i) => `<div class="row ${i === AUD.length - 1 ? 'label' : ''} ${i < AUD.length - 1 && b < 11 ? 'off' : ''}">
+    <svg viewBox="0 0 40 40" aria-hidden="true">${AUD_ICO[n]}</svg><b>${n.replace('&', '&amp;')}</b><span class="k">${v}</span></div>`).join('');
   if(jump){ void document.body.offsetWidth; document.body.classList.remove('jump'); }
 }
 
