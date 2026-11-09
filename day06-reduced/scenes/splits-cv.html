@@ -35,18 +35,24 @@
    5  average; five or ten folds
    6  which method? the same folds, three methods side by side
    7  the method with the best average
-   8  classes appear: random folds are uneven
-   9  stratified: the same proportions in each fold
-   10 group split: whole patients
-   11 time-based split: train before test
-   12 nested: an inner loop inside the training part of an outer row
-   13 her decision: large datasets, small datasets */
+   8  the data by class: 20 and 10
+   9  random folds: each fold's class counts differ
+   10 ring the fold with the fewest of the rare class
+   11 stratified, step 1: cut each class into k parts
+   12 stratified, step 2: one part of each class per fold, the boundary is a straight line
+   13 rotate as before, on the stratified folds
+   14 group split: whole patients
+   15 time-based split: train before test
+   16 nested: an inner loop inside the training part of an outer row
+   17 her decision: large datasets, small datasets */
 const P = SPLITS, {INK, MUTE, VAL, txt, ease, lerp, FOLD, K} = P;
-const NB = 13;
+const NB = 17;
 const D = P.makeData(98);                /* seed 98 picked so random folds are visibly uneven and the three methods do not tie */
 const SC = P.foldScores(D, D.base), AVG = P.mean(SC);
 const MS = P.METHODS.map(m => { const sc = P.methodScores(D, D.base, m); return {name: m.name, sc, avg: P.mean(sc)}; });
 const BEST = MS.reduce((b, m, i) => m.avg > MS[b].avg ? i : b, 0);
+const nCross = (order, f) => P.foldIds(order, f).filter(i => D.pts[i].y).length;
+const WORST = [0, 1, 2, 3, 4].reduce((b, f) => nCross(D.base, f) < nCross(D.base, b) ? f : b, 0);
 
 const testFold = f => pos => Math.floor(pos/FOLD) === f ? 'test' : 'train';
 const kfRows = (order, n = K) => [...Array(n)].map((_, f) => ({order, role: testFold(f)}));
@@ -60,7 +66,7 @@ const LAY = [
   {rows: kfRows(D.base), marks: null, cut: 1},
   {rows: kfRows(D.base), marks: null, cut: 1},
   {rows: kfRows(D.base), marks: null, cut: 1},
-  {rows: kfRows(D.base), marks: 'class', cut: 1},
+  {rows: [], marks: null}, {rows: [], marks: null}, {rows: [], marks: null}, {rows: [], marks: null}, {rows: [], marks: null},   /* 8-12: drawn by drawStrat */
   {rows: kfRows(D.strat), marks: 'class', cut: 1},
   {rows: kfRows(D.group), marks: 'patient', cut: 1},
   {rows: [0, 1, 2, 3].map(timeRow), marks: null, cut: 1},
@@ -69,7 +75,8 @@ const LAY = [
 ];
 const CUE = ['', '', 'which part should be the test?', 'k parts: train on k−1, test on the rest', 'rotate', 'average · five or ten folds',
   'which method?', `best average: ${MS[BEST].name}`,
-  'classes in each fold', 'Stratified k-fold: same class proportions in each fold', 'Group split: same patient, same subject',
+  'two classes', 'random folds', `a test fold with only ${nCross(D.base, WORST)} ✕`, 'Stratified k-fold: each class into k parts',
+  'Stratified k-fold: same class proportions in each fold', 'rotate, as before', 'Group split: same patient, same subject',
   'Time-based split: time series', 'Nested CV: inner loop for tuning, outer loop for evaluation', ''];
 
 const ctl = P.controller('splitsCv', NB, b => { document.getElementById('cite').style.opacity = b ? 1 : 0; document.getElementById('cv').style.visibility = b ? 'visible' : 'hidden'; P.dots(NB, b); });
@@ -77,6 +84,45 @@ const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 let W = 0, H = 0;
 function size(){ const k = devicePixelRatio || 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W*k; cv.height = H*k; ctx.setTransform(k, 0, 0, k, 0, 0); }
 const ratio = (order, f) => { const ids = P.foldIds(order, f), x = ids.filter(i => D.pts[i].y).length; return `${6 - x} : ${x}`; };
+
+/* ---- stratified build (beats 8-12): one cell per example, filled by class, tweened between layouts ---- */
+const CROSS = [79, 109, 154], DOT = [255, 255, 255];   /* the deck's data accent */
+const isStrat = b => b >= 8 && b <= 12;
+const byClass = (order, f) => { const ids = P.foldIds(order, f); return [...ids.filter(i => !D.pts[i].y), ...ids.filter(i => D.pts[i].y)]; };
+function strLayout(b){
+  const pos = {};
+  if(b === 8){ const cw = Math.round(W*.86/30), ch = Math.round(cw*1.4), x0 = (W - 30*cw)/2, y = H*.38;
+    [...D.pts.filter(p => !p.y), ...D.pts.filter(p => p.y)].forEach((p, i) => pos[p.id] = [x0 + i*cw, y]);
+    return {cw, ch, pos, x0, y0: y}; }
+  if(b === 11){ const cw = Math.round(W*.036), ch = Math.round(cw*1.3), gap = Math.round(W*.03), colW = 4*cw + gap, x0 = (W - (5*colW - gap))/2, y1 = H*.24, y2 = y1 + ch + H*.17;
+    for(let f = 0; f < K; f++) byClass(D.strat, f).forEach((id, j) => pos[id] = j < 4 ? [x0 + f*colW + j*cw, y1] : [x0 + f*colW + (j - 4)*cw, y2]);
+    return {cw, ch, pos, x0, y1, y2, colW}; }
+  const ch = Math.round(Math.min(H*.115, W*.05)), cw = ch, Y0 = H*.16, pitch = H*.14, x0 = Math.round((W - 6*cw)/2), y = f => Y0 + f*pitch;
+  for(let f = 0; f < K; f++) byClass(b === 12 ? D.strat : D.base, f).forEach((id, j) => pos[id] = [x0 + j*cw, y(f)]);
+  return {cw, ch, pos, x0, y};
+}
+function drawStrat(S, beat, prev, p, e){
+  const leaving = beat === 13 && prev === 12 && p < 1;
+  if(!isStrat(beat) && !leaving) return;
+  const fs = S.fs, now = strLayout(isStrat(beat) ? beat : 12), from = isStrat(beat) && isStrat(prev) && beat > prev ? strLayout(prev) : now;
+  const q = from === now ? 1 : e, alpha = leaving ? 1 - e : (isStrat(prev) ? 1 : e);
+  for(const pt of D.pts){ const a = from.pos[pt.id], b = now.pos[pt.id], C = {cw: lerp(from.cw, now.cw, q), ch: lerp(from.ch, now.ch, q)}, col = pt.y ? CROSS : DOT;
+    ctx.save(); ctx.globalAlpha = alpha; P.drawCell(ctx, C, lerp(a[0], b[0], q), lerp(a[1], b[1], q), col); P.drawMark(ctx, C, lerp(a[0], b[0], q), lerp(a[1], b[1], q), 'class', pt.y, col, 1); ctx.restore(); }
+  if(leaving) return;
+  const arrive = beat > prev ? Math.max(0, (p - .55)/.45) : 1;
+  ctx.save();
+  if(beat === 8){ ctx.globalAlpha = arrive; const y = now.y0 + now.ch + fs*1.5;
+    txt(ctx, '20 ●', now.x0 + 10*now.cw, y, fs*1.6, true, 'center'); txt(ctx, '10 ✕', now.x0 + 25*now.cw, y, fs*1.6, true, 'center'); }
+  if(beat === 9 || beat === 10 || beat === 12){ ctx.globalAlpha = beat === 10 ? 1 : arrive; const order = beat === 12 ? D.strat : D.base, xR = now.x0 + 6*now.cw + 20;
+    txt(ctx, '●  :  ✕', xR, now.y(0) - fs*1.3, fs*.95);
+    for(let f = 0; f < K; f++){ txt(ctx, `fold ${f + 1}`, now.x0 - 14, now.y(f) + now.ch/2, fs, false, 'right'); txt(ctx, ratio(order, f), xR + 2, now.y(f) + now.ch/2, fs*1.25, true); } }
+  if(beat === 10){ ctx.globalAlpha = arrive; ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.strokeRect(now.x0 - W*.06, now.y(WORST) - 7, 6*now.cw + W*.06 + W*.095, now.ch + 14); }
+  if(beat === 11){ ctx.globalAlpha = arrive;
+    txt(ctx, '20 ●  ÷  5  =  4', now.x0, now.y1 - fs*.9, fs*1.15, true); txt(ctx, '10 ✕  ÷  5  =  2', now.x0, now.y2 - fs*.9, fs*1.15, true);
+    for(let f = 0; f < K; f++) txt(ctx, `fold ${f + 1}`, now.x0 + f*now.colW + 2*now.cw, now.y2 + now.ch + fs*1.1, fs, false, 'center'); }
+  if(beat === 12){ ctx.globalAlpha = arrive; const x = now.x0 + 4*now.cw; ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.setLineDash([9, 6]); ctx.beginPath(); ctx.moveTo(x, now.y(0) - 8); ctx.lineTo(x, now.y(4) + now.ch + 8); ctx.stroke(); ctx.setLineDash([]); }
+  ctx.restore();
+}
 
 function frame(now){
   if(cv.clientWidth !== W || cv.clientHeight !== H) size();
@@ -93,7 +139,8 @@ function frame(now){
     for(let b = 1; b <= NB; b++){ const a = on(b); if(a > 0 && CUE[b]){ ctx.save(); ctx.globalAlpha = a; txt(ctx, CUE[b], S.x, H*.05, fs*1.12, true); ctx.restore(); } }
 
     /* ---- legend ---- */
-    P.legend(ctx, S, W*.76, H*.05, [['train', 'train'], ['test', 'test']]);
+    if(!isStrat(beat)) P.legend(ctx, S, W*.76, H*.05, [['train', 'train'], ['test', 'test']]);
+    drawStrat(S, beat, prev, p, e);
 
     /* ---- scores beside the rows (beats 1-5), per-row class counts (6-7) ---- */
     if(beat <= 5){
@@ -115,15 +162,14 @@ function frame(now){
       ctx.save(); ctx.globalAlpha = a6; txt(ctx, 'average', S.x + S.width, yAvg, fs, false, 'right'); ctx.restore();
       if(win > 0){ ctx.save(); ctx.globalAlpha = win; ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.strokeRect(colX(BEST) - 9, S.y0 - fs*1.35, W*.08, yAvg + fs*.95 - (S.y0 - fs*1.35)); ctx.restore(); }
     }
-    if(beat === 8 || beat === 9){ const order = beat === 8 ? D.base : D.strat, a = beat > prev ? (beat === 8 ? e : 1) : 1;
-      ctx.save(); ctx.globalAlpha = a; txt(ctx, '●  :  ✕', xR, S.y0 - fs*.75, fs*.95);
-      for(let f = 0; f < K; f++) txt(ctx, ratio(order, f), xR + 2, P.rowY(S, f) + S.ch/2, fs*1.1, true);
+    if(beat === 13){ ctx.save(); ctx.globalAlpha = e; txt(ctx, '●  :  ✕', xR, S.y0 - fs*.75, fs*.95);
+      for(let f = 0; f < K; f++) txt(ctx, ratio(D.strat, f), xR + 2, P.rowY(S, f) + S.ch/2, fs*1.1, true);
       ctx.restore(); }
-    if(beat === 10){ const a = e; ctx.save(); ctx.globalAlpha = a; for(let f = 0; f < K; f++) txt(ctx, `patient ${P.PATIENTS[f]}`, xR, P.rowY(S, f) + S.ch/2, fs); ctx.restore(); }
-    if(beat === 11){ const a = e; ctx.save(); ctx.globalAlpha = a; const y = P.rowY(S, 4) + S.ch*.5; P.arrow(ctx, S.x, y, S.x + S.width, y, INK, 3); txt(ctx, 'time', S.x, y + fs*.9, fs); ctx.restore(); }
+    if(beat === 14){ const a = e; ctx.save(); ctx.globalAlpha = a; for(let f = 0; f < K; f++) txt(ctx, `patient ${P.PATIENTS[f]}`, xR, P.rowY(S, f) + S.ch/2, fs); ctx.restore(); }
+    if(beat === 15){ const a = e; ctx.save(); ctx.globalAlpha = a; const y = P.rowY(S, 4) + S.ch*.5; P.arrow(ctx, S.x, y, S.x + S.width, y, INK, 3); txt(ctx, 'time', S.x, y + fs*.9, fs); ctx.restore(); }
 
     /* ---- nested CV: inner folds inside the training part of the first outer row ---- */
-    const aN = on(12);
+    const aN = on(16);
     if(aN > 0){ ctx.save(); ctx.globalAlpha = aN;
       const y0 = P.rowY(S, K) + 4, iH = Math.round(S.ch*.62), iG = Math.max(3, Math.round(S.rowGap*.4));
       const inner = {...S, ch: iH};
@@ -143,7 +189,7 @@ function frame(now){
       ctx.restore(); }
 
     /* ---- her decision, drawn ---- */
-    const aT = on(13);
+    const aT = on(17);
     if(aT > 0){ ctx.save(); ctx.globalAlpha = aT;
       const cx = S.x + S.width/2, yRoot = P.rowY(S, K) + fs*1.1, yK = yRoot + H*.14, dx = S.width*.27;
       txt(ctx, 'Cross-Validation', cx, yRoot, fs*1.2, true, 'center');

@@ -86,6 +86,11 @@ Content:
 - labelerrors.com images and Cityscapes photos are deliberately not used (no clear license; no redistribution). The Scale post's photo of a
   person teleoperating is left out (identifiable, no stated license).
 
+### Round 2 · 2026-11-09 · Fernanda: stratified k-fold should be built up
+Slide 39 (p37) now builds stratified k-fold in six clicks on the same slide: the data by class (20 and 10), random folds with uneven counts,
+the fold with only one of the rare class, each class cut into k parts, one part of each class per fold (a straight boundary, 4 : 2 everywhere),
+then rotate as before. Slide 39 has 17 clicks; the deck has 306.
+
 ### Could not verify
 - StatQuest video: read from YouTube auto captions, not checked against the audio.
 - That `continual_learning_demo.py` still reproduces `cl_results.json` was checked in day06 Round 17, not rerun here.
