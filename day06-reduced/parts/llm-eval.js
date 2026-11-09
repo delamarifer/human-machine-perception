@@ -11,11 +11,11 @@ sc('llmEvalBenchmarks', 'scenes/llm-eval-benchmarks.html', { sub: false });
 
 /* ---------- p46: checklist, built item by item. Glyphs are 96 x 48 drawings of each idea. ---------- */
 const leBar = (x, h, f = 'var(--ink)') => `<rect x="${x}" y="${44 - h}" width="14" height="${h}" fill="${f}"/>`;
-const leGlyph = inner => `<svg class="llmeval-glyph" viewBox="0 0 96 48" aria-hidden="true"><line x1="0" y1="44.5" x2="96" y2="44.5" stroke="#94a3b8" stroke-width="1.5"/>${inner}</svg>`;
+const leGlyph = (inner, labels = []) => `<svg class="llmeval-glyph" viewBox="0 0 96 ${labels.length ? 58 : 48}" aria-hidden="true"><line x1="0" y1="44.5" x2="96" y2="44.5" stroke="#94a3b8" stroke-width="1.5"/>${inner}${labels.map(([x, t]) => `<text x="${x}" y="55" text-anchor="middle" font-size="8.5" fill="var(--ink)">${t}</text>`).join('')}</svg>`;
 const LE_ITEMS = [
-  ['Baseline', leGlyph(leBar(26, 16, '#94a3b8') + leBar(56, 36))],
+  ['Baseline', leGlyph(leBar(26, 16, '#94a3b8') + leBar(56, 36), [[33, 'simple'], [63, 'yours']])],
   ['Split', `<svg class="llmeval-glyph" viewBox="0 0 96 48" aria-hidden="true"><g fill="var(--ink)">${[8,20,32].flatMap(x => [12,24,36].map(y => `<circle cx="${x}" cy="${y}" r="4"/>`)).join('')}</g><line x1="48" y1="4" x2="48" y2="44" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 3"/><g fill="#fff" stroke="var(--ink)" stroke-width="2">${[64,76,88].flatMap(x => [12,24,36].map(y => `<circle cx="${x}" cy="${y}" r="4"/>`)).join('')}</g></svg>`],
-  ['Report three numbers', leGlyph(leBar(18, 38) + leBar(42, 32) + leBar(66, 18))],
+  ['Report three numbers', leGlyph(leBar(18, 38) + leBar(42, 32) + leBar(66, 18), [[25, 'train'], [49, 'test'], [73, 'shifted']])],
   ['Report the worst group', leGlyph(leBar(14, 30) + leBar(36, 34) + leBar(58, 10, '#94a3b8') + `<line x1="4" y1="20" x2="92" y2="20" stroke="var(--ink)" stroke-width="2" stroke-dasharray="4 3"/>`)],
   ['Error bars', leGlyph(leBar(41, 26) + `<path d="M48,8 V32 M42,8 H54 M42,32 H54" stroke="#64748b" stroke-width="2.5" fill="none"/>`)],
   ['Unknown inputs', `<svg class="llmeval-glyph" viewBox="0 0 96 48" aria-hidden="true"><circle cx="48" cy="24" r="19" fill="#fff" stroke="var(--ink)" stroke-width="2.5"/><text x="48" y="33" text-anchor="middle" font-size="26" font-weight="700" fill="var(--ink)">?</text></svg>`],
