@@ -3,17 +3,17 @@
    One Google slide = one HTML slide (exception: Evaluating LLMs, two slides, her comment).
    Avoid apostrophes inside the strings. */
 const ORDER = [
-  // part         Google deck pages (PDF export of 2026-11-09)
+  // part         Google deck pages (deck as of 12:35 on 2026-11-09)
   ['start',       'Quiz timer, announcements, title (unchanged from day06)'],
   ['failures',    'p2-6: why models fail, dataset bias'],
   ['more-data',   'p7-13: more data, augmentation, simulators'],
-  ['labeling',    'p14-24: why big data, companies, label errors, annotator workflow, labeling'],
-  ['check-data',  'p25-34: find and check your dataset'],
-  ['splits',      'p35-39: evaluating the model, splits, cross-validation, leakage, averages'],
-  ['metrics',     'p40-44: classification, regression, baselines, uncertainty, beyond the test set'],
-  ['llm-eval',    'p45-47: evaluating LLMs (two slides), checklist, NeuroAI Turing Test paper'],
-  ['adapt',       'p48-55: adapting trained models, fine-tuning, continual learning'],
-  ['future',      'p56-59: future data, robotics data gap, discussions'],
+  ['labeling',    'p14-19 (p15 removed): why big data, label errors (labelerrors.com embedded), annotators, annotator workflow, synthetic generator'],
+  ['check-data',  'p20-29: find and check your dataset'],
+  ['splits',      'p30-34: evaluating the model, splits, cross-validation, leakage, averages'],
+  ['metrics',     'p35-39: classification, regression, baselines, uncertainty, beyond the test set'],
+  ['llm-eval',    'p40-42: evaluating LLMs (two slides), checklist, NeuroAI Turing Test paper'],
+  ['adapt',       'p43-55: adapting trained models, problem setup, fine-tuning, learning from a teacher, knowledge distillation (math and code), use cases, continual learning'],
+  ['future',      'p55-59: future data, RL environments, robotics data gap, discussions'],
   ['lab',         'Lab: find and check a dataset for your project (unchanged from day06)'],
 ];
 const PARTS = ORDER.map(r => r[0]);
@@ -23,10 +23,10 @@ const SEC_MINUTES = {
   'Start': 15,
   'Why models fail': 5,
   'More data': 8,
-  'Labeling': 10,
+  'Labeling': 6,
   'Check your data': 9,
   'Evaluating the model': 17,
-  'Adapting models': 8,
+  'Adapting models': 13,
   'Future data': 4,
   'Lab': 22,
 };
