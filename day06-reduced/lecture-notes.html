@@ -39,6 +39,10 @@
   .callout{ margin:1em 0; padding:14px 16px; border-radius:14px; border-left:4px solid var(--c,var(--cyan)); } .callout p{ margin:0; }
   figure{ margin:1em 0; } figure img{ width:100%; border-radius:12px; display:block; } figcaption{ margin-top:.4em; font-size:.9rem; }
   code{ font:.9em ui-monospace, SFMono-Regular, Menlo, monospace; background:#f5f5f4; padding:.1em .3em; border-radius:5px; }
+  pre{ margin:1em 0; padding:14px 16px; background:#0f172a; color:#e2e8f0; border-radius:12px; overflow-x:auto; font:.82rem/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre code{ background:none; padding:0; font:inherit; color:inherit; }
+  pre .c{ color:#94a3b8; }
+  .code-cap{ margin:-.5em 0 1em; font-size:.9rem; color:#57534e; }
   @media (max-width:700px){ .spine{ display:none; } .page{ margin-left:0; } main{ margin:16px; padding:24px 18px; } .back button{ margin-left:0; } }
   @media print{ body,.page,.hero,main{ background:#fff; color:#111; box-shadow:none; } .spine,.back{ display:none; } .page,main{ margin:0; } h1{ color:#111; background:none; -webkit-text-fill-color:#111; } a{ color:#111; } }
 </style>
@@ -143,6 +147,31 @@
       <figcaption>Foundations of Computer Vision, Ch. 37, Figure 37.1. CC BY-NC-ND 4.0.</figcaption>
     </figure>
     <p>Training from scratch is data hungry. Starting with prior knowledge is data efficient. The methods are fine-tuning, domain adaptation, test-time adaptation, continual learning, monitoring, and human feedback loops. In fine-tuning, you can freeze some layers, fine-tune others, and train a new head from scratch (Fig. 37.3).</p>
+    <p>In PyTorch, start from a network pretrained on ImageNet. Turn off gradients for the layers you freeze, leave them on for the block you fine-tune, and replace the last layer with a new one for your classes. The fine-tuned block gets a smaller learning rate than the new head, so it stays close to what it already learned.</p>
+<pre><code>import torch, torch.nn as nn, torch.nn.functional as F
+from torchvision import models
+
+num_classes = 3                                    <span class="c"># your new task, e.g. wheat, soybeans, other</span>
+model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)  <span class="c"># f: pretrained on ImageNet</span>
+
+for p in model.parameters():                       <span class="c"># frozen: keep what f learned</span>
+    p.requires_grad = False
+for p in model.layer4.parameters():                <span class="c"># fine-tuned: the last block adapts</span>
+    p.requires_grad = True
+model.fc = nn.Linear(model.fc.in_features, num_classes)  <span class="c"># from scratch: a new head</span>
+
+optimizer = torch.optim.Adam([
+    {"params": model.layer4.parameters(), "lr": 1e-4},   <span class="c"># small steps: stay close to f</span>
+    {"params": model.fc.parameters(),     "lr": 1e-3},   <span class="c"># larger steps: new weights</span>
+])
+
+model.train()
+for x, y in loader:                                <span class="c"># your labeled images for the new task</span>
+    loss = F.cross_entropy(model(x), y)
+    optimizer.zero_grad()
+    loss.backward()                                <span class="c"># frozen layers get no gradients</span>
+    optimizer.step()</code></pre>
+    <p class="code-cap">Our code (PyTorch and torchvision). <code>loader</code> is a DataLoader of your images and labels. To fine-tune all layers, as in the fog example below, leave every <code>requires_grad</code> on. To train only the head, freeze <code>layer4</code> too.</p>
     <p>An example: driving in the fog (Sakaridis, Dai and Van Gool, IJCV 2018). A model trained on 2,975 clear images was fine-tuned on 498 synthetic fog images and tested on 101 real fog images. Mean IoU rose from 34.9% to 37.8% over all classes, and from 52.4% to 57.4% on the frequent classes.</p>
     <h3>Learning from a teacher</h3>
     <p>Learning from examples is like an answer key with no explanations: the label says “cat”. A teacher can say “cat 90%, tiger 10%”, which explains that this is a tiger-like cat. Supervised learning is a teacher that puts all its belief on one class. A model as teacher gives partial credit to similar classes, so each image carries more information.</p>
@@ -150,7 +179,30 @@
       <img src="assets/adapt/ch37-kd-diagram.png" alt="Knowledge distillation diagram: a teacher network's soft outputs train a student network">
       <figcaption>Foundations of Computer Vision, Ch. 37, Figure 37.4. CC BY-NC-ND 4.0.</figcaption>
     </figure>
-    <p><strong>Knowledge distillation</strong> (Hinton, Vinyals and Dean, 2015) softens the teacher’s outputs with a temperature: <em>p<sub>i</sub> = exp(z<sub>i</sub>/T) / Σ<sub>j</sub> exp(z<sub>j</sub>/T)</em>. In the slide’s example, at T = 4 the teacher’s probability for “cat” falls from 0.77 to 0.40 and “tiger” rises to 0.28. The student is trained on <em>L = α · T² · KL(p ‖ q) + (1 − α) · CE</em>, where the KL term matches the teacher’s soft targets and the cross-entropy term matches the true label. With α = 0.5, the example gives KL 0.056, CE 0.571 and L 0.730. In offline distillation the teacher is frozen and only the student learns. In PyTorch, the teacher runs under <code>torch.no_grad()</code>, so gradients reach only the student.</p>
+    <p><strong>Knowledge distillation</strong> (Hinton, Vinyals and Dean, 2015) softens the teacher’s outputs with a temperature: <em>p<sub>i</sub> = exp(z<sub>i</sub>/T) / Σ<sub>j</sub> exp(z<sub>j</sub>/T)</em>. In the slide’s example, at T = 4 the teacher’s probability for “cat” falls from 0.77 to 0.40 and “tiger” rises to 0.28. The student is trained on <em>L = α · T² · KL(p ‖ q) + (1 − α) · CE</em>, where the KL term matches the teacher’s soft targets and the cross-entropy term matches the true label. With α = 0.5, the example gives KL 0.056, CE 0.571 and L 0.730. In offline distillation the teacher is frozen and only the student learns.</p>
+    <p>In PyTorch, the loss is a few lines. The teacher runs under <code>torch.no_grad()</code>, so gradients reach only the student. Here the teacher is the fine-tuned ResNet-18 from above (about 11 million parameters), and the student is a MobileNet with about 1.5 million.</p>
+<pre><code>def distillation_loss(student_logits, teacher_logits, labels, T=4.0, alpha=0.5):
+    p = F.softmax(teacher_logits / T, dim=-1)          <span class="c"># soft targets</span>
+    log_q = F.log_softmax(student_logits / T, dim=-1)
+    kl = F.kl_div(log_q, p, reduction="batchmean") * T * T
+    ce = F.cross_entropy(student_logits, labels)       <span class="c"># the true labels</span>
+    return alpha * kl + (1 - alpha) * ce
+
+teacher = model                                        <span class="c"># the fine-tuned model from above</span>
+student = models.mobilenet_v3_small(num_classes=num_classes)  <span class="c"># smaller, trained from scratch</span>
+optimizer = torch.optim.Adam(student.parameters(), lr=1e-3)
+
+teacher.eval()                                         <span class="c"># offline: frozen</span>
+student.train()
+for x, y in loader:
+    with torch.no_grad():
+        teacher_logits = teacher(x)                    <span class="c"># forward pass, no gradients</span>
+    student_logits = student(x)                        <span class="c"># forward pass</span>
+    loss = distillation_loss(student_logits, teacher_logits, y)
+    optimizer.zero_grad()
+    loss.backward()                                    <span class="c"># gradients reach only the student</span>
+    optimizer.step()</code></pre>
+    <p class="code-cap">Our code (PyTorch), the same loop as on the slide; loss as in Hinton, Vinyals and Dean (2015). With the slide’s example logits, <code>distillation_loss</code> gives KL 0.056, CE 0.571 and L 0.730, the same values as above. <code>F.kl_div</code> takes the student’s log-probabilities first and the teacher’s probabilities second. The factor T² keeps the soft-target gradients on the same scale as the label term.</p>
     <p>Use cases: efficiency, with a smaller or faster student (Chen et al., NeurIPS 2017); Learning without Forgetting, where an ImageNet classifier is extended to a new task such as scene recognition (Li and Hoiem, ECCV 2016); and privacy, where teachers trained on private data label public data for a student (PATE, Papernot et al., ICLR 2017).</p>
     <h3>Catastrophic forgetting and continual learning</h3>
     <p>In our toy run on 8×8 digits with a small network, each new rotation (0°, 30°, 60°, 90°, 120°) is learned to 0.97–0.98. With plain fine-tuning, accuracy on the original 0° task falls from 0.98 to 0.18. This is the motivation for continual learning. <strong>Replay</strong> keeps a few old images (5 per digit, per angle) and mixes them into each batch. <strong>EWC</strong> (Kirkpatrick et al., PNAS 2017) keeps no images. It saves each weight’s value and its importance for the old task, then adds a penalty, like a spring, for moving important weights. Average accuracy at the end, mean of three seeds, when the digits rotate: fine-tune only 0.45, EWC 0.62, replay 0.88, all data at once 0.97. When new digits arrive: fine-tune only 0.20, EWC 0.20, replay 0.89, all data at once 0.97.</p>
