@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>More data? Not always better</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Day 6 reduced, part more-data. Google page 7. Everything drawn is schematic and computed here from seeded toy
+     inputs: no measured data, no numbers on screen. Grey = ordinary frames and common classes, ink = rare ones. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.2vh; }
+  .md-fade{ transition:opacity .7s ease; }
+  .md-cols{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:2.4vw; align-content:center; }
+  .md-col{ display:flex; flex-direction:column; gap:.6vh; min-height:0; transition:opacity .7s ease; }
+  .md-col h2{ font-size:clamp(1.3rem, 2.1vw, 2rem); font-weight:700; }
+  .md-col svg{ width:100%; height:auto; aspect-ratio:360/320; max-height:64vh; display:block; }
+  svg text{ font-family:var(--font); fill:var(--ink); font-size:17px; }
+  svg .bold{ font-weight:700; }
+  svg .md-t{ transition:opacity .7s ease; }
+  .md-frame{ transition:opacity .7s ease; }
+  .md-bar{ transform-box:fill-box; transform-origin:0 100%; transition:transform .7s ease; }
+  .md-hbar{ transform-box:fill-box; transform-origin:0 50%; transition:transform .7s ease; }
+  .md-cell{ transition:transform .8s ease, opacity .7s ease; }
+  .no-anim, .no-anim *{ transition:none !important; }
+  .cite{ position:static; font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); transition:opacity .7s ease; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <h1 class="t deck-title">More data? Not always better</h1>
+  <div class="label md-fade" id="av" style="opacity:0">Autonomous vehicle dataset example</div>
+  <div class="md-cols">
+    <div class="md-col" id="c1" style="opacity:0"><h2>1. Redundancy</h2><svg id="s1" viewBox="0 0 360 320" role="img" aria-label="A pile of near-identical driving frames grows; cost grows, new intelligence does not"></svg></div>
+    <div class="md-col" id="c2" style="opacity:0"><h2>2. Class Imbalance</h2><svg id="s2" viewBox="0 0 360 320" role="img" aria-label="A long-tailed bar chart: cars and adult pedestrians are tall bars, safety-critical edge cases are tiny"></svg></div>
+    <div class="md-col" id="c3" style="opacity:0"><h2>3. Harder Discovery</h2><svg id="s3" viewBox="0 0 360 320" role="img" aria-label="A grid of frames with three rare frames; more hours are added and the rare frames are buried"></svg></div>
+  </div>
+  <div class="cite" id="cite" style="opacity:0">Illustrative: schematic frames and bars, no measured data</div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* BEAT 0  title only
+   BEAT 1  Redundancy: three near-identical frames, cost and intelligence bars
+   BEAT 2  the pile grows: cost grows, intelligence stays
+   BEAT 3  Class Imbalance: tall bars for cars and adult pedestrians
+   BEAT 4  the tail of safety-critical edge cases
+   BEAT 5  Harder Discovery: 24 frames, 3 rare ones
+   BEAT 6  raw hours added: 260 frames, the same 3 rare ones */
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const R = rng(11);
+const NB = 6;
+const $ = id => document.getElementById(id);
+
+/* ---- panel 1: a pile of near-identical frames ---- */
+const NPILE = 24;
+const frame = (x, y, dx) => `<g transform="translate(${x},${y})">
+  <rect width="140" height="95" rx="5" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>
+  <rect y="62" width="140" height="33" fill="#cbd5e1"/>
+  <g transform="translate(${(70 + dx).toFixed(1)},58)"><rect x="-22" y="0" width="44" height="16" rx="4" fill="#64748b"/>
+    <path d="M -12 0 L -6 -10 L 12 -10 L 18 0 Z" fill="#64748b"/><circle cx="-12" cy="17" r="5" fill="#334155"/><circle cx="12" cy="17" r="5" fill="#334155"/></g></g>`;
+let p1 = '';
+for(let i = 0; i < NPILE; i++){
+  const x = 24 + i*7 + R()*2, y = 8 + i*4 + R()*2, dx = (R() - .5)*6;
+  p1 += `<g class="md-frame" data-i="${i}">${frame(x.toFixed(1), y.toFixed(1), dx)}</g>`;
+}
+p1 += `<text x="24" y="232">storage, processing, training costs</text>
+  <rect class="md-hbar" id="cost" x="24" y="240" width="312" height="16" rx="3" fill="#64748b"/>
+  <text class="md-t" id="info0" x="24" y="282">new intelligence</text>
+  <text class="md-t bold" id="info1" x="24" y="282" style="opacity:0">zero new intelligence</text>
+  <rect class="md-hbar" id="info" x="24" y="290" width="312" height="16" rx="3" fill="#0f172a"/>`;
+$('s1').innerHTML = p1;
+
+/* ---- panel 2: long-tailed bars, heights are schematic ---- */
+const BASE = 296, HMAX = 200;
+const COMMON = [['cars', 1, ['cars']], ['adult pedestrians', .82, ['adult', 'pedestrians']]];
+const TAIL = [.08, .06, .05, .04, .03, .025, .02, .015];
+let p2 = `<text class="md-t" id="hund" x="8" y="20">hundreds of thousands of annotations</text>
+  <line x1="6" y1="${BASE}" x2="354" y2="${BASE}" stroke="#94a3b8" stroke-width="1.5"/>`;
+COMMON.forEach(([nm, h, lines], i) => {
+  const x = 14 + i*82, H = h*HMAX;
+  p2 += `<rect class="md-bar" data-h="common" x="${x}" y="${BASE - H}" width="64" height="${H}" rx="3" fill="#94a3b8"/>`;
+  const y0 = BASE - H - 8 - (lines.length - 1)*18;
+  lines.forEach((t, k) => p2 += `<text class="md-t" data-t="common" x="${x + 32}" y="${y0 + k*18}" text-anchor="middle">${t}</text>`);
+});
+const TX0 = 180, TW = 19;
+TAIL.forEach((h, i) => {
+  const x = TX0 + i*TW, H = h*HMAX;
+  p2 += `<rect class="md-bar" data-h="tail" x="${x}" y="${BASE - H}" width="${TW - 4}" height="${H}" rx="2" fill="#0f172a"/>`;
+});
+p2 += `<g class="md-t" id="tailLbl" style="opacity:0">
+  <text class="bold" x="${TX0}" y="${BASE - 74}">safety-critical</text>
+  <text class="bold" x="${TX0}" y="${BASE - 54}">edge cases:</text>
+  <text x="${TX0}" y="${BASE - 34}">much less</text></g>`;
+$('s2').innerHTML = p2;
+
+/* ---- panel 3: frames; a few rare ones get buried as raw hours are added ---- */
+const G0 = {cols: 6, rows: 4}, G1 = {cols: 20, rows: 13};
+const X0 = 8, Y0 = 44, GW = 344, GH = 200;
+const CW = 52, CH = 42;
+const N = G1.cols*G1.rows, RARE = [3, 14, 20];
+const slot = (g, k) => [X0 + (k % g.cols)*(GW/g.cols), Y0 + Math.floor(k/g.cols)*(GH/g.rows)];
+const perm = [...Array(N).keys()];
+for(let i = N - 1; i > 0; i--){ const j = Math.floor(R()*(i + 1)); [perm[i], perm[j]] = [perm[j], perm[i]]; }
+/* put the rare frames on three different rows of the big grid, so they read as scattered */
+[[3, 46], [14, 127], [20, 214]].forEach(([cell, target]) => { const j = perm.indexOf(target); [perm[cell], perm[j]] = [perm[j], perm[cell]]; });
+const S0 = (GW/G0.cols - 4)/CW, S1 = (GW/G1.cols - 1.5)/CW;
+let p3 = `<text class="md-t" id="hours" x="8" y="26" style="opacity:0"><tspan class="bold">more raw hours</tspan> →</text>`;
+for(let i = 0; i < N; i++){
+  const rare = RARE.includes(i);
+  p3 += `<g class="md-cell" data-c="${i}"><rect width="${CW}" height="${CH}" rx="4" fill="${rare ? '#0f172a' : '#e2e8f0'}" stroke="${rare ? '#0f172a' : '#94a3b8'}"/>
+    ${rare ? `<rect x="${CW/2 - 3}" y="${CH*.18}" width="6" height="${CH*.42}" rx="2" fill="#fff"/><circle cx="${CW/2}" cy="${CH*.78}" r="3.6" fill="#fff"/>` : `<rect y="${CH*.62}" width="${CW}" height="${CH*.38}" fill="#cbd5e1"/>`}</g>`;
+}
+p3 += `<g id="rareLbl"><rect x="8" y="262" width="16" height="16" rx="3" fill="#0f172a"/><text x="32" y="276">rare, high-value safety frames</text></g>
+  <text class="md-t bold" id="buried" x="8" y="306" style="opacity:0">buried deeper in the noise</text>`;
+$('s3').innerHTML = p3;
+
+const tr = (x, y, s) => `translate(${x}px,${y}px) scale(${s})`;
+let beat = 0;
+function go(b, jump){
+  beat = b;
+  const w = $('wrap');
+  if(jump) w.classList.add('no-anim');
+  const op = (id, on) => { $(id).style.opacity = on ? 1 : 0; };
+  op('av', b >= 1); op('cite', b >= 1);
+  op('c1', b >= 1); op('c2', b >= 3); op('c3', b >= 5);
+
+  document.querySelectorAll('.md-frame').forEach(f => f.style.opacity = (+f.dataset.i < 3 || b >= 2) ? 1 : 0);
+  $('cost').style.transform = `scaleX(${b >= 2 ? 1 : .16})`;
+  $('info').style.transform = 'scaleX(.16)';
+  op('info0', b < 2); op('info1', b >= 2);
+
+  document.querySelectorAll('.md-bar').forEach(r => {
+    const on = r.dataset.h === 'common' ? b >= 3 : b >= 4;
+    r.style.transform = `scaleY(${on ? 1 : 0})`;
+  });
+  op('tailLbl', b >= 4);
+
+  op('hours', b >= 6); op('buried', b >= 6);
+  document.querySelectorAll('.md-cell').forEach(g => {
+    const i = +g.dataset.c;
+    if(b >= 6){ const [x, y] = slot(G1, perm[i]); g.style.transform = tr(x, y, S1); g.style.opacity = 1; }
+    else if(i < G0.cols*G0.rows){ const [x, y] = slot(G0, i); g.style.transform = tr(x, y, S0); g.style.opacity = 1; }
+    else { const [x, y] = slot(G1, perm[i]); g.style.transform = tr(x, y, S1); g.style.opacity = 0; }
+  });
+  $('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join('');
+  if(jump) setTimeout(() => w.classList.remove('no-anim'), 40);
+}
+window.mdNotBetter = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) mdNotBetter.advance(); if(e.key === 'ArrowLeft') mdNotBetter.back(); });
+  addEventListener('click', () => mdNotBetter.advance());
+}
+go(0, true);
+</script>
+</body>
+</html>

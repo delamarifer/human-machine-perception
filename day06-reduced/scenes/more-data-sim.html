@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Simulating a natural world (tools)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Day 6 reduced, part more-data. Google page 12: two examples on one slide.
+     Figure 3 of OpenAI et al. 2019 (arXiv 1910.07113), page 4 of the PDF, cropped by detecting whitespace.
+     Fog: optical model of Sakaridis et al. 2018 (arXiv 1708.07819) computed live on one photo.
+     Not a Cityscapes photo (no redistribution). Depth is a road-plane estimate, not the paper's stereo pipeline. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.2vh; }
+  .md-f{ transition:opacity .7s ease; }
+  .md-cols{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:2.6vw; }
+  .md-col{ display:flex; flex-direction:column; gap:.9vh; min-height:0; }
+  .md-h{ font-size:clamp(1.15rem, 1.9vw, 1.8rem); font-weight:700; }
+  .md-fig{ width:100%; display:block; }
+  .md-cues{ display:flex; flex-direction:column; gap:.5vh; }
+  .md-cue{ font-size:clamp(1.05rem, 1.6vw, 1.5rem); line-height:1.22; }
+  .md-eq{ align-self:flex-start; background:#f1f5f9; border:1px solid #cbd5e1; border-left:4px solid var(--ink); border-radius:10px;
+    padding:.5vh 1vw; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:clamp(1.1rem, 1.9vw, 1.8rem); font-weight:600; }
+  .md-eq span{ padding:0 .08em; border-bottom:3px solid transparent; transition:border-color .4s ease; }
+  .md-eq span.on{ border-bottom-color:var(--ink); }
+  .md-thumbs{ display:grid; grid-template-columns:repeat(3, 1fr); gap:1vw; }
+  .md-panel{ display:flex; flex-direction:column; gap:.3vh; transition:opacity .7s ease; }
+  .md-panel canvas{ width:100%; aspect-ratio:4/3; display:block; border-radius:6px; border:1px solid var(--line); }
+  .md-panel .label{ line-height:1.1; }
+  .md-bot{ display:grid; grid-template-columns:1.25fr 1fr; gap:1.2vw; align-items:center; }
+  .cite{ position:static; font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); line-height:1.25; }
+  .cite span{ transition:opacity .7s ease; }
+  .no-anim, .no-anim *{ transition:none !important; }
+  .dots{ position:fixed; right:2vw; bottom:12px; display:flex; gap:6px; }
+  .dots i{ width:7px; height:7px; border-radius:50%; background:#e2e8f0; }
+  .dots i.on{ background:#64748b; }
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <h1 class="t deck-title">Simulating a natural world (tools)</h1>
+  <div class="md-cols">
+    <div class="md-col">
+      <div class="md-h md-f" data-b="1">Example 1: Rubik's Cube</div>
+      <img class="md-fig md-f" data-b="1" src="../assets/more-data/rubik-fig3.jpg" alt="Figure 3 of the paper: a simulated Shadow Dexterous Hand holding a block (left) and a Rubik's cube (right), with the goal state in the upper left corner">
+      <div class="md-cues">
+        <div class="md-cue md-f" data-b="1">fully simulated world</div>
+        <div class="md-cue md-f" data-b="2"><b>physics engine:</b> MuJoCo</div>
+        <div class="md-cue md-f" data-b="3"><b>renderer:</b> Unity (ORRB)</div>
+        <div class="md-cue md-f" data-b="4"><b>randomization:</b> ADR, physics and visual ranges widen</div>
+        <div class="md-cue md-f" data-b="5"><b>labels:</b> free from the simulator</div>
+      </div>
+    </div>
+    <div class="md-col">
+      <div class="md-h md-f" data-b="6">Example 2: Foggy Scene Understanding</div>
+      <div class="md-eq md-f" data-b="6"><span id="eI">I</span> = <span id="eJ">J</span>·<span id="eT1">t</span> + <span id="eA">A</span>(<span id="eT2">1−t</span>)</div>
+      <div class="md-thumbs">
+        <div class="md-panel md-f" data-b="6"><canvas id="cJ"></canvas><div class="label"><b>J</b> clear photo</div></div>
+        <div class="md-panel md-f" data-b="7"><canvas id="cT"></canvas><div class="label"><b>t</b> transmission</div></div>
+        <div class="md-panel md-f" data-b="8"><canvas id="cA"></canvas><div class="label"><b>A</b> airlight</div></div>
+      </div>
+      <div class="md-bot">
+        <div class="md-panel md-f" data-b="9"><canvas id="cI"></canvas><div class="label"><b>I</b> foggy image</div></div>
+        <div class="md-cues">
+          <div class="md-cue md-f" data-b="10"><b>fog physics only</b></div>
+          <div class="md-cue md-f" data-b="10">no physics engine, no renderer</div>
+          <div class="md-cue md-f" data-b="10"><b>labels:</b> inherited</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="cite">
+    <span id="cit1" style="opacity:0">Figure 3: OpenAI et al., Solving Rubik's Cube with a Robot Hand (arXiv 1910.07113).</span>
+    <span id="cit2" style="opacity:0">Fog model: Sakaridis, Dai and Van Gool (arXiv 1708.07819), computed live on: "Muni route 33 trolleybus at 18th and Castro, September 2021", photo by Evan0512, CC BY-SA 4.0, Wikimedia Commons; depth: road-plane estimate.</span>
+  </div>
+</div>
+<div class="dots" id="dots"></div>
+<script>
+/* BEAT 0 title only
+   1 Example 1 + Figure 3 + fully simulated   2 physics engine   3 renderer   4 randomization   5 labels
+   6 Example 2 + equation + J   7 t   8 A   9 the composite I   10 the cues */
+const NB = 10;
+const W = 480, H = 360;
+/* Horizon row, as a fraction of image height: median y of the intersections of oblique line pairs of opposite slope,
+   detected by a Hough transform on the road region of this photo (tool script, not by eye): 0.655. */
+const HORIZON = 0.655;
+/* Road-plane depth: on a flat road, distance grows as 1/(rows below the horizon); above the horizon it is capped.
+   Toy constants (not from the paper): beta*d = 0.12/v, capped at 1.4, so t runs from about 0.89 to 0.25. */
+const betaD = v => Math.min(0.12 / Math.max(v, 1e-3), 1.4);
+
+const ctxOf = id => { const c = document.getElementById(id); c.width = W; c.height = H; return c.getContext('2d'); };
+const J = ctxOf('cJ'), T = ctxOf('cT'), Ac = ctxOf('cA'), Ic = ctxOf('cI');
+let ready = false, jData, logT, Air = [255, 255, 255], beat = 0, tweenId = 0;
+
+function renderI(s){
+  if(!ready) return;
+  const out = Ic.createImageData(W, H), a = out.data, src = jData;
+  for(let y = 0, k = 0; y < H; y++){
+    for(let x = 0; x < W; x++, k += 4){
+      const t = Math.exp(logT[y*W + x] * s);
+      a[k]   = src[k]   * t + Air[0] * (1 - t);
+      a[k+1] = src[k+1] * t + Air[1] * (1 - t);
+      a[k+2] = src[k+2] * t + Air[2] * (1 - t);
+      a[k+3] = 255;
+    }
+  }
+  Ic.putImageData(out, 0, 0);
+}
+
+const photo = new Image();
+photo.onload = () => {
+  /* center-crop to 4:3 if needed (the photo is already 4:3) and scale */
+  const ar = photo.width / photo.height, tgt = W / H;
+  let sw = photo.width, sh = photo.height, sx = 0, sy = 0;
+  if(ar > tgt){ sw = photo.height*tgt; sx = (photo.width - sw)/2; } else if(ar < tgt){ sh = photo.width/tgt; sy = (photo.height - sh)/2; }
+  J.drawImage(photo, sx, sy, sw, sh, 0, 0, W, H);
+  jData = J.getImageData(0, 0, W, H).data;
+
+  /* A: mean color of the 0.1% pixels with the largest dark channel (the paper estimates L by the dark-channel method) */
+  const nP = W*H, idx = new Uint32Array(nP), dark = new Float32Array(nP);
+  for(let i = 0; i < nP; i++){ idx[i] = i; dark[i] = Math.min(jData[i*4], jData[i*4+1], jData[i*4+2]); }
+  idx.sort((p, q) => dark[q] - dark[p]);
+  const top = Math.max(1, Math.round(nP*0.001)); let r = 0, g = 0, b = 0;
+  for(let i = 0; i < top; i++){ const p = idx[i]*4; r += jData[p]; g += jData[p+1]; b += jData[p+2]; }
+  Air = [r/top, g/top, b/top];
+  Ac.fillStyle = `rgb(${Air.map(v => Math.round(v)).join(',')})`; Ac.fillRect(0, 0, W, H);
+
+  /* t = exp(-beta*d) from the road-plane depth */
+  logT = new Float32Array(nP);
+  const tImg = T.createImageData(W, H), hy = HORIZON*H;
+  for(let y = 0, k = 0; y < H; y++){
+    const v = (y + .5 - hy)/(H - hy), bd = v > 0 ? betaD(v) : 1.4, t = Math.exp(-bd);
+    for(let x = 0; x < W; x++, k += 4){ logT[y*W + x] = -bd; const c = 255*t; tImg.data[k] = c; tImg.data[k+1] = c; tImg.data[k+2] = c; tImg.data[k+3] = 255; }
+  }
+  T.putImageData(tImg, 0, 0);
+  ready = true; renderI(1); go(beat, true);
+};
+photo.src = '../assets/more-data/castro-18th-day.jpg';
+
+function foggin(){
+  const id = ++tweenId, t0 = performance.now(), dur = 600;
+  const finish = () => { if(id === tweenId) renderI(1); };
+  const step = now => { if(id !== tweenId) return; const p = Math.min(1, (now - t0)/dur);
+    if(p >= 1){ renderI(1); return; } renderI(p); requestAnimationFrame(step); };
+  renderI(0); requestAnimationFrame(step); setTimeout(finish, dur + 80);
+}
+
+const EQ = { 6: ['eJ'], 7: ['eT1', 'eT2'], 8: ['eA'], 9: ['eI'], 10: ['eI'] };
+function go(b, jump){
+  const prev = beat; beat = b;
+  const w = document.getElementById('wrap');
+  if(jump) w.classList.add('no-anim');
+  document.querySelectorAll('[data-b]').forEach(e => e.style.opacity = b >= +e.dataset.b ? 1 : 0);
+  document.getElementById('cit1').style.opacity = b >= 1 ? 1 : 0;
+  document.getElementById('cit2').style.opacity = b >= 6 ? 1 : 0;
+  ['eI', 'eJ', 'eT1', 'eT2', 'eA'].forEach(id => document.getElementById(id).classList.toggle('on', (EQ[b] || []).includes(id)));
+  if(ready){ if(b === 9 && prev < 9 && !jump) foggin(); else { tweenId++; renderI(1); } }
+  document.getElementById('dots').innerHTML = [...Array(NB)].map((_, i) => `<i class="${i < b ? 'on' : ''}"></i>`).join('');
+  if(jump) setTimeout(() => w.classList.remove('no-anim'), 40);
+}
+window.mdSim = {
+  advance(){ if(beat < NB) go(beat + 1); },
+  back(){ if(beat > 0) go(beat - 1); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ go(0, true); },
+  resetToEnd(){ go(NB, true); },
+  getBeat: () => beat,
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) mdSim.advance(); if(e.key === 'ArrowLeft') mdSim.back(); });
+  addEventListener('click', () => mdSim.advance());
+}
+go(0, true);
+</script>
+</body>
+</html>
