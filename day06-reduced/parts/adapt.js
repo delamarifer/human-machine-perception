@@ -31,11 +31,6 @@ const adStyle = `<style>
   .adapt-kd > div{ width:min(62vw, 110vh); aspect-ratio:1.68; }
   .adapt-svg{ flex:1 1 auto; min-height:0; width:100%; display:block; }
   .adapt-svg text{ font-family:var(--font); fill:var(--ink); }
-  .adapt-defs{ display:grid; grid-template-columns:1fr 1fr; gap:2vw; flex:0 0 auto; }
-  .adapt-tbl{ width:100%; border-collapse:collapse; font-size:clamp(1rem, 1.6vw, 1.5rem); }
-  .adapt-tbl th{ text-align:left; padding:.8vh 1vw; border-bottom:2px solid var(--ink); }
-  .adapt-tbl td{ padding:1vh 1vw; border-bottom:1px solid var(--line); vertical-align:top; }
-  .adapt-tbl td:first-child{ font-weight:700; white-space:nowrap; }
   .adapt-chips{ display:flex; flex-wrap:wrap; gap:1vh 1vw; justify-content:center; flex:0 0 auto; }
   .adapt-chip{ border:2px solid var(--ink); border-radius:999px; padding:.5vh 1.2vw; font-size:clamp(1rem, 1.6vw, 1.5rem); }
   .adapt-math{ display:grid; grid-template-columns:minmax(0, 1.05fr) minmax(0, 1fr); gap:2vw; flex:1 1 auto; min-height:0; align-items:center; }
@@ -56,6 +51,62 @@ const adStyle = `<style>
 /* ---------- p48: transition ---------- */
 st(`${adStyle}
   <div class="adapt-transition"><h1 class="t">Adapting existing trained models for your purposes</h1></div>
+`);
+
+/* ---------- p44 (Round 2): Problem Setup, before Adaptation methods as in her deck. Her comment: "this problem framing should be on
+   the scenario presented on farm and the drones". The scenario, the two definitions and f, f' are the book's (section 37.2);
+   the drone and fields are our drawings. One idea per click: last season, this season, start from f, the two names. ---------- */
+const adField = (x, y, crops) => crops.map((c, k) => {
+  const X = x + k * 94, rows = [];
+  if(c === 'wheat') for(let r = 0; r < 6; r++) rows.push(`<line x1="${X + 10}" y1="${y + 12 + r * 14}" x2="${X + 76}" y2="${y + 12 + r * 14}" stroke="#b08d2e" stroke-width="5" stroke-dasharray="4 5"/>`);
+  if(c === 'corn') for(let r = 0; r < 4; r++) rows.push(`<line x1="${X + 16 + r * 18}" y1="${y + 8}" x2="${X + 16 + r * 18}" y2="${y + 88}" stroke="#3f7a3a" stroke-width="7"/>`);
+  if(c === 'soybeans') for(let r = 0; r < 4; r++) for(let q = 0; q < 4; q++) rows.push(`<circle cx="${X + 16 + q * 18}" cy="${y + 16 + r * 22}" r="6" fill="#6aa84f"/>`);
+  return `<rect x="${X}" y="${y}" width="86" height="96" rx="4" fill="${c === 'wheat' ? '#f3e3a8' : '#dcebd2'}" stroke="#0f172a" stroke-width="2"/>${rows.join('')}
+    <text x="${X + 43}" y="${y + 122}" font-size="22" text-anchor="middle">${c}</text>`;
+}).join('');
+const adDrone = (x, y) => `<g transform="translate(${x},${y})"><rect x="-26" y="-9" width="52" height="18" rx="7" fill="#0f172a"/>
+  <line x1="-44" y1="-14" x2="-14" y2="-14" stroke="#0f172a" stroke-width="5"/><line x1="14" y1="-14" x2="44" y2="-14" stroke="#0f172a" stroke-width="5"/>
+  <circle cx="0" cy="13" r="6" fill="#64748b"/><path d="M -6 18 L -40 70 M 6 18 L 40 70" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 4"/></g>`;
+const adMod = (x, y, fill, t, out) => `<rect x="${x}" y="${y}" width="110" height="70" rx="6" fill="${fill}" stroke="#0f172a" stroke-width="2.5"/>
+  <text x="${x + 55}" y="${y + 45}" font-size="30" font-style="italic" text-anchor="middle">${t}</text>
+  <line x1="${x + 116}" y1="${y + 35}" x2="${x + 150}" y2="${y + 35}" stroke="#0f172a" stroke-width="3" marker-end="url(#adP)"/>
+  <text x="${x + 158}" y="${y + 44}" font-size="24">${out}</text>`;
+st(`
+  <h1 class="t">Problem Setup</h1>
+  <svg class="adapt-svg" viewBox="0 0 1180 470" role="img" aria-label="Last season a drone photographs fields of wheat and corn and a classifier f labels them. This season soybeans replace corn, and a new classifier f prime starts from f.">
+    <defs><marker id="adP" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0f172a"/></marker></defs>
+    <g class="b" data-step="1">
+      <text x="20" y="34" font-size="26" font-weight="700">Last season</text>
+      ${adDrone(110, 70)}
+      ${adField(20, 130, ['wheat', 'corn'])}
+      <line x1="206" y1="178" x2="240" y2="178" stroke="#0f172a" stroke-width="3" marker-end="url(#adP)"/>
+      ${adMod(248, 143, AD_PRE, 'f', '{wheat, corn}')}
+    </g>
+    <g class="b" data-step="2">
+      <line x1="572" y1="20" x2="572" y2="250" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="8 6"/>
+      <text x="590" y="34" font-size="26" font-weight="700">This season: corn → soybeans</text>
+      ${adDrone(680, 70)}
+      ${adField(590, 130, ['wheat', 'soybeans'])}
+      <line x1="776" y1="178" x2="810" y2="178" stroke="#0f172a" stroke-width="3" marker-end="url(#adP)"/>
+      <rect x="818" y="143" width="110" height="70" rx="6" fill="#fff" stroke="#0f172a" stroke-width="2.5" stroke-dasharray="7 5"/>
+      <text x="873" y="188" font-size="30" font-style="italic" text-anchor="middle">?</text>
+      <line x1="934" y1="178" x2="968" y2="178" stroke="#0f172a" stroke-width="3" marker-end="url(#adP)"/>
+      <text x="976" y="187" font-size="24">{wheat, soybeans}</text>
+    </g>
+    <g class="b" data-step="3">
+      <rect x="818" y="143" width="110" height="70" rx="6" fill="${AD_FT}" stroke="#0f172a" stroke-width="2.5"/>
+      <text x="873" y="188" font-size="30" font-style="italic" text-anchor="middle">f′</text>
+      <path d="M 303 216 C 303 310, 873 310, 873 222" fill="none" stroke="#0f172a" stroke-width="3.5" marker-end="url(#adP)"/>
+      <rect x="438" y="268" width="300" height="36" fill="#fff"/>
+      <text x="588" y="294" font-size="25" font-weight="700" text-anchor="middle">start from f, not from scratch</text>
+    </g>
+    <g class="b" data-step="4">
+      <text x="20" y="372" font-size="25"><tspan font-weight="700">Pretraining:</tspan> how to acquire prior knowledge in the first place</text>
+      <text x="20" y="412" font-size="25"><tspan font-weight="700">Adaptation:</tspan> how to use prior knowledge to solve a new task</text>
+      <text x="20" y="452" font-size="22" fill="#64748b">f: 𝒳 → 𝒴  ·  f′: 𝒳′ → 𝒴′</text>
+    </g>
+  </svg>
+  ${rdCite(adBook('section 37.2, the farm and drone example') + ' · drone and fields: our drawings')}
 `);
 
 /* ---------- p49: the book's concept, then her list, then the two explained in depth ---------- */
@@ -82,27 +133,6 @@ st(`
     ${AD_METHODS.map(([m, pick]) => `<div class="adapt-item ${pick ? 'adapt-pick' : 'adapt-dim'}">${m}</div>`).join('')}
   </div>
   ${rdCite(adBook('Figure 37.1'))}
-`);
-
-/* ---------- p45 (new in her deck since the build): Problem Setup. Her note: "Use this problem setting to frame the examples
-   we will discuss". The two definitions are the book's words (section 37.2); each row is one example from this section. ---------- */
-const AD_SETUP = [
-  ['Farm (the book)', 'aerial crop photos → {wheat, corn}', 'aerial crop photos → {wheat, soybeans}'],
-  ['Driving in the fog', 'clear street images → class per pixel', 'foggy street images → same classes'],
-  ['Learning from a teacher', 'labeled images → teacher t', 'teacher’s answers → student f<sub>θ</sub>'],
-  ['Continual learning', 'digits → digit labels', 'rotated digits → same labels'],
-];
-st(`
-  <h1 class="t">Problem Setup</h1>
-  <div class="adapt-defs">
-    <div class="d6-card b" data-step="1"><div class="lead"><b>Pretraining:</b> how to acquire prior knowledge in the first place</div><div class="label">learn f: 𝒳 → 𝒴</div></div>
-    <div class="d6-card b" data-step="2"><div class="lead"><b>Adaptation:</b> how to use prior knowledge to solve a new task</div><div class="label">learn f′: 𝒳′ → 𝒴′, starting from f</div></div>
-  </div>
-  <table class="adapt-tbl">
-    <tr class="b" data-step="3"><th></th><th>pretraining: 𝒳 → 𝒴</th><th>adaptation: 𝒳′ → 𝒴′</th></tr>
-    ${AD_SETUP.map(([e, a, b], i) => `<tr class="b" data-step="${i + 3}"><td>${e}</td><td>${a}</td><td>${b}</td></tr>`).join('')}
-  </table>
-  ${rdCite(adBook('section 37.2') + ' · rows: the examples on the next slides')}
 `);
 
 /* ---------- p50: panel by panel. Detected on finetuning_stages.png: divider x .4841; panel 2 ends y .5368;
