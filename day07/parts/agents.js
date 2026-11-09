@@ -370,11 +370,11 @@ st(`
 /* ---------- _0_54: Agent memory. Her comment on her Google slide 11: "do not include this text. embed a couple relevant papers and
    companies here (claude, letta, trajectory, scale ai, etc)", reply: "add dynamic and varied animations for this. not too much text".
    Click 1: four companies, each entering its own way (slide, pop, drop, slide). Click 2: papers dealt onto the table one by one.
-   Each cue is short and comes from that company's own post or paper, except Trajectory (only secondary sources found: source to add). ---------- */
+   Each cue is short and comes from that company's own post or paper; Trajectory's from Sequoia's podcast with its CEO, Ronak Malde. ---------- */
 const AGX_CO = [
   ['Claude', 'Anthropic', 'notes, wikis, dreaming', 'agx-l'],
   ['Letta', 'MemGPT team', 'sleep-time agents', 'agx-pop'],
-  ['Trajectory', 'startup, 2026', 'learning from real use', 'agx-drop'],
+  ['Trajectory', 'startup, 2026', 'agents that improve with use', 'agx-drop'],
   ['Scale AI', 'enterprise agents', 'learnings kept for next runs', 'agx-r'],
 ];
 const AGX_PAPERS = [
@@ -422,7 +422,7 @@ st(`
     ${AGX_PAPERS.map(([t, a, href, r], i) => `<div class="agx-paper" style="--rot:${r}deg;animation-delay:${(i * .22).toFixed(2)}s">
       <b>${d6Link(href, t)}</b><span>${a}</span><div class="agx-lines"><i style="width:92%"></i><i style="width:78%"></i><i style="width:85%"></i></div></div>`).join('')}
   </div>
-  ${rdCite(agPost('') + ' · ' + d6Link('https://www.letta.com/blog/memgpt-and-letta', 'Letta, MemGPT and Letta (2024)') + ' · Trajectory: source to add · '
+  ${rdCite(agPost('') + ' · ' + d6Link('https://www.letta.com/blog/memgpt-and-letta', 'Letta, MemGPT and Letta (2024)') + ' · ' + d6Link('https://sequoiacap.com/podcast/continual-learning-how-ai-agents-get-better-with-every-use', 'Sequoia, Continual Learning (podcast with Trajectory, 2026)') + ' · '
     + d6Link('https://scale.com/blog/agentex-temporal-tutorial', 'Scale AI, long-running enterprise agents'))}
 `);
 

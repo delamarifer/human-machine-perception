@@ -77,7 +77,7 @@
   Letta (sleep-time agents), Trajectory (learning from real use), Scale AI (learnings kept for next runs).
 - Click 2: four papers dealt onto the table: MemGPT (Packer et al. 2023), Sleep-time Compute (Lin et al. 2025),
   Trajectory-Informed Memory (IBM Research 2026, arXiv 2603.10600), The components of agent memory (Anthropic 2026).
-- [ ] Trajectory: found only secondary sources (news, Dealroom), a 2026 startup working on continual learning. Its cite says "source to add". Is this the Trajectory you meant? Give the link.
+- [x] Trajectory: the 2026 continual-learning startup (Shreya confirmed). Cited to Sequoia's podcast "Continual Learning: How AI Agents Get Better With Every Use"; cue "agents that improve with use".
 - [ ] Scale AI: no memory paper found. The cue comes from their long-running enterprise agents post (learnings stored and fed into future runs). Is there a Scale piece you had in mind?
 - [ ] The IBM paper's title was read from search results, not from arXiv directly. Check it before class.
 - The earlier version of this slide (three illustrated cards: who, beyond text, structure) is replaced. The flat / hierarchy / wiki drawing could come back elsewhere if wanted.
