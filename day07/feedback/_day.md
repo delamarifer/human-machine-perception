@@ -95,3 +95,11 @@
   "Which numbers would tell you it works?" (a gauge needle swings), "How would you test it, and what makes that hard?" (a magnifier sweeps).
   The aspects table and the memory-results chart are removed (still in git history, commit 8ed6901).
   - [ ] Keep the small hint under the first question ("the model, the memory, or the whole agent?"), or drop it?
+
+## 2026-11-09: placeholders for the project slides (Shreya's request)
+- New part `project` and section "Project Review" after Agents and Memory, in the Google deck's order:
+  32A and 32B Project Review, 33 Project Plan Rubric, 34 Project Rubric. Each opens on its title. One click brings her outline lines in
+  dashed TO DO boxes, wording as she wrote it.
+- Not added yet (also in her outline): Data Worksheet Review and Share (start of the day), Open Questions, Quiz Review.
+- [ ] Fill in each slide when the project review content is ready (ideas overview, groupings, rubrics, an example plan?).
+- [ ] Bar width for Project Review: 15 minutes is a guess.
