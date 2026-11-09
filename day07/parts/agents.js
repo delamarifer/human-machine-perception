@@ -5,11 +5,12 @@
    - Types of memory: her image, captioned "Based on Malmberg et al., 2019" (full reference: to add).
    - Agent memory: Figure 1 of Lance Martin, "The components of agent memory", Anthropic (Nov 6, 2026).
    - The agent loop and the small drawings are ours. Numbers on "How the stores connect" are the post's (Figures 8 and 10).
+   Shreya (2026-11-09): no company or product names on screen; sources are cited by author and title (the links still point to them).
    No speaker notes. */
 {
 section('Transfer Learning');
 
-const agPost = t => d6Link('https://www.anthropic.com/research/components-of-agent-memory', 'Lance Martin, The components of agent memory, Anthropic (2026)') + (t ? ', ' + t : '');
+const agPost = t => d6Link('https://www.anthropic.com/research/components-of-agent-memory', 'Martin, The components of agent memory (2026)') + (t ? ', ' + t : '');
 const AG_PRE = '#f3d79f', AG_FT = '#f1a3a9';   /* same pretrained / finetuned colors as the adapt part */
 const agArrowDefs = id => `<defs><marker id="${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0f172a"/></marker></defs>`;
 
@@ -272,7 +273,7 @@ st(`
    Box titles and subtitles are the figure's. ---------- */
 const AG_STORES = [
   ['Transcripts', 'Searchable event log', 160, 840],
-  ['Memory notes', 'Salient observations written by Claude', 220, 740],
+  ['Memory notes', 'Salient observations written by the agent', 220, 740],
   ['Memory representations', 'Computed from transcripts, notes (e.g., wikis)', 280, 640],
   ['Injected context', 'Memory loaded into every session', 340, 520],
 ];
@@ -308,7 +309,7 @@ st(`
     @media (prefers-reduced-motion: reduce){ .agm .b, .agm .agm-tick, .agm .agm-pop, .agm .agm-draw{ transition:none !important; } .agm .agm-glow{ animation:none !important; } }
   </style>
   <h1 class="t">Agent memory</h1>
-  <svg class="agents-svg agm" viewBox="0 0 1180 470" role="img" aria-label="Agent memory. A session writes transcripts, a searchable event log. Above it, memory notes written by Claude, then memory representations such as wikis, then injected context loaded into every session. Dreaming reads the transcripts and updates every layer above, and the next session starts from them.">
+  <svg class="agents-svg agm" viewBox="0 0 1180 470" role="img" aria-label="Agent memory. A session writes transcripts, a searchable event log. Above it, memory notes written by the agent, then memory representations such as wikis, then injected context loaded into every session. Dreaming reads the transcripts and updates every layer above, and the next session starts from them.">
     ${agArrowDefs('agM')}
     <g class="b agm-left" data-step="1">
       <rect x="20" y="40" width="120" height="400" rx="10" fill="#fff" stroke="#0f172a" stroke-width="2.5"/>
@@ -360,11 +361,11 @@ st(`
     <div class="d6-card b" data-step="2"><div class="lead"><b>Read down</b></div>
       <div class="label">injected context is always loaded; wiki pages are followed by links; transcripts are searched</div></div>
     <div class="d6-card b" data-step="3"><div class="lead"><b>Correct</b></div>
-      <div class="label">dreaming checks notes against transcripts: a wrong “Mt Moon DONE” note was fixed, and Claude got through</div></div>
+      <div class="label">dreaming checks notes against transcripts: a wrong “Mt Moon DONE” note was fixed, and the agent got through</div></div>
     <div class="d6-card b" data-step="4"><div class="lead"><b>Links carry the knowledge</b></div>
       <div class="label">a dreamed wiki: 103 pages, 766 links after 2 sessions → 222 pages, 12,893 links after 128</div></div>
   </div>
-  ${rdCite(agPost('Claude Plays Pokémon (Figures 6–8) and the wiki graph (Figure 10)'))}
+  ${rdCite(agPost('the game-playing example (Figures 6–8) and the wiki graph (Figure 10)'))}
 `);
 
 /* ---------- _0_54: Agent memory. Her comment on her Google slide 11: "do not include this text. embed a couple relevant papers and

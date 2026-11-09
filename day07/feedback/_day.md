@@ -86,8 +86,9 @@
 - Agent memory (slide 28): "lets not include specific companies". The company tiles are gone. Four papers, named by their authors,
   are dealt in on one click: Packer et al. 2023 (MemGPT), Lin et al. 2025 (Sleep-time Compute), Fang et al. 2026 (Trajectory-Informed
   Memory, arXiv 2603.10600, title and authors checked on arXiv), Martin 2026 (The components of agent memory).
-  - [ ] Still on other agent slides as sources or figure text: "Claude" in the agent memory figure ("written by Claude") and the
-    Mt. Moon example ("Claude got through"), and Anthropic in citations. Change those too?
+  - [x] Made generic (Shreya: "Yes, make generic"): the figure now says "written by the agent", the Mt. Moon card says "the agent got
+    through", and citations name the author and title only ("Martin, The components of agent memory (2026)", "the game-playing example").
+    The links still go to the original post. The future part's Scale AI citations (RL Environments, robotics data gap) are not in the agents part and were left as they are.
 - Evaluation (Google slide 12): her slide note "open questions in a fun animation: 1) what are we evaluating 2) what metrics. Reword"
   and her comment "just pose a question … how would you go about this and what types of challenges might there be?"
   Now one slide, questions only: a big "?" bounces in, then "What exactly are we evaluating?" (a dart hits a target),
