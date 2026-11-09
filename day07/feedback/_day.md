@@ -59,3 +59,13 @@
   (Anthropic; Letta and UC Berkeley, sleep-time compute; MemGPT), memory beyond text (text, image, embedding, 3D map), and how
   stored pieces relate (flat, hierarchy, linked wiki). Both papers were checked on arXiv: Lin et al. 2025 (2504.13171) and Packer et al. 2023 (2310.08560).
   - [ ] Are those three the right examples for "many researchers and companies", or do you want others named?
+
+## 2026-11-09: Agent memory diagram animation (Shreya: "change the animation style or add variety")
+- Each layer now enters its own way, with a small icon like the post's figure:
+  1. the session slides in and the transcript log types itself out
+  2. a memory note drops in like a pinned card
+  3. the wiki's pages pop in and their links draw
+  4. injected context slides down and glows once
+  5. dreaming fades in and its three arrows draw upward one after another
+  6. the next session slides in from the right and injected context is drawn into it
+- Motion runs once, right after each click; going back undoes it. It respects reduced-motion settings.

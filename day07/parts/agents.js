@@ -277,31 +277,74 @@ const AG_STORES = [
   ['Injected context', 'Memory loaded into every session', 340, 520],
 ];
 const agStoreY = i => 370 - i * 92;
+/* Shreya (2026-11-09): more variety in how this slide animates. Each layer enters its own way and carries a small icon like the post's
+   figure: the session slides in and the transcript log types itself out; a note drops in like a pinned card; the wiki's pages pop in
+   and their links draw; injected context slides down; dreaming fades in and its three arrows draw upward one after another; the next
+   session slides in from the right and injected context is drawn into it. Each motion runs once, right after its click. */
+const agDraw = (d, delay, extra = '') => `<path class="agm-draw" pathLength="1" style="transition-delay:${delay}s" d="${d}" fill="none" stroke="#0f172a" stroke-width="2.5" marker-end="url(#agM)" ${extra}/>`;
+const AGM_WIKI = [[0, 0], [34, -14], [62, 6], [26, 22], [70, 30]];
+const AGM_LINKS = [[0, 1], [1, 2], [0, 3], [3, 4], [2, 4]];
+const agStoreBox = (i, inner = '') => { const [t, s, x, w] = AG_STORES[i], y = agStoreY(i);
+  return `<rect x="${x + 40}" y="${y}" width="${w}" height="68" rx="10" fill="#fff" stroke="#0f172a" stroke-width="2.5"/>
+    <text x="${x + 62}" y="${y + 30}" font-size="23" font-weight="700">${t}</text>
+    <text x="${x + 62}" y="${y + 56}" font-size="19" fill="#475569">${s}</text>${inner}`; };
 st(`
+  <style>
+    .agm .b.agm-left{ transform:translateX(-40px); }
+    .agm .b.agm-right{ transform:translateX(40px); }
+    .agm .b.agm-drop{ transform:translateY(-34px) rotate(-2.5deg); transform-box:fill-box; transform-origin:50% 0; transition:opacity .5s ease, transform .7s cubic-bezier(.3,1.5,.5,1); }
+    .agm .b.agm-down{ transform:translateY(-26px); transition:opacity .6s ease, transform .8s ease; }
+    .agm .b.agm-zoom{ transform:scale(.97); transform-box:fill-box; transform-origin:50% 50%; transition:opacity 1s ease, transform 1s ease; }
+    .agm .b.shown.agm-left, .agm .b.shown.agm-right, .agm .b.shown.agm-drop, .agm .b.shown.agm-down, .agm .b.shown.agm-zoom{ transform:none; }
+    .agm .agm-tick{ transform:scaleX(0); transform-box:fill-box; transform-origin:0 50%; transition:transform .25s ease; }
+    .agm .b.shown .agm-tick{ transform:none; }
+    .agm .agm-pop{ transform:scale(0); transform-box:fill-box; transform-origin:50% 50%; transition:transform .45s cubic-bezier(.3,1.6,.5,1); }
+    .agm .b.shown .agm-pop{ transform:none; }
+    .agm .agm-draw{ stroke-dasharray:1; stroke-dashoffset:1; opacity:0; transition:stroke-dashoffset .8s ease, opacity .1s; }
+    .agm .b.shown .agm-draw{ stroke-dashoffset:0; opacity:1; }
+    .agm .agm-glow{ opacity:0; }
+    .agm .b.shown .agm-glow{ animation:agmGlow 1.6s ease 1s 1 both; }
+    @keyframes agmGlow{ 0%{ opacity:0; } 30%{ opacity:.9; } 100%{ opacity:0; } }
+    @media (prefers-reduced-motion: reduce){ .agm .b, .agm .agm-tick, .agm .agm-pop, .agm .agm-draw{ transition:none !important; } .agm .agm-glow{ animation:none !important; } }
+  </style>
   <h1 class="t">Agent memory</h1>
-  <svg class="agents-svg" viewBox="0 0 1180 470" role="img" aria-label="Agent memory. A session writes transcripts, a searchable event log. Above it, memory notes written by Claude, then memory representations such as wikis, then injected context loaded into every session. Dreaming reads the transcripts and updates every layer above, and the next session starts from them.">
+  <svg class="agents-svg agm" viewBox="0 0 1180 470" role="img" aria-label="Agent memory. A session writes transcripts, a searchable event log. Above it, memory notes written by Claude, then memory representations such as wikis, then injected context loaded into every session. Dreaming reads the transcripts and updates every layer above, and the next session starts from them.">
     ${agArrowDefs('agM')}
-    <g class="b" data-step="1">
+    <g class="b agm-left" data-step="1">
       <rect x="20" y="40" width="120" height="400" rx="10" fill="#fff" stroke="#0f172a" stroke-width="2.5"/>
       <text x="80" y="248" font-size="24" font-weight="700" text-anchor="middle">Session</text>
-      <line x1="146" y1="${agStoreY(0) + 34}" x2="${AG_STORES[0][2] + 34}" y2="${agStoreY(0) + 34}" stroke="#0f172a" stroke-width="2.5" marker-end="url(#agM)"/>
+      ${agDraw(`M 146 ${agStoreY(0) + 34} H ${AG_STORES[0][2] + 34}`, .3)}
+      ${agStoreBox(0, Array.from({length: 2}, (_, r) => Array.from({length: 9}, (_, c) => `<rect class="agm-tick" style="transition-delay:${(.6 + (r * 9 + c) * .06).toFixed(2)}s" x="${600 + c * 46 + (r ? 10 : 0)}" y="${agStoreY(0) + 22 + r * 22}" width="${30 + ((c * 7 + r * 3) % 4) * 4}" height="7" rx="3" fill="#94a3b8"/>`).join('')).join(''))}
     </g>
-    ${AG_STORES.map(([t, s, x, w], i) => `<g class="b" data-step="${i + 1}">
-      <rect x="${x + 40}" y="${agStoreY(i)}" width="${w}" height="68" rx="10" fill="#fff" stroke="#0f172a" stroke-width="2.5"/>
-      <text x="${x + 62}" y="${agStoreY(i) + 30}" font-size="23" font-weight="700">${t}</text>
-      <text x="${x + 62}" y="${agStoreY(i) + 56}" font-size="19" fill="#475569">${s}</text>
-      ${i ? `<line x1="${x + 140}" y1="${agStoreY(i) + 70}" x2="${x + 140}" y2="${agStoreY(i - 1) - 4}" stroke="#0f172a" stroke-width="2" stroke-dasharray="5 4"/>` : ''}
-    </g>`).join('')}
-    <g class="b" data-step="5">
+    <g class="b agm-drop" data-step="2">
+      ${agStoreBox(1, `<g transform="translate(${AG_STORES[1][2] + 40 + AG_STORES[1][3] - 70},${agStoreY(1) + 14})">
+        ${[8, 4, 0].map(d => `<rect x="${d}" y="${d}" width="34" height="40" rx="3" fill="#fff" stroke="#0f172a" stroke-width="2"/>`).join('')}
+        ${[0, 1, 2].map(k => `<line x1="6" y1="${12 + k * 9}" x2="${26 - k * 4}" y2="${12 + k * 9}" stroke="#94a3b8" stroke-width="2.5"/>`).join('')}</g>`)}
+      <line x1="${AG_STORES[1][2] + 140}" y1="${agStoreY(1) + 70}" x2="${AG_STORES[1][2] + 140}" y2="${agStoreY(0) - 4}" stroke="#0f172a" stroke-width="2" stroke-dasharray="5 4"/>
+    </g>
+    <g class="b" data-step="3">
+      ${agStoreBox(2, `<g transform="translate(${AG_STORES[2][2] + 40 + AG_STORES[2][3] - 120},${agStoreY(2) + 20})">
+        ${AGM_LINKS.map(([u, v], k) => `<path class="agm-draw" pathLength="1" style="transition-delay:${(.9 + k * .12).toFixed(2)}s" d="M ${AGM_WIKI[u][0] + 8} ${AGM_WIKI[u][1] + 10} L ${AGM_WIKI[v][0] + 8} ${AGM_WIKI[v][1] + 10}" stroke="#0f172a" stroke-width="2"/>`).join('')}
+        ${AGM_WIKI.map(([x, y], k) => `<rect class="agm-pop" style="transition-delay:${(.3 + k * .12).toFixed(2)}s" x="${x}" y="${y}" width="16" height="20" rx="2" fill="#fff" stroke="#0f172a" stroke-width="2"/>`).join('')}</g>`)}
+      <line x1="${AG_STORES[2][2] + 140}" y1="${agStoreY(2) + 70}" x2="${AG_STORES[2][2] + 140}" y2="${agStoreY(1) - 4}" stroke="#0f172a" stroke-width="2" stroke-dasharray="5 4"/>
+    </g>
+    <g class="b agm-down" data-step="4">
+      <rect class="agm-glow" x="${AG_STORES[3][2] + 34}" y="${agStoreY(3) - 6}" width="${AG_STORES[3][3] + 12}" height="80" rx="14" fill="#f3d79f"/>
+      ${agStoreBox(3, `<g transform="translate(${AG_STORES[3][2] + 40 + AG_STORES[3][3] - 56},${agStoreY(3) + 14})">
+        <path d="M 0 0 H 24 L 34 10 V 40 H 0 Z" fill="#fff" stroke="#0f172a" stroke-width="2"/>${[0, 1, 2].map(k => `<line x1="6" y1="${16 + k * 8}" x2="28" y2="${16 + k * 8}" stroke="#94a3b8" stroke-width="2.5"/>`).join('')}</g>`)}
+      <line x1="${AG_STORES[3][2] + 140}" y1="${agStoreY(3) + 70}" x2="${AG_STORES[3][2] + 140}" y2="${agStoreY(2) - 4}" stroke="#0f172a" stroke-width="2" stroke-dasharray="5 4"/>
+    </g>
+    <g class="b agm-zoom" data-step="5">
       <rect x="168" y="24" width="890" height="432" rx="14" fill="none" stroke="#0f172a" stroke-width="2.5" stroke-dasharray="10 7"/>
-      <text x="190" y="58" font-size="24" font-weight="700">Dreaming</text>
-      ${[1, 2, 3].map(i => `<path d="M ${254 - i * 14} ${agStoreY(0)} V ${agStoreY(i) + 34} H ${AG_STORES[i][2] + 34}" fill="none" stroke="#0f172a" stroke-width="2.5" marker-end="url(#agM)"/>`).join('')}
+      <path d="M 196 40 a 13 13 0 1 0 16 18 a 10 10 0 1 1 -16 -18 z" fill="#0f172a"/>
+      <text x="222" y="58" font-size="24" font-weight="700">Dreaming</text>
+      ${[1, 2, 3].map(i => agDraw(`M ${254 - i * 14} ${agStoreY(0)} V ${agStoreY(i) + 34} H ${AG_STORES[i][2] + 34}`, (.6 + (i - 1) * .45).toFixed(2))).join('')}
     </g>
-    <g class="b" data-step="6">
-      <line x1="1060" y1="240" x2="1080" y2="240" stroke="#0f172a" stroke-width="2.5" marker-end="url(#agM)"/>
+    <g class="b agm-right" data-step="6">
       <rect x="1086" y="40" width="84" height="400" rx="10" fill="#fff" stroke="#0f172a" stroke-width="2.5"/>
-      <text x="1128" y="236" font-size="22" font-weight="700" text-anchor="middle">Next</text>
-      <text x="1128" y="262" font-size="22" font-weight="700" text-anchor="middle">session</text>
+      <text x="1128" y="236" font-size="20" font-weight="700" text-anchor="middle">Next</text>
+      <text x="1128" y="262" font-size="20" font-weight="700" text-anchor="middle">session</text>
+      ${agDraw(`M ${AG_STORES[3][2] + 40 + AG_STORES[3][3] + 4} ${agStoreY(3) + 34} H 1080`, .5, 'stroke-dasharray="1"')}
     </g>
   </svg>
   ${rdCite(agPost('Figure 1, redrawn'))}
