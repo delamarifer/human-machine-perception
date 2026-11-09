@@ -38,7 +38,10 @@ and its comments with the HTML. Now 69 HTML slides.
 - **Slide 46 (Problem Setup, now before Adaptation methods as in her deck).** Her comment: frame it on the book's farm and drone scenario.
   Drawn: last season wheat and corn → f; this season corn → soybeans → f′, started from f; then the book's two definitions. The table of
   examples from the first Round 2 version is gone.
-- [ ] Open, not built: her new comment on Synthetic generator, "include images for why this could be useful (time, cost, resources)".
+- **Slide 20 (Synthetic generator).** Her comment: images for why it is useful (time, cost, resources). After her three points, three
+  drawn cards, one per click: two clocks and two coin stacks (people vs generator, illustrative, no numbers), and one expert's seeds
+  growing into many items (Self-Instruct: 175 seed tasks → 52K instructions, Wang et al., ACL 2023).
+- [ ] **Slide 20.** The clocks and coins carry no numbers. Want a sourced cost or time figure instead?
 - **Slide 50 (p47).** Now "Finetuning subparts of a network" only; Figure 37.4 moved to slide 53.
 - **Slide 52 (p49, new).** Learning from a Teacher: the book's two diagrams with the cat photo, "answer key", the 90% / 10% example,
   her four use cases as chips.
