@@ -369,19 +369,13 @@ st(`
 
 /* ---------- _0_54: Agent memory. Her comment on her Google slide 11: "do not include this text. embed a couple relevant papers and
    companies here (claude, letta, trajectory, scale ai, etc)", reply: "add dynamic and varied animations for this. not too much text".
-   Click 1: four companies, each entering its own way (slide, pop, drop, slide). Click 2: papers dealt onto the table one by one.
-   Each cue is short and comes from that company's own post or paper; Trajectory's from Sequoia's podcast with its CEO, Ronak Malde. ---------- */
-const AGX_CO = [
-  ['Claude', 'Anthropic', 'notes, wikis, dreaming', 'agx-l'],
-  ['Letta', 'MemGPT team', 'sleep-time agents', 'agx-pop'],
-  ['Trajectory', 'startup, 2026', 'agents that improve with use', 'agx-drop'],
-  ['Scale AI', 'enterprise agents', 'learnings kept for next runs', 'agx-r'],
-];
+   Shreya, later (2026-11-09): "lets not include specific companies". So: papers only, named by their authors, dealt onto the table
+   one by one, each at its own angle. Titles and authors checked on arXiv and the post itself. ---------- */
 const AGX_PAPERS = [
   ['MemGPT', 'Packer et al., 2023', 'https://arxiv.org/abs/2310.08560', -5],
   ['Sleep-time Compute', 'Lin et al., 2025', 'https://arxiv.org/abs/2504.13171', 3],
-  ['Trajectory-Informed Memory', 'IBM Research, 2026', 'https://arxiv.org/abs/2603.10600', -2],
-  ['The components of agent memory', 'Anthropic, 2026', 'https://www.anthropic.com/research/components-of-agent-memory', 4],
+  ['Trajectory-Informed Memory', 'Fang et al., 2026', 'https://arxiv.org/abs/2603.10600', -2],
+  ['The components of agent memory', 'Martin, 2026', 'https://www.anthropic.com/research/components-of-agent-memory', 4],
 ];
 st(`
   <style>
@@ -391,11 +385,11 @@ st(`
     .agx-who{ font-size:clamp(.8rem, 1.1vw, 1.05rem); color:var(--mute); text-transform:uppercase; letter-spacing:.06em; }
     .agx-cue{ font-size:clamp(.95rem, 1.45vw, 1.4rem); }
     .agx-papers{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(4, 1fr); gap:1.6vw; align-items:center; padding:2vh .5vw 0; }
-    .agx-paper{ position:relative; background:#fff; border:1.5px solid #cbd5e1; border-radius:4px; padding:2.2vh 1vw 2vh; min-height:18vh;
+    .agx-paper{ position:relative; background:#fff; border:1.5px solid #cbd5e1; border-radius:4px; padding:2.2vh 1vw 2vh; min-height:28vh;
       box-shadow:0 6px 16px rgba(15,23,42,.12); display:flex; flex-direction:column; gap:1vh; transform:rotate(var(--rot)); }
     .agx-paper::before{ content:""; position:absolute; left:1vw; right:1vw; top:1.1vh; height:3px; background:var(--ink); border-radius:2px; }
-    .agx-paper b{ font-size:clamp(1rem, 1.55vw, 1.5rem); line-height:1.2; margin-top:.8vh; }
-    .agx-paper span{ font-size:clamp(.8rem, 1.15vw, 1.1rem); color:var(--mute); }
+    .agx-paper b{ font-size:clamp(1.15rem, 2vw, 1.9rem); line-height:1.2; margin-top:.8vh; }
+    .agx-paper span{ font-size:clamp(.95rem, 1.4vw, 1.35rem); color:var(--mute); }
     .agx-paper .agx-lines{ margin-top:auto; display:flex; flex-direction:column; gap:.7vh; }
     .agx-paper .agx-lines i{ display:block; height:5px; border-radius:3px; background:#e2e8f0; }
     .agx-paper a{ color:inherit; text-decoration:none; }
@@ -415,59 +409,67 @@ st(`
     @media (prefers-reduced-motion: reduce){ .b.shown .agx-l, .b.shown .agx-pop, .b.shown .agx-drop, .b.shown .agx-r, .b.shown .agx-paper{ animation:none; } }
   </style>
   <h1 class="t">Agent memory</h1>
-  <div class="agx-co b" data-step="1">
-    ${AGX_CO.map(([n, w, c, k]) => `<div class="agx-tile ${k}"><div class="agx-who">${w}</div><div class="agx-name">${n}</div><div class="agx-cue">${c}</div></div>`).join('')}
-  </div>
-  <div class="agx-papers b" data-step="2">
+  <div class="agx-papers b" data-step="1">
     ${AGX_PAPERS.map(([t, a, href, r], i) => `<div class="agx-paper" style="--rot:${r}deg;animation-delay:${(i * .22).toFixed(2)}s">
       <b>${d6Link(href, t)}</b><span>${a}</span><div class="agx-lines"><i style="width:92%"></i><i style="width:78%"></i><i style="width:85%"></i></div></div>`).join('')}
   </div>
-  ${rdCite(agPost('') + ' · ' + d6Link('https://www.letta.com/blog/memgpt-and-letta', 'Letta, MemGPT and Letta (2024)') + ' · ' + d6Link('https://sequoiacap.com/podcast/continual-learning-how-ai-agents-get-better-with-every-use', 'Sequoia, Continual Learning (podcast with Trajectory, 2026)') + ' · '
-    + d6Link('https://scale.com/blog/agentex-temporal-tutorial', 'Scale AI, long-running enterprise agents'))}
+  ${rdCite(AGX_PAPERS.map(([t, a, h]) => d6Link(h, a + ', ' + t)).join(' · '))}
 `);
 
-/* ---------- _0_66: Evaluation. Her two lines, then (Shreya, 2026-11-09: make it concrete) the aspects to discuss, one per click,
-   each with what you would measure and an example from the Anthropic post. Second slide: the post's Figure 3 numbers. ---------- */
-const AG_EVAL = [
-  ['Does it help?', 'task score with memory vs without', 'database task: higher with memory for all 6 models, by 0.03 to 0.32'],
-  ['Is the memory right?', 'notes checked against what happened', 'a wrong “Mt Moon DONE” note made Claude loop'],
-  ['Is it used?', 'how often the right note is read in time', 'Sonnet 5 read memory first 9 of 10 times; Sonnet 4.6 under half'],
-  ['What does it cost?', 'tokens, compute, memory size', 'one wiki grew to 1.77× its source'],
-  ['Does it keep improving?', 'score across sessions and across tasks', 'wiki helped multi-document questions, not single-document ones'],
+/* ---------- _0_66: Evaluation. Her slide: "Include some open questions in a fun animation to think about 1) what are we evaluating
+   2) what metrics to look at. Reword to be better". Her comment: "just pose a question. how is this challenging? or how would you go
+   about this and what types of challenges might there be?" So: questions only, no answers on screen (the earlier aspects table and the
+   memory-results chart are removed; they are in git history, commit 8ed6901). A big question mark bounces in, then each question
+   arrives with its own icon and motion: a target (what), a gauge whose needle swings (metrics), a magnifier that sweeps (how, and why hard). ---------- */
+const AGE_Q = [
+  ['What exactly are we evaluating?', 'the model, the memory, or the whole agent?', 'age-target'],
+  ['Which numbers would tell you it works?', '', 'age-gauge'],
+  ['How would you test it, and what makes that hard?', '', 'age-lens'],
 ];
+const AGE_ICON = {
+  'age-target': `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="40" fill="#fff" stroke="#0f172a" stroke-width="6"/><circle cx="50" cy="50" r="25" fill="#f1a3a9" stroke="#0f172a" stroke-width="5"/><circle cx="50" cy="50" r="10" fill="#0f172a"/>
+    <g class="age-dart"><line x1="96" y1="4" x2="54" y2="46" stroke="#0f172a" stroke-width="6" stroke-linecap="round"/><path d="M 96 4 l -16 2 l 14 14 z" fill="#0f172a"/></g></svg>`,
+  'age-gauge': `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M 10 70 A 40 40 0 0 1 90 70" fill="none" stroke="#e2e8f0" stroke-width="14"/><path d="M 10 70 A 40 40 0 0 1 90 70" fill="none" stroke="#f3d79f" stroke-width="14" stroke-dasharray="40 200"/>
+    <g class="age-needle"><line x1="50" y1="70" x2="50" y2="28" stroke="#0f172a" stroke-width="6" stroke-linecap="round"/></g><circle cx="50" cy="70" r="8" fill="#0f172a"/></svg>`,
+  'age-lens': `<svg viewBox="0 0 100 100" aria-hidden="true"><g class="age-glass"><circle cx="42" cy="42" r="26" fill="#f1f5f9" stroke="#0f172a" stroke-width="7"/><line x1="61" y1="61" x2="88" y2="88" stroke="#0f172a" stroke-width="10" stroke-linecap="round"/></g></svg>`,
+};
 st(`
+  <style>
+    .age-wrap{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:minmax(0, .8fr) minmax(0, 2.2fr); gap:3vw; align-items:center; }
+    .age-big{ font-size:min(34vh, 22vw); font-weight:800; line-height:1; text-align:center; color:var(--ink); }
+    .b.shown .age-big{ animation:ageBounce 1.1s cubic-bezier(.3,1.6,.5,1) both, ageWobble 2.4s ease-in-out 1.2s 1; display:inline-block; }
+    @keyframes ageBounce{ 0%{ opacity:0; transform:translateY(-40vh) scale(.6); } 60%{ opacity:1; transform:translateY(2vh) scale(1.05); } 100%{ transform:none; } }
+    @keyframes ageWobble{ 0%, 100%{ transform:rotate(0); } 25%{ transform:rotate(-8deg); } 75%{ transform:rotate(8deg); } }
+    .age-qs{ display:flex; flex-direction:column; gap:3.4vh; }
+    .age-q{ display:grid; grid-template-columns:clamp(3rem, 7vw, 6.5rem) 1fr; gap:1.6vw; align-items:center; }
+    .age-q svg{ width:100%; height:auto; display:block; overflow:visible; }
+    .age-q .question{ font-size:clamp(1.3rem, 2.5vw, 2.4rem); }
+    .age-hint{ font-size:clamp(1rem, 1.6vw, 1.5rem); color:var(--mute); margin-top:.4vh; }
+    .b.shown.age-q1{ animation:ageInL .7s cubic-bezier(.2,.9,.3,1) both; }
+    .b.shown.age-q2{ animation:ageInUp .7s cubic-bezier(.3,1.5,.5,1) both; }
+    .b.shown.age-q3{ animation:ageInR .7s cubic-bezier(.2,.9,.3,1) both; }
+    @keyframes ageInL{ from{ opacity:0; transform:translateX(-6vw); } to{ opacity:1; transform:none; } }
+    @keyframes ageInR{ from{ opacity:0; transform:translateX(6vw); } to{ opacity:1; transform:none; } }
+    @keyframes ageInUp{ from{ opacity:0; transform:translateY(5vh) scale(.92); } to{ opacity:1; transform:none; } }
+    .age-dart{ transform-box:view-box; }
+    .b.shown .age-dart{ animation:ageDart .6s cubic-bezier(.5,0,.8,.6) .45s both; }
+    @keyframes ageDart{ from{ transform:translate(40px, -40px); opacity:0; } 70%{ opacity:1; } to{ transform:none; opacity:1; } }
+    .age-needle{ transform-box:view-box; transform-origin:50px 70px; transform:rotate(-60deg); }
+    .b.shown .age-needle{ animation:ageNeedle 1.8s ease-in-out .4s both; }
+    @keyframes ageNeedle{ 0%{ transform:rotate(-80deg); } 35%{ transform:rotate(70deg); } 60%{ transform:rotate(-30deg); } 80%{ transform:rotate(30deg); } 100%{ transform:rotate(-10deg); } }
+    .age-glass{ transform-box:view-box; }
+    .b.shown .age-glass{ animation:ageSweep 1.8s ease-in-out .4s both; }
+    @keyframes ageSweep{ 0%{ transform:translate(-14px, 6px); } 33%{ transform:translate(12px, -6px); } 66%{ transform:translate(-6px, 10px); } 100%{ transform:none; } }
+    @media (max-width: 820px), (max-aspect-ratio: 1/1){ .age-wrap{ grid-template-columns:1fr; } .age-big{ font-size:18vh; } }
+    @media (prefers-reduced-motion: reduce){ .agents-svg *, .age-wrap *, .age-wrap .b{ animation:none !important; } }
+  </style>
   <h1 class="t">Evaluation</h1>
-  <div class="agents-lines">
-    <div class="lead b" data-step="1">This can be tricky</div>
-    <div class="lead b" data-step="2"><b>Think about the different aspects of how you would evaluate this</b></div>
+  <div class="age-wrap">
+    <div style="text-align:center" class="b" data-step="1"><span class="age-big">?</span></div>
+    <div class="age-qs">
+      ${AGE_Q.map(([q, h, k], i) => `<div class="age-q age-q${i + 1} b" data-step="${i + 1}">${AGE_ICON[k]}
+        <div><div class="question">${q}</div>${h ? `<div class="age-hint">${h}</div>` : ''}</div></div>`).join('')}
+    </div>
   </div>
-  <table class="d6-tbl" style="width:100%;margin-top:2vh;font-size:clamp(.95rem,1.55vw,1.5rem)">
-    <tr class="b" data-step="3"><th style="text-align:left">Aspect</th><th style="text-align:left">Measure</th><th style="text-align:left">Example</th></tr>
-    ${AG_EVAL.map(([a, m, e], i) => `<tr class="b" data-step="${i + 3}"><td class="rowh">${a}</td><td style="text-align:left">${m}</td><td style="text-align:left">${e}</td></tr>`).join('')}
-  </table>
-  ${rdCite(agPost('Figures 3, 5, 6–8, 11 and 12'), 3)}
-`);
-
-/* Second slide: Figure 3 of the post, CL-Bench 1.0 database task, mean reward, stateless vs memory store (read from the post). */
-const AG_CL = [['Opus 5.5', .655, .838], ['Sonnet 5.5', .644, .833], ['Opus 5', .564, .828], ['Opus 4.7', .383, .700], ['Sonnet 5', .306, .610], ['Sonnet 4.6', .330, .364]];
-const AG_BX = 250, AG_BW = 780;
-st(`
-  <h1 class="t">Evaluation</h1>
-  <div class="lead b" data-step="1">One test: the same 30 database questions, with and without a memory store</div>
-  <svg class="agents-svg" viewBox="0 0 1180 400" role="img" aria-label="Mean reward on a database task without and with a memory store. ${AG_CL.map(([m, a, b]) => `${m}: ${a} without, ${b} with`).join('; ')}.">
-    <g class="b" data-step="1">
-      <line x1="${AG_BX}" y1="10" x2="${AG_BX}" y2="${20 + AG_CL.length * 60}" stroke="#94a3b8" stroke-width="2"/>
-      ${AG_CL.map(([m], i) => `<text x="${AG_BX - 14}" y="${50 + i * 60}" font-size="22" font-weight="700" text-anchor="end">${m}</text>`).join('')}
-      <rect x="${AG_BX}" y="${30 + AG_CL.length * 60}" width="18" height="18" fill="#cbd5e1" stroke="#0f172a"/><text x="${AG_BX + 26}" y="${45 + AG_CL.length * 60}" font-size="20">no memory</text>
-    </g>
-    <g class="b" data-step="2">${AG_CL.map(([, a], i) => `<rect x="${AG_BX}" y="${22 + i * 60}" width="${a * AG_BW}" height="22" fill="#cbd5e1" stroke="#0f172a" stroke-width="1.5"/>
-      <text x="${AG_BX + a * AG_BW + 8}" y="${40 + i * 60}" font-size="18">${a.toFixed(3)}</text>`).join('')}</g>
-    <g class="b" data-step="3">${AG_CL.map(([, , b], i) => `<rect x="${AG_BX}" y="${46 + i * 60}" width="${b * AG_BW}" height="22" fill="#0f172a"/>
-      <text x="${AG_BX + b * AG_BW + 8}" y="${64 + i * 60}" font-size="18" font-weight="700">${b.toFixed(3)}</text>`).join('')}
-      <rect x="${AG_BX + 180}" y="${30 + AG_CL.length * 60}" width="18" height="18" fill="#0f172a"/><text x="${AG_BX + 206}" y="${45 + AG_CL.length * 60}" font-size="20">memory store</text>
-      <text x="${AG_BX + 400}" y="${45 + AG_CL.length * 60}" font-size="20" fill="#64748b">mean reward (0 to 1)</text></g>
-  </svg>
-  <div class="lead b" data-step="4" style="text-align:center">Same memory, very different gains: what the model writes and reads matters</div>
-  ${rdCite(agPost('Figure 3 (CL-Bench 1.0, internal evaluation)'))}
 `);
 }

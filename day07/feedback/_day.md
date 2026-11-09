@@ -81,3 +81,16 @@
 - [ ] Scale AI: no memory paper found. The cue comes from their long-running enterprise agents post (learnings stored and fed into future runs). Is there a Scale piece you had in mind?
 - [ ] The IBM paper's title was read from search results, not from arXiv directly. Check it before class.
 - The earlier version of this slide (three illustrated cards: who, beyond text, structure) is replaced. The flat / hierarchy / wiki drawing could come back elsewhere if wanted.
+
+## 2026-11-09: no company names on Agent memory; Evaluation synced to her Google notes (Shreya's request)
+- Agent memory (slide 28): "lets not include specific companies". The company tiles are gone. Four papers, named by their authors,
+  are dealt in on one click: Packer et al. 2023 (MemGPT), Lin et al. 2025 (Sleep-time Compute), Fang et al. 2026 (Trajectory-Informed
+  Memory, arXiv 2603.10600, title and authors checked on arXiv), Martin 2026 (The components of agent memory).
+  - [ ] Still on other agent slides as sources or figure text: "Claude" in the agent memory figure ("written by Claude") and the
+    Mt. Moon example ("Claude got through"), and Anthropic in citations. Change those too?
+- Evaluation (Google slide 12): her slide note "open questions in a fun animation: 1) what are we evaluating 2) what metrics. Reword"
+  and her comment "just pose a question … how would you go about this and what types of challenges might there be?"
+  Now one slide, questions only: a big "?" bounces in, then "What exactly are we evaluating?" (a dart hits a target),
+  "Which numbers would tell you it works?" (a gauge needle swings), "How would you test it, and what makes that hard?" (a magnifier sweeps).
+  The aspects table and the memory-results chart are removed (still in git history, commit 8ed6901).
+  - [ ] Keep the small hint under the first question ("the model, the memory, or the whole agent?"), or drop it?
