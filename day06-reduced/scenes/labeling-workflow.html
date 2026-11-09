@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Annotator workflow</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Day 6 reduced, part labeling, Google deck page 17. A drawn driving scene walks through her annotator steps.
+     All geometry below is ours. Gold boxes are the drawn objects' own extents. Occlusion, IoU, precision and recall
+     are computed from the geometry; the boxes and the IoU 0.5 match rule are an example, said in the credit line. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .labeling-grid{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:minmax(0, .5fr) minmax(0, 1fr); gap:2.4vw; opacity:0; transition:opacity .5s ease; }
+  .labeling-grid.on{ opacity:1; }
+  .labeling-rail{ display:flex; flex-direction:column; justify-content:center; gap:1.5vh; }
+  .labeling-rail div{ font-size:clamp(1.1rem, 1.75vw, 1.6rem); line-height:1.2; opacity:0; transition:opacity .4s ease; }
+  .labeling-rail div.seen{ opacity:.5; }
+  .labeling-rail div.now{ opacity:1; font-weight:700; }
+  .labeling-panel{ display:flex; flex-direction:column; min-height:0; gap:1vh; }
+  svg#labeling-scene{ flex:1 1 auto; min-height:0; width:100%; display:block; border-radius:8px; }
+  svg#labeling-scene text{ font-family:Calibri, Carlito, 'Helvetica Neue', Arial, sans-serif; fill:#0f172a; paint-order:stroke; stroke:#fff; stroke-width:5px; stroke-linejoin:round; }
+  .labeling-box{ fill:none; stroke:#0f172a; stroke-width:3.5; transition:x .6s ease, y .6s ease, width .6s ease, height .6s ease, opacity .4s ease; }
+  .labeling-box.model{ stroke-dasharray:11 7; stroke:#475569; }
+  .labeling-box.flag{ stroke-width:6.5; }
+  .labeling-tag, .labeling-attr, .labeling-flag{ font-size:24px; transition:opacity .4s ease; }
+  .labeling-tag{ font-weight:700; }
+  .labeling-flag{ font-weight:700; }
+  .labeling-ring{ fill:none; stroke:#0f172a; stroke-width:5; stroke-dasharray:9 7; transition:opacity .4s ease; }
+  .labeling-strip{ flex:0 0 auto; min-height:9vh; display:flex; align-items:center; justify-content:center; gap:1vw; flex-wrap:wrap; font-size:clamp(1.05rem, 1.6vw, 1.5rem); }
+  .labeling-chip{ border:2px solid #cbd5e1; border-radius:8px; padding:.5vh .8vw; }
+  .labeling-chip.on{ border-color:#0f172a; border-width:3px; font-weight:700; }
+  .labeling-eq{ background:#f1f5f9; border:1px solid #cbd5e1; border-left:4px solid #0f172a; border-radius:10px; padding:.8vh 1vw; font-weight:600; }
+  .cite{ position:static; font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); opacity:0; transition:opacity .4s ease; }
+  .cite.on{ opacity:1; }
+  body.jump *{ transition:none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Annotator workflow</h1>
+  <div class="labeling-grid" id="grid">
+    <div class="labeling-rail" id="rail"></div>
+    <div class="labeling-panel">
+      <svg id="labeling-scene" viewBox="0 0 1000 560" role="img" aria-label="A drawn street scene with cars, a truck, a pedestrian, a cyclist and a billboard, labeled step by step"></svg>
+      <div class="labeling-strip" id="strip"></div>
+    </div>
+  </div>
+  <div class="cite" id="cite">Our drawing; boxes, classes and the IoU ≥ 0.5 match rule are an example; occlusion, precision and recall computed from the drawing</div>
+</div>
+<script>
+const STEPS = ['Defined task', 'Taxonomy and guidelines', 'Pre-annotated by a model', 'Tight to the pixel edges', 'Attributes per object',
+  'Edge cases: special classes', 'Submit for review', 'Precision and recall', 'Tasker quality score'];
+const NB = STEPS.length;
+
+/* Gold boxes: the drawn objects' own extents (the truck is cut off by the image edge at x = 1000). */
+const G = {
+  car1:   {box:[130, 340, 370, 510], cls:'car'},
+  car2:   {box:[450, 295, 575, 385], cls:'car'},
+  truck:  {box:[820, 240, 1000, 470], cls:'truck'},
+  ped:    {box:[340, 330, 400, 500], cls:'pedestrian'},
+  cyclist:{box:[650, 275, 700, 350], cls:'cyclist'},
+};
+const POSTER = [118, 72, 182, 188];
+
+/* What the model proposes (loose, one wrong class, the poster mistaken for a person, the cyclist missed). */
+const PROPOSED = {
+  car1:  {box:[118, 322, 392, 526], cls:'car'},
+  car2:  {box:[438, 280, 600, 402], cls:'car'},
+  truck: {box:[805, 222, 1000, 486], cls:'car'},
+  ped:   {box:[330, 316, 418, 516], cls:'pedestrian'},
+  poster:{box:[110, 60, 192, 200], cls:'pedestrian'},
+};
+/* What the annotator submits: tightened, but one box stays a little loose, the truck keeps the model's wrong class,
+   the poster gets the special class, the cyclist is missed. */
+const SUBMIT = {
+  car1:  {box:G.car1.box, cls:'car'},
+  car2:  {box:[445, 290, 588, 394], cls:'car'},
+  truck: {box:G.truck.box, cls:'car'},
+  ped:   {box:G.ped.box, cls:'pedestrian'},
+};
+
+const area = r => Math.max(0, r[2] - r[0]) * Math.max(0, r[3] - r[1]);
+const inter = (a, b) => area([Math.max(a[0], b[0]), Math.max(a[1], b[1]), Math.min(a[2], b[2]), Math.min(a[3], b[3])]);
+const iou = (a, b) => inter(a, b) / (area(a) + area(b) - inter(a, b));
+
+/* Occlusion of the pedestrian: the fraction of its box covered by the car drawn in front of it. */
+const occ = inter(G.ped.box, G.car1.box) / area(G.ped.box);
+const BINS = ['0–25%', '25–50%', '>50%'];
+const occBin = occ < .25 ? 0 : occ <= .5 ? 1 : 2;
+
+/* Scoring: a submitted box counts if it overlaps a gold box of the same class with IoU >= 0.5. */
+const IOU_MIN = .5;
+const goldKeys = Object.keys(G), subKeys = Object.keys(SUBMIT);
+const matched = new Set(); let TP = 0;
+for(const k of subKeys){ const s = SUBMIT[k];
+  const hit = goldKeys.find(g => !matched.has(g) && G[g].cls === s.cls && iou(G[g].box, s.box) >= IOU_MIN);
+  if(hit){ matched.add(hit); TP++; } }
+const FP = subKeys.length - TP, FN = goldKeys.length - TP;
+const P = TP / (TP + FP), R = TP / (TP + FN);
+
+const sv = document.getElementById('labeling-scene');
+const NS = 'http://www.w3.org/2000/svg';
+const carRear = (x0, y0, x1, y1) => { const w = x1 - x0, h = y1 - y0;
+  return `<rect x="${x0 + w * .1}" y="${y1 - h * .1}" width="${w * .16}" height="${h * .1}" fill="#1e293b"/><rect x="${x1 - w * .26}" y="${y1 - h * .1}" width="${w * .16}" height="${h * .1}" fill="#1e293b"/>
+    <path d="M ${x0 + w * .16} ${y0 + h * .46} L ${x0 + w * .26} ${y0} L ${x1 - w * .26} ${y0} L ${x1 - w * .16} ${y0 + h * .46} Z" fill="#64748b"/>
+    <path d="M ${x0 + w * .22} ${y0 + h * .4} L ${x0 + w * .3} ${y0 + h * .07} L ${x1 - w * .3} ${y0 + h * .07} L ${x1 - w * .22} ${y0 + h * .4} Z" fill="#cbd5e1"/>
+    <rect x="${x0}" y="${y0 + h * .42}" width="${w}" height="${h * .48}" rx="${h * .08}" fill="#475569"/>
+    <rect x="${x0 + w * .05}" y="${y0 + h * .55}" width="${w * .16}" height="${h * .11}" rx="3" fill="#e2e8f0"/><rect x="${x1 - w * .21}" y="${y0 + h * .55}" width="${w * .16}" height="${h * .11}" rx="3" fill="#e2e8f0"/>`; };
+const person = (cx, top, h, fill = '#334155') => { const r = h * .11;
+  return `<circle cx="${cx}" cy="${top + r}" r="${r}" fill="${fill}"/><rect x="${cx - h * .13}" y="${top + 2.2 * r}" width="${h * .26}" height="${h * .44}" rx="${h * .06}" fill="${fill}"/>
+    <rect x="${cx - h * .12}" y="${top + h * .62}" width="${h * .09}" height="${h * .38}" fill="${fill}"/><rect x="${cx + h * .03}" y="${top + h * .62}" width="${h * .09}" height="${h * .38}" fill="${fill}"/>`; };
+/* Static drawing. The truck's body runs past x = 1000, so the image edge cuts it off. */
+sv.innerHTML = `
+  <clipPath id="frame"><rect width="1000" height="560"/></clipPath>
+  <g clip-path="url(#frame)">
+    <rect width="1000" height="240" fill="#e2e8f0"/>
+    <rect y="210" width="1000" height="350" fill="#94a3b8"/>
+    <path d="M 500 210 L 0 560 L 1000 560 Z" fill="#64748b"/>
+    ${[260, 330, 430].map((y, i) => `<path d="M ${500 - (i + 1) * 3} ${y} L ${500 + (i + 1) * 3} ${y} L ${500 + (i + 1) * 7} ${y + 44 + i * 26} L ${500 - (i + 1) * 7} ${y + 44 + i * 26} Z" fill="#f8fafc"/>`).join('')}
+    <rect x="52" y="52" width="196" height="150" fill="#f8fafc" stroke="#0f172a" stroke-width="5"/>
+    <rect x="98" y="202" width="14" height="60" fill="#334155"/><rect x="190" y="202" width="14" height="60" fill="#334155"/>
+    ${person(150, POSTER[1], POSTER[3] - POSTER[1], '#64748b')}
+    ${carRear(...G.car2.box)}
+    <g><circle cx="${(G.cyclist.box[0] + G.cyclist.box[2]) / 2 - 15}" cy="${G.cyclist.box[3] - 13}" r="13" fill="none" stroke="#1e293b" stroke-width="4"/><circle cx="${(G.cyclist.box[0] + G.cyclist.box[2]) / 2 + 12}" cy="${G.cyclist.box[3] - 13}" r="13" fill="none" stroke="#1e293b" stroke-width="4"/>${person((G.cyclist.box[0] + G.cyclist.box[2]) / 2, G.cyclist.box[1], 56, '#1e293b')}</g>
+    ${person(370, G.ped.box[1], G.ped.box[3] - G.ped.box[1])}
+    ${carRear(...G.car1.box)}
+    <rect x="820" y="240" width="240" height="200" rx="8" fill="#334155"/><rect x="838" y="256" width="162" height="86" fill="#94a3b8"/>
+    <rect x="838" y="440" width="52" height="30" fill="#1e293b"/><rect x="960" y="440" width="52" height="30" fill="#1e293b"/>
+  </g>`;
+
+const mk = (tag, attrs, parent = sv) => { const e = document.createElementNS(NS, tag); for(const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+const OBJ = ['car1', 'car2', 'truck', 'ped', 'poster'];
+const LAYERS = {};
+for(const k of OBJ){
+  LAYERS[k] = {box: mk('rect', {class:'labeling-box model', style:'opacity:0'}), tag: mk('text', {class:'labeling-tag', style:'opacity:0'})};
+}
+const attr = {
+  ped:   mk('text', {class:'labeling-attr', style:'opacity:0', 'text-anchor':'middle', x:(G.ped.box[0] + G.ped.box[2]) / 2, y:G.ped.box[3] + 34}),
+  truck: mk('text', {class:'labeling-attr', style:'opacity:0', 'text-anchor':'end', x:992, y:G.truck.box[3] + 30}),
+};
+const ring = mk('ellipse', {class:'labeling-ring', style:'opacity:0', cx:675, cy:312, rx:62, ry:58});
+const flags = {
+  car2:    mk('text', {class:'labeling-flag', style:'opacity:0', 'text-anchor':'middle', x:(SUBMIT.car2.box[0] + SUBMIT.car2.box[2]) / 2, y:SUBMIT.car2.box[3] + 30}),
+  truck:   mk('text', {class:'labeling-flag', style:'opacity:0', 'text-anchor':'end', x:992, y:G.truck.box[1] - 40}),
+  cyclist: mk('text', {class:'labeling-flag', style:'opacity:0', 'text-anchor':'middle', x:675, y:238}),
+};
+flags.car2.textContent = '✗ box tightness';
+flags.truck.textContent = '✗ wrong class';
+flags.cyclist.textContent = '✗ missed object';
+
+const setBox = (el, r) => { el.style.x = r[0] + 'px'; el.style.y = r[1] + 'px'; el.style.width = (r[2] - r[0]) + 'px'; el.style.height = (r[3] - r[1]) + 'px'; };
+const show = (el, on) => el.style.opacity = on ? 1 : 0;
+
+function boxFor(k, b){
+  if(b < 3) return null;
+  if(b === 3) return PROPOSED[k];
+  if(k === 'poster') return {box: POSTER, cls: b >= 6 ? 'special class' : 'pedestrian'};
+  return SUBMIT[k];
+}
+
+const strips = {
+  1: () => `<span class="labeling-chip on">2D bounding boxes + attributes</span><span>driving data</span>`,
+  2: () => ['car', 'truck', 'pedestrian', 'cyclist'].map(c => `<span class="labeling-chip">${c}</span>`).join(''),
+  3: () => `<span>the job: partly correcting the model’s proposals</span>`,
+  5: () => `<span>occlusion</span>` + BINS.map((t, i) => `<span class="labeling-chip ${i === occBin ? 'on' : ''}">${t}</span>`).join('') + `<span class="labeling-chip on">truncation</span>`,
+  7: () => `<span>reviewer audits</span>` + ['box tightness', 'missed objects', 'wrong classes'].map(c => `<span class="labeling-chip">${c}</span>`).join(''),
+  8: () => `<span class="labeling-eq">precision = ${TP} ÷ ${TP + FP} = ${P.toFixed(2)}</span><span class="labeling-eq">recall = ${TP} ÷ ${TP + FN} = ${R.toFixed(2)}</span><span>against reviewer or gold labels</span>`,
+  9: () => `<span class="labeling-eq">precision ${P.toFixed(2)} · recall ${R.toFixed(2)}</span><span>→</span><span class="labeling-chip on">tasker quality score</span>`,
+};
+
+let beat = 0;
+function render(b, jump){
+  beat = b;
+  document.body.classList.toggle('jump', !!jump);
+  if(jump) void document.body.offsetWidth;
+  document.getElementById('grid').classList.toggle('on', b > 0);
+  document.getElementById('cite').classList.toggle('on', b > 0);
+  document.getElementById('rail').innerHTML = STEPS.map((s, i) => `<div class="${i + 1 === b ? 'now' : i + 1 < b ? 'seen' : ''}">${s}</div>`).join('');
+  for(const k of OBJ){
+    const st = boxFor(k, b), L = LAYERS[k];
+    if(!st){ show(L.box, false); show(L.tag, false); continue; }
+    setBox(L.box, st.box);
+    L.box.classList.toggle('model', b === 3);
+    L.box.classList.toggle('flag', b >= 7 && (k === 'car2' || k === 'truck'));
+    L.tag.setAttribute('x', st.box[0]);
+    L.tag.setAttribute('y', k === 'poster' ? 42 : st.box[1] - 8);
+    L.tag.textContent = st.cls;
+    show(L.box, true); show(L.tag, true);
+  }
+  attr.ped.textContent = `occlusion ${BINS[occBin]}`; attr.truck.textContent = 'truncation';
+  show(attr.ped, b >= 5); show(attr.truck, b >= 5);
+  show(ring, b >= 7);
+  for(const k in flags) show(flags[k], b >= 7);
+  document.getElementById('strip').innerHTML = (strips[b] ? strips[b]() : '');
+  if(jump){ void document.body.offsetWidth; document.body.classList.remove('jump'); }
+}
+
+window.labelingWorkflow = {
+  advance(){ if(beat < NB) render(beat + 1); },
+  back(){ if(beat > 0) render(beat - 1, true); },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ render(0, true); },
+  resetToEnd(){ render(NB, true); },
+  getBeat: () => beat,
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) labelingWorkflow.advance(); if(e.key === 'ArrowLeft') labelingWorkflow.back(); });
+  addEventListener('click', () => labelingWorkflow.advance());
+}
+render(0, true);
+</script>
+</body>
+</html>
