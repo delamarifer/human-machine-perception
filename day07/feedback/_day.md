@@ -110,4 +110,4 @@
   and "Quiz Review" (38: title only in her deck). The order follows her Google deck, with Quiz Review last.
 - Every section in her outline now has a place. The whole deck (41 slides, 226 clicks) walks forward and back cleanly.
 - [ ] Bar widths for the new sections (10 minutes each) are guesses.
-- [x] Retitled "Adaptation and Systems" (Shreya, 2026-11-09): title slide, browser tab, and the home page's Day 7 card (title and one-line description).
+- [x] Retitled "Adaptation and Agents" (Shreya, 2026-11-09): title slide, browser tab, and the home page's Day 7 card (title and one-line description).
