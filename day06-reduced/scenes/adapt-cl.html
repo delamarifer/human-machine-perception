@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Continual learning</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Part adapt. Bars read from assets/adapt/cl_results.json (avg_acc mean over 3 seeds). Tiles and springs are
+     illustrative: they show the mechanism, no numbers come from them. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .adapt-stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  svg{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  svg text{ font-family:var(--font); fill:var(--ink); }
+  .adapt-sb{ opacity:0; transition:opacity .5s ease; }
+  .adapt-sb.on{ opacity:1; }
+  .adapt-mv{ transition:transform .9s ease; }
+  .cite{ position:static; font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); opacity:0; transition:opacity .5s ease; }
+  .cite.on{ opacity:1; }
+  .cite a{ color:var(--mute); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Continual learning</h1>
+  <div class="adapt-stagebox"><svg id="sv" viewBox="0 0 1120 470" role="img" aria-label="Replay mixes stored old images into each new batch. EWC holds weights important to old tasks with a stiff spring. Bars compare average accuracy for digits that rotate and for new digits."></svg></div>
+  <div class="cite" id="cite">Our run, mean of 3 seeds, 8×8 digits · <a href="../assets/adapt/continual_learning_demo.py" target="_blank" rel="noopener">continual_learning_demo.py</a> · EWC: <a href="https://arxiv.org/abs/1612.00796" target="_blank" rel="noopener">Kirkpatrick et al. (PNAS 2017)</a> · LwF: Li and Hoiem (2016) · tiles and springs illustrative</div>
+</div>
+<script>
+/* BEAT 0  title only
+   BEAT 1  replay: the new batch and the stored old images
+   BEAT 2  replay: stored images slide into the batch
+   BEAT 3  EWC: two weights on springs at their old-task values
+   BEAT 4  EWC: the new task pulls; the stiff weight barely moves, the loose one moves far
+   BEAT 5  bars: digits rotate
+   BEAT 6  bars: new digits arrive */
+const NS = 'http://www.w3.org/2000/svg', INK = '#0f172a', MUTE = '#94a3b8', BAR = '#4f6d9a';
+const sv = document.getElementById('sv');
+const NB = 6; let beat = 0, moved = [];
+const el = (t, a, p = sv) => { const e = document.createElementNS(NS, t); for(const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
+const txt = (s, x, y, sz, a = {}, p) => { const e = el('text', {x, y, 'font-size': sz, 'text-anchor': 'middle', ...a}, p); e.textContent = s; return e; };
+const grp = (b, off) => { const g = el('g', {class: 'adapt-sb'}); g.dataset.b = b; if(off) g.dataset.off = off; return g; };
+
+/* a digit tile: a glyph turned by the task's rotation */
+const tile = (p, x, y, digit, ang, fill = '#f1f5f9') => { const g = el('g', {}, p);
+  el('rect', {x, y, width: 46, height: 46, rx: 5, fill, stroke: INK, 'stroke-width': 1.6}, g);
+  const r = el('g', {transform: `rotate(${ang} ${x + 23} ${y + 23})`}, g); txt(digit, x + 23, y + 33, 28, {'font-weight': 700}, r); return g; };
+
+/* ---- replay ---- */
+const TX0 = 226, TW = 50, BY = 44, MY = 134;
+function buildReplay(){
+  const a = grp(1);
+  txt('Replay', 10, 30, 30, {'text-anchor': 'start', 'font-weight': 700}, a);
+  txt('new task', TX0 - 14, BY + 31, 24, {'text-anchor': 'end'}, a);
+  [3, 8, 1, 6, 2].forEach((d, i) => tile(a, TX0 + i * TW, BY, d, 120));
+  txt('stored old images', TX0 - 14, MY + 31, 24, {'text-anchor': 'end'}, a);
+  const OLD = [[4, 0], [7, 30], [5, 60], [9, 90], [0, 0], [2, 30], [6, 60], [1, 90]];
+  OLD.forEach(([d, r], i) => tile(a, TX0 + i * TW, MY, d, r, '#fff'));
+  /* three stored tiles travel up to the end of the batch */
+  const b = grp(2);
+  [0, 2, 5].forEach((k, n) => { const m = el('g', {class: 'adapt-mv', 'data-dx': (5 + n - k) * TW, 'data-dy': BY - MY}, b); moved.push(m);
+    tile(m, TX0 + k * TW, MY, OLD[k][0], OLD[k][1], '#fff'); });
+}
+
+/* ---- EWC: a spring is a zigzag between the post and the weight ---- */
+const zig = (x0, x1, y, n, amp) => { const pts = [[x0, y]]; const dx = (x1 - x0) / (2 * n + 1);
+  for(let i = 1; i <= 2 * n; i++) pts.push([x0 + i * dx, y + (i % 2 ? -amp : amp)]); pts.push([x1, y]); return pts.map(p => p.map(v => v.toFixed(1)).join(',')).join(' '); };
+const POST = 266, OLDX = 400, RAIL1 = 590;
+function buildEwc(){
+  const a = grp(3);
+  txt('EWC', 10, 262, 30, {'text-anchor': 'start', 'font-weight': 700}, a);
+  const rows = [['important to old tasks', 316, 5, 10, 4.6, 16], ['not important', 412, 3, 12, 2, 150]];
+  rows.forEach(([lab, y, n, amp, sw, move]) => {
+    txt(lab, POST - 16, y + 8, 24, {'text-anchor': 'end'}, a);
+    el('line', {x1: POST, y1: y + 20, x2: RAIL1, y2: y + 20, stroke: MUTE, 'stroke-width': 1.5}, a);
+    el('rect', {x: POST - 8, y: y - 24, width: 8, height: 48, fill: INK}, a);
+    /* old-task value */
+    el('line', {x1: OLDX, y1: y - 26, x2: OLDX, y2: y + 26, stroke: INK, 'stroke-width': 2, 'stroke-dasharray': '5 5'}, a);
+    const rest = el('polyline', {points: zig(POST, OLDX, y, n, amp), fill: 'none', stroke: INK, 'stroke-width': sw}, grp(3, 4));
+    rest.parentNode.dataset.b = 3;
+    const pulled = el('polyline', {points: zig(POST, OLDX + move, y, n, amp), fill: 'none', stroke: INK, 'stroke-width': sw}, grp(4));
+    pulled.parentNode.dataset.b = 4;
+    const w = el('g', {class: 'adapt-mv', 'data-dx': move, 'data-dy': 0}, a); moved.push(w);
+    el('circle', {cx: OLDX, cy: y, r: 13, fill: INK}, w);
+  });
+  txt('old-task value', OLDX, 282, 22, {}, a);
+}
+
+/* ---- results ---- */
+const LBL = {finetune: 'fine-tune only', ewc: 'EWC', lwf: 'LwF', replay: 'replay', joint: 'all data at once'};
+const KEYS = ['finetune', 'ewc', 'lwf', 'replay', 'joint'];
+const BX0 = 816, BW = 245;
+function buildBars(data){
+  [['digits rotate', 'domain_incremental', 34, 5], ['new digits arrive', 'class_incremental', 258, 6]].forEach(([name, key, y0, b]) => {
+    const g = grp(b);
+    txt(name, BX0 + BW / 2 - 40, y0, 25, {'font-weight': 700}, g);
+    el('line', {x1: BX0, y1: y0 + 14, x2: BX0, y2: y0 + 14 + 5 * 33, stroke: MUTE, 'stroke-width': 1.5}, g);
+    KEYS.forEach((k, i) => { const v = data[key][k].metrics.avg_acc[0], y = y0 + 18 + i * 33;
+      txt(LBL[k], BX0 - 10, y + 20, 22, {'text-anchor': 'end'}, g);
+      el('rect', {x: BX0, y, width: v * BW, height: 25, rx: 4, fill: BAR}, g);
+      txt(v.toFixed(2), BX0 + v * BW + 7, y + 20, 22, {'text-anchor': 'start', 'font-weight': 700}, g); });
+  });
+  const c = grp(5); txt('average accuracy, end of training', BX0 + BW / 2 - 40, 462, 22, {}, c);
+}
+
+function render(){
+  sv.querySelectorAll('.adapt-sb').forEach(g => g.classList.toggle('on', beat >= +g.dataset.b && !(g.dataset.off && beat >= +g.dataset.off)));
+  moved.forEach(m => { const on = (m.dataset.dy != 0 && beat >= 2) || (m.dataset.dy == 0 && beat >= 4);
+    m.style.transform = on ? `translate(${m.dataset.dx}px,${m.dataset.dy}px)` : 'translate(0,0)'; });
+  document.getElementById('cite').classList.toggle('on', beat >= 1);
+}
+buildReplay(); buildEwc();
+fetch('../assets/adapt/cl_results.json').then(r => r.text()).then(t => { buildBars(JSON.parse(t.replace(/\bNaN\b/g, 'null'))); render(); });
+render();
+
+window.adaptCl = {
+  advance(){ if(beat < NB){ beat++; render(); } },
+  back(){ if(beat > 0){ beat--; render(); } },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ beat = 0; render(); },
+  resetToEnd(){ beat = NB; render(); },
+  getBeat: () => beat,
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) adaptCl.advance(); if(e.key === 'ArrowLeft') adaptCl.back(); });
+  addEventListener('click', () => adaptCl.advance());
+}
+</script>
+</body>
+</html>

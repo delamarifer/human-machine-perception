@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Catastrophic forgetting</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<style>
+  /* Part adapt. Every number is read from assets/adapt/cl_results.json (domain_incremental.finetune.R_seed0):
+     row i = after training on task i, column j = tested on task j. The upper triangle (tasks not yet trained) is not drawn. */
+  html, body{ background:#fff; }
+  .wrap{ position:absolute; inset:0; padding:7.2vh 5.2vw 9.5vh; display:flex; flex-direction:column; gap:1.5vh; }
+  .adapt-stagebox{ position:relative; flex:1 1 auto; min-height:0; }
+  svg{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  svg text{ font-family:var(--font); fill:var(--ink); }
+  .adapt-sb{ opacity:0; transition:opacity .5s ease; }
+  .adapt-sb.on{ opacity:1; }
+  .cite{ position:static; font-size:clamp(.8rem, 1.12vw, 1.15rem); color:var(--mute); opacity:0; transition:opacity .5s ease; }
+  .cite.on{ opacity:1; }
+  .cite a{ color:var(--mute); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="t deck-title">Catastrophic forgetting</h1>
+  <div class="adapt-stagebox"><svg id="sv" viewBox="0 0 1120 470" role="img" aria-label="Accuracy matrix of a network trained on rotated digits, one rotation after another, and a line of accuracy on the 0 degree task falling as training moves on."></svg></div>
+  <div class="cite" id="cite">Our run, seed 0: plain fine-tuning on 8×8 digits (scikit-learn), small MLP · <a href="../assets/adapt/continual_learning_demo.py" target="_blank" rel="noopener">continual_learning_demo.py</a> · rotated digit glyphs are illustrative</div>
+</div>
+<script>
+/* BEAT 0  title only
+   BEAT 1  after 0°: first row, first point of the line
+   BEAT 2-5  each click trains the next rotation: new row, next point
+   BEAT 6  the diagonal: each new rotation is learned
+   BEAT 7  the 0° column: 0.98 to 0.18
+   BEAT 8  her cue: motivation for continual learning */
+const NS = 'http://www.w3.org/2000/svg', INK = '#0f172a', MUTE = '#94a3b8';
+const sv = document.getElementById('sv');
+const NB = 8; let beat = 0, ready = false;
+const ANG = [0, 30, 60, 90, 120];
+const el = (t, a, p = sv) => { const e = document.createElementNS(NS, t); for(const k in a) e.setAttribute(k, a[k]); p.appendChild(e); return e; };
+const txt = (s, x, y, sz, a = {}, p) => { const e = el('text', {x, y, 'font-size': sz, 'text-anchor': 'middle', ...a}, p); e.textContent = s; return e; };
+const grp = (b, cls = '') => { const g = el('g', {class: 'adapt-sb ' + cls}); g.dataset.b = b; return g; };
+
+function build(R){
+  const CW = 92, CH = 60, X0 = 120, Y0 = 78;
+  /* column headers: a digit glyph turned by the angle */
+  const head = grp(1);
+  txt('tested on', X0 + 2.5 * CW, 14, 24, {'font-weight': 700}, head);
+  ANG.forEach((a, j) => { const cx = X0 + (j + .5) * CW;
+    txt(a + '°', cx, 70, 23, {}, head);
+    const g = el('g', {transform: `rotate(${a} ${cx} 38)`}, head);
+    txt('4', cx, 46, 25, {'font-weight': 700}, g); });
+  R.forEach((row, i) => {
+    const g = grp(i + 1);
+    txt('after ' + ANG[i] + '°', X0 - 12, Y0 + i * CH + 37, 24, {'text-anchor': 'end'}, g);
+    for(let j = 0; j <= i; j++){ const v = row[j], c = Math.round(244 - v * 205), dark = v > .55;
+      el('rect', {x: X0 + j * CW + 1, y: Y0 + i * CH + 1, width: CW - 2, height: CH - 2, rx: 4, fill: `rgb(${c},${c + 3},${c + 7})`}, g);
+      txt(v.toFixed(2), X0 + (j + .5) * CW, Y0 + i * CH + 38, 24, {'font-weight': 700, style: `fill:${dark ? '#f8fafc' : INK}`}, g); }
+  });
+  /* rings */
+  const d = grp(6);
+  R.forEach((_, i) => el('rect', {x: X0 + i * CW + 2, y: Y0 + i * CH + 2, width: CW - 4, height: CH - 4, rx: 5, fill: 'none', stroke: INK, 'stroke-width': 3.5}, d));
+  const c0 = grp(7);
+  el('rect', {x: X0 + 1, y: Y0 + 1, width: CW - 2, height: CH * 5 - 2, rx: 6, fill: 'none', stroke: INK, 'stroke-width': 4}, c0);
+
+  /* the 0° task over training */
+  const PX0 = 716, PX1 = 1060, PY0 = 366, PY1 = 92;
+  const px = i => PX0 + i * (PX1 - PX0) / 4, py = v => PY0 + (PY1 - PY0) * v;
+  const ax = grp(1);
+  el('line', {x1: PX0, y1: PY1, x2: PX0, y2: PY0, stroke: MUTE, 'stroke-width': 1.5}, ax);
+  el('line', {x1: PX0, y1: PY0, x2: PX1, y2: PY0, stroke: MUTE, 'stroke-width': 1.5}, ax);
+  [0, .5, 1].forEach(v => { txt(v.toFixed(1), PX0 - 10, py(v) + 8, 22, {'text-anchor': 'end'}, ax); });
+  ANG.forEach((a, i) => txt(a + '°', px(i), PY0 + 28, 22, {}, ax));
+  txt('accuracy on the 0° task', (PX0 + PX1) / 2, 40, 25, {'font-weight': 700}, ax);
+  txt('after training on', (PX0 + PX1) / 2, PY0 + 58, 22, {}, ax);
+  const col = R.map(r => r[0]);
+  col.forEach((v, i) => { const g = grp(i + 1);
+    if(i){ el('line', {x1: px(i - 1), y1: py(col[i - 1]), x2: px(i), y2: py(v), stroke: INK, 'stroke-width': 3}, g); }
+    el('circle', {cx: px(i), cy: py(v), r: 8, fill: INK, stroke: '#fff', 'stroke-width': 2}, g);
+    if(i === 0 || i === 4) txt(v.toFixed(2), px(i) + (i ? -2 : 34), py(v) - 14, 25, {'font-weight': 700}, g); });
+  const diag = R.map((r, i) => r[i]);
+  const cue1 = grp(6);
+  txt(`each new rotation: learned (${Math.min(...diag).toFixed(2)}–${Math.max(...diag).toFixed(2)})`, X0 + 2.5 * CW, Y0 + 5 * CH + 42, 26, {'font-weight': 700}, cue1);
+  const cue2 = grp(7);
+  txt(`0° task: ${col[0].toFixed(2)} → ${col[4].toFixed(2)}`, (PX0 + PX1) / 2 + 60, 160, 28, {'font-weight': 700}, cue2);
+  const cue3 = grp(8);
+  txt('Motivation for continual learning', 560, 464, 30, {'font-weight': 700}, cue3);
+  ready = true; render();
+}
+function render(){ sv.querySelectorAll('.adapt-sb').forEach(g => g.classList.toggle('on', beat >= +g.dataset.b));
+  document.getElementById('cite').classList.toggle('on', beat >= 1); }
+fetch('../assets/adapt/cl_results.json').then(r => r.text()).then(t => build(JSON.parse(t.replace(/\bNaN\b/g, 'null')).domain_incremental.finetune.R_seed0));
+
+window.adaptForget = {
+  advance(){ if(beat < NB){ beat++; render(); } },
+  back(){ if(beat > 0){ beat--; render(); } },
+  atStart: () => beat === 0,
+  atEnd: () => beat === NB,
+  reset(){ beat = 0; render(); },
+  resetToEnd(){ beat = NB; render(); },
+  getBeat: () => beat,
+};
+if(window.parent === window){
+  addEventListener('keydown', e => { if(['ArrowRight', ' ', 'Enter'].includes(e.key)) adaptForget.advance(); if(e.key === 'ArrowLeft') adaptForget.back(); });
+  addEventListener('click', () => adaptForget.advance());
+}
+</script>
+</body>
+</html>
