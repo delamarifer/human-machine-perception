@@ -22,7 +22,7 @@
 <div class="wrap">
   <h1 class="t deck-title">Metrics for classification</h1>
   <div class="metrics-box"><canvas id="cv"></canvas></div>
-  <div class="cite" id="cite" style="opacity:0">Example: 40 simulated emails, counts computed · rare case: not-spam counted 10× · logic after <a href="https://www.mit.edu/~edchen93/posts/precision-recall-f1-confusion-matrix-classification-metrics/" target="_blank" rel="noopener" onclick="event.stopPropagation()">M.-C. E. Chen, Guide to Confusion Matrix</a></div>
+  <div class="cite" id="cite" style="opacity:0">Example: 40 simulated emails, counts computed · rare case: not-spam counted 10× · logic and the TP 1, FN 99 case after <a href="https://www.mit.edu/~edchen93/posts/precision-recall-f1-confusion-matrix-classification-metrics/" target="_blank" rel="noopener" onclick="event.stopPropagation()">M.-C. E. Chen, Guide to Confusion Matrix</a></div>
 </div>
 <div class="dots" id="dots"></div>
 <script src="../assets/metrics/metrics-kit.js"></script>
@@ -35,7 +35,7 @@
    5  precision: the predicted-spam column
    6  recall: the actual-spam row
    7  F1: harmonic mean, bars
-   8  precision 1.00, recall 0.01 (the Chen post's worked example): the mean stays high, F1 collapses
+   8  the matrix changes to the Chen post's worked example (TP 1, FN 99, FP 0; the post gives no TN): precision 1.00, recall 0.01, the mean stays high, F1 collapses
    9  emails back on the score axis; this threshold is one point on the ROC curve
    10 sweep the threshold 1 to 0: the ROC curve, ROC-AUC
    11 sweep again: the PR curve, PR-AUC
@@ -45,7 +45,8 @@ const D = MK.emailData(), {INK, MID, SOFT, txt, dot, frac, lerp, ease, clamp01} 
 const T0 = .5, C0 = D.counts(T0);
 const acc = (C0.TP + C0.TN)/40, prec = C0.TP/(C0.TP + C0.FP), rec = C0.TP/(C0.TP + C0.FN), f1 = 2*prec*rec/(prec + rec);
 const f2 = n => n.toFixed(2);
-const P9 = 1, R9 = .01, F9 = 2*P9*R9/(P9 + R9), MEAN9 = (P9 + R9)/2;   /* Chen's worked example */
+const CHEN = {TP: 1, FP: 0, FN: 99, TN: '–'};
+const P9 = CHEN.TP/(CHEN.TP + CHEN.FP), R9 = CHEN.TP/(CHEN.TP + CHEN.FN), F9 = 2*P9*R9/(P9 + R9), MEAN9 = (P9 + R9)/2;   /* Chen's worked example */
 const RATE = C0.TP/(C0.TP + C0.FN), FPR0 = C0.FP/(C0.FP + C0.TN);
 
 /* the 100-email set of beat 4: 1 spam, 99 not spam; the rule "always not spam" */
@@ -71,7 +72,7 @@ MK.scene('metricsClassification', 12, ({ctx: c, W, H, beat, p, raw, A}) => {
   for(const r0 of [0, 1]) for(const k of [0, 1]){ const list = inCell(r0, k), s = MK.slots(g.cell(r0, k), list.length, Math.max(7, W*.0078), 32); list.forEach((e, n) => cellPos[e.i] = s[n]); }
 
   /* axis and threshold (hidden on beat 4, when the rule is "always not spam") */
-  const stripA = beat === 4 ? 1 - p : (beat === 5 ? p : (beat < 4 ? A(1) : 1));
+  const stripA = beat === 4 || beat === 8 ? 1 - p : (beat === 5 || beat === 9 ? p : (beat < 4 ? A(1) : 1));
   const tNow = beat <= 9 ? T0 : beat === 10 || beat === 11 ? lerp(1.0, 0, raw) : 0;
   if(stripA > 0 && !(beat === 4 && p === 1)){
     c.save(); c.globalAlpha = stripA;
@@ -99,7 +100,7 @@ MK.scene('metricsClassification', 12, ({ctx: c, W, H, beat, p, raw, A}) => {
   c.restore();
 
   /* counts in each cell */
-  const curCounts = beat === 4 ? {TP: 0, FP: 0, FN: 1, TN: 99} : beat <= 9 ? C0 : D.counts(tNow);
+  const curCounts = beat === 4 ? {TP: 0, FP: 0, FN: 1, TN: 99} : beat === 8 && p > .5 ? CHEN : beat <= 9 ? C0 : D.counts(tNow);
   if(beat >= 2){ for(const r0 of [0, 1]) for(const k of [0, 1]){ const rc = g.cell(r0, k), n = curCounts[rc.name];
       const big = beat >= 9;
       if(!big){ txt(c, String(n), rc.x + rc.w - 8, rc.y + 16, fs*1.15, true, 'right', 'middle', A(2)); }
@@ -107,7 +108,7 @@ MK.scene('metricsClassification', 12, ({ctx: c, W, H, beat, p, raw, A}) => {
 
   /* the 40 emails: on the strip (beat 1), fall (2), gone during beat 4, back at the cells 5-8, rise (9) */
   if(beat >= 1 && !(beat === 4 && p === 1)){
-    const sa = beat === 4 ? 1 - p : (beat === 5 ? p : 1);
+    const sa = beat === 4 || beat === 8 ? 1 - p : (beat === 5 || beat === 9 ? p : 1);
     em.forEach(e => {
       const si = stripPos[e.i], ce = cellPos[e.i]; let x, y;
       if(beat === 1){ x = si.x; y = si.y; c.globalAlpha = 1; dot(c, x, y, r, e.spam, A(1)); return; }
@@ -130,6 +131,15 @@ MK.scene('metricsClassification', 12, ({ctx: c, W, H, beat, p, raw, A}) => {
     txt(c, 'always predict: not spam', mx0 + mxw/2, H*.17, fs*1.25, true, 'center', 'middle', p);
   }
 
+  /* beat 8: the Chen post's case, 100 positives, 1 found; fades away on beat 9 */
+  if(beat === 8 || beat === 9){
+    const fnS = MK.slots(g.cell(1, 0), 99, r100, 32), tpS = MK.slots(g.cell(1, 1), 1, r100*1.5, 32), a = beat === 8 ? Math.min(1, p*3) : 1 - p;
+    for(let i = 0; i < 100; i++){ const t = i === 0 ? tpS[0] : fnS[i - 1], q = beat === 8 ? ease(clamp01(raw*1.3 - i/100*.3)) : 1;
+      const x0 = mx0 + (i % 34)*(mxw/33.5), y0 = H*.03 + Math.floor(i/34)*H*.05;
+      dot(c, lerp(x0, t.x, q), lerp(y0, t.y, q), i === 0 ? r100*1.5 : r100, true, a); }
+    if(beat === 8) txt(c, 'finds 1 of 100 spam', mx0 + mxw/2, H*.17, fs*1.25, true, 'center', 'middle', p);
+  }
+
   /* metric rows */
   const px0 = W*.585, rowY = i => H*.05 + i*H*.155, rowsA = beat >= 9 ? (beat === 9 ? 1 - p : 0) : 1;
   const row = (i, name, sub, top, bot, nTop, nBot, val, alpha) => { if(alpha <= 0) return; const a = alpha*rowsA; const y = rowY(i) + H*.06;
@@ -139,15 +149,16 @@ MK.scene('metricsClassification', 12, ({ctx: c, W, H, beat, p, raw, A}) => {
     c.globalAlpha = a; frac(c, top, bot, px0 + W*.175, y, fs); c.globalAlpha = 1;
     if(nTop != null){ txt(c, '=', px0 + W*.245, y, fs, false, 'center', 'middle', a); c.globalAlpha = a; frac(c, nTop, nBot, px0 + W*.285, y, fs); c.globalAlpha = 1; }
     if(val) txt(c, '= ' + val, px0 + W*.325, y, fs*1.18, true, 'left', 'middle', a); };
-  const act = b => beat === b ? 1 : .55;
+  const act = b => beat === b || (beat === 8 && (b === 5 || b === 6)) ? 1 : .55;
+  const chen = (beat === 8 && p > .5) || beat === 9, accFade = beat === 8 ? 1 - p : beat === 9 ? 0 : 1;
 
   if(beat >= 3 && rowsA > 0){
     if(beat === 4) row(0, 'Accuracy', '', 'TP + TN', 'all', '99', '100', '0.99', 1);
-    else row(0, 'Accuracy', '', 'TP + TN', 'all', String(C0.TP + C0.TN), '40', f2(acc), (beat === 3 ? p : 1)*act(3));
+    else row(0, 'Accuracy', '', 'TP + TN', 'all', String(C0.TP + C0.TN), '40', f2(acc), (beat === 3 ? p : 1)*act(3)*accFade);
     if(beat === 4) txt(c, 'spam caught: 0 of 1', px0, rowY(1) + H*.06, fs*1.15, true, 'left', 'middle', p);
-    row(1, 'Precision', '', 'TP', 'TP + FP', String(C0.TP), String(C0.TP + C0.FP), f2(prec), (beat === 5 ? p : beat > 5 ? 1 : 0)*act(5));
-    row(2, 'Recall', '', 'TP', 'TP + FN', String(C0.TP), String(C0.TP + C0.FN), f2(rec), (beat === 6 ? p : beat > 6 ? 1 : 0)*act(6));
-    row(3, 'F1', 'harmonic mean', '2 · P · R', 'P + R', null, null, f2(f1), (beat === 7 ? p : beat > 7 ? 1 : 0)*(beat === 7 || beat === 8 ? 1 : .55));
+    row(1, 'Precision', '', 'TP', 'TP + FP', chen ? '1' : String(C0.TP), chen ? '1' : String(C0.TP + C0.FP), chen ? f2(P9) : f2(prec), (beat === 5 ? p : beat > 5 ? 1 : 0)*act(5));
+    row(2, 'Recall', '', 'TP', 'TP + FN', chen ? '1' : String(C0.TP), chen ? '100' : String(C0.TP + C0.FN), chen ? f2(R9) : f2(rec), (beat === 6 ? p : beat > 6 ? 1 : 0)*act(6));
+    row(3, 'F1', 'harmonic mean', '2 · P · R', 'P + R', null, null, chen ? f2(F9) : f2(f1), (beat === 7 ? p : beat > 7 ? 1 : 0)*(beat === 7 || beat === 8 ? 1 : .55));
   }
 
   /* F1 vs plain average: bars, tween to P = 1.00, R = 0.01 on beat 8 */
