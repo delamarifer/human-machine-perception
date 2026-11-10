@@ -8,7 +8,7 @@
 - Public repo: project topic only, never student names or faces.
 
 ## Questions for Fernanda (from the first draft)
-- [ ] The request named the sign language and tennis team, but that deep dive is already done. This part follows the attached pptx instead. Correct?
+- [x] The request named the sign language and tennis team, but that deep dive is already done. This part follows the attached pptx instead. Fernanda: yes, this project.
 - [ ] "Why Only New Views?" repeats the pptx's own check of the datasets. I did not repeat that search.
 - [ ] The "under an hour of Colab" line in the notes comes from the pptx. Nobody has run it yet.
 - [ ] Speaker notes are all `(draft)`.
