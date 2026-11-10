@@ -16,3 +16,6 @@ Rules from Fernanda: less text, high-level intuitions, more images from papers o
 
 ## 2026-11-10: new five-section proposal rubric (Fernanda's request)
 - [ ] The example plan has no content yet for these rubric rows: timeline, hypothesis, expected results, expected failures beyond look-alike signs, and all of Scope and resources (time, group size, resources, price, dates). Not invented; Fernanda to supply if wanted.
+
+## 2026-11-10: deep dive removed from this part (Fernanda's choice)
+- Fernanda kept the longer "Project Deep Dive: Tennis and Signs" in the open-questions part. This part's ten-slide deep dive and its figures are out of the deck; they remain in git history (commit 30a4f6f).
