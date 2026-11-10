@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The score points toward the data</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="d8-scene.css">
+</head>
+<body>
+<div class="d8s-wrap">
+  <h1 class="t deck-title">The score points toward the data</h1>
+  <div class="d8s-body">
+    <div class="d8s-plot" data-from="1"><canvas class="d8s-cv"></canvas></div>
+    <div class="d8s-side">
+      <div class="d8s-eq d8s-item" data-from="1">score: &nbsp;∇<sub><i>x</i></sub> log <i>p</i>(<i>x</i>)</div>
+      <div class="d8s-stack">
+        <div class="lead d8s-item" data-from="2" data-to="2">Little noise: arrows point to the nearest cluster</div>
+        <div class="lead d8s-item" data-from="3">Much noise: arrows point to where the data is overall</div>
+      </div>
+      <div class="d8s-eq d8s-item" data-from="4"><i>ε<sub>θ</sub></i>(<i>x<sub>t</sub></i>, <i>t</i>) ≈ −√(1 − <i>ᾱ<sub>t</sub></i>) ∇<sub><i>x</i></sub> log <i>p<sub>t</sub></i>(<i>x<sub>t</sub></i>)</div>
+      <div class="lead d8s-item" data-from="4">Predicting the noise is estimating the score</div>
+    </div>
+  </div>
+  <div class="d8s-cite d8s-item" data-from="1">Computed exactly on the same toy mixture (arrow lengths compressed for display). <a href="https://arxiv.org/abs/2011.13456" target="_blank" rel="noopener" onclick="event.stopPropagation()">Song et al., ICLR 2021</a>; <a href="https://cvpr2022-tutorial-diffusion-models.github.io/" target="_blank" rel="noopener" onclick="event.stopPropagation()">CVPR 2022 tutorial</a></div>
+</div>
+<script src="d8-toy.js"></script>
+<script>
+/* BEAT 0 title only
+   BEAT 1 density of the noisy data at a low noise level (t = 30)
+   BEAT 2 score arrows at t = 30
+   BEAT 3 same picture at high noise (t = 350)
+   BEAT 4 the link between the noise prediction and the score */
+const mix = d8Mix(), INK = '#0f172a';
+const LOW = 30, HIGH = 350;
+const GRID = []; for(let i = -3.6; i <= 3.61; i += .6) for(let j = -3.6; j <= 3.61; j += .6) GRID.push([i, j]);
+function field(V, t){
+  const [a, s] = d8AS(t);
+  V.density(x => d8Post(mix, x, a, s).dens);
+  return GRID.map(p => { const sc = d8Post(mix, p, a, s).score, L = Math.hypot(sc[0], sc[1]) || 1e-9, m = .5 * (1 - Math.exp(-L * .45)); return [p, [sc[0] / L * m, sc[1] / L * m]]; });
+}
+d8Scene({
+  name: 'd8Score', nb: 4,
+  draw(V, b){
+    const t = b >= 3 ? HIGH : LOW, arrows = field(V, t);
+    if(b >= 2) arrows.forEach(([p, d]) => V.arrow(p, d, INK, 1.6, .9, 7));
+  },
+});
+</script>
+</body>
+</html>
