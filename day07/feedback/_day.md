@@ -122,3 +122,8 @@
 - [ ] Add a second example for the Run an experiment track (e.g., one model, two conditions)?
 - [ ] Put the example plans on templates.html too (an additive link under Step 2)? That file is shared.
 - [ ] Project Review (32A, 32B) and Project Rubric (35) are still placeholders.
+
+## 2026-11-10: Data Worksheet Review is one slide; Share removed (Shreya's request)
+- The Share slide is gone. Data Worksheet Review now invites people to share what they found: click 1 "Share what you found",
+  click 2 three prompts that follow the Dataset Guidebook (the dataset or simulator you picked · Can you trust it? What did you check?
+  · One thing that surprised you). Prompts are our wording.

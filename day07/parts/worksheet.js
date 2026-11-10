@@ -1,23 +1,24 @@
-/* PART: worksheet (Day 7). Owner: Shreya. Placeholders for the start of the Google deck "Day 7"
-   (fileId 1-d7HaWYSEP3EMU8Eu3EZsc9huoF877sANLRL4F8uW2U): Data Worksheet Review, then Share.
-   Each slide opens on its title; one click brings her outline lines in dashed TO DO boxes, wording as she wrote it.
-   Data Worksheet Review has no body text in her deck yet, so its box says so. No speaker notes. */
+/* PART: worksheet (Day 7). Owner: Shreya. The start of the Google deck "Day 7"
+   (fileId 1-d7HaWYSEP3EMU8Eu3EZsc9huoF877sANLRL4F8uW2U): Data Worksheet Review.
+   Shreya (2026-11-10): no separate Share slide; this slide just invites people to share what they found.
+   The worksheet is the Day 6 homework, the Dataset Guidebook (find a dataset and check whether you can trust it, or investigate
+   a simulator), so the prompts follow it. No speaker notes. */
 {
 section('Data Worksheet Review');
 
-const WS_SLIDES = [
-  ['Data Worksheet Review', ['Content to add: her slide has a title only']],
-  ['Share', ['A couple guiding questions (we will have people volunteer to share out)']],
-];
-WS_SLIDES.forEach(([title, lines]) => st(`
+st(`
   <style>
-    .worksheet-todo{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:2.4vh; }
-    .worksheet-todo .d6-todo{ padding:2.2vh 1.6vw; }
-    .worksheet-todo .worksheet-tag{ font-size:clamp(.8rem, 1.1vw, 1.05rem); text-transform:uppercase; letter-spacing:.08em; color:var(--mute); }
+    .worksheet-share{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:4vh; }
+    .worksheet-prompts{ display:flex; flex-direction:column; gap:2vh; padding-left:1.4vw; border-left:4px solid var(--ink); }
   </style>
-  <h1 class="t">${title}</h1>
-  <div class="worksheet-todo">
-    ${lines.map(t => `<div class="d6-todo b" data-step="1"><div class="worksheet-tag">To do</div><div class="lead">${t}</div></div>`).join('')}
+  <h1 class="t">Data Worksheet Review</h1>
+  <div class="worksheet-share">
+    <div class="statement b" data-step="1"><b>Share what you found</b></div>
+    <div class="worksheet-prompts b" data-step="2">
+      <div class="lead">The dataset or simulator you picked</div>
+      <div class="lead">Can you trust it? What did you check?</div>
+      <div class="lead">One thing that surprised you</div>
+    </div>
   </div>
-`));
+`);
 }

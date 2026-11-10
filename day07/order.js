@@ -1,5 +1,5 @@
 /* Day 7 running order. Follows the Google deck "Day 7" (fileId 1-d7HaWYSEP3EMU8Eu3EZsc9huoF877sANLRL4F8uW2U), an outline:
-     1. Data Worksheet Review        = the worksheet part: placeholders for Data Worksheet Review and Share
+     1. Data Worksheet Review        = the worksheet part: one slide inviting people to share what they found
      2. Transfer Learning            = the adapt and future parts, moved from day06-reduced (Google Day 6 deck p43-59),
                                        then "Where does learning live?" (start of the agents part)
         Agents and Memory               = the rest of the agents part (Google Day 7 deck: From model to agent to Evaluation)
@@ -9,7 +9,7 @@
    Add each part in its place when it is built. Avoid apostrophes inside the strings. */
 const ORDER = [
   ['start',  'Title'],
-  ['worksheet', 'Day 7 Google deck: Data Worksheet Review, Share. Placeholders only'],
+  ['worksheet', 'Day 7 Google deck: Data Worksheet Review, one slide: share what you found'],
   ['adapt',  'Day 6 Google deck p43-55: adapting trained models, problem setup, fine-tuning, learning from a teacher, knowledge distillation (math and code), use cases, continual learning'],
   ['future', 'Day 6 Google deck p55-59: future data, RL environments, robotics data gap, discussions'],
   ['agents', 'Day 7 Google deck: where learning lives, from model to agent, challenges, types of memory, memory in humans, agent memory, evaluation'],
