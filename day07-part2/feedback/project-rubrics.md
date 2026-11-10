@@ -13,3 +13,6 @@ Rules from Fernanda: less text, high-level intuitions, more images from papers o
 - [ ] The vision-language result is left off: the source deck says 1.35% top-1 and the first-pass review says about 32%. Check before using either.
 - [ ] Check with a Deaf signer whether the health signs are in fact made on the body.
 - [ ] Paper figures show signers' faces, and the site is public. Confirm that is acceptable for these published figures.
+
+## 2026-11-10: new five-section proposal rubric (Fernanda's request)
+- [ ] The example plan has no content yet for these rubric rows: timeline, hypothesis, expected results, expected failures beyond look-alike signs, and all of Scope and resources (time, group size, resources, price, dates). Not invented; Fernanda to supply if wanted.

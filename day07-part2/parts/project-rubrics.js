@@ -15,26 +15,36 @@ const prTodo = (title, lines) => st(`
   </div>
 `);
 
-/* ---------- Project Plan Rubric: the four sections of the detailed proposal (templates.html, Step 2). ---------- */
+/* The two proposal documents. To move them to Google Docs, change only these two URLs. */
+const PR_TEMPLATE_URL = '../assets/project-proposal/proposal-template.docx';
+const PR_RUBRIC_URL = '../assets/project-proposal/proposal-rubric.docx';
+
+/* ---------- Project Plan Rubric: the five sections and points of the proposal rubric (Fernanda's document). ---------- */
 const PR_RUBRIC = [
-  ['Problem and motivation', 'what it does, for whom, and why it is hard for a computer'],
-  ['Approach', 'input → steps → output; which pretrained models, which data'],
-  ['Evaluation', 'a test set, what counts as success, one number you report'],
-  ['A realistic plan', 'smallest working version and its day · what you add if there is time · biggest risk and plan B · who does what'],
+  ['Problem and motivation', 15, 'what the work will reveal · not already solved · why it matters'],
+  ['Approach and experimental design', 20, 'pipeline · models and algorithms · data · what is run'],
+  ['Evaluation and expected results', 25, 'dataset evaluation · test set, success and metric · hypothesis · expected results · expected failures'],
+  ['A realistic plan', 25, 'smallest working version · timeline · if there is time · risk and plan B · who does what'],
+  ['Scope and resources', 15, 'doable in the time left · right size for the group · resources, price and date'],
 ];
 st(`
   <style>
-    .project-rubric{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:1.6vh 1.6vw; }
+    .project-rubric{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(3, 1fr); grid-template-rows:1fr 1fr; gap:1.6vh 1.6vw; }
+    .project-rubric-links{ display:flex; flex-direction:column; justify-content:center; gap:1.6vh; padding:0 1.4vw; }
     .project-rubric .d6-card{ justify-content:center; }
     .project-pct{ font-size:clamp(1.6rem, 3vw, 2.8rem); font-weight:800; line-height:1; }
     @media (max-width: 820px), (max-aspect-ratio: 1/1){ .project-rubric{ grid-template-columns:1fr; grid-template-rows:none; } }
   </style>
   <h1 class="t">Project Plan Rubric</h1>
-  <div class="lead b" data-step="1">Detailed proposal: 1–2 pages, four sections</div>
+  <div class="lead b" data-step="1">Detailed proposal: 1 to 2 pages, due Wednesday 11 November, end of day</div>
   <div class="project-rubric">
-    ${PR_RUBRIC.map(([h, t], i) => `<div class="d6-card b" data-step="${i + 1}"><div class="project-pct">25%</div><div class="lead"><b>${h}</b></div><div class="label">${t}</div></div>`).join('')}
+    ${PR_RUBRIC.map(([h, pts, t], i) => `<div class="d6-card b" data-step="${i + 1}"><div class="project-pct">${pts}</div><div class="lead"><b>${h}</b></div><div class="label">${t}</div></div>`).join('')}
+    <div class="project-rubric-links b" data-step="1">
+      <div class="lead">${d6Link(PR_TEMPLATE_URL, '<u>Proposal template</u>')}</div>
+      <div class="lead">${d6Link(PR_RUBRIC_URL, '<u>Proposal rubric</u>')}</div>
+      <div class="label">Points out of 100</div>
+    </div>
   </div>
-  <div class="lead b" data-step="1">${d6Link('../assets/project-proposal/proposal-template.docx', '<u>Proposal template</u>')} · ${d6Link('../assets/project-proposal/proposal-rubric.docx', '<u>Proposal rubric</u>')}</div>
   ${rdCite(d6Link('../templates.html', 'Project templates') + ', Step 2 · Detailed proposal')}
 `);
 
@@ -67,7 +77,7 @@ st(`
       : `<td>${solo}</td><td>${team}</td>`}</tr>`).join('')}
   </table>
   <div class="lead b" data-step="${PR_ROWS.length - 1}" style="margin-top:1.4vh"><b>Same core for both</b> · a team adds work in parallel, with an owner for each piece, not three times the idea</div>
-  ${rdCite('Example idea: the Day 6 lab’s sign-language app for doctors · sections from ' + d6Link('../templates.html', 'Project templates') + ', Step 2 · team size is an example')}
+  ${rdCite('Example idea: the Day 6 lab’s sign-language app for doctors · sections from the ' + d6Link(PR_TEMPLATE_URL, 'Proposal template') + ' · team size is an example')}
 `);
 
 prTodo('Project Rubric', ['The final output and how this is all evaluated']);
