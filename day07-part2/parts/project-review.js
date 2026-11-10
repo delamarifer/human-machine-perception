@@ -122,7 +122,7 @@ const prMap = (() => {
   };
 
   const region = (r, step) => {
-    const w = r.head.length * 9.7 + 24, px = r.x + Math.min(14, (r.w - w) / 2), pillY = r.side === 'top' ? 0 : r.y + r.h - 14;
+    const w = r.head.length * 10.8 + 24, px = r.x + Math.min(14, (r.w - w) / 2), pillY = r.side === 'top' ? 0 : r.y + r.h - 14;
     const pill = `<rect class="project-review-pill" x="${px}" y="${pillY}" width="${w}" height="30" rx="15"/><text class="project-review-theme" x="${px + w / 2}" y="${pillY + 22}" text-anchor="middle">${r.head}</text>`;
     return `<g class="b" data-step="${step}" style="--pc:${r.color}"><rect class="project-review-region" x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="16"/>${r.teams.map(t => team(t, r.side)).join('')}${pill}</g>`;
   };
