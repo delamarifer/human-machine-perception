@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Add noise slowly, then learn to remove it</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="d8-scene.css">
+</head>
+<body>
+<div class="d8s-wrap">
+  <h1 class="t deck-title">Add noise slowly, then learn to remove it</h1>
+  <div class="d8s-body">
+    <div class="d8s-plot" data-from="1"><canvas class="d8s-cv"></canvas></div>
+    <div class="d8s-side">
+      <div class="lead d8s-item" data-from="1">Data: a toy 2D distribution</div>
+      <div class="lead d8s-item" data-from="2">Forward: add a little Gaussian noise at every step</div>
+      <div class="d8s-stack">
+        <div class="d8s-eq d8s-item" data-from="2" data-to="2"><i>t</i> = 100 of 1000</div>
+        <div class="d8s-eq d8s-item" data-from="3" data-to="3"><i>t</i> = 300 of 1000</div>
+        <div class="d8s-eq d8s-item" data-from="4"><i>t</i> = 1000: pure noise</div>
+      </div>
+      <div class="lead d8s-item" data-from="5">Reverse: remove the noise, one step at a time</div>
+    </div>
+  </div>
+  <div class="d8s-cite d8s-item" data-from="1">Computed exactly on a mixture of 8 Gaussians, with the noise schedule of Ho et al., NeurIPS 2020 (T = 1000)</div>
+</div>
+<script src="d8-toy.js"></script>
+<script>
+/* BEAT 0  title only
+   BEAT 1  the data
+   BEATS 2-4  forward noising to t = 100, 300, 1000 (each click animates one stretch; the same noise per point all along)
+   BEAT 5  reverse: DDPM ancestral sampling with the exact denoiser, from the t = 1000 points, with faint trails */
+const mix = d8Mix(), rng = d8Rng(7), N = 320;
+const X0 = d8SampleData(mix, N, rng), EPS = d8SampleNoise(N, rng);
+const STOPS = [0, 0, 100, 300, 1000];
+const XT = d8Noised(X0, EPS, D8_T);
+const REV = d8Reverse(mix, XT, true, d8Rng(11), 5);
+const INK = '#0f172a', DOT = '#4f6d9a';
+/* animate beats 2-4 through the true intermediate steps, not a straight blend */
+const pathAt = (b, p) => { const t0 = STOPS[b - 1], t1 = STOPS[b]; return d8Noised(X0, EPS, Math.round(t0 + (t1 - t0) * p)); };
+d8Scene({
+  name: 'd8Noise', nb: 5, anim: {2: 1800, 3: 1800, 4: 2200, 5: 4200},
+  draw(V, b, p){
+    if(b <= 1){ V.dots(X0, DOT); return; }
+    if(b <= 4){ V.dots(pathAt(b, p), DOT); return; }
+    REV.forEach((tr, i) => { if(i % 16 === 0) V.line(d8Trail(tr, p), INK, .8, .35); });
+    V.dots(REV.map(tr => d8At(tr, p)), DOT);
+  },
+});
+</script>
+</body>
+</html>
