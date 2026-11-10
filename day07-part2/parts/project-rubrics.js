@@ -3,18 +3,6 @@
 {
 section('Project Review');
 
-const prTodo = (title, lines) => st(`
-  <style>
-    .project-todo{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:2.4vh; }
-    .project-todo .d6-todo{ padding:2.2vh 1.6vw; }
-    .project-todo .project-tag{ font-size:clamp(.8rem, 1.1vw, 1.05rem); text-transform:uppercase; letter-spacing:.08em; color:var(--mute); }
-  </style>
-  <h1 class="t">${title}</h1>
-  <div class="project-todo">
-    ${lines.map(t => `<div class="d6-todo b" data-step="1"><div class="project-tag">To do</div><div class="lead">${t}</div></div>`).join('')}
-  </div>
-`);
-
 /* The proposal document. Fernanda opens it live in class, so this slide is only the link. */
 const PR_DOC_URL = 'https://docs.google.com/document/d/1Rdo4jX8LV4iVlVbckDFIYCNTfZY6E_W4NZx28A4EmlQ/edit';
 
@@ -123,5 +111,13 @@ if(!window.prRubricsTip){
   });
 }
 
-prTodo('Project Rubric', ['The final output and how this is all evaluated']);
+/* Project Rubric: links to the course site's pages for the final output and its grading (Fernanda: no TO DO boxes). */
+st(`
+  <h1 class="t">Project Rubric</h1>
+  <div class="project-review-cues" style="flex:1 1 auto; display:flex; flex-direction:column; justify-content:center; gap:3.6vh;">
+    <div class="statement b" data-step="1">${d6Link('../templates.html#presentation', '<u>Presentation</u>')}</div>
+    <div class="statement b" data-step="1">${d6Link('../templates.html#writeup', '<u>Write-up</u>')}</div>
+    <div class="statement b" data-step="1">${d6Link('../syllabus.html#grading', '<u>How it is graded</u>')}</div>
+  </div>
+`);
 }

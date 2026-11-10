@@ -4,19 +4,18 @@
 {
 section('Project Review');
 
-const prTodo = (title, lines) => st(`
+/* Her outline lines as plain cues; a line with a second value links to that page on the course site (Fernanda: no TO DO boxes). */
+const prCues = (title, lines) => st(`
   <style>
-    .project-todo{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:2.4vh; }
-    .project-todo .d6-todo{ padding:2.2vh 1.6vw; }
-    .project-todo .project-tag{ font-size:clamp(.8rem, 1.1vw, 1.05rem); text-transform:uppercase; letter-spacing:.08em; color:var(--mute); }
+    .project-review-cues{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:3.6vh; }
   </style>
   <h1 class="t">${title}</h1>
-  <div class="project-todo">
-    ${lines.map(t => `<div class="d6-todo b" data-step="1"><div class="project-tag">To do</div><div class="lead">${t}</div></div>`).join('')}
+  <div class="project-review-cues">
+    ${lines.map(([t, href]) => `<div class="statement b" data-step="1">${href ? d6Link(href, `<u>${t}</u>`) : t}</div>`).join('')}
   </div>
 `);
 
-prTodo('Project Review', ['Overview of the project ideas (topics, field, tools etc)', 'Things we noticed that we liked', 'Things we noticed that people didn’t consider']);
+prCues('Project Review', [['Overview of the project ideas (topics, field, tools etc)'], ['Things we noticed that we liked'], ['Things we noticed that people didn’t consider']]);
 
 /* Project map (Fernanda's request, colorful with a drawing of each project): the 14 teams after the three merges, grouped by theme.
    Each dot is one student. Each theme has its own color, used on this slide only, on shapes and never on words.
@@ -190,5 +189,5 @@ if(!window.prReviewTip){
   });
 }
 
-prTodo('Project Review', ['What goes into the project plan']);
+prCues('Project Review', [['What goes into the project plan', '../templates.html#proposal']]);
 }
