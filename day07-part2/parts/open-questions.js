@@ -111,6 +111,14 @@ st(`
   'If one person is in both train and test, the model can learn that person. The score looks good, but it means little.',
   'This is also why it matters. The next patient in the clinic was not in your training set.'));
 
+/* Transition title: one project ends, the next begins (Fernanda's request). */
+st(`
+  <div class="center" style="margin:auto">
+    <h1 class="t">Project: Tennis strokes</h1>
+    <div class="statement b" data-step="1" style="margin-top:3vh">Does a 3D skeleton recognize tennis strokes better than a 2D one, on players the model has never seen?</div>
+  </div>
+`, oqN('Now the tennis project.', 'The general idea: does a 3D skeleton recognize strokes better than a 2D one, on new players?'));
+
 st(`
   <h1 class="t">The Tennis Data</h1>
   <div class="open-questions-row">
@@ -177,6 +185,14 @@ st(`
 `, oqN('This is the key idea of the whole project.',
   'With one camera, we do not measure depth. A model looks at the 2D joints and guesses the depth, from what it learned about other bodies.',
   'So the 3D skeleton has no new information from the video. It only has what the model already believes about bodies. Does that belief help? That is the experiment.'));
+
+/* Transition title: one project ends, the next begins (Fernanda's request). */
+st(`
+  <div class="center" style="margin:auto">
+    <h1 class="t">Project: Sign language for doctors</h1>
+    <div class="statement b" data-step="1" style="margin-top:3vh">Can a model recognize a few common signs from a phone video, on a signer it has never seen?</div>
+  </div>
+`, oqN('Now the sign language project.', 'The general idea: can a model recognize a few common signs from a phone video, on a new signer?'));
 
 st(`
   <h1 class="t">Signing: The Hand Disappears</h1>

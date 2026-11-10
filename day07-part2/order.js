@@ -5,7 +5,6 @@ const ORDER = [
   ['project-review', 'Project Review: the project map and what we noticed'],
   ['project-rubrics', 'Project Plan Rubric, example plan, Project Rubric'],
   ['open-questions', 'Open Questions'],
-  ['quiz-review', 'Quiz Review'],
 ];
 const PARTS = ORDER.map(r => r[0]);
 
@@ -14,5 +13,4 @@ const SEC_MINUTES = {
   'Start': 2,
   'Project Review': 15,
   'Open Questions': 10,
-  'Quiz Review': 10,
 };
