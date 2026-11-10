@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="d8-scene.css">
+<title>Sampling: follow the velocity with an ODE solver</title>
+</head>
+<body>
+<div class="d8s-wrap">
+  <h1 class="t deck-title">Sampling: follow the velocity with an ODE solver</h1>
+  <div class="d8s-body">
+    <div class="d8s-plot" data-from="1"><canvas class="d8s-cv"></canvas></div>
+    <div class="d8s-side">
+      <div class="d8s-eq d8s-item" data-from="1"><i>x</i> ← <i>x</i> + <i>h</i> <i>u<sub>t</sub><sup>θ</sup></i>(<i>x</i>) ,&nbsp; <i>h</i> = 1 / <i>n</i></div>
+      <div class="d8s-stack">
+        <div class="lead d8s-item" data-from="1" data-to="1"><i>n</i> = 1: every sample lands on the mean of the data</div>
+        <div class="lead d8s-item" data-from="2" data-to="2"><i>n</i> = 4: the clusters begin to appear</div>
+        <div class="lead d8s-item" data-from="3" data-to="3"><i>n</i> = 40: the samples match the data</div>
+      </div>
+    </div>
+  </div>
+  <div class="d8s-cite d8s-item" data-from="1">Computed exactly on the same toy mixture, Euler solver with the exact velocity. <a href="https://neurips.cc/virtual/2024/tutorial/99531" target="_blank" rel="noopener" onclick="event.stopPropagation()">Lipman, Chen and Ben-Hamu, NeurIPS 2024 tutorial</a></div>
+</div>
+<script src="d8-toy.js"></script>
+<script>
+/* BEAT 0 title only
+   BEATS 1-3 Euler integration with n = 1, 4, 40 steps from the same noise; each click animates that run */
+const mix = d8Mix(), rng = d8Rng(53), INK = '#0f172a', GREY = '#94a3b8', DOT = '#4f6d9a';
+const START = d8SampleNoise(240, rng), DA = d8SampleData(mix, 240, rng);
+const RUNS = {1: d8Euler(mix, START, 1), 2: d8Euler(mix, START, 4), 3: d8Euler(mix, START, 40)};
+d8Scene({
+  name: 'd8Euler', nb: 3, anim: {1: 1800, 2: 2200, 3: 3000},
+  draw(V, b, p){
+    if(b === 0) return;
+    V.dots(DA, GREY, 2.2, .45);
+    const R = RUNS[b];
+    R.forEach((tr, i) => { if(i % 6 === 0) V.line(d8Trail(tr, p), INK, 1.1, .5); });
+    V.dots(R.map(tr => d8At(tr, p)), DOT, 3);
+  },
+});
+</script>
+</body>
+</html>

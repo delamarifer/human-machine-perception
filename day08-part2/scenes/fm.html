@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="d8-scene.css">
+<title>Straight lines in training, an average at every point</title>
+</head>
+<body>
+<div class="d8s-wrap">
+  <h1 class="t deck-title">Straight lines in training, an average at every point</h1>
+  <div class="d8s-body">
+    <div class="d8s-plot" data-from="1"><canvas class="d8s-cv"></canvas></div>
+    <div class="d8s-side">
+      <div class="lead d8s-item" data-from="1">Pair noise and data at random, join each pair with a straight line</div>
+      <div class="d8s-stack">
+        <div class="lead d8s-item" data-from="2" data-to="2">Through one point, many pairs pass, in many directions</div>
+        <div class="lead d8s-item" data-from="3" data-to="3">Squared error: the network learns their average</div>
+        <div class="lead d8s-item" data-from="4" data-to="4">An average at every point: a velocity field</div>
+        <div class="lead d8s-item" data-from="5">Following the field: curved paths that do not cross</div>
+      </div>
+      <div class="d8s-eq d8s-item" data-from="3"><i>u<sub>t</sub></i>(<i>x</i>) = 𝔼[ <i>X</i><sub>1</sub> − <i>X</i><sub>0</sub> | <i>X<sub>t</sub></i> = <i>x</i> ]</div>
+    </div>
+  </div>
+  <div class="d8s-cite d8s-item" data-from="1">Computed exactly on the same toy mixture (arrows scaled for display). <a href="https://neurips.cc/virtual/2024/tutorial/99531" target="_blank" rel="noopener" onclick="event.stopPropagation()">Lipman, Chen and Ben-Hamu, NeurIPS 2024 tutorial</a></div>
+</div>
+<script src="d8-toy.js"></script>
+<script>
+/* BEAT 0 title only
+   BEAT 1 noise, data, random pairs joined by straight lines
+   BEAT 2 one point at t = 0.5, with the directions of pairs that pass through it (samples of the true posterior)
+   BEAT 3 their exact average
+   BEAT 4 the exact marginal velocity field at t = 0.5
+   BEAT 5 particles integrate the time-varying field (200 Euler steps), animated */
+const mix = d8Mix(), rng = d8Rng(31), INK = '#0f172a', GREY = '#94a3b8', DOT = '#4f6d9a', K = .28;
+const NZ = d8SampleNoise(240, rng), DA = d8SampleData(mix, 240, rng);
+const PAIRS = Array.from({length: 34}, (_, i) => [NZ[i], DA[i]]);
+const PT = [0.85, 0.35], TT = 0.5, r2 = d8Rng(41);
+const DIRS = Array.from({length: 14}, () => { const x1 = d8PostSample(mix, PT, TT, r2), x0 = [(PT[0] - TT * x1[0]) / (1 - TT), (PT[1] - TT * x1[1]) / (1 - TT)]; return [(x1[0] - x0[0]) * K, (x1[1] - x0[1]) * K]; });
+const U = d8Vel(mix, PT, TT), UK = [U[0] * K, U[1] * K];
+const GRID = []; for(let i = -3.6; i <= 3.61; i += .6) for(let j = -3.6; j <= 3.61; j += .6) GRID.push([i, j]);
+const FIELD = GRID.map(p => { const u = d8Vel(mix, p, TT); return [p, [u[0] * .13, u[1] * .13]]; });
+const START = NZ.slice(40, 110), PATHS = d8Euler(mix, START, 200);
+d8Scene({
+  name: 'd8Fm', nb: 5, anim: {5: 4000},
+  draw(V, b, p){
+    if(b === 0) return;
+    const dim = b >= 2 ? .25 : 1;
+    if(b <= 3){ V.dots(NZ, GREY, 2.4, dim); V.dots(DA, DOT, 2.4, dim); PAIRS.forEach(q => V.line(q, INK, 1, b >= 2 ? .12 : .4)); }
+    if(b === 2 || b === 3){ DIRS.forEach(d => V.arrow(PT, d, INK, 1.4, b === 3 ? .3 : .9, 8)); V.dots([PT], INK, 5); }
+    if(b === 3) V.arrow(PT, UK, INK, 4, 1, 13);
+    if(b === 4){ V.dots(DA, DOT, 2.2, .6); FIELD.forEach(([q, d]) => V.arrow(q, d, INK, 1.4, .85, 6)); }
+    if(b === 5){ V.dots(DA, DOT, 2.2, .6); PATHS.forEach(tr => V.line(d8Trail(tr, p), INK, 1.1, .55)); V.dots(PATHS.map(tr => d8At(tr, p)), DOT, 3.4); }
+  },
+});
+</script>
+</body>
+</html>
