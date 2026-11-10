@@ -196,6 +196,9 @@ st(`
   </div>
 `, oqN('Now the sign language project.', 'The general idea: can a model recognize a few common signs from a phone video, on a new signer?'));
 
+/* The private instructors copy adds its own slides here; this public deck adds nothing. */
+if(window.PR_SIGN_TEAM) window.PR_SIGN_TEAM(st, oqN);
+
 st(`
   <h1 class="t">Signing: The Hand Disappears</h1>
   <div class="open-questions-row">
