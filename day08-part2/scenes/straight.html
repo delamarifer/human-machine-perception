@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="d8-scene.css">
+<title>Straight to a point is not straight to a distribution</title>
+</head>
+<body>
+<div class="d8s-wrap">
+  <h1 class="t deck-title">Straight to a point is not straight to a distribution</h1>
+  <div class="d8s-body">
+    <div class="d8s-plot" data-from="1"><canvas class="d8s-cv"></canvas></div>
+    <div class="d8s-side">
+      <div class="lead d8s-item" data-from="1">One target point: the paths are straight</div>
+      <div class="lead d8s-item" data-from="2">A whole distribution: the paths bend</div>
+    </div>
+  </div>
+  <div class="d8s-cite d8s-item" data-from="1">Computed exactly with the flow matching schedule. <a href="https://diffusionflow.github.io/" target="_blank" rel="noopener" onclick="event.stopPropagation()">Gao et al., ICLR 2025 blog post</a></div>
+</div>
+<script src="d8-toy.js"></script>
+<script>
+/* BEAT 0 title only
+   BEAT 1 flow matching paths to a single target point (a mixture of one, tiny width): exactly straight
+   BEAT 2 the same schedule and the same starting noise, target = the ring mixture: curved */
+const rng = d8Rng(67), INK = '#0f172a', DOT = '#4f6d9a';
+const START = d8SampleNoise(46, rng);
+const ONE = d8Mix([[2.6, 1.4]], .02), RING = d8Mix();
+const P1 = d8Euler(ONE, START, 200), P2 = d8Euler(RING, START, 200);
+d8Scene({
+  name: 'd8Straight', nb: 2, anim: {1: 3000, 2: 3400},
+  draw(V, b, p){
+    if(b === 0) return;
+    const R = b === 1 ? P1 : P2;
+    R.forEach(tr => V.line(d8Trail(tr, p), INK, 1.3, .55));
+    V.dots(R.map(tr => d8At(tr, p)), DOT, 3.6);
+  },
+});
+</script>
+</body>
+</html>
