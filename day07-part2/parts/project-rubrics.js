@@ -3,12 +3,16 @@
 {
 section('Project Review');
 
-/* The proposal document. Fernanda opens it live in class, so this slide is only the link. */
-const PR_DOC_URL = 'https://docs.google.com/document/d/1Rdo4jX8LV4iVlVbckDFIYCNTfZY6E_W4NZx28A4EmlQ/edit';
+/* The two proposal documents, the same Google Docs linked on the home page's Day 7 card. Fernanda opens them live, so this slide is only the links. */
+const PR_TEMPLATE_DOC = 'https://docs.google.com/document/d/12sPqbfitV3cYsndd5KX4C2FHXcTZOh4MR-vegbdWSEQ/edit?usp=sharing';
+const PR_RUBRIC_DOC = 'https://docs.google.com/document/d/1snJ5o0smRKS6KVBizKk2YTd0CbG-Fv97Zivw6_bE2ss/edit?usp=sharing';
 
 st(`
   <h1 class="t">Project Plan Rubric</h1>
-  <div class="statement b" style="margin:auto">${d6Link(PR_DOC_URL, '<u>Project Proposal Template + Rubric</u>')}</div>
+  <div style="flex:1 1 auto; display:flex; flex-direction:column; justify-content:center; gap:3.6vh;">
+    <div class="statement b" data-step="1">${d6Link(PR_TEMPLATE_DOC, '<u>Proposal template</u>')}</div>
+    <div class="statement b" data-step="1">${d6Link(PR_RUBRIC_DOC, '<u>Proposal grading rubric</u>')}</div>
+  </div>
 `);
 
 /* ---------- Example plan: one idea, one person vs a team of three, as a drawing (Fernanda: "use visuals and pop ups instead").
