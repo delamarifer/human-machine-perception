@@ -50,6 +50,17 @@ const oqMatrix = () => { const w = oqWobble(); const s = 56, x0 = 150, y0 = 18; 
   const cells = dark.map((r, i) => r.map((v, j) => `<rect x="${x0 + j * s}" y="${y0 + i * s}" width="${s}" height="${s}" fill="rgba(51,65,85,${v})" stroke="var(--ink)" stroke-width="2"/>`).join('')).join('');
   const rows = oqStrokes.map((t, i) => `<text x="${x0 - 12}" y="${y0 + i * s + 35}" text-anchor="end" font-size="19">${t}</text>`).join('');
   return `<svg class="open-questions-sketch" viewBox="0 0 450 318" role="img" aria-label="A hand-drawn grid of five tennis strokes against five tennis strokes. The three serves are drawn as confused with each other. This is a drawing, not data.">${w.def}<g filter="url(#${w.id})">${cells}</g>${rows}</svg>`; };
+const oqHandCurve = () => { const w = oqWobble();
+  return `<svg class="open-questions-sketch" viewBox="0 0 330 262" role="img" aria-label="A hand-drawn curve: the hand is found less often when it is close to the body. This is a drawing, not data.">${w.def}<g filter="url(#${w.id})">
+    <path d="M58 22 V200 H312" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/><path d="M72 172 C130 160 150 82 205 62 S280 44 304 42" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/></g>
+    <text x="185" y="226" text-anchor="middle" font-size="16">Hand distance from the body</text><text x="185" y="256" text-anchor="middle" font-size="21" font-weight="700">Is the hand found?</text>
+    <text transform="translate(34 112) rotate(-90)" text-anchor="middle" font-size="16">Hand found</text></svg>`; };
+const oqNearBars = () => { const w = oqWobble(); const base = 200; const bar = (x, h, fill) => `<rect x="${x}" y="${base - h}" width="48" height="${h}" fill="${fill}" stroke="var(--ink)" stroke-width="2.5"/><path d="M${x + 24} ${base - h - 14} V${base - h + 14} M${x + 15} ${base - h - 14} H${x + 33} M${x + 15} ${base - h + 14} H${x + 33}" stroke="var(--ink)" stroke-width="2.5" fill="none"/>`;
+  return `<svg class="open-questions-sketch" viewBox="0 0 400 262" role="img" aria-label="Hand-drawn bars for 2D and 3D, for signs near the body and signs away from the body. This is a drawing, not data.">${w.def}<g filter="url(#${w.id})">
+    <path d="M58 22 V200 H382" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>${bar(78, 72, '#e2e8f0')}${bar(132, 80, '#94a3b8')}${bar(238, 105, '#e2e8f0')}${bar(292, 150, '#94a3b8')}</g>
+    <text x="102" y="222" text-anchor="middle" font-size="17">2D</text><text x="156" y="222" text-anchor="middle" font-size="17">3D</text><text x="262" y="222" text-anchor="middle" font-size="17">2D</text><text x="316" y="222" text-anchor="middle" font-size="17">3D</text>
+    <text x="129" y="254" text-anchor="middle" font-size="20" font-weight="700">Near the body</text><text x="289" y="254" text-anchor="middle" font-size="20" font-weight="700">Away from it</text>
+    <text transform="translate(34 112) rotate(-90)" text-anchor="middle" font-size="16">Score, new signers</text></svg>`; };
 const oqDrawn = step => oqLine('Drawings only. Not data. Examples of what is expected to be reported.', step, 'label open-questions-banner');
 
 st(`${oqStyle}
@@ -182,6 +193,28 @@ st(`
   'So in signing, first check whether the hand is even there. A 3D skeleton made from a missing hand cannot bring it back.'));
 
 st(`
+  <h1 class="t">What 3D Means for Signs</h1>
+  <div class="open-questions-row">
+    ${oqFig('sign-depth-avoid-behind.jpg', 'Lee et al. 2023, Figure 1: the signs Avoid and Behind look almost the same as 2D poses, and the 3D poses show the difference in depth.', 1, 'Same in 2D. Different in 3D.', 56)}
+    <div class="open-questions-col">
+      <table class="d6-tbl b" data-step="2">
+        <tr><th>100 signs</th><th>Score</th></tr>
+        <tr><td class="rowh">2D positions</td><td>60%</td></tr>
+        <tr><td class="rowh">3D positions</td><td>41%</td></tr>
+        <tr><td class="rowh">3D joint angles</td><td>73%</td></tr>
+      </table>
+      ${oqLine('Joint angles change less between people.', 3)}
+      ${oqLine('MediaPipe depth is not reliable.', 4)}
+    </div>
+  </div>
+  ${rdCite('Lee, Oh and Lee, 2023 (P3D, WLASL) · Roh et al., 2024')}
+`, oqN('So what does 3D mean for signing? Here we found direct evidence.',
+  'Look at the red boxes. These are two different signs, Avoid and Behind. In 2D they look almost the same. In 3D you can see the hands are at different depths.',
+  'But 3D is not one thing. This paper tested three inputs on 100 signs, with new signers in the test. 2D positions scored 60 percent. 3D positions scored only 41 percent. 3D joint angles scored 73 percent. With 2,000 signs the gaps are smaller: 36, 32 and 39 percent.',
+  'Why? The authors argue that positions depend on the person: body size, and where they stand. The angle of a joint changes less from person to person. That is exactly our question about a new person. Tennis can try joint angles too.',
+  'One warning. MediaPipe gives a depth value, but one signing paper reports that the MediaPipe documentation calls it unreliable, and those authors did not use it. So for 3D, use a 3D body model, as this paper did. We have not tested how fast this runs on Colab. One paper is not the final answer, so this is worth testing.'));
+
+st(`
   <h1 class="t">What We Suggest</h1>
   <div class="open-questions-col" style="flex:1 1 auto">
     ${[['2D joints', '', 1], ['3D joints', '', 1], ['3D, shuffled depth', 'odd', 3]].map(([t, c, s]) => `<div class="open-questions-track b" data-step="${s}">
@@ -197,7 +230,7 @@ st(`
   'Same clips, same model, same players held out. The only difference is two numbers or three numbers for each joint.',
   'Change one thing only. Then a difference in score has one explanation.',
   'One more row. We keep the 3D skeleton but mix up the depth values. If this row scores the same as real 3D, then the depth is not what helped.',
-  'Tennis is the main experiment. Then the same test on signs, on a public dataset such as CASL-W60, with 60 signs. Two very different movements test the same idea.'));
+  'Tennis is the main experiment. Then the same test on signs, on a public dataset such as CASL-W60, with 60 signs. For signs, the 3D input comes from a 3D body model, and we also try joint angles. Two very different movements test the same idea.'));
 
 st(`
   <h1 class="t">Examples of What to Report</h1>
@@ -222,6 +255,19 @@ st(`
 `, oqN('Another drawing, not data.',
   'This is the second figure we expect. Each row is the true stroke. Each column is the answer of the model. Dark means often. Here we drew the three serves as confused, only as an example.',
   'One score hides the interesting part. Which strokes get confused? Does 3D fix them? People can also tell us which strokes look alike.'));
+
+st(`
+  <h1 class="t">Example: Signs Near the Body</h1>
+  ${oqDrawn(1)}
+  <div class="open-questions-row">
+    <div class="b" data-step="1">${oqHandCurve()}</div>
+    <div class="b" data-step="2">${oqNearBars()}</div>
+  </div>
+  ${oqLine('Near the body, is 3D still useful?', 3, 'statement open-questions-say')}
+`, oqN('These are drawings again, not data. This is how signing joins the 2D and 3D question.',
+  'First figure. How often is the hand found, at each distance from the body? This needs no training, so it can be done first. We drew the hand as lost more often near the body.',
+  'Second figure. Label each sign as near the body or away from it. Then compare 2D and 3D in each group, on new signers. Here we drew 3D helping only away from the body, as one possible result.',
+  'This is the question for signing. If the hand is lost near the body, 3D may not help there. Many health signs are near the body. So this result matters for the real goal.'));
 
 st(`
   <h1 class="t">Start Small</h1>
