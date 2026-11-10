@@ -11,6 +11,9 @@ const PARTS = ORDER.map(r => r[0]);
 /* Minutes per section (only sets the widths in the progress bar). Guesses carried over from day07. */
 const SEC_MINUTES = {
   'Start': 2,
-  'Project Review': 15,
-  'Open Questions': 10,
+  'Project Review': 5,
+  'Both Projects': 5,
+  'Tennis Strokes': 8,
+  'Sign Language': 6,
+  'Next Steps': 8,
 };

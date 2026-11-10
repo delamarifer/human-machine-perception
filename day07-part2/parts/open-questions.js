@@ -2,7 +2,7 @@
    Replaces the Open Questions placeholder (Fernanda's request, 2026-11-10). Public repo: project topics only, never student names or faces, and nothing from the team's own clips.
    Short plain sentences: many students are not fluent in English. Figures and licences: assets/open-questions/SOURCES.md. Expected results are drawings only. */
 {
-section('Project Deep Dive');
+section('Both Projects');
 
 const oqA = 'assets/open-questions/';
 const oqN = (...p) => ({ notes: p.map(x => '(draft) ' + x).join('[click]') });
@@ -111,6 +111,7 @@ st(`
   'If one person is in both train and test, the model can learn that person. The score looks good, but it means little.',
   'This is also why it matters. The next patient in the clinic was not in your training set.'));
 
+section('Tennis Strokes');
 /* Transition title: one project ends, the next begins (Fernanda's request). */
 st(`
   <div class="center" style="margin:auto">
@@ -186,6 +187,7 @@ st(`
   'With one camera, we do not measure depth. A model looks at the 2D joints and guesses the depth, from what it learned about other bodies.',
   'So the 3D skeleton has no new information from the video. It only has what the model already believes about bodies. Does that belief help? That is the experiment.'));
 
+section('Sign Language');
 /* Transition title: one project ends, the next begins (Fernanda's request). */
 st(`
   <div class="center" style="margin:auto">
@@ -230,6 +232,7 @@ st(`
   'Why? The authors argue that positions depend on the person: body size, and where they stand. The angle of a joint changes less from person to person. That is exactly our question about a new person. Tennis can try joint angles too.',
   'One warning. MediaPipe gives a depth value, but one signing paper reports that the MediaPipe documentation calls it unreliable, and those authors did not use it. So for 3D, use a 3D body model, as this paper did. We have not tested how fast this runs on Colab. One paper is not the final answer, so this is worth testing.'));
 
+section('Next Steps');
 st(`
   <h1 class="t">What We Suggest</h1>
   <div class="open-questions-col" style="flex:1 1 auto">
