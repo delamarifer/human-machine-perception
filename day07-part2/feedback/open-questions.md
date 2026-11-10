@@ -12,6 +12,6 @@
 
 ## Questions for Fernanda (from the first draft)
 - [ ] THETIS: the instructors' clusters page says it ships 2D and 3D for 55 players. The public repo has skeletons only as .avi videos, with no joint numbers, and for 1,217 of 1,980 strokes. The slides follow the repo: find the joints again from RGB.
-- [ ] The hand-at-face photo is from Moryossef et al. 2021 and shows a signer from a published dataset. Keep it, or show only the skeleton?
+- [x] The hand-at-face photo is from Moryossef et al. 2021 and shows a signer from a published dataset. Fernanda: keep the photo.
 - [ ] The AI Review, How to use AI and How to work lines are off this part now. Do they move somewhere else?
 - [ ] Speaker notes are all `(draft)`.
