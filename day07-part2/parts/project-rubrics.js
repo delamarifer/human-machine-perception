@@ -34,6 +34,7 @@ st(`
   <div class="project-rubric">
     ${PR_RUBRIC.map(([h, t], i) => `<div class="d6-card b" data-step="${i + 1}"><div class="project-pct">25%</div><div class="lead"><b>${h}</b></div><div class="label">${t}</div></div>`).join('')}
   </div>
+  <div class="lead b" data-step="1">${d6Link('../assets/project-proposal/proposal-template.docx', '<u>Proposal template</u>')} · ${d6Link('../assets/project-proposal/proposal-rubric.docx', '<u>Proposal rubric</u>')}</div>
   ${rdCite(d6Link('../templates.html', 'Project templates') + ', Step 2 · Detailed proposal')}
 `);
 
