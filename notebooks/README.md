@@ -14,7 +14,7 @@ page (`index.html`) with the "Open in Colab" badge; nothing to install.
 | [day04-lab-cnn-mnist.ipynb](day04-lab-cnn-mnist.ipynb) | Day 4 | MNIST digits: a fully connected baseline, then build a CNN; its learned filters and feature maps; the pixel-permutation test. Adapted from MIT 6.S191 Lab 2 Part 1 (© MIT Introduction to Deep Learning, http://introtodeeplearning.com, MIT License) |
 | [day05-lab-clip-embeddings.ipynb](day05-lab-clip-embeddings.ipynb) | Day 5 | Day 5 lab, hour 2, part 1: CLIP embeddings, cosine similarity and zero-shot classification. Student notebook; no solutions. |
 | [day05-lab-part2-views-rsa.ipynb](day05-lab-part2-views-rsa.ipynb) | Day 5 | Day 5 part 2, after the Konkle & Alvarez 2022 reading: their objective tested on CLIP (views and the instance test), then dissimilarity matrices and RSA for CLIP, pixels and a category model. Runs on its own. Built by `build/day05_lab_part2.py`; student notebook, no solutions. |
-| [assignment1-starter.ipynb](assignment1-starter.ipynb) | Week 1, due Nov 11 | Assignment 1 starter: newer open vision models on BlindTest (Rahmanzadehgervi et al., "Vision Language Models Are Blind", ACCV 2024; data MIT license), then fresh images drawn with code. Built by `build/assignment1_starter.py`; solutions in `build/private/` (git-ignored) |
+| [assignment1-starter.ipynb](assignment1-starter.ipynb) | Week 1, due Nov 13 | Assignment 1 starter: newer open vision models on BlindTest (Rahmanzadehgervi et al., "Vision Language Models Are Blind", ACCV 2024; data MIT license), then fresh images drawn with code. Built by `build/assignment1_starter.py`; solutions in `build/private/` (git-ignored) |
 
 ## Conventions (every notebook)
 
