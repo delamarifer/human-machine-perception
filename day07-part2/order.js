@@ -5,6 +5,7 @@ const ORDER = [
   ['project-review', 'Project Review: the project map and what we noticed'],
   ['project-rubrics', 'Project Plan Rubric, example plan, Project Rubric'],
   ['open-questions', 'Open Questions'],
+  ['instance-level', 'Deep dive: same object, new view'],
 ];
 const PARTS = ORDER.map(r => r[0]);
 
@@ -16,4 +17,5 @@ const SEC_MINUTES = {
   'Tennis Strokes': 8,
   'Sign Language': 6,
   'Next Steps': 8,
+  'Same Object': 12,
 };
