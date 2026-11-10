@@ -127,3 +127,7 @@
 - The Share slide is gone. Data Worksheet Review now invites people to share what they found: click 1 "Share what you found",
   click 2 three prompts that follow the Dataset Guidebook (the dataset or simulator you picked · Can you trust it? What did you check?
   · One thing that surprised you). Prompts are our wording.
+
+## 2026-11-10: RL Environments slide removed (Shreya's request)
+- The RL Environments slide (future part: the Scale quote and the agent-action-observation-reward loop) is gone. "Can research combat
+  the need for real-data?" now leads straight into the robotics data gap. Recoverable from git history (commit 8b68aa7).
