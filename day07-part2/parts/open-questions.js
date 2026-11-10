@@ -64,10 +64,10 @@ const oqNearBars = () => { const w = oqWobble(); const base = 200; const bar = (
 const oqDrawn = step => oqLine('Drawings only. Not data. Examples of what is expected to be reported.', step, 'label open-questions-banner');
 
 st(`${oqStyle}
-  <h1 class="t">Project Deep Dive: Tennis and Signs</h1>
+  <h1 class="t">Project Deep Dive: Tennis and Sign Language</h1>
   <div class="open-questions-row">
     ${oqFig('thetis-2d.jpg', 'One frame from the THETIS tennis dataset: a depth image of a player with a 2D skeleton drawn on it.', 1, 'Tennis strokes', 40)}
-    ${oqFig('hand-face-pose.png', 'A body skeleton extracted from a person signing, from Moryossef et al. 2021.', 2, 'Signs for doctors', 40)}
+    ${oqFig('hand-face-pose.png', 'A body skeleton extracted from a person signing, from Moryossef et al. 2021.', 2, 'Sign language for doctors', 40)}
   </div>
   ${oqLine('Does 3D help on a new person?', 3, 'statement open-questions-say')}
   ${rdCite('THETIS: Gourgari et al., 2013 · Moryossef et al., 2021')}
@@ -217,7 +217,7 @@ st(`
   'So in signing, first check whether the hand is even there. A 3D skeleton made from a missing hand cannot bring it back.'));
 
 st(`
-  <h1 class="t">What 3D Means for Signs</h1>
+  <h1 class="t">What 3D Means for Sign Language</h1>
   <div class="open-questions-row">
     ${oqFig('sign-depth-avoid-behind.jpg', 'Lee et al. 2023, Figure 1: the signs Avoid and Behind look almost the same as 2D poses, and the 3D poses show the difference in depth.', 1, 'Same in 2D. Different in 3D.', 56)}
     <div class="open-questions-col">
