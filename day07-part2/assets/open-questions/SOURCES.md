@@ -13,6 +13,7 @@ Paper figures come from each paper's arXiv source. THETIS frames come from the p
 | `pose-ntu-2d.jpg`, `pose-gym-2d.jpg`, `pose-ntu-3d.jpg`, `pose-gym-3d.jpg` | Duan et al. (2022), Revisiting Skeleton-based Action Recognition (PoseC3D), CVPR, Figure 1. https://arxiv.org/abs/2104.13586 |
 | `motion-finetune.png` | Zhu et al. (2023), MotionBERT, ICCV, "II. Finetune" half of the pipeline figure. https://arxiv.org/abs/2210.06551 |
 | `hand-face-photo.jpg`, `hand-face-pose.png`, `hand-frames-box.png` | Moryossef et al. (2021), Evaluating the Immediate Applicability of Pose Estimation for Sign Language Recognition, CVPR Workshops. https://arxiv.org/abs/2104.10166 |
+| `sign-depth-avoid-behind.jpg` | Lee, Oh, Lee (2023), Human Part-wise 3D Motion Context Learning for Sign Language Recognition (P3D), ICCV, Figure 1. https://arxiv.org/abs/2308.09305 |
 
 ## Numbers on the slides
 
@@ -21,5 +22,7 @@ Paper figures come from each paper's arXiv source. THETIS frames come from the p
 - 2D 92.0 vs lifted 3D 90.2 (FineGYM): Duan et al. (2022), supplementary tables (HRNet-2D; VideoLift).
 - 85.13% vs 79.78%: Moryossef et al. (2021), section on presence or absence of hand pose.
 - CASL-W60 has 60 signs: Wanchi et al. (2026), TransSLR.
+- 60.24 (2D positions), 41.09 (3D positions), 72.87 (3D joint angles) on WLASL 100, and 35.99, 31.69, 38.60 on WLASL 2000: Lee et al. (2023), per-instance top-1, ablation table on input pose representations.
+- MediaPipe depth described as unreliable: Roh et al. (2024), Preprocessing Mediapipe Keypoints with Keypoint Reconstruction and Anchors for Isolated Sign Language Recognition, sign-lang workshop. https://aclanthology.org/2024.signlang-1.36.pdf
 
 The bar and grid figures on the "Examples" slides are drawings made for this deck. They are not data.
