@@ -199,6 +199,9 @@ st(`
 /* The private instructors copy adds its own slides here; this public deck adds nothing. */
 if(window.PR_SIGN_TEAM) window.PR_SIGN_TEAM(st, oqN);
 
+/* The example plan uses this project's idea, so it comes right after the idea (Fernanda's request). */
+if(window.prExamplePlan) window.prExamplePlan();
+
 st(`
   <h1 class="t">Signing: The Hand Disappears</h1>
   <div class="open-questions-row">

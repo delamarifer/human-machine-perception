@@ -34,7 +34,8 @@ const PR_TEAM = [
   ['C', '#14805a', 'App and evaluation', prBox('app', 'Gradio app', '+ a Gradio app anyone can try on a phone video.')],
 ];
 
-st(`
+/* Shown in the deep dive, right after the sign language idea it uses (Fernanda's request): open-questions.js calls this. */
+window.prExamplePlan = () => st(`
   <style>
     .project-flag{ display:inline-block; font-size:clamp(.7rem, 1vw, .95rem); text-transform:uppercase; letter-spacing:.08em; border:1.5px solid var(--ink); border-radius:999px; padding:.15em .7em; margin-left:.8vw; vertical-align:middle; }
     .project-rubrics-ex{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:1.8vh; }
