@@ -22,7 +22,15 @@ const oqStyle = `<style>
   .open-questions-box.same{ background:#f1f5f9; }
   .open-questions-box.odd{ border-style:dashed; }
   .open-questions-arrow{ font-size:clamp(1.4rem, 2.2vw, 2rem); color:var(--mute); }
-  .open-questions-banner{ align-self:center; border:2px dashed var(--ink); border-radius:10px; padding:.8vh 1.4vw; text-align:center; font-weight:700; }
+  .open-questions-banner{ align-self:center; display:flex; align-items:center; gap:.8vw; border:3px dashed var(--ink); border-radius:12px; padding:.8vh 1.6vw; font-size:clamp(1.15rem, 2vw, 2rem); font-weight:800; }
+  .open-questions-pencil{ width:clamp(30px, 5vh, 54px); height:clamp(30px, 5vh, 54px); flex:none; transform-origin:20% 85%; }
+  .b.shown > .open-questions-pencil{ animation:open-questions-scribble .45s ease-in-out 3; }
+  .open-questions-stamp{ font-size:21px; font-weight:700; }
+  .open-questions-sketch text.open-questions-stamp{ font-family:'Bradley Hand','Segoe Print','Comic Sans MS',cursive; }
+  .b.shown > .open-questions-sketch{ animation:open-questions-draw 1.2s ease-out; }
+  @keyframes open-questions-draw{ from{ clip-path:inset(0 100% 0 0); } to{ clip-path:inset(0 0 0 0); } }
+  @keyframes open-questions-scribble{ 0%,100%{ transform:rotate(0) translate(0,0); } 30%{ transform:rotate(-12deg) translate(5px,-3px); } 70%{ transform:rotate(9deg) translate(-4px,3px); } }
+  @media (prefers-reduced-motion: reduce){ .b.shown > .open-questions-sketch, .b.shown > .open-questions-pencil{ animation:none; } }
   .open-questions-sketch{ display:block; height:42vh; max-width:100%; }
   .open-questions-sketch text{ font-family:inherit; fill:var(--ink); }
   @media (max-width: 820px), (max-aspect-ratio: 1/1){
@@ -44,24 +52,26 @@ const oqBars = (h2, h3, name, alt) => { const w = oqWobble(); const base = 200; 
     <path d="M58 22 V200 H282" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>${bar(92, h2, '#e2e8f0')}${bar(186, h3, '#94a3b8')}</g>
     <text x="123" y="226" text-anchor="middle" font-size="19">2D</text><text x="217" y="226" text-anchor="middle" font-size="19">3D</text>
     <text x="170" y="256" text-anchor="middle" font-size="21" font-weight="700">${name}</text>
-    <text transform="translate(34 112) rotate(-90)" text-anchor="middle" font-size="16">Score, new people</text></svg>`; };
+    <text transform="translate(34 112) rotate(-90)" text-anchor="middle" font-size="16">Score, new people</text>${oqStamp(296, 18)}</svg>`; };
 const oqStrokes = ['Flat serve', 'Kick serve', 'Slice serve', 'Forehand', 'Backhand'];
 const oqMatrix = () => { const w = oqWobble(); const s = 56, x0 = 150, y0 = 18; const dark = [[.85,.45,.3,0,0],[.45,.75,.35,0,.1],[.3,.35,.8,.1,0],[0,0,.1,.95,.15],[0,.1,0,.15,.95]];
   const cells = dark.map((r, i) => r.map((v, j) => `<rect x="${x0 + j * s}" y="${y0 + i * s}" width="${s}" height="${s}" fill="rgba(51,65,85,${v})" stroke="var(--ink)" stroke-width="2"/>`).join('')).join('');
   const rows = oqStrokes.map((t, i) => `<text x="${x0 - 12}" y="${y0 + i * s + 35}" text-anchor="end" font-size="19">${t}</text>`).join('');
-  return `<svg class="open-questions-sketch" viewBox="0 0 450 318" role="img" aria-label="A hand-drawn grid of five tennis strokes against five tennis strokes. The three serves are drawn as confused with each other. This is a drawing, not data.">${w.def}<g filter="url(#${w.id})">${cells}</g>${rows}</svg>`; };
+  return `<svg class="open-questions-sketch" viewBox="0 0 450 318" role="img" aria-label="A hand-drawn grid of five tennis strokes against five tennis strokes. The three serves are drawn as confused with each other. This is a drawing, not data.">${w.def}<g filter="url(#${w.id})">${cells}</g>${rows}${oqStamp(146, 18)}</svg>`; };
 const oqHandCurve = () => { const w = oqWobble();
   return `<svg class="open-questions-sketch" viewBox="0 0 330 262" role="img" aria-label="A hand-drawn curve: the hand is found less often when it is close to the body. This is a drawing, not data.">${w.def}<g filter="url(#${w.id})">
     <path d="M58 22 V200 H312" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/><path d="M72 172 C130 160 150 82 205 62 S280 44 304 42" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/></g>
     <text x="185" y="226" text-anchor="middle" font-size="16">Hand distance from the body</text><text x="185" y="256" text-anchor="middle" font-size="21" font-weight="700">Is the hand found?</text>
-    <text transform="translate(34 112) rotate(-90)" text-anchor="middle" font-size="16">Hand found</text></svg>`; };
+    <text transform="translate(34 112) rotate(-90)" text-anchor="middle" font-size="16">Hand found</text>${oqStamp(326, 18)}</svg>`; };
 const oqNearBars = () => { const w = oqWobble(); const base = 200; const bar = (x, h, fill) => `<rect x="${x}" y="${base - h}" width="48" height="${h}" fill="${fill}" stroke="var(--ink)" stroke-width="2.5"/><path d="M${x + 24} ${base - h - 14} V${base - h + 14} M${x + 15} ${base - h - 14} H${x + 33} M${x + 15} ${base - h + 14} H${x + 33}" stroke="var(--ink)" stroke-width="2.5" fill="none"/>`;
   return `<svg class="open-questions-sketch" viewBox="0 0 400 262" role="img" aria-label="Hand-drawn bars for 2D and 3D, for signs near the body and signs away from the body. This is a drawing, not data.">${w.def}<g filter="url(#${w.id})">
     <path d="M58 22 V200 H382" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>${bar(78, 72, '#e2e8f0')}${bar(132, 80, '#94a3b8')}${bar(238, 105, '#e2e8f0')}${bar(292, 150, '#94a3b8')}</g>
     <text x="102" y="222" text-anchor="middle" font-size="17">2D</text><text x="156" y="222" text-anchor="middle" font-size="17">3D</text><text x="262" y="222" text-anchor="middle" font-size="17">2D</text><text x="316" y="222" text-anchor="middle" font-size="17">3D</text>
     <text x="129" y="254" text-anchor="middle" font-size="20" font-weight="700">Near the body</text><text x="289" y="254" text-anchor="middle" font-size="20" font-weight="700">Away from it</text>
-    <text transform="translate(34 112) rotate(-90)" text-anchor="middle" font-size="16">Score, new signers</text></svg>`; };
-const oqDrawn = step => oqLine('Drawings only. Not data. Examples of what is expected to be reported.', step, 'label open-questions-banner');
+    <text transform="translate(34 112) rotate(-90)" text-anchor="middle" font-size="16">Score, new signers</text>${oqStamp(396, 18)}</svg>`; };
+const oqPencil = '<svg class="open-questions-pencil" viewBox="0 0 48 48" aria-hidden="true"><path d="M8 40 12 28 34 6 42 14 20 36Z" fill="#fff" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/><path d="M8 40 12 28 20 36Z" fill="var(--ink)"/><path d="M30 10 38 18" stroke="var(--ink)" stroke-width="3"/></svg>';
+const oqDrawn = step => oqLine(`${oqPencil}<span>Hand drawn. Not real results. An example of what to report.</span>`, step, 'open-questions-banner');
+const oqStamp = (x, y) => `<text class="open-questions-stamp" x="${x}" y="${y}" text-anchor="end">hand drawn</text>`;
 
 st(`${oqStyle}
   <h1 class="t">Project Deep Dive: Tennis and Sign Language</h1>
@@ -207,7 +217,7 @@ st(`
   <div class="open-questions-row">
     ${oqFig('hand-face-photo.jpg', 'Moryossef et al. 2021: a person signing with a hand at the face.', 1, 'The hand touches the face.', 38)}
     ${oqFig('hand-face-pose.png', 'Moryossef et al. 2021: the same frame as a skeleton. The hand at the face has no hand joints.', 1, 'The tracker loses the hand.', 38)}
-    ${oqFig('hand-frames-box.png', 'Moryossef et al. 2021: box plot of the percent of frames with hand pose, for wrong and correct predictions.', 2, 'Hand found: right answers 85%, wrong answers 80%', 38)}
+    ${oqFig('hand-frames-box.png', 'Moryossef et al. 2021: box plot of the percent of frames with hand pose, for wrong and correct predictions.', 2, 'Hand found: right answers 85%, wrong answers 80%. Real data, from the paper.', 38)}
   </div>
   ${oqLine('If the hand is lost, 3D cannot bring it back.', 3, 'statement open-questions-say')}
   ${rdCite('Moryossef et al., 2021 (AUTSL)')}
@@ -305,6 +315,20 @@ st(`
   'Finding the joints is the slow step. Do 20 clips first, and measure the time. Save the joints, so a disconnect does not lose your work.',
   'Next, one model, with players held out. This number is your baseline.',
   'Only then do the comparison. If time is short, tennis alone is a complete project.'));
+
+/* One more idea from Fernanda: simulate hand movements in Unity. Figures from DART (Gao et al., 2022), whose data generator is a Unity GUI. */
+st(`
+  <h1 class="t">One Other Idea: Simulate Hands in Unity</h1>
+  <div class="open-questions-row">
+    ${oqFig('unity-dart-hands.jpg', 'Computer-generated hands in many poses, skin tones and accessories, from the DART paper.', 1, 'Simulated hands', 27)}
+    ${oqFig('unity-dart-gui.jpg', 'The DART Unity tool: sliders for pose and light, over a simulated hand and a photo background.', 2, 'In Unity: set the pose, the light, the background', 27)}
+  </div>
+  ${oqLine('Every simulated hand comes with its exact joints.', 3, 'statement open-questions-say')}
+  ${rdCite('DART: Gao et al., 2022')}
+`, oqN('One other idea for this team: simulate hand movements in Unity.',
+  'These hands are computer generated, in many poses and skin tones.',
+  'This tool is built in Unity. You set the pose, the light and the background, and export images.',
+  'The benefit: each simulated hand comes with its exact joints, so the labels are free.'));
 
 st(`
   <h1 class="t">Questions for the Team</h1>

@@ -14,6 +14,7 @@ Paper figures come from each paper's arXiv source. THETIS frames come from the p
 | `motion-finetune.png` | Zhu et al. (2023), MotionBERT, ICCV, "II. Finetune" half of the pipeline figure. https://arxiv.org/abs/2210.06551 |
 | `hand-face-photo.jpg`, `hand-face-pose.png`, `hand-frames-box.png` | Moryossef et al. (2021), Evaluating the Immediate Applicability of Pose Estimation for Sign Language Recognition, CVPR Workshops. https://arxiv.org/abs/2104.10166 |
 | `sign-depth-avoid-behind.jpg` | Lee, Oh, Lee (2023), Human Part-wise 3D Motion Context Learning for Sign Language Recognition (P3D), ICCV, Figure 1. https://arxiv.org/abs/2308.09305 |
+| `unity-dart-hands.jpg`, `unity-dart-gui.jpg` | Gao et al. (2022), DART: Articulated Hand Model with Diverse Accessories and Rich Textures, NeurIPS Datasets and Benchmarks, teaser and Unity GUI figures, from the arXiv source. https://arxiv.org/abs/2210.07650 |
 
 ## Numbers on the slides
 
