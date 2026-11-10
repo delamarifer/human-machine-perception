@@ -118,7 +118,7 @@
     <p class="lead">The experiment track is a small rehearsal for your research project at the end of the year: a question, a written scientific report, and a presentation where you answer questions.</p>
     <ul class="steps">
       <li><a href="#idea" style="--c:var(--cyan)"><small>Step 1 · 2%</small><b>General idea</b><span>Google Form · Saturday night</span></a></li>
-      <li><a href="#proposal" style="--c:var(--violet)"><small>Step 2 · 5%</small><b>Detailed proposal</b><span>1–2 pages · Tuesday night</span></a></li>
+      <li><a href="#proposal" style="--c:var(--violet)"><small>Step 2 · 5%</small><b>Detailed proposal</b><span>1–2 pages · Wed 11 Nov</span></a></li>
       <li><a href="#meeting" style="--c:var(--sky)"><small>Step 3 · 3%</small><b>Meeting</b><span>Calendly · Mon–Wed</span></a></li>
       <li><a href="#presentation" style="--c:var(--pink)"><small>15%</small><b>Presentation</b><span>Last day</span></a></li>
       <li><a href="#writeup" style="--c:var(--amber)"><small>20%</small><b>Write-up</b><span>Last day</span></a></li>
@@ -161,34 +161,23 @@
   <!-- STEP 2 -->
   <section id="proposal" style="--c:var(--violet)">
     <h2>Step 2 · Detailed proposal</h2>
-    <ul class="meta"><li>5%</li><li class="due">Due Tuesday night</li><li>1–2 pages</li></ul>
-    <p>Four sections, each worth a quarter of the grade. Answer every question in the template; short is fine. <a href="https://forms.gle/wBXHE6AFaHf8RR4T8">Upload your proposal</a>.</p>
+    <ul class="meta"><li>5%</li><li class="due">Due Wednesday 11 November, end of day</li><li>1–2 pages</li></ul>
+    <p>Five sections, worth 15%, 20%, 25%, 25% and 15% of this grade. The same template and the same rubric cover both tracks. Answer every question. Short is fine: a two-line answer gets full credit if it is specific. We grade the ideas, not the English. <a href="https://forms.gle/wBXHE6AFaHf8RR4T8">Upload your proposal</a>.</p>
+    <p>Google Docs: <a href="https://docs.google.com/document/d/12sPqbfitV3cYsndd5KX4C2FHXcTZOh4MR-vegbdWSEQ/edit?usp=sharing">Proposal template</a> · <a href="https://docs.google.com/document/d/1snJ5o0smRKS6KVBizKk2YTd0CbG-Fv97Zivw6_bE2ss/edit?usp=sharing">Proposal grading rubric</a>.</p>
 
-    <div class="tpl k-build only-build" data-copy>
-      <div class="tpl-head"><b>Proposal <span class="tag">Build a demo</span></b><button class="copy" type="button">Copy</button></div>
+    <div class="tpl" data-copy>
+      <div class="tpl-head"><b>Proposal template</b><button class="copy" type="button">Copy</button></div>
       <ol>
-        <li><b>Problem and motivation <span class="w">25%</span></b>
-          <span class="hint">What will your demo do, in plain words? Who is it for, and what do they do today without it? What is hard about it for a computer?</span></li>
-        <li><b>Approach <span class="w">25%</span></b>
-          <span class="hint">Input → steps → output: draw the pipeline as boxes. Which pretrained models will you use, and why those? What data will you test it on? What will someone see and do when they try it (a Colab notebook, a Gradio app, a phone photo)?</span></li>
-        <li><b>Evaluation <span class="w">25%</span></b>
-          <span class="hint">How will you know it works? Name a test set you will collect (how many images, from where), what counts as a success on one example, and one number you will report. Which cases do you expect to fail?</span></li>
+        <li><b>Problem and motivation <span class="w">15%</span></b>
+          <span class="hint">Research question. In one sentence, what are you investigating or building? Which kind is it: exploring a limitation (where and why does a model fail?) or overcoming one (does a change you make fix it?)<br>What the work will reveal. In plain words, what will we learn, or be able to do, that we cannot now?<br>Not already solved. What is already known — a paper, a tool, a demo, something from class? Name the closest existing work and say what is still open.<br>Why it matters. Who would use this, or why does the answer matter? What makes it hard for a computer?<br>What you are leaving out. Say plainly which parts of the bigger question this project does not cover.</span></li>
+        <li><b>Approach and experimental design <span class="w">20%</span></b>
+          <span class="hint">Pipeline. Draw it as a sequence of boxes: input → processing steps / models → output. Each step should be clear enough that someone else could follow it.<br>Models and algorithms. Which pretrained models, algorithms or methods will you use, and why those? If you are comparing models, say how many and which.<br>Data. Which dataset will you use? Will you use an existing one, collect one, or create one? Roughly how many images or videos, from where, and with what relevant characteristics?<br>What is run. Demo: what will the final project be (Colab notebook, Gradio app, phone photo), and what will someone see and do when they try it? Experiment: which conditions are you comparing, and against which baseline?<br>If people will take part. If anyone will judge images or be recorded, say how you will run it, how you will keep it anonymous, and how people can decline. Talk to us before you collect anything.</span></li>
+        <li><b>Evaluation and expected results <span class="w">25%</span></b>
+          <span class="hint">Hypothesis. A specific prediction, written before you run anything, with a reason. It should be something that could turn out wrong.<br>Dataset check. Does the data actually fit the task? Cover how it was collected, its labels, its size and how it is split.<br>Test set, success and metric. Name the test set (how many images, from where), say what counts as success on one example, and give the one number you will report.<br>Baseline. What will you compare against?<br>Expected results. Include a simulated graph, table or figure — drawn by hand or described in words, with made-up numbers is fine. Say which result would support your hypothesis and which would go against it.<br>Expected failures. Which cases do you expect your system to get wrong, and why?</span></li>
         <li><b>A realistic plan <span class="w">25%</span></b>
-          <span class="hint">The smallest version that works end to end, and the day you will have it. Then what you will add if there is time. The biggest risk, and your plan B if it happens. Who does what, if you are a team.</span></li>
-      </ol>
-    </div>
-
-    <div class="tpl k-experiment only-experiment" data-copy>
-      <div class="tpl-head"><b>Proposal <span class="tag">Run an experiment</span></b><button class="copy" type="button">Copy</button></div>
-      <ol>
-        <li><b>Problem and motivation <span class="w">25%</span></b>
-          <span class="hint">Your question, in one sentence. Say which kind it is: <i>explore</i> a limitation (where and why does a model fail?) or <i>overcome</i> one (does a change you make fix it?). What is already known (a paper, a demo, something we saw in class)? Why would the answer matter for how we build or trust vision models, or for what we know about human vision?</span></li>
-        <li><b>Approach <span class="w">25%</span></b>
-          <span class="hint">Your prediction, written before you run anything, and the reason for it. What you will change (the conditions: for example, normal images vs. images with texture swapped). Which models you will compare. If you are trying to overcome a limitation: your fix (more data, augmentation, a different model, an idea from human vision) and the baseline you will compare it with. If people will judge images too, how (keep it anonymous, and talk to us first).</span></li>
-        <li><b>Evaluation <span class="w">25%</span></b>
-          <span class="hint">What you will measure (accuracy, a similarity score, how often the model agrees with people). How many images per condition. Which result would support your prediction, and which would go against it.</span></li>
-        <li><b>A realistic plan <span class="w">25%</span></b>
-          <span class="hint">The smallest version of the experiment (one model, two conditions) and the day you will have it. What you will add if there is time. The biggest risk, and your plan B. Who does what, if you are a team.</span></li>
+          <span class="hint">Smallest working version. The smallest version that works end to end, what it will show, and the day you will have it running.<br>Timeline and milestones. What will be done by which dates, through to the final presentation. For example: data ready, first model running, smallest version working, evaluation, figures, presentation.<br>If there is time. What you will add once the smallest version works. Keep this separate from what you are promising.<br>Risk and plan B. The single biggest technical or data risk, and what you will do instead if it happens.<br>Who does what. A named role and tasks for each person. If you are working alone, list your tasks in order.</span></li>
+        <li><b>Scope and resources <span class="w">15%</span></b>
+          <span class="hint">Doable in the time left. Can this realistically be finished in the remainder of the course?<br>Right size for the group. Is there enough work for the number of people, and not too much?<br>Resources, price and date. List every resource you need — GPU or Colab time, paid services, data access, equipment, approvals, participants — with its price (write free if it is free) and the date you need it by.</span></li>
       </ol>
     </div>
   </section>
