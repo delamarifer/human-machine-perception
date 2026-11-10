@@ -292,7 +292,7 @@ st(`
 st(`
   <h1 class="t">Questions for the team</h1>
   <div class="project-rubrics-center">
-    <div class="question b" data-step="1">How many different people signed?</div>
+    <div class="question b" data-step="1">How many different people are in the videos?</div>
     <div class="b" data-step="2"><div class="question">Did each person agree?</div><div class="label">Sign videos show faces.</div></div>
     <div class="question b" data-step="3">Did a Deaf signer check the signs?</div>
   </div>
