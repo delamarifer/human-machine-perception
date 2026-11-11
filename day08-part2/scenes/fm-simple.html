@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<script>document.write(`<link rel="stylesheet" href="d8-scene.css?v=${Date.now()}">`)</script>
+<title>The simplest version</title>
+<style>
+  /* Part flow-matching (Day 8 part B). Each term lights up while the plot shows it (Fernanda: "relate each part to the plot"). */
+  .fms-rows{ display:flex; flex-direction:column; gap:1.2vh; }
+  .fms-rows .label{ color:var(--mute); margin-bottom:.3vh; }
+</style>
+</head>
+<body>
+<div class="d8s-wrap">
+  <h1 class="t deck-title">The simplest version</h1>
+  <div class="d8s-body">
+    <div class="d8s-plot" data-from="1"><canvas class="d8s-cv"></canvas></div>
+    <div class="d8s-side">
+      <div class="fms-rows">
+        <div class="d8s-item" data-from="1"><div class="label">A straight line</div>
+          <div class="d8s-eq"><span class="d8s-hl" data-hl="2"><i>X<sub>t</sub></i></span> = <span class="d8s-hl" data-hl="2">(1 − <i>t</i>)</span> <span class="d8s-hl" data-hl="1"><i>X</i><sub>0</sub></span> + <span class="d8s-hl" data-hl="2"><i>t</i></span> <span class="d8s-hl" data-hl="1"><i>X</i><sub>1</sub></span></div></div>
+        <div class="d8s-item" data-from="3"><div class="label">Its velocity</div>
+          <div class="d8s-eq"><span class="d8s-hl" data-hl="3">d<i>X<sub>t</sub></i> / d<i>t</i> = <i>X</i><sub>1</sub> − <i>X</i><sub>0</sub></span></div></div>
+        <div class="d8s-item" data-from="4"><div class="label">The loss</div>
+          <div class="d8s-eq"><span class="d8s-hl" data-hl="5">𝔼<sub><i>t</i>, <i>X</i><sub>0</sub>, <i>X</i><sub>1</sub></sub></span> ‖ <span class="d8s-hl" data-hl="4"><i>u<sub>t</sub><sup>θ</sup></i>(<i>X<sub>t</sub></i>)</span> − <span class="d8s-hl" data-hl="4">(<i>X</i><sub>1</sub> − <i>X</i><sub>0</sub>)</span> ‖<sup>2</sup></div></div>
+      </div>
+      <div class="d8s-stack">
+        <div class="lead d8s-item" data-from="1" data-to="1">One noise point and one data point</div>
+        <div class="lead d8s-item" data-from="2" data-to="2">The point at time <i>t</i> slides along the straight line between them</div>
+        <div class="lead d8s-item" data-from="3" data-to="3">Its velocity is the same all along the line: end minus start</div>
+        <div class="lead d8s-item" data-from="4" data-to="4">The loss: how far the network’s arrow is from that target arrow</div>
+        <div class="lead d8s-item" data-from="5">Averaged over many random pairs and times</div>
+      </div>
+    </div>
+  </div>
+  <div class="d8s-cite d8s-item" data-from="1">Computed exactly on the toy spiral; arrows drawn at one third of their length; the network’s arrow is the velocity a perfectly trained network would give. <a href="https://neurips.cc/virtual/2024/tutorial/99531" target="_blank" rel="noopener" onclick="event.stopPropagation()">Lipman, Chen and Ben-Hamu, NeurIPS 2024 tutorial</a>; Lipman et al. 2023, Liu et al. 2023, Albergo and Vanden-Eijnden 2023</div>
+</div>
+<script>document.write(`<script src="d8-toy.js?v=${Date.now()}"><\/script><script src="fm-lib.js?v=${Date.now()}"><\/script>`)</script>
+<script>
+/* BEAT 0 title only
+   BEAT 1 one noise point X0 and one data point X1, joined by a dashed line; X0 and X1 highlighted
+   BEAT 2 one click: X_t slides from X0 (t = 0) to X1 (t = 1), the weights (1 - t) and t written live; X_t, (1 - t), t highlighted
+   BEAT 3 X_t at t = 0.5 and the target arrow X1 - X0 drawn from it (one third length); the velocity line highlighted
+   BEAT 4 the network's arrow at X_t (exact marginal velocity at t = 0.5: short here, about 0.2 long, because it averages all pairs through
+          this point, against 4.1 for the target) and the gap between the two tips, drawn to the side, marked as the error
+   BEAT 5 many random pairs at random times: their lines, their points and their target arrows; the average in the loss highlighted */
+const mix = d8Mix(), INK = '#0f172a', DOT = '#4f6d9a', GREY = '#94a3b8', K = 1 / 3, TM = .5;
+const DA = d8SampleData(mix, 420, d8Rng(3)), NZ = d8SampleNoise(240, d8Rng(8));
+/* X1: among spiral centers inside the plot and at least 3 away from X0, the one where the ideal network's arrow at the midpoint differs most
+   from this pair's arrow (picked by computation, not by eye), so the error in the loss is visible */
+const X0 = [-1.5, -1.1];
+const X1 = mix.mu.filter(m => Math.abs(m[0]) < 2.6 && Math.abs(m[1]) < 2.6 && Math.hypot(m[0] - X0[0], m[1] - X0[1]) > 3).reduce((best, m) => {
+  const gap = q => { const x = [(X0[0] + q[0]) / 2, (X0[1] + q[1]) / 2], u = d8Vel(mix, x, .5); return Math.hypot(u[0] - (q[0] - X0[0]), u[1] - (q[1] - X0[1])); };
+  return gap(m) > gap(best) ? m : best; });
+const at = t => [(1 - t) * X0[0] + t * X1[0], (1 - t) * X0[1] + t * X1[1]];
+const V1 = [X1[0] - X0[0], X1[1] - X0[1]];
+const r = d8Rng(12), PAIRS = Array.from({length: 40}, (_, i) => { const a = NZ[i], b = DA[(i * 37) % DA.length], t = r.u(); return {a, b, t, x: [(1 - t) * a[0] + t * b[0], (1 - t) * a[1] + t * b[1]]}; });
+d8Scene({
+  name: 'd8FmSimple', nb: 5, anim: {2: 4000},
+  draw(V, b, p){
+    if(b === 0) return;
+    V.dots(NZ, GREY, 2.2, .35); V.dots(DA, DOT, 2, .35);
+    if(b === 5){
+      PAIRS.forEach(q => { V.line([q.a, q.b], INK, .8, .25); V.dots([q.x], DOT, 3.4); V.arrow(q.x, [(q.b[0] - q.a[0]) * K * .6, (q.b[1] - q.a[1]) * K * .6], INK, 1.2, .6, 6); });
+      fmTag(V, 'random pairs, random t'); return;
+    }
+    V.line([X0, X1], INK, 1.4, .7, [5, 4]);
+    V.dots([X0], INK, 5.5); fmLabel(V, 'X₀', X0, -1.1, .2);
+    V.dots([X1], DOT, 6); fmLabel(V, 'X₁', X1, 1.1, -.2);
+    if(b === 1) return;
+    const t = b === 2 ? p : TM, X = at(t);
+    fmTag(V, `t = ${t.toFixed(2)}:  ${(1 - t).toFixed(2)} of X₀ + ${t.toFixed(2)} of X₁`);
+    V.dots([X], INK, 6.5); fmLabel(V, 'Xₜ', X, -.4, 1.2);
+    if(b >= 3){ V.arrow(X, [V1[0] * K, V1[1] * K], INK, 3, 1, 12); fmLabel(V, 'X₁ − X₀', [X[0] + V1[0] * K, X[1] + V1[1] * K], 2.4, .5); }
+    if(b >= 4){ const u = d8Vel(mix, X, TM), U = [u[0] * K, u[1] * K], T1 = [X[0] + V1[0] * K, X[1] + V1[1] * K], T2 = [X[0] + U[0], X[1] + U[1]];
+      V.arrow(X, U, DOT, 3.4, 1, 12); V.dots([T2], DOT, 4); fmLabel(V, 'uₜᶿ(Xₜ)', T2, -1.6, .9);
+      /* the gap from the network's tip to the target's tip, drawn a little to the side so it does not hide under the target arrow */
+      const g = [T1[0] - T2[0], T1[1] - T2[1]], L = Math.hypot(g[0], g[1]) || 1, n = [-g[1] / L * .22, g[0] / L * .22];
+      V.line([[T2[0] + n[0], T2[1] + n[1]], [T1[0] + n[0], T1[1] + n[1]]], INK, 2.2, .9, [4, 4]);
+      fmLabel(V, 'error', [(T1[0] + T2[0]) / 2 + n[0] * 2.4, (T1[1] + T2[1]) / 2 + n[1] * 2.4], 0, 0, {italic: false, size: .85}); }
+  },
+});
+</script>
+</body>
+</html>

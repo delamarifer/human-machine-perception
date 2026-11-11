@@ -50,7 +50,8 @@
    BEAT 1 the exact score direction at t = 1 (step 100), over the density of the noisy data; the image at the same noise level
    BEAT 2 the same at t = 0.01 (step 1, as in the video)
    BEAT 3 back at t = 1: f(x, t) labelled on the plot (the point x, its bold arrow f, the time t, the noisy data)
-   BEAT 4 one click sweeps t from 1 down to 0.01; the image, the field and the bold arrow change together; the bold arrow's tip leaves a trail
+   BEAT 4 one click sweeps t from 1 down to 0.01; the image, the field and the bold arrow change together; the bold arrow's tip leaves a trail;
+          dots drift along the field of the current t, so the flow itself is visible
    BEAT 5 the switch as measured on this spiral (t = 0.25 to 0.12, shaded on the t ruler; the trail marked at both ends of it)
    BEAT 6 the name: the score (picture stays at t = 0.01)
    Measured (grid of 2088 points between radius 0.3 and 2.6, step 0.1): the share of arrows within 45 degrees of the direction to the
@@ -92,11 +93,32 @@ function ruler(V, step, band){
   c.fillStyle = 'rgba(79,109,154,.55)'; c.fillRect(x0, bot + f * 1.4, f * .9, f * .9);
   c.fillStyle = INK; c.textAlign = 'left'; c.fillText('noisy data', x0 + f * 1.3, bot + f * 1.85); c.fillText('at this t', x0 + f * 1.3, bot + f * 2.95);
 }
-function paint(V, step, b){
+/* flow dots for the sweep (beat 4, Fernanda: "the video actually animates the vector fields"): 220 dots drift along the exact field
+   of the current t; each lives 60 frames, then restarts at a new random place (staggered, seeded), so the flow stays visible everywhere.
+   Precomputed: FLOW[k][i] = [x, y, life] at frame k of FR frames across the sweep. */
+const FR = 270, NDOT = 220, LIFE = 60, SPEED = .05;
+const FLOW = (() => { const r = d8Rng(91), rnd = () => [-3.4 + 6.8 * r.u(), -3.4 + 6.8 * r.u()];
+  let pos = Array.from({length: NDOT}, rnd), life = Array.from({length: NDOT}, (_, i) => -(i % LIFE)); const out = [];
+  for(let k = 0; k <= FR; k++){
+    out.push(pos.map((q, i) => [q[0], q[1], life[i]]));
+    const step = Math.max(1, Math.round(100 - 99 * k / FR)), [a, s] = S.as(step);
+    pos = pos.map((q, i) => { if((k - life[i]) % LIFE === LIFE - 1 && k > 0){ life[i] = k + 1; return rnd(); }
+      const g = d8Post(mix, q, a, s).score, L = Math.hypot(g[0], g[1]) || 1e-9, m = SPEED * (1 - Math.exp(-L * .5)); return [q[0] + g[0] / L * m, q[1] + g[1] / L * m]; });
+  }
+  return out; })();
+function flow(V, p){
+  const k = Math.round(p * FR), TR = 7;
+  for(let i = 0; i < NDOT; i++){
+    const tr = []; for(let j = Math.max(0, k - TR); j <= k; j++) if(FLOW[j][i][2] === FLOW[k][i][2]) tr.push(FLOW[j][i]);
+    if(tr.length > 1) V.line(tr, '#1e293b', 2, .5); V.dots([FLOW[k][i]], '#fff', 3.6, .9); V.dots([FLOW[k][i]], '#1e293b', 2.4, .95);
+  }
+}
+function paint(V, step, b, p = 1){
   if(V.w > V.h * 1.2) V.cx = V.w - V.h / 2;   /* field to the right, free strip on the left for the t ruler */
   const [a, s] = S.as(step);
   V.density(x => d8Post(mix, x, a, s).dens, 110);
   GRID.forEach(p => { const g = d8Post(mix, p, a, s).score, L = Math.hypot(g[0], g[1]) || 1e-9, m = .34 * (1 - Math.exp(-L * .5)); V.arrow(p, [g[0] / L * m, g[1] / L * m], INK, 1.3, b >= 3 ? .45 : .85, 5.5); });
+  if(b === 4) flow(V, p);
   paintImg(step);
   if(b >= 3){
     if(b >= 4){ const k = b === 4 ? step : 1; V.line(TIPS.slice(k).reverse(), INK, 1.4, .55, [4, 3]);   /* the tip's trail from t = 1 down to now */
@@ -119,7 +141,7 @@ d8Scene({
   draw(V, b, p){
     if(b === 0) return;
     if(b === 1 || b === 3) return paint(V, 100, b);
-    if(b === 4) return paint(V, Math.max(1, Math.round(100 - 99 * p)), b);
+    if(b === 4) return paint(V, Math.max(1, Math.round(100 - 99 * p)), b, p);
     paint(V, 1, b);
   },
 });

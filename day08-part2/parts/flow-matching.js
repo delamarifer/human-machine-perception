@@ -5,39 +5,24 @@
 section('Flow Matching');
 const v = d8v;
 
-st(`
-  <h1 class="t">Flow matching: learn a velocity from noise to data</h1>
-  <div class="d8-body">
-    <div class="d8-row b" data-step="1"><div class="label">Start and end</div>
-      <div class="d8-eq">${v('X','0')} ~ ${v('p')} (noise) &nbsp;→&nbsp; ${v('X','1')} ~ ${v('q')} (data)</div></div>
-    <div class="d8-row b" data-step="2"><div class="label">The model</div>
-      <div class="d8-eq">d${v('X','t')} / d${v('t')} = ${v('u','t','θ')}(${v('X','t')})</div></div>
-    <div class="statement b" data-step="3">Train by regressing a velocity, sample by following it</div>
-  </div>
-  ${cite(D8_REF.fmtut)}
-`, { notes: [
-  "(draft) Back to generation without guidance for a moment. With DDIM we saw that the ODE view turns generation into following a velocity field. Flow matching starts from that idea directly, and leaves out the noising process and the score.",
-  "(draft) We have a source distribution p, which is usually Gaussian noise, and a target distribution q, which is the data. Notice the direction of time: in this section, t equals zero is noise and t equals one is data.",
-  "(draft) The model is a velocity field, a neural network. It says: if you are at this point at this time, move in this direction. Generating an image means solving this ODE, starting from noise.",
-  "(draft) That is the whole recipe, in the tutorial's own summary: train by regressing a velocity, and sample by following it. The question is what to regress onto, because we do not know the true velocity."
+/* Both equation slides are scenes now: each term lights up while the plot shows it (Fernanda, 2026-11-11: "show these lines with plots
+   on the flow or the dataset and relate each part to the plot"). */
+sc('d8FmIntro', 'scenes/fm-intro.html', { notes: [
+  "(draft) Back to generation without guidance for a moment. With DDIM we saw that generating can mean following a velocity field, with no random steps. Flow matching starts from that idea directly. One warning: in this section time runs the other way, from t equals zero, noise, to t equals one, data.",
+  "(draft) X zero is a starting point drawn from the noise, the gray cloud. The squiggle means drawn from, and p is the noise distribution. Here is one starting point.",
+  "(draft) X one is drawn from the data, q, our spiral. That is where we want to end up: points that look like the data.",
+  "(draft) X t is where the point is at time t, somewhere in between. Here is our point at t equals 0.6, partway along its path.",
+  "(draft) The model is the velocity: d X t by d t, how the point moves at this moment, which way and how fast. The network, u t theta, theta being its weights, takes the point and the time and gives back that arrow. Behind it is the whole field of arrows at this time: the same kind of vector field as before.",
+  "(draft) That is the whole recipe, in the tutorial's own summary: train by regressing a velocity, and sample by following it. Watch: start from noise and follow the arrows, while the field changes with t, and the points arrive on the spiral. The question for the next slide is what to regress onto, because nobody gives us the true arrows."
 ]});
 
-st(`
-  <h1 class="t">The simplest version</h1>
-  <div class="d8-body">
-    <div class="d8-row b" data-step="1"><div class="label">A straight line</div>
-      <div class="d8-eq">${v('X','t')} = (1 − ${v('t')}) ${v('X','0')} + ${v('t')} ${v('X','1')}</div></div>
-    <div class="d8-row b" data-step="2"><div class="label">Its velocity</div>
-      <div class="d8-eq">d${v('X','t')} / d${v('t')} = ${v('X','1')} − ${v('X','0')}</div></div>
-    <div class="d8-row b" data-step="3"><div class="label">The loss</div>
-      <div class="d8-eq">𝔼<sub>${v('t')}, ${v('X','0')}, ${v('X','1')}</sub> ‖ ${v('u','t','θ')}(${v('X','t')}) − (${v('X','1')} − ${v('X','0')}) ‖<sup>2</sup></div></div>
-  </div>
-  ${cite(`${D8_REF.fmtut}; Lipman et al. 2023, Liu et al. 2023, Albergo and Vanden-Eijnden 2023`)}
-`, { notes: [
+sc('d8FmSimple', 'scenes/fm-simple.html', { notes: [
   "(draft) Here is the simplest version, and it fits on a whiteboard. Three papers proposed it at about the same time: Lipman and colleagues, Liu and colleagues with rectified flow, and Albergo and Vanden-Eijnden.",
-  "(draft) Take one noise sample and one data sample, and join them with a straight line. X t is the point on that line at time t.",
-  "(draft) The velocity along a straight line is constant. It is just the end minus the start.",
-  "(draft) So the loss is a regression: at a random time, on a random line, predict the direction of that line. Compare it with DDPM's loss. Same shape: pick a sample, pick a time, mix with noise, and regress."
+  "(draft) Take one noise point, X zero, and one data point, X one, and join them with a straight line.",
+  "(draft) X t is the point on that line at time t. At t equals zero it is all X zero; at t equals one it is all X one; in between, it is a mix: one minus t of the start plus t of the end. Watch the weights change as it slides.",
+  "(draft) Along a straight line the velocity never changes: it is the end minus the start, X one minus X zero. Same arrow at every t.",
+  "(draft) So the loss is a regression: at a point on the line, the network gives its arrow, and we compare it with the target arrow, X one minus X zero. The loss is the squared length of the gap between their tips. Here the network's arrow is the ideal one, and it is short: at this point, near the middle, it averages the arrows of every pair that passes through, which nearly cancel. So the error for this one pair is large. The next slide shows why that is exactly right.",
+  "(draft) The E in front means: average over many random pairs and many random times. Every training step picks a noise point, a data point and a time, and nudges the network toward that pair's arrow. Compare it with DDPM's loss: same shape. Pick a sample, pick a time, mix with noise, and regress."
 ]});
 
 sc('d8Fm', 'scenes/fm.html', { notes: [
