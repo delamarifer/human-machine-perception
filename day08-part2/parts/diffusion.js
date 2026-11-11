@@ -49,6 +49,23 @@ st(`
   "(draft) The rule of thumb: if you can collect many examples of something, a diffusion model can learn to make new ones."
 ]});
 
+/* ---------- The generation loop, after the Welch Labs video (0:47 to 2:05): noise in, the network outputs a change, add it, repeat.
+   Our version: 12-image dataset, exact denoiser, DDIM with 50 steps (scenes/loop.html). ---------- */
+sc('d8Loop', 'scenes/loop.html', { notes: [
+  "(draft) So how does a diffusion model actually make an image? Before any theory, let's watch one run.",
+  "(draft) It starts with a random number generator. Every pixel gets a random brightness. This is pure noise, and it is the starting point of every image or video these models make.",
+  "(draft) This noise image goes into a neural network. The network outputs another image: the change, on the right. The change is tiny, so we stretched its contrast to make it visible. We add that change to our image and pass the result back into the network. That is one step of the loop. In the Welch Labs video, the network's output looks mostly like noise with hints of structure; ours looks like a faint ghost of an image, because the two networks are set up to output slightly different things. The loop is the same.",
+  "(draft) What is the network doing inside? It is guessing what the finished image will look like. On the very first step, it has almost nothing to go on, so its best guess is an average of all the images it was trained on: a ghostly blend. The change it outputs nudges the image a little toward that guess.",
+  "(draft) Repeat the loop. After 5 steps, the image is still mostly noise.",
+  "(draft) After 10 steps. The guess in the middle is starting to lean toward one image: that image now gets half the weight of the guess.",
+  "(draft) After 20 steps. By about step 15 the guess has settled on one image, and it no longer changes. The image on the left is still noisy.",
+  "(draft) After 30 steps. From here on, the steps mostly clean up the noise.",
+  "(draft) After 40 steps.",
+  "(draft) After 50 steps: a clean image. Step by step, the loop shaped pure noise into an image. Notice that we never gave it a prompt. Real models are the same: in the video this slide follows, an empty prompt still gives a perfectly good video. The prompt only steers the loop; the loop is what makes the image.",
+  "(draft) One honest caveat about our version. Our network is not a trained network: it is the ideal answer for a dataset of only 12 images, which we can compute exactly. Because it knows only 12 images, it can only ever return one of them. A real network is trained on millions of images and makes new ones. But the loop is exactly the same.",
+  "(draft) By the end of today, you will know what each step of this loop does: what the network is trained to predict, why we add a change instead of jumping straight to the guess, and why it works."
+]});
+
 /* ---------- Images as points, noise as a random walk: the Welch Labs video, 12:14 to 13:46.
    Three scenes: one real image becomes a point and noise becomes arrows (real-pixels), many two-pixel images make the spiral
    dataset (pixels), and every point and the image walk to noise (walk). ---------- */
