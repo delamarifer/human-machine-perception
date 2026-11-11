@@ -6,34 +6,7 @@
 {
 section('Projects');
 
-st(`
-  <style>
-    .projects-cards{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:3vw; align-items:center; }
-    .projects-card{ border:2px solid var(--ink); border-radius:16px; padding:3vh 2vw; display:flex; flex-direction:column; gap:1.4vh; }
-    .projects-card .label{ color:var(--mute); }
-    @media (max-width: 820px), (max-aspect-ratio: 1/1){ .projects-cards{ grid-template-columns:1fr; gap:1.4vh; } }
-  </style>
-  <h1 class="t">Potential projects and mentors for modeling cognition</h1>
-  <div class="statement b" data-step="1">Join a research project as a mentee</div>
-  <div class="projects-cards">
-    <div class="projects-card b" data-step="2">
-      <div class="lead"><b>When courts do not pay attention</b></div>
-      <div class="label">A formal model of perceived control</div>
-      <div class="label">Fernanda and Eric (details to add)</div>
-    </div>
-    <div class="projects-card b" data-step="3">
-      <div class="lead"><b>Intuitive physics</b></div>
-      <div class="label">How people predict what a physical scene will do</div>
-      <div class="label">Aryan Zoroufi, graduate student, MIT Brain and Cognitive Sciences</div>
-    </div>
-  </div>
-`, { notes: [
-  "(draft) To close today: some potential projects, and mentors, for modeling cognition.",
-  "(draft) These are research projects you could join as a mentee.",
-  "(draft) The first is with Eric and me: a formal model of what happens to people when courts do not pay attention to them.",
-  "(draft) The second is with Aryan Zoroufi, a graduate student in Brain and Cognitive Sciences at MIT. He works on intuitive physics: using models and deep learning to understand how people predict what physical scenes will do."
-]});
-
+/* The overview slide was removed (Fernanda, 2026-11-11: "just jump into the two project ideas ... include pictures of the researchers"). */
 sc('projectsCourt', 'scenes/projects-court.html', { notes: [
   "(Fernanda) It's a formal model of what happens to people when judges don't really pay attention to them.",
   "(draft) Picture one person who comes before a court again and again. Each column is one encounter. A check means they followed the rules, showed up, complied. A cross means they did not.",
@@ -53,18 +26,18 @@ sc('projectsTower', 'scenes/projects-tower.html', { notes: [
   "(draft) Count the runs where it falls: here, 9 of 12. So the answer is graded, a degree of confidence, not just yes or no. That count comes from our twelve drawings, not from an experiment.",
   "(draft) Another approach trains a deep network on many examples, here one picture of a tower, to predict whether it will fall, or what happens next. Lerer, Gross and Fergus trained networks like this on block towers in 2016.",
   "(draft) And here is the research question: which kind of model makes the same predictions as people, including the same mistakes? Comparing models with what people predict tells us what the mind might be computing.",
-  "(draft) The project Aryan has in mind for mentees: details to add."
+  "(draft) If you are curious about joining Aryan, ask me after class and I will connect you."
 ]});
 
 st(`
   <h1 class="t">Interested?</h1>
   <div class="d8-body">
     <div class="statement b" data-step="1">Join one of these projects as a mentee</div>
-    <div class="todo b" data-step="2"><div class="lead">How to express interest: details to add</div></div>
+    <div class="lead b" data-step="2">Talk to Fernanda after class</div>
   </div>
 `, { notes: [
   "(draft) If either project interests you, we would love to hear from you.",
   "(draft) You can join one of these projects as a mentee.",
-  "(draft) How to express interest: details to add."
+  "(draft) If you are interested, come talk to me after class."
 ]});
 }

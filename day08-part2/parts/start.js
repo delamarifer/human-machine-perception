@@ -9,6 +9,6 @@ st(`
     <div class="label" style="margin-top:2.2vh">Fernanda De La Torre · Shreya Pandit</div>
   </div>
 `, { notes: [
-  "(draft) Part B. In the first part we met generative models that make an image in one shot. Now we look at the models behind most image generators today: diffusion and flow matching. At the end we come back to the trilemma and place every family on it."
+  "(draft) Part B. In the first part we met generative models that make an image in one shot. Now we look at the models behind most image generators today: diffusion and flow matching. At the end we come back to the trilemma and place every family on it, and then I will show you two research projects you could join."
 ]});
 }

@@ -1,4 +1,4 @@
-/* Day 8 Part B running order: diffusion and flow matching, then the trilemma recap (Fernanda, 2026-11-10).
+/* Day 8 Part B running order: diffusion, guidance, flow matching, same coin and the trilemma, then two projects students could join (Fernanda, 2026-11-11).
    Built from three tutorials: CVPR 2022 diffusion (Kreis, Gao, Vahdat), NeurIPS 2024 flow matching
    (Lipman, Chen, Ben-Hamu) and the ICLR 2025 blog post "Diffusion Meets Flow Matching" (Gao et al.).
    All figures are drawn here from exact math on a toy 2D distribution; no slide images are copied.
