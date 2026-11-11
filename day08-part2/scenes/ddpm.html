@@ -6,56 +6,114 @@
 <link rel="stylesheet" href="../../deck/deck.css">
 <script>document.write(`<link rel="stylesheet" href="d8-scene.css?v=${Date.now()}">`)</script>
 <title>DDPM: a model step, then a random step</title>
+<style>
+  /* this scene only (prefix ddpm-): Algorithm 2 on top of the right column, the image and the cue under it */
+  .ddpm-right{ display:grid; grid-template-rows:auto minmax(0, 1fr); gap:1.6vh; min-height:0; }
+  .ddpm-algo{ border-top:3px solid var(--ink); border-bottom:3px solid var(--ink); padding:.4vh .3vw .8vh;
+    font-family:'Cambria Math', 'STIX Two Math', Cambria, Georgia, serif; font-size:clamp(.95rem, 1.42vw, 1.45rem); line-height:1.5; }
+  .ddpm-algo h3{ font-size:1em; border-bottom:1.5px solid var(--ink); margin:0 0 .3vh; padding-bottom:.15vh; }
+  .ddpm-algo .ln{ display:grid; grid-template-columns:1.5em 1fr; }
+  .ddpm-algo .ln i.n{ font-style:normal; color:var(--mute); }
+  .ddpm-algo sub, .ddpm-algo sup{ font-size:.62em; }
+  .ddpm-algo i{ font-style:italic; }
+  /* the deleted noise terms: struck through on the beat that deletes them */
+  .ddpm-del{ text-decoration:none; transition:opacity .5s; }
+  .ddpm-del.on{ text-decoration:line-through; text-decoration-thickness:3px; opacity:.45; }
+  .ddpm-low{ display:grid; grid-template-columns:minmax(0, .8fr) minmax(0, 1.2fr); gap:1.4vw; min-height:0; }
+  .ddpm-low .d8s-imgbox{ flex:none; }
+  .ddpm-low .d8s-side{ justify-content:flex-start; gap:1.2vh; }
+  .ddpm-low .lead{ font-size:clamp(1.15rem, 1.95vw, 1.85rem); line-height:1.3; }
+  @media (max-width: 820px), (max-aspect-ratio: 1/1){ .ddpm-algo{ font-size:clamp(.72rem, 2.3vw, 1rem); } }
+</style>
 </head>
 <body>
 <div class="d8s-wrap">
   <h1 class="t deck-title">DDPM: a model step, then a random step</h1>
   <div class="d8s-body d8s-withimg">
     <div class="d8s-plot" data-from="1"><canvas class="d8s-cv"></canvas></div>
-    <div class="d8s-imgcol">
-      <div class="d8s-imgbox" data-from="1"><canvas id="img"></canvas></div>
-      <div class="d8s-side">
-        <div class="label d8s-item" data-from="1"><span class="d8s-keyline" style="border-top:3px solid #4f6d9a"></span>model step &nbsp; <span class="d8s-keyline" style="border-top:3px solid #94a3b8"></span>random step</div>
-        <div class="d8s-stack">
-          <div class="lead d8s-item" data-from="1" data-to="1">One point, 100 steps: it jumps around, then lands on the spiral</div>
-          <div class="lead d8s-item" data-from="2" data-to="2">256 points: chaos at first, then the spiral</div>
-          <div class="lead d8s-item" data-from="3" data-to="3">Delete the random steps: the points crowd together, and the image stays a faded average until the very end</div>
-          <div class="lead d8s-item" data-from="4">The network predicts an average. The random step turns it into a sample</div>
+    <div class="ddpm-right">
+      <div class="ddpm-algo d8s-item" data-from="1">
+        <h3>Algorithm 2 · Sampling</h3>
+        <div class="ln"><i class="n">1</i><div><i>x</i><sub><i>T</i></sub> ~ 𝒩(0, 𝐈)</div></div>
+        <div class="ln"><i class="n">2</i><div><span class="d8s-hl" data-hl="3"><b>for</b> <i>t</i> = <i>T</i>, …, 1 <b>do</b></span></div></div>
+        <div class="ln"><i class="n">3</i><div>&nbsp;&nbsp;<span class="ddpm-del" data-from="5" data-to="5"><span class="d8s-hl" data-hl="2,6"><i>z</i> ~ 𝒩(0, 𝐈) if <i>t</i> &gt; 1, else <i>z</i> = 0</span></span></div></div>
+        <div class="ln"><i class="n">4</i><div>&nbsp;&nbsp;<i>x</i><sub><i>t</i>−1</sub> = <span class="d8s-hl" data-hl="1,6">(1/√<i>α</i><sub><i>t</i></sub>) ( <i>x</i><sub><i>t</i></sub> − ((1 − <i>α</i><sub><i>t</i></sub>)/√(1 − <i>ᾱ</i><sub><i>t</i></sub>)) <i>ε</i><sub><i>θ</i></sub>(<i>x</i><sub><i>t</i></sub>, <i>t</i>) )</span> <span class="ddpm-del" data-from="5" data-to="5"><span class="d8s-hl" data-hl="2,6">+ <i>σ</i><sub><i>t</i></sub><i>z</i></span></span></div></div>
+        <div class="ln"><i class="n">5</i><div><b>end for</b></div></div>
+        <div class="ln"><i class="n">6</i><div><b>return</b> <i>x</i><sub>0</sub></div></div>
+      </div>
+      <div class="ddpm-low">
+        <div class="d8s-imgbox" data-from="3" data-to="5"><canvas id="img"></canvas></div>
+        <div class="d8s-side">
+          <div class="label d8s-item" data-from="1"><span class="d8s-keyline" style="border-top:3px solid #4f6d9a"></span>model step<br><span class="d8s-keyline" style="border-top:3px solid #94a3b8"></span>random step</div>
+          <div class="d8s-stack">
+            <div class="lead d8s-item" data-from="1" data-to="1">Model step: follow the network's arrow</div>
+            <div class="lead d8s-item" data-from="2" data-to="2">Random step: a random jump that shrinks as <i>t</i> goes down</div>
+            <div class="lead d8s-item" data-from="3" data-to="3">100 steps: it jumps around, then lands on the spiral</div>
+            <div class="lead d8s-item" data-from="4" data-to="4">256 points: chaos, then the spiral</div>
+            <div class="lead d8s-item" data-from="5" data-to="5">No random steps: the points crowd to the middle, then to one inner edge</div>
+            <div class="lead d8s-item" data-from="6">The network predicts the center; the random step picks a point around it</div>
+          </div>
         </div>
       </div>
     </div>
   </div>
-  <div class="d8s-cite d8s-item" data-from="1">Computed exactly: Ho et al. 2020, Algorithm 2, 100 steps, with and without its noise line, on the spiral and on a dataset of 12 images (ideal denoiser; it can only return one of its 12 images). Images: Wikimedia Commons, public domain and CC0. Toy example after <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a></div>
+  <div class="d8s-cite d8s-item" data-from="1">Ho, Jain and Abbeel, NeurIPS 2020, Algorithm 2, computed exactly with <i>T</i> = 100 steps, with and without its random step, on the spiral and on a dataset of 12 images (ideal denoiser; it can only return one of its 12 images). Images: Wikimedia Commons, public domain and CC0. After <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a>, 17:33</div>
 </div>
 <script>document.write(`<script src="d8-toy.js?v=${Date.now()}"><\/script>`)</script>
 <script>
 /* BEAT 0 title only
-   BEAT 1 one particle: each step drawn as a model move (blue) and a random move (gray), animated
-   BEAT 2 256 particles with DDPM, animated
-   BEAT 3 the same 256 starting points with the noise line deleted ('mean' mode), animated
-   BEAT 4 the explanation (picture stays)
-   Beside the dots, the same algorithm on images (12-image dataset, exact denoiser), in step with the dots. */
+   BEAT 1 Algorithm 2 and one point: its first model step (blue) draws; line 4's model term is highlighted
+   BEAT 2 its first random step (gray) draws; line 3 and "+ sigma_t z" are highlighted
+   BEAT 3 all 100 steps of the same point (the loop, line 2); the image panel runs the same algorithm on one image
+   BEAT 4 256 points with DDPM, animated (the image keeps its DDPM result)
+   BEAT 5 the noise terms are struck through: the same 256 starting points without the random step ('mean' mode);
+          the image panel runs the same starting image without the random step
+   BEAT 6 why: the first step of the single point again (t = T, where the model's move is largest next to the random one),
+          zoomed: the model's move ends at the center (the predicted mean) and the random step draws the next point from
+          around it; shaded disc with dashed edge = radius sigma_t, 60 possible next points in gray; the image panel hides */
 const mix = d8Mix(), rng = d8Rng(29), S = D8_S100, DOT = '#4f6d9a', INK = '#0f172a', GREY = '#94a3b8';
 const SP = d8SampleData(mix, 420, d8Rng(3));
 const ONE = (() => { let x = [-1.9, 2.1]; const seg = []; for(let t = S.N; t >= 1; t--){ const r = d8Step(mix, x, t, 'ddpm', rng); seg.push([x, r.m, r.x]); x = r.x; } return seg; })();
 const START = d8SampleNoise(256, rng);
 const RUN = d8Reverse(mix, START, 'ddpm', d8Rng(31)), MEAN = d8Reverse(mix, START, 'mean', d8Rng(31));
-/* the same two algorithms on images: one starting noise image, DDPM, and DDPM with the noise line deleted */
-const imgCv = document.getElementById('img'); let IDDPM = null, IMEAN = null;
-d8LoadImages(D8_HORSES, 80).then(set => { const r = d8Rng(41), xT = Float32Array.from({length: 80 * 80}, () => r.n());
+/* beat 6: the step from t = ZT to t = ZT - 1 of the single point; sigma_t = sqrt(beta_t), the size of the random step in d8Step */
+const ZT = S.N, ZSEG = ONE[S.N - ZT], ZSD = Math.sqrt(S.beta[ZT]);
+const ZCLOUD = (() => { const r = d8Rng(57); return Array.from({length: 60}, () => [ZSEG[1][0] + ZSD * r.n(), ZSEG[1][1] + ZSD * r.n()]); })();
+/* the same two algorithms on images: one starting noise image, DDPM, and DDPM with the random step deleted (64 x 64) */
+const imgCv = document.getElementById('img'), IMGN = 64; let IDDPM = null, IMEAN = null;
+d8LoadImages(D8_HORSES, IMGN).then(set => { const r = d8Rng(41), xT = Float32Array.from({length: IMGN * IMGN}, () => r.n());
   IDDPM = d8ImgRun(set, xT, 'ddpm', d8Rng(43)); IMEAN = d8ImgRun(set, xT, 'mean', null); dispatchEvent(new Event('resize')); });
+const circle = (V, c, r, col, alpha, fill) => { const [X, Y] = V.P(c), ctx = V.ctx; ctx.globalAlpha = alpha; ctx.beginPath(); ctx.arc(X, Y, r * V.k, 0, 7);
+  if(fill){ ctx.fillStyle = col; ctx.fill(); } else { ctx.strokeStyle = col; ctx.lineWidth = 1.6 * V.px; ctx.setLineDash([5 * V.px, 4 * V.px]); ctx.stroke(); ctx.setLineDash([]); } ctx.globalAlpha = 1; };
 d8Scene({
-  name: 'd8Ddpm', nb: 4, anim: {1: 6000, 2: 4000, 3: 4000},
+  name: 'd8Ddpm', nb: 6, anim: {1: 1200, 2: 1200, 3: 6000, 4: 4000, 5: 4000, 6: 1500},
   draw(V, b, p){
     if(b === 0) return;
-    const k = b === 4 ? 100 : Math.round(p * 100);
-    if(IDDPM) d8ImgPaint(imgCv, (b <= 2 ? IDDPM : IMEAN)[k], b <= 2 ? `DDPM, step ${k} of 100` : `random steps deleted, step ${k} of 100`);
+    /* image panel: DDPM in step with beat 3, held on beat 4; without the random step on beats 5 and 6 */
+    if(b >= 3 && IDDPM){ const k = (b === 3 || b === 5) ? Math.round(p * 100) : 100;
+      d8ImgPaint(imgCv, (b <= 4 ? IDDPM : IMEAN)[k], `step ${k} of 100`); }
+    if(b === 6){ V.zoom(ZSEG[1], 1.1); V.dots(SP, DOT, 2.2, .12);
+      const [x, m, y] = ZSEG; circle(V, m, ZSD * p, GREY, .14, true); circle(V, m, ZSD * p, GREY, .9, false);
+      V.dots(ZCLOUD.slice(0, Math.round(p * ZCLOUD.length)), '#64748b', 3.2, .85);
+      V.arrow(x, [m[0] - x[0], m[1] - x[1]], DOT, 3, 1, 12); V.dots([x], INK, 6); V.dots([m], DOT, 6);
+      return; }
+    /* beats 1 and 2 are zoomed on the first step (half-width 1.8); beat 3 zooms out to the whole plane in its first 15% */
+    if(b <= 3){ const C1 = ONE[0][1], q = b === 3 ? d8Ease(Math.min(1, p / .15)) : 0;
+      V.zoom([C1[0] * (1 - q), C1[1] * (1 - q)], 1.8 + (V.R - 1.8) * q); }
     V.dots(SP, DOT, 2, .25);
-    if(b === 1){ const j = Math.round(p * ONE.length);
-      for(let i = 0; i < j; i++){ const [x, m, y] = ONE[i]; V.line([x, m], DOT, 2.2, .95); V.line([m, y], GREY, 1.6, .9); }
-      V.dots([j ? ONE[j - 1][2] : ONE[0][0]], INK, 5); return; }
-    const R = b === 2 ? RUN : MEAN;
-    V.dots(R.map(tr => d8At(tr, b === 4 ? 1 : p)), DOT, 3);
+    if(b <= 3){
+      /* beat 1: the first model move; beat 2: its random move; beat 3: the remaining 99 steps */
+      const segs = b === 3 ? Math.max(1, Math.round(p * ONE.length)) : 1;
+      for(let i = 0; i < segs; i++){ const [x, m, y] = ONE[i];
+        const pm = (b === 1 && i === 0) ? p : 1, pr = (b === 1 && i === 0) ? 0 : (b === 2 && i === 0) ? p : 1;
+        V.line([x, [x[0] + (m[0] - x[0]) * pm, x[1] + (m[1] - x[1]) * pm]], DOT, b < 3 ? 3 : 2.2, .95);
+        if(pr > 0) V.line([m, [m[0] + (y[0] - m[0]) * pr, m[1] + (y[1] - m[1]) * pr]], GREY, b < 3 ? 2.4 : 1.6, .9); }
+      const [x0, m0, y0] = ONE[segs - 1];
+      const head = b === 1 ? [x0[0] + (m0[0] - x0[0]) * p, x0[1] + (m0[1] - x0[1]) * p] : b === 2 ? [m0[0] + (y0[0] - m0[0]) * p, m0[1] + (y0[1] - m0[1]) * p] : y0;
+      if(b < 3) V.dots([ONE[0][0]], INK, 4, .5);
+      V.dots([head], INK, 5); return; }
+    const R = b === 4 ? RUN : MEAN;
+    V.dots(R.map(tr => d8At(tr, p)), DOT, 3);
   },
 });
 </script>
