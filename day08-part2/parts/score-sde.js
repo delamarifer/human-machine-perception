@@ -19,24 +19,7 @@ sc('d8Ddpm', 'scenes/ddpm.html', { notes: [
   "(draft) Follow one point. In blue, the step the model takes along its field. In gray, a random step, which DDPM adds after every model step. The random steps start large and shrink as t goes down. The point jumps around a lot, and still lands on the spiral.",
   "(draft) Now 256 points at once. It looks like chaos at first, and then the spiral appears.",
   "(draft) Here is the surprising part. Delete the line of code that adds the random step, and run the same points again. They no longer cover the spiral: they crowd toward the middle of the data. In the video, the same deletion in Stable Diffusion turns a sharp tree in the desert into a small, blurry one. In image space, averages look blurry.",
-  "(draft) The reason: for small steps, each reverse step is close to a Gaussian, and the network learns only its mean, its average. To draw a sample from that Gaussian, and not just take its average, you have to add the noise back. The random step is not a hack; it falls out of the theory."
-]});
-
-st(`
-  <h1 class="t">Generating an image, in words</h1>
-  <div class="d8-body">
-    <div class="d8-row b" data-step="1"><div class="label">Start</div><div class="lead">an image of pure noise</div></div>
-    <div class="d8-row b" data-step="2"><div class="label">Model step</div><div class="lead">the network says which way to move, and we move a little</div></div>
-    <div class="d8-row b" data-step="3"><div class="label">Random step</div><div class="lead">add a little fresh noise, less each time</div></div>
-    <div class="d8-row b" data-step="4"><div class="label">Repeat</div><div class="lead">1000 times in DDPM: 1000 passes through the network for one image</div></div>
-  </div>
-  ${cite(`${D8_REF.ddpm}, Algorithm 2`)}
-`, { notes: [
-  "(draft) Here is what you just watched, as the recipe in the DDPM paper, in words.",
-  "(draft) Start with an image of pure noise.",
-  "(draft) Model step: give the network the image and the time, and move a little in the direction it says. This is the blue segment.",
-  "(draft) Random step: add a little fresh noise, less at each step. This is the gray segment, and the line we deleted.",
-  "(draft) Repeat. DDPM used 1000 steps, and every step is a full pass through a possibly very large network, while a GAN needs one pass. This cost is why diffusion did not take over right away."
+  "(draft) The reason: for small steps, each reverse step is close to a Gaussian, and the network learns only its mean, its average. To draw a sample from that Gaussian, and not just take its average, you have to add the noise back: that is the plus sigma t z in Algorithm 2. It is not a hack; it falls out of the theory. And DDPM does this 1000 times, each a full pass through the network, while a GAN needs one pass. That cost is why diffusion did not take over right away."
 ]});
 
 st(`

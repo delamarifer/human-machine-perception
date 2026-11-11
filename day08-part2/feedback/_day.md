@@ -20,3 +20,13 @@ Fernanda: use https://www.youtube.com/watch?v=iv-5mZ_9CPY for explaining diffusi
 - Dropped slides: forward process equations, reverse process, the SDE equations slide, the old ring scenes (noise, score, sde-ode). In git history.
 - [ ] The flow matching and same-coin sections still carry equations (straight-line loss, the FM/CFM theorem, the alpha/sigma schedules). Simplify the same way?
 - [ ] The video's Stable Diffusion "blurry tree" result is mentioned in the notes only, credited to the video.
+
+## 2026-11-11 (later): examples and the DDPM algorithms (Fernanda's request)
+- New slide 2 "What diffusion models can do": text to image (SD 3.5) and a style (SD 2022), both public domain on Wikimedia Commons (assets/examples/SOURCES.md),
+  and text to video: the Welch Labs video embedded at 0:47 to 1:13 (Wan 2.1 astronauts). The embed needs internet in the room.
+- New slide 3 "Beyond pictures": Diffusion Policy (robot actions), RFdiffusion (proteins), GenCast (weather), text only with citations.
+- New slide 6 "The DDPM algorithms": Ho et al. Algorithms 1 and 2 typeset (not a screenshot), then the video's two surprises highlighted one per click
+  (noise added while generating; predict the total noise), plus a third of ours (the time input).
+- Removed as redundant with the algorithms: "Training, in words" and "Generating an image, in words" (in git history).
+- Skipped for image editing: the Commons inpainting example shows a real person, and the other one has an unsuitable prompt.
+- [ ] Fernanda: is internet reliable in the room for the embedded video? If not, I can link it instead.
