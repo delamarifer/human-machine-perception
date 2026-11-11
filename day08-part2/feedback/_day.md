@@ -29,4 +29,5 @@ Fernanda: use https://www.youtube.com/watch?v=iv-5mZ_9CPY for explaining diffusi
   (noise added while generating; predict the total noise), plus a third of ours (the time input).
 - Removed as redundant with the algorithms: "Training, in words" and "Generating an image, in words" (in git history).
 - Skipped for image editing: the Commons inpainting example shows a real person, and the other one has an unsuitable prompt.
-- [ ] Fernanda: is internet reliable in the room for the embedded video? If not, I can link it instead.
+- [x] The embedded video tile is removed from slide 2 (Fernanda: "remove this, we can add this to the website").
+- [ ] For the coordinator: add the Welch Labs video (https://www.youtube.com/watch?v=iv-5mZ_9CPY) to the Day 8 card on index.html (shared file).
