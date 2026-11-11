@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<script>document.write(`<link rel="stylesheet" href="d8-scene.css?v=${Date.now()}">`)</script>
+<title>Without the random steps, less variety</title>
+<style>
+  /* this scene only (prefix ddpmg-): one wide canvas (spiral on the left, images on the right), the cue under it */
+  .ddpmg-body{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; gap:1.2vh; }
+  .ddpmg-body .d8s-plot{ flex:1 1 auto; }
+  .ddpmg-body .lead{ font-size:clamp(1.15rem, 1.95vw, 1.85rem); line-height:1.3; }
+</style>
+</head>
+<body>
+<div class="d8s-wrap">
+  <h1 class="t deck-title">Without the random steps, less variety</h1>
+  <div class="ddpmg-body">
+    <div class="d8s-plot" data-from="1"><canvas class="d8s-cv"></canvas></div>
+    <div class="d8s-stack">
+      <div class="lead d8s-item" data-from="1" data-to="1">Picture each part of the spiral as a different image, and the middle as their average</div>
+      <div class="lead d8s-item" data-from="2" data-to="2">With random steps: <span id="nstart">8</span> starting noises end on <span id="ndd">…</span> different images</div>
+      <div class="lead d8s-item" data-from="3">Without them: <span id="nmn">…</span></div>
+    </div>
+  </div>
+  <div class="d8s-cite d8s-item" data-from="1">The spiral points after the first click and every image in the grid are computed exactly with Ho, Jain and Abbeel 2020, Algorithm 2 (<i>T</i> = 100), with and without its random step; images 40 × 40 gray, dataset of 12 images with its ideal denoiser (it can only return one of its 12 images). The first click is an illustration. Images: Wikimedia Commons, public domain and CC0. After <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a>, 19:36</div>
+</div>
+<script>document.write(`<script src="d8-toy.js?v=${Date.now()}"><\/script><script src="ddpm-grid-data.js?v=${Date.now()}"><\/script>`)</script>
+<script>
+/* BEAT 0 title only
+   BEAT 1 ILLUSTRATION (not computed): six points on the spiral linked to six of the training images, and the middle of the
+          spiral linked to the pixel average of all 12 (that average is computed). Labelled "Illustration" on the canvas.
+   BEAT 2 computed: the 256 points of the DDPM scene end spread along the spiral; 8 starting noise images (top row) and where
+          DDPM takes each of them (second row): several different training images
+   BEAT 3 computed: the same 256 points without the random step crowd at one inner edge; the same 8 noises without the
+          random step (third row): nearly all end on one image
+   Counts on screen are filled in from the computation. Image runs: 40 x 40, 16 runs, computed one at a time after load. */
+const mix = d8Mix(), S = D8_S100, DOT = '#4f6d9a', INK = '#0f172a', GREY = '#94a3b8', MUTE = '#64748b';
+const SP = d8SampleData(mix, 420, d8Rng(3));
+/* the same 256 starting points as the DDPM scene (same seeds, same order of random draws) */
+const rng = d8Rng(29);
+(() => { let x = [-1.9, 2.1]; for(let t = S.N; t >= 1; t--) x = d8Step(mix, x, t, 'ddpm', rng).x; })();
+const START = d8SampleNoise(256, rng);
+const RUN = d8Reverse(mix, START, 'ddpm', d8Rng(31)), MEAN = d8Reverse(mix, START, 'mean', d8Rng(31));
+/* illustration: six components along the spiral (inner end k = 0, outer end k = 63), each paired with a training image */
+const LINKK = [6, 17, 28, 39, 50, 61], LINKIMG = [0, 3, 5, 7, 8, 10];
+
+/* ---- images ---- */
+const toCanvas = x => { const n = Math.round(Math.sqrt(x.length)), c = document.createElement('canvas'); c.width = c.height = n;
+  const g = c.getContext('2d'), id = g.createImageData(n, n);
+  for(let i = 0; i < n * n; i++){ const v = Math.max(0, Math.min(255, Math.round(127.5 * (x[i] + 1)))); id.data[4 * i] = id.data[4 * i + 1] = id.data[4 * i + 2] = v; id.data[4 * i + 3] = 255; }
+  g.putImageData(id, 0, 0); return c; };
+const NG = 8, GN = 40; let BIG = null, AVG = null, GRID = null;   // GRID = {start, ddpm, mean}: arrays of canvases (null until computed)
+const nearest = (set, x) => { let b = -1, bd = Infinity; set.forEach((y, k) => { let q = 0; for(let i = 0; i < x.length; i++){ const r = x[i] - y[i]; q += r * r; } if(q < bd){ bd = q; b = k; } }); return b; };
+const repaint = () => dispatchEvent(new Event('resize'));
+d8LoadImages(D8_HORSES, 80).then(set => { BIG = set.map(toCanvas);
+  const avg = new Float32Array(80 * 80); set.forEach(y => { for(let i = 0; i < avg.length; i++) avg[i] += y[i] / set.length; }); AVG = toCanvas(avg); repaint(); });
+/* the runs use fixed 40 x 40 pixels from ddpm-grid-data.js (see ddpm-grid-data.py), so the grid is the same on every load */
+const GSET = DDPMG_H40.map(b64 => { const s = atob(b64), g = new Float32Array(s.length); for(let i = 0; i < s.length; i++) g[i] = 2 * s.charCodeAt(i) / 255 - 1; return g; });
+Promise.resolve(GSET).then(set => {
+  GRID = {start: [], ddpm: [], mean: [], kd: [], km: []}; let s = 0;
+  const one = () => {   // one starting noise per tick, so the page never freezes
+    const r = d8Rng(100 + s), xT = Float32Array.from({length: GN * GN}, () => r.n());
+    const fd = d8ImgRun(set, xT, 'ddpm', d8Rng(200 + s)), fm = d8ImgRun(set, xT, 'mean', null);
+    GRID.start.push(toCanvas(xT)); GRID.ddpm.push(toCanvas(fd[S.N])); GRID.mean.push(toCanvas(fm[S.N]));
+    GRID.kd.push(nearest(set, fd[S.N])); GRID.km.push(nearest(set, fm[S.N]));
+    if(++s < NG) setTimeout(one, 0);
+    else { const nd = new Set(GRID.kd).size, cnt = {}; GRID.km.forEach(k => cnt[k] = (cnt[k] || 0) + 1); const top = Math.max(...Object.values(cnt));
+      document.getElementById('ndd').textContent = nd;
+      /* is the image they end on the one closest to the pixel average of the 12? (it is, for these pixels: image 3) */
+      const mean = new Float32Array(set[0].length); set.forEach(y => { for(let i = 0; i < mean.length; i++) mean[i] += y[i] / set.length; });
+      const kTop = +Object.keys(cnt).find(k => cnt[k] === top), closest = nearest(set, mean) === kTop;
+      document.getElementById('nmn').textContent = (top === NG ? `all ${NG} end on the same image` : `${top} of ${NG} end on the same image`) + (closest ? ', the one closest to the average' : '');
+      repaint(); } };
+  setTimeout(one, 0);
+});
+document.getElementById('nstart').textContent = NG;
+
+d8Scene({
+  name: 'd8DdpmGrid', nb: 3, R: 3.4, anim: {2: 2500, 3: 2500},
+  draw(V, b, p){
+    if(b === 0) return;
+    const ctx = V.ctx, H = V.h, W = V.w, d = V.px, f = Math.max(12 * d, H / 24);
+    /* the spiral lives in a square on the left: side H for the illustration, .78 H beside the image grid */
+    const L = b === 1 ? H : .78 * H; V.k = L / (2 * V.R); V.cx = L / 2; V.cy = H / 2;
+    V.dots(SP, DOT, 2, b === 1 ? .35 : .25);
+    const X0 = L + .03 * W, AW = W - X0;   // the image area on the right
+    ctx.font = `${f}px Calibri, Carlito, Arial, sans-serif`; ctx.textBaseline = 'middle';
+    const pic = (c, x, y, s, alpha = 1) => { if(!c) { ctx.strokeStyle = GREY; ctx.lineWidth = d; ctx.strokeRect(x, y, s, s); return; }
+      ctx.globalAlpha = alpha; ctx.imageSmoothingEnabled = true; ctx.drawImage(c, x, y, s, s); ctx.strokeStyle = INK; ctx.lineWidth = 1.2 * d; ctx.strokeRect(x, y, s, s); ctx.globalAlpha = 1; };
+    if(b === 1){
+      /* ILLUSTRATION: 3 rows x 2 columns of images, the average in a third column; rows by the height of their spiral point */
+      const s = Math.min(H / 3.5, AW / 3.6), gx = s * .25, gy = (H - 3 * s) / 4;
+      const order = LINKK.map((k, i) => i).sort((a, c) => mix.mu[LINKK[c]][1] - mix.mu[LINKK[a]][1]);
+      const slot = [];
+      for(let r = 0; r < 3; r++){ const pair = [order[2 * r], order[2 * r + 1]].sort((a, c) => mix.mu[LINKK[a]][0] - mix.mu[LINKK[c]][0]);
+        pair.forEach((i, c) => slot[i] = [X0 + c * (s + gx), gy + r * (s + gy)]); }
+      LINKK.forEach((k, i) => { const P = V.P(mix.mu[k]), [x, y] = slot[i];
+        ctx.strokeStyle = MUTE; ctx.lineWidth = 1.4 * d; ctx.setLineDash([5 * d, 4 * d]); ctx.beginPath(); ctx.moveTo(P[0], P[1]); ctx.lineTo(x, y + s / 2); ctx.stroke(); ctx.setLineDash([]);
+        pic(BIG && BIG[LINKIMG[i]], x, y, s); V.dots([mix.mu[k]], INK, 5); });
+      const ax = X0 + 2 * (s + gx) + gx, ay = gy + (s + gy), O = V.P([0, 0]);
+      ctx.strokeStyle = INK; ctx.lineWidth = 1.6 * d; ctx.setLineDash([5 * d, 4 * d]); ctx.beginPath(); ctx.moveTo(O[0], O[1]); ctx.lineTo(ax, ay + s / 2); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(O[0], O[1], 7 * d, 0, 7); ctx.lineWidth = 2.5 * d; ctx.stroke();
+      pic(AVG, ax, ay, s); ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.fillText('average of all 12', ax + s / 2, ay + s + f * .9);
+      ctx.font = `700 ${f * 1.1}px Calibri, Carlito, Arial, sans-serif`; ctx.textAlign = 'left'; ctx.fillText('Illustration', f * .3, f * .8);
+      return;
+    }
+    /* computed: endpoints of the 256 points, and the grid of images */
+    V.dots((b === 2 ? RUN : MEAN).map(tr => d8At(tr, p)), DOT, 3);
+    ctx.font = `${f}px Calibri, Carlito, Arial, sans-serif`;
+    const lab = ctx.measureText('with random steps').width + f, s = Math.min((AW - lab) / (NG + (NG - 1) * .12), H / 3.9), gx = s * .12, gy = (H - 3 * s) / 4;
+    const rows = [['starting noise', GRID && GRID.start], ['with random steps', GRID && GRID.ddpm], ['without', GRID && GRID.mean]];
+    rows.forEach(([name, cs], r) => { if(r === 2 && b < 3) return;
+      const y = gy + r * (s + gy), a = (r === 1 && b === 2) || (r === 2 && b === 3) ? p : 1;
+      ctx.globalAlpha = a; ctx.fillStyle = INK; ctx.textAlign = 'right'; ctx.font = `${f}px Calibri, Carlito, Arial, sans-serif`; ctx.fillText(name, X0 + lab - f * .5, y + s / 2); ctx.globalAlpha = 1;
+      for(let j = 0; j < NG; j++) pic(cs && cs[j], X0 + lab + j * (s + gx), y, s, a); });
+  },
+});
+</script>
+</body>
+</html>
