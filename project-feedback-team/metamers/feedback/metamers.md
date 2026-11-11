@@ -1,7 +1,7 @@
 # metamers feedback
 
 ## 2026-11-10: new deep dive (Fernanda)
-- [ ] Deep dive of one project, as its own deck at `deep-dive-metamers/deck.html`, in the style of the instance-level and tennis/sign language deep dives.
+- [ ] Deep dive of one project, as its own deck at `deep-dive-metamers/deck.html` (moved 2026-11-11 to `project-feedback-team/metamers/`, Fernanda's request), in the style of the instance-level and tennis/sign language deep dives.
 - [ ] Simulated data must be very clear: drawings only, labelled as examples of what is expected to be reported.
 - [ ] Less text. More high-level intuition for why we suggest what we suggest.
 - [ ] More images from papers or relevant datasets, each with a short sentence.
