@@ -5,48 +5,61 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="../../deck/deck.css">
 <script>document.write(`<link rel="stylesheet" href="d8-scene.css?v=${Date.now()}">`)</script>
-<title>An image is a point</title>
+<title>A dataset is a cloud of points</title>
 </head>
 <body>
 <div class="d8s-wrap">
-  <h1 class="t deck-title">An image is a point</h1>
+  <h1 class="t deck-title">A dataset is a cloud of points</h1>
   <div class="d8s-body">
     <div class="d8s-plot" data-from="1"><canvas class="d8s-cv"></canvas></div>
     <div class="d8s-side">
-      <div class="lead d8s-item" data-from="1">An image with two pixels is a point in 2D</div>
-      <div class="lead d8s-item" data-from="2">One axis per pixel: a 512 × 512 color image is a point in 786,432 dimensions</div>
-      <div class="lead d8s-item" data-from="3">Real images fill a tiny, structured part of that space. Our toy version: a spiral</div>
+      <div class="lead d8s-item" data-from="1">Two-pixel images: black then white is the point (0, 1); all white is (1, 1)</div>
+      <div class="lead d8s-item" data-from="2">Real images have structure. Our toy dataset: a spiral</div>
+      <div class="lead d8s-item" data-from="3">Each dot is one two-pixel image</div>
     </div>
   </div>
-  <div class="d8s-cite d8s-item" data-from="1">Toy example after <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a></div>
+  <div class="d8s-cite d8s-item" data-from="1">Toy example after <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a>; our spiral: 420 points drawn from 64 small Gaussians</div>
 </div>
 <script>document.write(`<script src="d8-toy.js?v=${Date.now()}"><\/script>`)</script>
 <script>
 /* BEAT 0 title only
-   BEAT 1 three two-pixel images and their points (black = 0, white = 1)
-   BEAT 2 the cue about many pixels (the picture stays)
-   BEAT 3 the spiral dataset appears in the same space */
-const mix = d8Mix(), rng = d8Rng(3), DOT = '#4f6d9a', INK = '#0f172a';
+   BEAT 1 the same axes as the slide before (pixel 1, pixel 2, 0 = black, 1 = white) and three two-pixel images with their points:
+          black-white at (0, 1) and all white at (1, 1), the video's two examples, plus one gray pair
+   BEAT 2 the spiral dataset appears in the same space (the three examples fade out)
+   BEAT 3 four dots of the spiral, picked by position along it (the inner end, two in between, the outer end), each with its
+          two-pixel image drawn from its own coordinates */
+const mix = d8Mix(), rng = d8Rng(3), DOT = '#4f6d9a', INK = '#0f172a', GREY = '#94a3b8';
 const SP = d8SampleData(mix, 420, rng);
-const W = v => (v - .5) * 6.4;                          // pixel value 0..1 to plot coordinate
+const W = v => (v - .5) * 6.4, Wi = x => x / 6.4 + .5;   // pixel value 0..1 to plot coordinate, and back
 const IMGS = [[0, 1], [1, 1], [.25, .62]];
-function icon(V, px, at){
-  const [X, Y] = V.P(at), s = Math.max(14, V.h / 18);
-  px.forEach((v, i) => { const g = Math.round(255 * v); V.ctx.fillStyle = `rgb(${g},${g},${g})`; V.ctx.fillRect(X + i * s, Y - s / 2, s, s);
+/* the spiral dots nearest to centers 0, 21, 42 and 63 of the 64 Gaussians */
+const PICK = [0, 21, 42, 63].map(k => { const m = mix.mu[k]; let best = 0, bd = 1e9;
+  SP.forEach((p, i) => { const dd = (p[0] - m[0]) ** 2 + (p[1] - m[1]) ** 2; if(dd < bd){ bd = dd; best = i; } }); return SP[best]; });
+function icon(V, px, at, alpha = 1){
+  const [X, Y] = V.P(at), s = Math.max(14 * V.px, V.h / 16);
+  V.ctx.globalAlpha = alpha; V.ctx.fillStyle = '#fff'; V.ctx.fillRect(X - 3 * V.px, Y - s / 2 - 3 * V.px, 2 * s + 6 * V.px, s + 6 * V.px);
+  px.forEach((v, i) => { const g = Math.max(0, Math.min(255, Math.round(255 * v))); V.ctx.fillStyle = `rgb(${g},${g},${g})`; V.ctx.fillRect(X + i * s, Y - s / 2, s, s);
     V.ctx.strokeStyle = INK; V.ctx.lineWidth = 1.5 * V.px; V.ctx.strokeRect(X + i * s, Y - s / 2, s, s); });
+  V.ctx.globalAlpha = 1;
 }
 d8Scene({
-  name: 'd8Pixels', nb: 3,
-  draw(V, b){
+  name: 'd8Pixels', nb: 3, anim: {2: 900},
+  draw(V, b, p){
     if(b === 0) return;
-    const c = V.ctx, f = Math.max(12, V.h / 30);
-    V.line([[W(0), W(0)], [W(1), W(0)]], INK, 1.4); V.line([[W(0), W(0)], [W(0), W(1)]], INK, 1.4);
+    V.zoom([0, -.2], 4.3);
+    const c = V.ctx, f = Math.max(12 * V.px, V.h / 28);
+    V.line([[W(0), W(0)], [W(1), W(0)], [W(1), W(1)], [W(0), W(1)], [W(0), W(0)]], GREY, 1, .9, [4, 4]);
+    V.line([[W(0), W(0)], [W(1) + .3, W(0)]], INK, 1.4); V.line([[W(0), W(0)], [W(0), W(1) + .3]], INK, 1.4);
     c.fillStyle = INK; c.font = `${f}px Calibri, Carlito, Arial, sans-serif`; c.textAlign = 'center';
     const [x0, y0] = V.P([W(0), W(0)]), [x1] = V.P([W(1), W(0)]), [, y1] = V.P([W(0), W(1)]);
-    c.fillText('0', x0, y0 + f * 1.2); c.fillText('1', x1, y0 + f * 1.2); c.fillText('pixel 1', (x0 + x1) / 2, y0 + f * 1.2);
-    c.textAlign = 'right'; c.fillText('1', x0 - f * .5, y1 + f * .35); c.save(); c.translate(x0 - f * .8, (y0 + y1) / 2); c.rotate(-Math.PI / 2); c.textAlign = 'center'; c.fillText('pixel 2', 0, 0); c.restore();
-    if(b >= 3) V.dots(SP, DOT, 2.4, .9);
-    IMGS.forEach((px, i) => { const p = [W(px[0]), W(px[1])], o = [[.18, -.4], [-1.25, -.4], [.18, -.2]][i]; V.dots([p], INK, 5); icon(V, px, [p[0] + o[0], p[1] + o[1]]); });
+    c.fillText('0 black', x0, y0 + f * 1.15); c.fillText('1 white', x1, y0 + f * 1.15); c.fillText('pixel 1', (x0 + x1) / 2, y0 + f * 2.3);
+    c.textAlign = 'right'; c.fillText('1', x0 - f * .4, y1 + f * .35);
+    c.save(); c.translate(x0 - f * 1.2, (y0 + y1) / 2); c.rotate(-Math.PI / 2); c.textAlign = 'center'; c.fillText('pixel 2', 0, 0); c.restore();
+    const fade = b === 1 ? 1 : (b === 2 ? 1 - p : 0);
+    if(b >= 2) V.dots(SP, DOT, 2.4, .9 * (b === 2 ? p : 1));
+    if(fade > 0) IMGS.forEach((px, i) => { const q = [W(px[0]), W(px[1])], o = [[.22, -.55], [-1.4, -.55], [.22, -.35]][i];
+      V.dots([q], INK, 5, fade); icon(V, px, [q[0] + o[0], q[1] + o[1]], fade); });
+    if(b >= 3) PICK.forEach(q => { V.dots([q], INK, 5.5); icon(V, [Wi(q[0]), Wi(q[1])], [q[0] + .22, q[1]]); });
   },
 });
 </script>
