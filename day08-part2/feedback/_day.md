@@ -43,3 +43,21 @@ Fernanda: use https://www.youtube.com/watch?v=iv-5mZ_9CPY for explaining diffusi
   The blurry tree stays in the notes, credited to the video.
 - Fixed: scene includes of d8-toy.js and d8-scene.css now carry a version, so browsers never run stale copies.
 - New shared hook for the sessions: data-hl="2,4" highlights an element on those beats (style .d8s-hl).
+
+## 2026-11-11 (night): guidance part (video 25:00 to 34:19), replaces two flow matching equation slides
+- New part `guidance` (4 scenes, 17 clicks, about 8 minutes) after score-sde: conditioning; classifier-free guidance (two fields, difference arrow, stretched by alpha);
+  more guidance, less variety (alpha 1, 3, 7); negative prompts (Wan 2.1's list, a blurry-spiral negative, a dog-arm negative).
+- Measured with exact fields (256 seeded starting points, DDIM 100 steps, printed in each scene's console): conditioning alone already works here
+  (no class: 35/31/34 percent on people/dogs/cats; class = cats: 255 of 256 on the cat arm). So the slides do NOT claim conditioning fails;
+  the video's failures (the cat point that misses, Stable Diffusion's desert with no tree, the tree appearing near alpha 2) are in the notes, credited to the video.
+- Guidance on cats: parts of the cat arm reached 21, 18, 15 of 21 at alpha 1, 3, 7; off the spiral (more than 3 cluster widths) 0, 0.4, 8.6 percent.
+  Median angle between the no-class and cat fields: 0.2 deg at t = 1, 25 deg at t = 0.4, 51 deg at t = 0.2.
+- Negative prompt: verified in the Wan 2.1 repository (wan/configs/shared_config.py: 28-item Chinese default; wan/text2video.py: the negative prompt is
+  encoded as the "null" context, noise = uncond + guide_scale (cond - uncond), guide_scale 5.0). Toy negative = the same spiral with clusters 3x wider:
+  rms distance to the spiral 0.015 at alpha 3, against 0.10 with no negative and 0.11 for the data. Negative = the dog arm (alpha 1.5): dogs 18 percent
+  (31 without), but 73 percent of the points pushed off the spiral; with exact fields, guidance aims past the positive on the line from the negative.
+- Removed: "Why regressing on single pairs is enough" (flow-matching) and "Two sides of the same coin" (same-coin); notes that pointed to them fixed
+  (straight-path opening note now carries the same-coin message; trilemma note; flow matching opening note no longer says "we just saw").
+- [ ] Fernanda: a toy "blurry spiral" stands in for Wan's list of flaws. OK, or keep only the dog-arm example?
+- [ ] Fernanda: 4 slides instead of the planned 3 (the alpha sweep has its own slide). OK?
+- [ ] For the coordinator: score-sde's last note ends "That is our next section" (flow matching); with guidance in between it is not. score-sde.js belongs to other sessions.
