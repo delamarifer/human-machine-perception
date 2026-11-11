@@ -334,13 +334,9 @@ st(`
   <h1 class="t">Questions for the Team</h1>
   <div class="open-questions-col" style="flex:1 1 auto">
     ${oqLine('Who does which part?', 1, 'question')}
-    ${oqLine('How many different signers are in your clips?', 2, 'question')}
-    ${oqLine('Did each signer agree to this use?', 3, 'question')}
-    ${oqLine('What would surprise you?', 4, 'question')}
+    ${oqLine('What would surprise you?', 2, 'question')}
   </div>
 `, oqN('These are real questions. We want to hear from you.',
   'You are now one team. The natural parts are joints, models, and figures. Decide who owns each one.',
-  'With only one or two signers, we cannot test on a new signer.',
-  'Consent comes first. Sign language video shows people who can be recognized. This is why we show no clips from your data today.',
   'Before you run anything, tell us what you expect. Write it down. Then see if you were right.'));
 }
