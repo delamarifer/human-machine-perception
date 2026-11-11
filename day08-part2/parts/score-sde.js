@@ -1,5 +1,5 @@
 /* PART: score-sde (Day 8 part B). Owner: Fernanda. About 13 minutes.
-   Rebuilt 2026-11-11 around the Welch Labs video (16:10 to 25:00): the time-dependent vector field (the score), DDPM sampling as
+   Rebuilt 2026-11-11 around the Welch Labs video (16:05 to 25:00): the time-dependent vector field (the score), DDPM sampling as
    a model step plus a random step, what happens without the random step, and DDIM from the probability flow ODE.
    Animations are our own, computed exactly on the toy spiral (scenes/d8-toy.js). Notes are drafts. */
 {
@@ -7,11 +7,13 @@ section('Vector Field');
 const v = d8v;
 
 sc('d8Field', 'scenes/field.html', { notes: [
-  "(draft) If we ask, at every point of the plane, which way leads back to the data, the answers form a vector field. That field is what the network learns.",
-  "(draft) Here is the exact field for our spiral after 100 noise steps, at t equals one. The shading is the density of the noisy points. With this much noise, the best the network can do is point toward the middle of the data.",
-  "(draft) After only five steps, at t equals 0.05, the field is detailed: the arrows point to the nearest part of the spiral.",
-  "(draft) These two fields are very different, so the network needs to know how much noise it is looking at. That is why it takes the time t as a second input. Watch the field as t goes from one to almost zero: first everything points to the middle, and then, fairly suddenly, the arrows switch to pointing at the spiral itself.",
-  "(draft) This field has a name in the papers: the score. It points toward more likely, less noisy data. When the network predicts the noise, it is really telling us this direction: the way out of the noise."
+  "(draft) At every point of the plane, the network learns which way leads back to the data. All those arrows together form a vector field. But the arrows depend on how much noise was added.",
+  "(draft) Here is the exact field for our spiral after 100 noise steps, at t equals one. The shading shows where the noisy points are: one big blob. On the right, our picture after the same amount of noise: nothing is left of it. With this much noise, the best the network can do is point toward the middle of the data.",
+  "(draft) After only one noise step, at t equals 0.01, the field is detailed: the arrows point to the nearest part of the spiral. The picture is almost clean.",
+  "(draft) These two fields are very different, so the network has to know how much noise it is looking at. So we give it the time t as a second input. Back at t equals one, we write the network as f of x and t. x is the noisy point, here this dot. t is how much noise: one is all noise, zero is clean. And f is the arrow it gives back, here the bold arrow. It shows which way the field pushes this point at this noise level.",
+  "(draft) Now watch t go from one down to almost zero. The picture gets cleaner, the field changes, and the bold arrow turns. For a long time nothing much happens: everything points to the middle. Then, fairly suddenly, the arrows switch to pointing at the spiral itself. The dashed line traces the tip of the bold arrow as it turns.",
+  "(draft) We measured where the switch happens on our spiral: between t equals 0.25 and t equals 0.12. At 0.30, every arrow inside the spiral still points to the middle; by 0.12, most point to the nearest arm. The video sees the same kind of sudden switch for its own trained model, around t equals 0.4. Where it happens depends on the data and the noise schedule, so the two numbers need not match.",
+  "(draft) This field has a name in the papers: the score. It points toward more likely, less noisy data. When the network predicts the noise, it is really giving us this direction: the way out of the noise."
 ]});
 
 sc('d8Ddpm', 'scenes/ddpm.html', { notes: [
