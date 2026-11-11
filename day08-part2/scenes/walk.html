@@ -4,35 +4,44 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="../../deck/deck.css">
-<link rel="stylesheet" href="d8-scene.css">
+<script>document.write(`<link rel="stylesheet" href="d8-scene.css?v=${Date.now()}">`)</script>
 <title>Adding noise is a random walk</title>
 </head>
 <body>
 <div class="d8s-wrap">
   <h1 class="t deck-title">Adding noise is a random walk</h1>
-  <div class="d8s-body">
+  <div class="d8s-body d8s-withimg">
     <div class="d8s-plot" data-from="1"><canvas class="d8s-cv"></canvas></div>
-    <div class="d8s-side">
-      <div class="lead d8s-item" data-from="2">Each noise step moves the point in a random direction</div>
-      <div class="lead d8s-item" data-from="3">Brownian motion: where diffusion models get their name</div>
-      <div class="lead d8s-item" data-from="4">After 100 steps: Gaussian noise, the spiral is gone</div>
+    <div class="d8s-imgcol">
+      <div class="d8s-imgbox" data-from="1"><canvas id="img"></canvas></div>
+      <div class="d8s-side">
+        <div class="lead d8s-item" data-from="2">Each noise step moves every point, and every pixel, in a random direction</div>
+        <div class="lead d8s-item" data-from="3">Brownian motion: where diffusion models get their name</div>
+        <div class="lead d8s-item" data-from="4">After 100 steps: Gaussian noise. The spiral and the picture are gone</div>
+      </div>
     </div>
   </div>
-  <div class="d8s-cite d8s-item" data-from="1">Computed with the DDPM forward process, 100 steps (schedule of Ho et al. 2020, rescaled). Toy example after <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a></div>
+  <div class="d8s-cite d8s-item" data-from="1">Computed with the DDPM forward process, 100 steps (schedule of Ho et al. 2020, rescaled), on the dots and on the image (Stable Diffusion 3.5, VulcanSphere, public domain). Toy example after <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a></div>
 </div>
-<script src="d8-toy.js"></script>
+<script>document.write(`<script src="d8-toy.js?v=${Date.now()}"><\/script>`)</script>
 <script>
 /* BEAT 0 title only
    BEAT 1 the spiral
    BEAT 2 one point's 100-step walk, animated
    BEAT 3 twelve walks, animated
-   BEAT 4 every point walks 100 steps (dots only), animated */
+   BEAT 4 every point walks 100 steps (dots only), animated
+   The image beside the dots goes through the same 100 noise steps, in step with the dots, on every animated beat. */
 const mix = d8Mix(), rng = d8Rng(13), DOT = '#4f6d9a', INK = '#0f172a', GREY = '#94a3b8';
 const X0 = d8SampleData(mix, 420, rng), WALKS = d8Walks(X0, rng);
+const imgCv = document.getElementById('img'); let IMG = null;
+d8LoadImages(['../assets/horses/h09.webp'], 96).then(([x]) => { IMG = d8ImgWalk(x, d8Rng(19)); dispatchEvent(new Event('resize')); });
+const imgAt = k => IMG && d8ImgPaint(imgCv, IMG[k], `noise step ${k} of 100`);
 d8Scene({
   name: 'd8Walk', nb: 4, anim: {2: 3600, 3: 3600, 4: 3600},
   draw(V, b, p){
     if(b === 0) return;
+    const k = b === 1 ? 0 : Math.round(p * 100);
+    imgAt(k);
     if(b === 1){ V.dots(X0, DOT, 2.4); return; }
     if(b === 4){ V.dots(X0, DOT, 2, .15); V.dots(WALKS.map(w => d8At(w, p)), DOT, 2.4); return; }
     V.dots(X0, DOT, 2.4, .35);

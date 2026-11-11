@@ -163,7 +163,7 @@ const d8Trail = (tr, p) => { const f = p * (tr.length - 1), j = Math.floor(f); r
 /* ---------- the scene controller ----------
    cfg = {name, nb, draw(V, beat, p), anim: {beat: ms}}: draw paints the whole canvas for a beat; p runs 0 → 1 while a
    forward click animates that beat (only when the click asks for it: nothing moves by itself), and is 1 otherwise.
-   Elements with data-from / data-to show on those beats. */
+   Elements with data-from / data-to show on those beats; elements with data-hl="2,4" get class hl on those beats. */
 function d8Scene(cfg){
   const cv = document.querySelector('canvas.d8s-cv'), V = d8Canvas(cv, cfg.R || 3.8);
   let beat = 0, raf = 0;
@@ -171,6 +171,8 @@ function d8Scene(cfg){
   function go(n, animate){
     beat = n; cancelAnimationFrame(raf);
     document.querySelectorAll('[data-from]').forEach(e => { const f = +e.dataset.from, t = e.dataset.to ? +e.dataset.to : cfg.nb; e.classList.toggle('on', n >= f && n <= t); });
+    /* data-hl="2,4": highlight (class hl) on exactly those beats, e.g. an equation term while the animation shows it */
+    document.querySelectorAll('[data-hl]').forEach(e => e.classList.toggle('hl', e.dataset.hl.split(',').map(Number).includes(n)));
     const ms = cfg.anim && cfg.anim[n];
     if(animate && ms){ const t0 = performance.now(); const tick = now => { const p = Math.min(1, (now - t0) / ms); paint(d8Ease(p)); if(p < 1) raf = requestAnimationFrame(tick); }; raf = requestAnimationFrame(tick); }
     else paint(1);
@@ -189,4 +191,63 @@ function d8Scene(cfg){
   }
   go(0, false);
   return ctl;
+}
+
+/* ---------- a tiny image dataset with an exact denoiser ----------
+   Twelve "astronaut riding a horse" images (assets/horses, public domain or CC0), in gray levels, n x n, pixel values in [-1, 1].
+   For a dataset this small the ideal denoiser has a closed form: E[x0 | x_t] is a softmax-weighted average of the 12 images.
+   So the image runs below are real DDPM / DDIM runs, but with a "perfect network" for 12 images, which can only end on one of
+   its 12 training images (it memorizes). A trained network learns a smoothed version of this and can make new images. */
+const D8_HORSES = Array.from({length: 12}, (_, i) => `../assets/horses/h${String(i + 1).padStart(2, '0')}.${[1, 2, 3, 4, 5].includes(i + 1) ? 'png' : (i + 1 === 10 ? 'jpg' : 'webp')}`);
+function d8LoadImages(urls, n = 80){
+  return Promise.all(urls.map(u => new Promise((res, rej) => { const im = new Image(); im.onload = () => {
+    const c = document.createElement('canvas'); c.width = c.height = n; const x = c.getContext('2d'), m = Math.min(im.width, im.height);
+    x.drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, 0, 0, n, n);
+    const d = x.getImageData(0, 0, n, n).data, g = new Float32Array(n * n);
+    for(let i = 0; i < n * n; i++) g[i] = 2 * (.299 * d[4 * i] + .587 * d[4 * i + 1] + .114 * d[4 * i + 2]) / 255 - 1;
+    res(g); }; im.onerror = rej; im.src = u; })));
+}
+function d8ImgPost(set, x, a, s){
+  const K = set.length, D = x.length, lw = new Float64Array(K);
+  for(let k = 0; k < K; k++){ let q = 0; const y = set[k]; for(let i = 0; i < D; i++){ const r = x[i] - a * y[i]; q += r * r; } lw[k] = -q / (2 * s * s); }
+  const mx = Math.max(...lw); let Z = 0; for(let k = 0; k < K; k++){ lw[k] = Math.exp(lw[k] - mx); Z += lw[k]; }
+  const E1 = new Float32Array(D);
+  for(let k = 0; k < K; k++){ const w = lw[k] / Z; if(w < 1e-9) continue; const y = set[k]; for(let i = 0; i < D; i++) E1[i] += w * y[i]; }
+  const E0 = new Float32Array(D); for(let i = 0; i < D; i++) E0[i] = (x[i] - a * E1[i]) / s;
+  return {E1, E0};
+}
+/* frames[j] = image after j steps. mode 'ddpm' (with the random step), 'mean' (random step deleted), or 'ddim' with `steps` steps. */
+function d8ImgRun(set, xT, mode, rng, S = D8_S100, steps = S.N){
+  let x = Float32Array.from(xT); const fr = [x], D = x.length;
+  if(mode === 'ddim'){
+    const ts = Array.from({length: steps + 1}, (_, k) => Math.round(S.N * (steps - k) / steps));
+    for(let k = 0; k < steps; k++){ const [a, s] = S.as(ts[k]), [ap, sp] = S.as(ts[k + 1]), P = d8ImgPost(set, x, a, s);
+      const y = new Float32Array(D); for(let i = 0; i < D; i++) y[i] = ap * P.E1[i] + sp * P.E0[i]; x = y; fr.push(x); }
+    return fr;
+  }
+  for(let t = S.N; t >= 1; t--){
+    const [a, s] = S.as(t), al = 1 - S.beta[t], P = d8ImgPost(set, x, a, s), sd = (mode === 'ddpm' && t > 1) ? Math.sqrt(S.beta[t]) : 0;
+    const y = new Float32Array(D); for(let i = 0; i < D; i++) y[i] = (x[i] - S.beta[t] / s * P.E0[i]) / Math.sqrt(al) + (sd ? sd * rng.n() : 0);
+    x = y; fr.push(x);
+  }
+  return fr;
+}
+/* forward noising, step by step (the random walk of every pixel at once) */
+function d8ImgWalk(x0, rng, S = D8_S100){
+  let x = Float32Array.from(x0); const fr = [x];
+  for(let t = 1; t <= S.N; t++){ const c = Math.sqrt(1 - S.beta[t]), d = Math.sqrt(S.beta[t]); const y = new Float32Array(x.length); for(let i = 0; i < x.length; i++) y[i] = c * x[i] + d * rng.n(); x = y; fr.push(x); }
+  return fr;
+}
+/* draw an image in [-1, 1] into a square inside canvas cv, with a caption under it */
+function d8ImgPaint(cv, x, caption = ''){
+  const d = window.devicePixelRatio || 1, R = cv.getBoundingClientRect(); cv.width = Math.max(1, R.width * d); cv.height = Math.max(1, R.height * d);
+  const ctx = cv.getContext('2d'); ctx.clearRect(0, 0, cv.width, cv.height); if(!x) return;
+  const n = Math.round(Math.sqrt(x.length)), off = document.createElement('canvas'); off.width = off.height = n;
+  const id = off.getContext('2d').createImageData(n, n);
+  for(let i = 0; i < n * n; i++){ const g = Math.max(0, Math.min(255, Math.round(127.5 * (x[i] + 1)))); id.data[4 * i] = id.data[4 * i + 1] = id.data[4 * i + 2] = g; id.data[4 * i + 3] = 255; }
+  off.getContext('2d').putImageData(id, 0, 0);
+  const f = Math.max(12 * d, cv.height / 14), side = Math.min(cv.width, cv.height - f * 1.6), x0 = (cv.width - side) / 2;
+  ctx.imageSmoothingEnabled = true; ctx.drawImage(off, x0, 0, side, side);
+  ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1.5 * d; ctx.strokeRect(x0, 0, side, side);
+  if(caption){ ctx.font = `${f}px Calibri, Carlito, Arial, sans-serif`; ctx.fillStyle = '#0f172a'; ctx.textAlign = 'center'; ctx.fillText(caption, cv.width / 2, side + f * 1.2); }
 }

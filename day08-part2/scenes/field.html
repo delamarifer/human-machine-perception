@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="../../deck/deck.css">
-<link rel="stylesheet" href="d8-scene.css">
+<script>document.write(`<link rel="stylesheet" href="d8-scene.css?v=${Date.now()}">`)</script>
 <title>The network learns a field that changes with time</title>
 </head>
 <body>
@@ -24,7 +24,7 @@
   </div>
   <div class="d8s-cite d8s-item" data-from="1">Computed exactly on the toy spiral; arrow lengths compressed for display; <i>t</i> = step / 100. Toy example after <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a></div>
 </div>
-<script src="d8-toy.js"></script>
+<script>document.write(`<script src="d8-toy.js?v=${Date.now()}"><\/script>`)</script>
 <script>
 /* BEAT 0 title only
    BEAT 1 the exact score direction at t = 1 (step 100), over the density of the noisy data

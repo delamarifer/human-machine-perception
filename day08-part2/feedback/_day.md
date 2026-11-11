@@ -31,3 +31,15 @@ Fernanda: use https://www.youtube.com/watch?v=iv-5mZ_9CPY for explaining diffusi
 - Skipped for image editing: the Commons inpainting example shows a real person, and the other one has an unsuitable prompt.
 - [x] The embedded video tile is removed from slide 2 (Fernanda: "remove this, we can add this to the website").
 - [ ] For the coordinator: add the Welch Labs video (https://www.youtube.com/watch?v=iv-5mZ_9CPY) to the Day 8 card on index.html (shared file).
+
+## 2026-11-11 (evening): real images beside the dots; checks before the five video sessions
+- Image helpers in scenes/d8-toy.js: a 12-image dataset (assets/horses, public domain and CC0) with the exact ideal denoiser.
+  Measured (80 x 80 gray, seeds fixed): DDPM from 10 starting noises ends on 8 different training images; with the random step
+  deleted, 9 of 10 runs end on the SAME image (#3), and the image is a faded low-contrast average for most of the run (rms 0.05 to 0.14
+  until step 60, against about 0.7 for DDPM); DDIM with 20 steps ends on 6 different images. Every run ends exactly on a training image:
+  an ideal denoiser for 12 images memorizes them.
+- So the video's "sad blurry tree" does NOT reproduce with an exact denoiser: the blur comes from a real network that never reaches realistic
+  images (the video says the 2D analogy breaks there). On screen we show what we computed: less variety, and a faded average along the way.
+  The blurry tree stays in the notes, credited to the video.
+- Fixed: scene includes of d8-toy.js and d8-scene.css now carry a version, so browsers never run stale copies.
+- New shared hook for the sessions: data-hl="2,4" highlights an element on those beats (style .d8s-hl).

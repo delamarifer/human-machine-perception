@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="../../deck/deck.css">
-<link rel="stylesheet" href="d8-scene.css">
+<script>document.write(`<link rel="stylesheet" href="d8-scene.css?v=${Date.now()}">`)</script>
 <title>What should the network predict?</title>
 </head>
 <body>
@@ -24,7 +24,7 @@
   </div>
   <div class="d8s-cite d8s-item" data-from="1">Computed exactly on the toy spiral (DDPM forward process, step 12 of 100). Ho et al. 2020; Toy example after <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a></div>
 </div>
-<script src="d8-toy.js"></script>
+<script>document.write(`<script src="d8-toy.js?v=${Date.now()}"><\/script>`)</script>
 <script>
 /* BEAT 0 title only
    BEAT 1 one walk: clean point x0 to x12 (12 of 100 steps)

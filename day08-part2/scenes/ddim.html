@@ -4,41 +4,53 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="../../deck/deck.css">
-<link rel="stylesheet" href="d8-scene.css">
+<script>document.write(`<link rel="stylesheet" href="d8-scene.css?v=${Date.now()}">`)</script>
 <title>DDIM: no random steps, and rescaled steps</title>
 </head>
 <body>
 <div class="d8s-wrap">
   <h1 class="t deck-title">DDIM: no random steps, and rescaled steps</h1>
-  <div class="d8s-body">
+  <div class="d8s-body d8s-withimg">
     <div class="d8s-plot" data-from="1"><canvas class="d8s-cv"></canvas></div>
-    <div class="d8s-side">
-      <div class="d8s-stack">
-        <div class="lead d8s-item" data-from="1" data-to="1">Random steps deleted, step sizes unchanged: the points crowd together</div>
-        <div class="lead d8s-item" data-from="2" data-to="2">DDIM, 100 steps: smooth paths that land on the spiral</div>
-        <div class="lead d8s-item" data-from="3">DDIM, 20 steps: still on the spiral</div>
+    <div class="d8s-imgcol">
+      <div class="d8s-imgbox" data-from="1"><canvas id="img"></canvas></div>
+      <div class="d8s-side">
+        <div class="d8s-stack">
+          <div class="lead d8s-item" data-from="1" data-to="1">Random steps deleted, step sizes unchanged: crowded points, little variety</div>
+          <div class="lead d8s-item" data-from="2" data-to="2">DDIM, 100 steps: smooth paths that land on the spiral</div>
+          <div class="lead d8s-item" data-from="3">DDIM, 20 steps: still on the spiral</div>
+        </div>
+        <div class="lead d8s-item" data-from="4">Same trained network, deterministic, fewer steps. Its generalization: flow matching</div>
       </div>
-      <div class="lead d8s-item" data-from="4">Same trained network, deterministic, fewer steps. Its generalization: flow matching</div>
     </div>
   </div>
-  <div class="d8s-cite d8s-item" data-from="1">Computed exactly on the toy spiral, same starting points as before. Song, Meng and Ermon, DDIM, ICLR 2021; Toy example after <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a></div>
+  <div class="d8s-cite d8s-item" data-from="1">Computed exactly on the spiral and on the 12-image dataset (ideal denoiser), same starting noise image as the previous slide. Song, Meng and Ermon, DDIM, ICLR 2021; Toy example after <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a></div>
 </div>
-<script src="d8-toy.js"></script>
+<script>document.write(`<script src="d8-toy.js?v=${Date.now()}"><\/script>`)</script>
 <script>
 /* BEAT 0 title only
    BEAT 1 the end points of the DDPM update with the noise line deleted (from the previous slide)
    BEAT 2 DDIM with 100 steps, paths animated
    BEAT 3 DDIM with 20 steps, animated
    BEAT 4 the conclusion (picture stays) */
-const mix = d8Mix(), rng = d8Rng(29), DOT = '#4f6d9a', INK = '#0f172a', GREY = '#94a3b8';
+const mix = d8Mix(), DOT = '#4f6d9a', INK = '#0f172a', GREY = '#94a3b8';
 const SP = d8SampleData(mix, 420, d8Rng(3));
 const ST = d8SampleNoise(256, d8Rng(77));
 const MEAN = d8Reverse(mix, ST, 'mean', d8Rng(1)).map(t => t[t.length - 1]);
 const D100 = d8Ddim(mix, ST, 100), D20 = d8Ddim(mix, ST, 20);
+const imgCv = document.getElementById('img'); let IMEAN = null, I100 = null, I20 = null;
+d8LoadImages(D8_HORSES, 80).then(set => { const r = d8Rng(41), xT = Float32Array.from({length: 80 * 80}, () => r.n());
+  IMEAN = d8ImgRun(set, xT, 'mean', null); I100 = d8ImgRun(set, xT, 'ddim', null, D8_S100, 100); I20 = d8ImgRun(set, xT, 'ddim', null, D8_S100, 20);
+  dispatchEvent(new Event('resize')); });
 d8Scene({
   name: 'd8DdimScene', nb: 4, anim: {2: 4000, 3: 3000},
   draw(V, b, p){
     if(b === 0) return;
+    if(IMEAN){
+      if(b === 1) d8ImgPaint(imgCv, IMEAN[100], 'random steps deleted, step 100 of 100');
+      else if(b === 2) d8ImgPaint(imgCv, I100[Math.round(p * 100)], `DDIM, step ${Math.round(p * 100)} of 100`);
+      else { const k = b === 4 ? 20 : Math.round(p * 20); d8ImgPaint(imgCv, I20[k], `DDIM, step ${k} of 20`); }
+    }
     V.dots(SP, GREY, 2, .35);
     if(b === 1){ V.dots(MEAN, DOT, 3); return; }
     const R = b === 2 ? D100 : D20, q = b <= 3 ? p : 1;
