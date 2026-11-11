@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<script>document.write(`<link rel="stylesheet" href="d8-scene.css?v=${Date.now()}">`)</script>
+<title>Conditioning: one more input</title>
+<style>
+  .guidance-key{ display:flex; flex-wrap:wrap; gap:.4em 1.4em; }
+  .guidance-terms{ font-size:clamp(1rem, 1.5vw, 1.4rem); line-height:1.45; }
+  .guidance-terms b{ font-family:'Cambria Math', 'STIX Two Math', Cambria, Georgia, serif; font-style:italic; font-weight:400; }
+</style>
+</head>
+<body>
+<div class="d8s-wrap">
+  <h1 class="t deck-title">Conditioning: one more input</h1>
+  <div class="d8s-body">
+    <div class="d8s-plot" data-from="1"><canvas class="d8s-cv"></canvas></div>
+    <div class="d8s-side">
+      <div class="label d8s-item guidance-key" data-from="1">
+        <span><span class="d8s-key" style="background:#7a5c9e"></span>people</span>
+        <span><span class="d8s-key" style="background:#b0782a"></span>dogs</span>
+        <span><span class="d8s-key" style="background:#2f7f6f"></span>cats</span>
+      </div>
+      <div class="d8s-stack">
+        <div class="lead d8s-item" data-from="1" data-to="1">Pretend each part of the spiral is one kind of image</div>
+        <div class="lead d8s-item" data-from="2" data-to="2">The network gets the class too, just like the time</div>
+        <div class="lead d8s-item" data-from="3" data-to="3">No class: the points land all along the spiral</div>
+        <div class="lead d8s-item" data-from="4">Class = cats: the points land on the cat arm</div>
+      </div>
+      <div class="d8s-eq d8s-item" data-from="2"><i>f</i>(<i>x</i>, <i>t</i>, <span class="d8s-hl" data-hl="2">class</span>)</div>
+      <div class="guidance-terms d8s-item" data-from="2"><b>x</b> the noisy point &nbsp;·&nbsp; <b>t</b> the time &nbsp;·&nbsp; class: people, dogs or cats<br>For real images: the text prompt, turned into a vector</div>
+    </div>
+  </div>
+  <div class="d8s-cite d8s-item" data-from="1">Computed exactly on the toy spiral, split into three classes; DDIM, 100 steps, the same 256 starting points in both runs. Classes on the spiral and the idea after <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a></div>
+</div>
+<script>document.write(`<script src="d8-toy.js?v=${Date.now()}"><\/script><script src="guide-lib.js?v=${Date.now()}"><\/script>`)</script>
+<script>
+/* BEAT 0 title only
+   BEAT 1 the spiral, colored by class (inner people, middle dogs, outer cats); the key
+   BEAT 2 the network's inputs: f(x, t, class), class highlighted (picture stays)
+   BEAT 3 generate 256 points with no class (the exact field of the whole spiral), animated; share per class measured here
+   BEAT 4 the same 256 starting points with class = cats (the exact field of the cat part alone), animated; share measured here */
+const START = d8SampleNoise(256, d8Rng(7));
+const NONE = gDdim(START, G_MIX, G_MIX, 1), CATS = gDdim(START, G_SUB[2], G_MIX, 1);
+const ST_NONE = gStats(NONE.map(tr => tr[tr.length - 1]), 2), ST_CATS = gStats(CATS.map(tr => tr[tr.length - 1]), 2);
+console.log('guide-cond: no class, share people/dogs/cats', ST_NONE.share.map(v => v.toFixed(3)), '| class cats, share on cat arm', ST_CATS.share[2].toFixed(3), 'parts', ST_CATS.parts, 'of', ST_CATS.nparts);
+const pct = v => `${Math.round(100 * v)}%`;
+d8Scene({
+  name: 'd8GuideCond', nb: 4, anim: {3: 4000, 4: 4000},
+  draw(V, b, p){
+    if(b === 0) return;
+    gDataDots(V, b <= 2 ? .6 : .22, null, b <= 2 ? 2.6 : 2);
+    if(b <= 2) return;
+    const R = b === 3 ? NONE : CATS, pts = R.map(tr => d8At(tr, p));
+    V.dots(pts, b === 3 ? G_INK : G_COL[2], 3.2, .9);
+    if(p < 1) return;
+    const f = Math.max(13 * V.px, V.h / 26);
+    if(b === 3) gText(V, `on people / dogs / cats: ${ST_NONE.share.map(pct).join(' / ')}`, f * .5, f * 1.2, {size: 26});
+    else gText(V, `on the cat arm: ${Math.round(ST_CATS.share[2] * START.length)} of ${START.length} points`, f * .5, f * 1.2, {size: 26});
+  },
+});
+</script>
+</body>
+</html>
