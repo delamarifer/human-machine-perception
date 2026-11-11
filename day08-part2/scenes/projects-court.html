@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<script>document.write(`<link rel="stylesheet" href="d8-scene.css?v=${Date.now()}">`)</script>
+<title>When judges do not pay attention</title>
+<style>
+  .projects-court .d8s-body{ grid-template-columns:1.8fr 1fr; }
+  @media (max-width: 820px), (max-aspect-ratio: 1/1){ .projects-court .d8s-body{ grid-template-columns:1fr; grid-template-rows:1.5fr 1fr; } }
+</style>
+</head>
+<body class="projects-court">
+<div class="d8s-wrap">
+  <h1 class="t deck-title">When judges do not pay attention</h1>
+  <div class="d8s-body">
+    <div class="d8s-plot" data-from="1"><canvas class="d8s-cv"></canvas></div>
+    <div class="d8s-side"><div class="d8s-stack">
+      <div class="lead d8s-item" data-from="1" data-to="1">One person meets the court again and again: complied, or not</div>
+      <div class="lead d8s-item" data-from="2" data-to="2">An attentive court: the outcome follows what they did</div>
+      <div class="lead d8s-item" data-from="3" data-to="3">An inattentive court: the outcome ignores what they did</div>
+      <div class="lead d8s-item" data-from="4" data-to="4">A learner who reasons perfectly. Attentive court: their sense of control stays high</div>
+      <div class="lead d8s-item" data-from="5" data-to="5">Inattentive court: it falls. A loss of perceived control, the kind of helplessness relevant to trauma</div>
+      <div class="lead d8s-item" data-from="6" data-to="6">No irrational thinking needed: in their experience, complying offered no protection</div>
+      <div class="lead d8s-item" data-from="7">The harm comes from the court’s inattention, not from a flaw in the person</div>
+    </div></div>
+  </div>
+  <div class="d8s-cite d8s-item" data-from="1">Mentors: Fernanda and Eric (details to add). A schematic of the idea: the encounters and the curves are drawn by hand, not data</div>
+</div>
+<script>document.write(`<script src="d8-toy.js?v=${Date.now()}"><\/script>`)</script>
+<script>
+/* PART projects, scene 1 (owner: Fernanda). The idea of Fernanda and Eric's formal model, drawn as a schematic.
+   BEAT 0 title only
+   BEAT 1 twelve encounters: what the person did (check = complied, cross = did not)
+   BEAT 2 attentive court: outcome under each encounter, follows conduct (smile = good, frown = bad), appears left to right
+   BEAT 3 inattentive court: outcome unrelated to conduct, appears left to right
+   BEAT 4 sketch: sense of control, attentive court (solid), drawn left to right: stays high
+   BEAT 5 sketch: inattentive court (dashed): falls
+   BEAT 6 boxes around the encounters where they complied and the inattentive court still gave a bad outcome
+   BEAT 7 same picture; the cue says where the harm comes from
+   The sequences and curves are HAND-CHOSEN to illustrate the idea. They are not data and not model output. */
+const INK = '#0f172a', MUTE = '#64748b', LINE = '#cbd5e1';
+const DID = [1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1];        // 1 = complied
+const ATT = DID.slice();                                   // attentive: the outcome follows conduct (1 = good)
+const INA = [0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1];          // inattentive: the outcome is unrelated to conduct
+const C_ATT = [.80, .82, .81, .83, .84, .83, .85, .85, .86, .85, .87, .87];   // sketch values, not data
+const C_INA = [.80, .76, .69, .63, .57, .50, .44, .39, .34, .30, .27, .24];
+const N = DID.length;
+/* a fixed wobble so the curves look hand-drawn and stay the same on every redraw */
+const WOB = (() => { const r = d8Rng(7); return Array.from({length: 200}, () => r.n()); })();
+
+function layout(V){
+  const W = V.w, H = V.h, d = V.px;
+  const f = Math.max(11 * d, Math.min(W / 30, H / 19));
+  V.ctx.font = `700 ${f}px Calibri, Carlito, Arial, sans-serif`;   // the row labels set where the columns start
+  const x0 = Math.max(...['What they did', 'Inattentive court', 'Attentive court'].map(t => V.ctx.measureText(t).width)) + f * .7;
+  const x1 = W - f * .4, cw = (x1 - x0) / N;
+  return {W, H, d, f, x0, x1, cw, col: i => x0 + (i + .5) * cw, s: Math.min(cw * .36, H * .042),
+    yDid: H * .08, yAtt: H * .21, yIna: H * .34, cTop: H * .47, cBot: H * .88};
+}
+function label(V, L, t, x, y, opt = {}){
+  const c = V.ctx; c.font = `${opt.bold ? '700 ' : ''}${(opt.size || 1) * L.f}px Calibri, Carlito, Arial, sans-serif`;
+  c.fillStyle = opt.col || INK; c.textAlign = opt.align || 'left'; c.textBaseline = 'middle'; c.globalAlpha = opt.alpha ?? 1;
+  c.fillText(t, x, y); c.globalAlpha = 1;
+}
+function check(V, L, x, y, ok, a = 1){
+  const c = V.ctx, s = L.s; c.globalAlpha = a; c.strokeStyle = INK; c.lineWidth = 2.4 * L.d; c.lineCap = 'round'; c.lineJoin = 'round';
+  c.beginPath();
+  if(ok){ c.moveTo(x - .6 * s, y); c.lineTo(x - .15 * s, y + .5 * s); c.lineTo(x + .7 * s, y - .6 * s); }
+  else { c.moveTo(x - .5 * s, y - .5 * s); c.lineTo(x + .5 * s, y + .5 * s); c.moveTo(x + .5 * s, y - .5 * s); c.lineTo(x - .5 * s, y + .5 * s); }
+  c.stroke(); c.globalAlpha = 1;
+}
+function face(V, L, x, y, good, a = 1){
+  const c = V.ctx, s = L.s * .85; c.globalAlpha = a; c.strokeStyle = INK; c.fillStyle = INK; c.lineWidth = 1.8 * L.d;
+  c.beginPath(); c.arc(x, y, s, 0, 7); c.stroke();
+  [-1, 1].forEach(k => { c.beginPath(); c.arc(x + k * .35 * s, y - .25 * s, .09 * s + .6 * L.d, 0, 7); c.fill(); });
+  c.beginPath();
+  if(good) c.arc(x, y + .02 * s, .5 * s, .18 * Math.PI, .82 * Math.PI);
+  else c.arc(x, y + .78 * s, .5 * s, 1.2 * Math.PI, 1.8 * Math.PI);
+  c.stroke(); c.globalAlpha = 1;
+}
+/* a smooth curve through the 12 sketch values, with a small fixed wobble, drawn up to fraction p */
+function sketch(V, L, vals, p, dash, seed){
+  const c = V.ctx, M = 120, pts = [];
+  const val = u => { const f = u * (N - 1), j = Math.min(N - 2, Math.floor(f)), r = f - j;
+    const a = vals[Math.max(0, j - 1)], b = vals[j], e = vals[j + 1], g = vals[Math.min(N - 1, j + 2)];
+    return b + .5 * r * (e - a + r * (2 * a - 5 * b + 4 * e - g + r * (3 * (b - e) + g - a))); };
+  for(let m = 0; m <= Math.round(M * p); m++){ const u = m / M;
+    const x = L.col(0) + u * (L.col(N - 1) - L.col(0)), y = L.cBot - val(u) * (L.cBot - L.cTop) + (WOB[(m + seed) % 200] + WOB[(m + seed + 1) % 200]) * .0009 * L.H;
+    pts.push([x, y]); }
+  if(pts.length < 2) return null;
+  c.strokeStyle = INK; c.lineWidth = 3 * L.d; c.lineCap = 'round'; c.lineJoin = 'round'; c.setLineDash(dash ? [9 * L.d, 7 * L.d] : []);
+  c.beginPath(); pts.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.stroke(); c.setLineDash([]);
+  return pts[pts.length - 1];
+}
+
+d8Scene({
+  name: 'projectsCourt', nb: 7, anim: {2: 2400, 3: 2400, 4: 2600, 5: 2600},
+  draw(V, b, p){
+    if(b === 0) return;
+    const L = layout(V), c = V.ctx;
+    const show = (beat, i) => b > beat || (b === beat && i < p * N + .001);   // left to right on the animated beat
+    const attA = b >= 6 ? .25 : 1;
+    /* rows */
+    label(V, L, 'What they did', 0, L.yDid, {bold: true});
+    for(let i = 0; i < N; i++) check(V, L, L.col(i), L.yDid, DID[i]);
+    if(b >= 2){ label(V, L, 'Attentive court', 0, L.yAtt, {alpha: attA}); for(let i = 0; i < N; i++) if(show(2, i)) face(V, L, L.col(i), L.yAtt, ATT[i], attA); }
+    if(b >= 3){ label(V, L, 'Inattentive court', 0, L.yIna); for(let i = 0; i < N; i++) if(show(3, i)) face(V, L, L.col(i), L.yIna, INA[i]); }
+    /* complied, and still a bad outcome */
+    if(b >= 6){ c.strokeStyle = INK; c.lineWidth = 2 * L.d; c.setLineDash([5 * L.d, 4 * L.d]);
+      for(let i = 0; i < N; i++) if(DID[i] && !INA[i]){ const w = L.cw * .78, top = L.yDid - L.s * 1.25, bot = L.yIna + L.s * 1.25;
+        c.beginPath(); c.roundRect(L.col(i) - w / 2, top, w, bot - top, 8 * L.d); c.stroke(); }
+      c.setLineDash([]); }
+    /* the sketch of a sense of control */
+    if(b >= 4){
+      c.strokeStyle = MUTE; c.lineWidth = 1.5 * L.d; c.beginPath();
+      c.moveTo(L.x0, L.cTop - L.f * .3); c.lineTo(L.x0, L.cBot); c.lineTo(L.x1, L.cBot); c.stroke();
+      label(V, L, 'Sense of', 0, L.cTop + L.f * .4, {bold: true}); label(V, L, 'control', 0, L.cTop + L.f * 1.5, {bold: true});
+      label(V, L, 'high', L.x0 - L.f * .4, L.cTop + L.f * .2, {align: 'right', col: MUTE, size: .85});
+      label(V, L, 'low', L.x0 - L.f * .4, L.cBot - L.f * .2, {align: 'right', col: MUTE, size: .85});
+      label(V, L, 'encounters →', L.x1, L.cBot + L.f * .8, {align: 'right', col: MUTE, size: .85});
+      label(V, L, 'sketch of the idea, not data', L.x0 + L.f * .4, L.cBot + L.f * .8, {col: MUTE, size: .85});
+      const e1 = sketch(V, L, C_ATT, b === 4 ? p : 1, false, 0);
+      if(e1 && (b > 4 || p === 1)) label(V, L, 'attentive', L.col(N - 1), e1[1] + L.f * .9, {align: 'right', size: .9});
+      if(b >= 5){ const e2 = sketch(V, L, C_INA, b === 5 ? p : 1, true, 60);
+        if(e2 && (b > 5 || p === 1)) label(V, L, 'inattentive', L.col(N - 1), e2[1] + L.f * .9, {align: 'right', size: .9}); }
+    }
+  },
+});
+</script>
+</body>
+</html>
