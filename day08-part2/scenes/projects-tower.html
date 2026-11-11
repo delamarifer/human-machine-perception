@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<script>document.write(`<link rel="stylesheet" href="d8-scene.css?v=${Date.now()}">`)</script>
+<title>Intuitive physics: will it fall?</title>
+<style>
+  .projects-tower .d8s-body{ grid-template-columns:1.4fr 1fr; }
+  @media (max-width: 820px), (max-aspect-ratio: 1/1){ .projects-tower .d8s-body{ grid-template-columns:1fr; grid-template-rows:1.5fr 1fr; } }
+</style>
+</head>
+<body class="projects-tower">
+<div class="d8s-wrap">
+  <h1 class="t deck-title">Intuitive physics: will it fall?</h1>
+  <div class="d8s-body">
+    <div class="d8s-plot" data-from="1"><canvas class="d8s-cv"></canvas></div>
+    <div class="d8s-side"><div class="d8s-stack">
+      <div class="lead d8s-item" data-from="1" data-to="1">Will this tower fall? Which way?</div>
+      <div class="lead d8s-item" data-from="2" data-to="2">It falls to the right. People can tell at a glance, with no equations</div>
+      <div class="lead d8s-item" data-from="3" data-to="3">One model: a rough physics simulation in the head, run many times from a blurry view</div>
+      <div class="lead d8s-item" data-from="4" data-to="4">It falls in <span id="nfall">?</span> of 12 runs: a graded answer, not just yes or no</div>
+      <div class="lead d8s-item" data-from="5" data-to="5">Another model: a deep network trained on many examples to predict what happens next</div>
+      <div class="lead d8s-item" data-from="6" data-to="6">The question: which model predicts like people do, mistakes included?</div>
+      <div class="lead d8s-item" data-from="7">Mentee projects with Aryan: details to add</div>
+    </div></div>
+  </div>
+  <div class="d8s-cite d8s-item" data-from="1">Mentor: Aryan Zoroufi, graduate student, MIT Brain and Cognitive Sciences. Schematic example, not his results.
+    <span class="d8s-item" data-from="3">Simulation model: <a href="https://doi.org/10.1073/pnas.1306572110" target="_blank" rel="noopener" onclick="event.stopPropagation()">Battaglia, Hamrick and Tenenbaum, PNAS 2013</a>.</span>
+    <span class="d8s-item" data-from="5">Networks on block towers: <a href="https://arxiv.org/abs/1603.01312" target="_blank" rel="noopener" onclick="event.stopPropagation()">Lerer, Gross and Fergus, ICML 2016</a>.</span></div>
+</div>
+<script>document.write(`<script src="d8-toy.js?v=${Date.now()}"><\/script>`)</script>
+<script>
+/* PART projects, scene 2 (owner: Fernanda). An intuitive-physics example, drawn as a schematic.
+   BEAT 0 title only
+   BEAT 1 a tower of six blocks
+   BEAT 2 it falls (animated): the lowest level whose load sits past the edge of its contact tips over that edge
+   BEAT 3 twelve runs of a "noisy simulation": every block nudged at random (a blurry view), each run simulated (animated)
+   BEAT 4 each run labelled falls / stands; the count goes into the cue
+   BEAT 5 schematic: one picture of the tower -> a network -> "falls?"
+   BEAT 6 schematic: the two models and people, "same predictions?"
+   BEAT 7 same picture; the cue says the project details are to add
+   The physics is a simple static check (centre of mass of the blocks above a contact must lie over that contact),
+   and a falling stack is drawn as one rigid piece tipping about the contact edge until it touches the ground.
+   That is enough for a schematic; it is not a physics engine, and nothing here is data. */
+const INK = '#0f172a', MUTE = '#64748b', FILL = '#e2e8f0';
+const BW = 1.2, BH = .6;                                    // block width and height (world units)
+const TOWER = [0, .22, .48, .68, .86, 1.02];                // block centres, bottom to top
+const BOX = {x0: -1.7, x1: 4.3, y1: 4.4};                   // world window: x from x0 to x1, y from 0 to y1
+const RUNS = (() => { const r = d8Rng(5); return Array.from({length: 12}, () => TOWER.map(x => x + .1 * r.n())); })();
+
+/* lowest unstable contact: {k, dir, px, py} (the stack above block k tips about the pivot), or null if it stands */
+function topple(xs){
+  for(let k = 0; k < xs.length - 1; k++){
+    const up = xs.slice(k + 1), com = up.reduce((a, b) => a + b, 0) / up.length;
+    const lo = Math.max(xs[k], xs[k + 1]) - BW / 2, hi = Math.min(xs[k], xs[k + 1]) + BW / 2;
+    if(com > hi) return {k, dir: 1, px: hi, py: (k + 1) * BH};
+    if(com < lo) return {k, dir: -1, px: lo, py: (k + 1) * BH};
+  }
+  return null;
+}
+const rot = (dx, dy, th, dir) => { const c = Math.cos(th), s = Math.sin(th);
+  return dir > 0 ? [dx * c + dy * s, -dx * s + dy * c] : [dx * c - dy * s, dx * s + dy * c]; };
+/* largest tipping angle (up to 90 degrees) before a corner of the falling stack reaches the ground */
+function maxTip(xs, T){
+  const corners = []; for(let j = T.k + 1; j < xs.length; j++) [-1, 1].forEach(sx => [0, 1].forEach(sy => corners.push([xs[j] + sx * BW / 2 - T.px, (j + sy) * BH - T.py])));
+  let th = 0; while(th < Math.PI / 2 && corners.every(([dx, dy]) => T.py + rot(dx, dy, th + .01, T.dir)[1] >= 0)) th += .01;
+  return th;
+}
+const FALLS = RUNS.map(xs => !!topple(xs));
+document.getElementById('nfall').textContent = FALLS.filter(Boolean).length;
+
+/* draw a tower into the rectangle (rx, ry, rw, rh) of the canvas; p = how far the fall has gone (0 to 1) */
+function tower(V, xs, rect, p, alpha = 1){
+  const c = V.ctx, [rx, ry, rw, rh] = rect, k = Math.min(rw / (BOX.x1 - BOX.x0), rh / BOX.y1);
+  const ox = rx + (rw - k * (BOX.x1 - BOX.x0)) / 2 - BOX.x0 * k, oy = ry + rh;
+  const P = (x, y) => [ox + x * k, oy - y * k];
+  c.globalAlpha = alpha; c.strokeStyle = MUTE; c.lineWidth = 1.5 * V.px;
+  c.beginPath(); c.moveTo(...P(BOX.x0, 0)); c.lineTo(...P(BOX.x1, 0)); c.stroke();
+  const T = topple(xs), th = T ? maxTip(xs, T) * p * p : 0;    // p squared: it speeds up as it falls
+  c.lineWidth = Math.max(1, 1.6 * V.px * Math.min(1, k / 60)); c.strokeStyle = INK; c.fillStyle = FILL;
+  xs.forEach((x, j) => {
+    let pts = [[x - BW / 2, j * BH], [x + BW / 2, j * BH], [x + BW / 2, (j + 1) * BH], [x - BW / 2, (j + 1) * BH]];
+    if(T && j > T.k) pts = pts.map(([a, b]) => { const [dx, dy] = rot(a - T.px, b - T.py, th, T.dir); return [T.px + dx, T.py + dy]; });
+    c.beginPath(); pts.forEach((q, i) => i ? c.lineTo(...P(...q)) : c.moveTo(...P(...q))); c.closePath(); c.fill(); c.stroke();
+  });
+  c.globalAlpha = 1;
+  return {P, k};
+}
+function text(V, f, t, x, y, opt = {}){
+  const c = V.ctx; c.font = `${opt.bold ? '700 ' : ''}${f}px Calibri, Carlito, Arial, sans-serif`; c.fillStyle = opt.col || INK;
+  c.textAlign = opt.align || 'center'; c.textBaseline = 'middle'; c.fillText(t, x, y);
+}
+function box(V, x, y, w, h, f, lines){
+  const c = V.ctx; c.strokeStyle = INK; c.lineWidth = 2 * V.px; c.fillStyle = '#f8fafc';
+  c.beginPath(); c.roundRect(x, y, w, h, 10 * V.px); c.fill(); c.stroke();
+  lines.forEach((t, i) => text(V, f, t, x + w / 2, y + h / 2 + (i - (lines.length - 1) / 2) * f * 1.15, {bold: i === 0}));
+}
+function arrow(V, x1, y1, x2, y2){
+  const c = V.ctx, h = 9 * V.px, a = Math.atan2(y2 - y1, x2 - x1); c.strokeStyle = INK; c.fillStyle = INK; c.lineWidth = 2 * V.px;
+  c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2 - h * .8 * Math.cos(a), y2 - h * .8 * Math.sin(a)); c.stroke();
+  c.beginPath(); c.moveTo(x2, y2); c.lineTo(x2 - h * Math.cos(a - .45), y2 - h * Math.sin(a - .45)); c.lineTo(x2 - h * Math.cos(a + .45), y2 - h * Math.sin(a + .45)); c.fill();
+}
+
+d8Scene({
+  name: 'projectsTower', nb: 7, anim: {2: 1600, 3: 1800},
+  draw(V, b, p){
+    if(b === 0) return;
+    const W = V.w, H = V.h, f = Math.max(11 * V.px, Math.min(W / 28, H / 18));
+    if(b <= 2){ tower(V, TOWER, [0, H * .04, W, H * .92], b === 2 ? p : 0); return; }
+    if(b <= 4){   /* 12 runs, 4 x 3 */
+      const cols = 4, rows = 3, gw = W / cols, gh = H / rows;
+      RUNS.forEach((xs, i) => { const cx = (i % cols) * gw, cy = Math.floor(i / cols) * gh, lab = b === 4 ? f * 1.1 : 0;
+        tower(V, xs, [cx + gw * .06, cy + gh * .06, gw * .88, gh * .88 - lab], b === 3 ? p : 1);
+        if(b === 4) text(V, f * .85, FALLS[i] ? 'falls' : 'stands', cx + gw / 2, cy + gh * .94 - lab * .4, {bold: FALLS[i], col: FALLS[i] ? INK : MUTE}); });
+      return;
+    }
+    if(b === 5){   /* picture -> network -> falls? */
+      const w = W * .3, y = H * .2, h = H * .6;
+      const fr = [W * .01, y, w, h]; tower(V, TOWER, [fr[0] + w * .05, y + h * .05, w * .9, h * .9], 0);
+      V.ctx.strokeStyle = MUTE; V.ctx.lineWidth = 1.5 * V.px; V.ctx.strokeRect(...fr);
+      text(V, f * .85, 'one picture', fr[0] + w / 2, y + h + f, {col: MUTE});
+      const nx = W * .43, nw = W * .22;
+      arrow(V, fr[0] + w + W * .015, H * .5, nx - W * .015, H * .5);
+      /* the network: three layers of units, drawn as a schematic */
+      const c = V.ctx; c.strokeStyle = INK; c.lineWidth = 2 * V.px; c.fillStyle = '#f8fafc'; c.beginPath(); c.roundRect(nx, y + h * .1, nw, h * .8, 10 * V.px); c.fill(); c.stroke();
+      const layers = [5, 4, 2], lx = l => nx + nw * (.2 + .3 * l), ly = (l, u) => H * .5 + (u - (layers[l] - 1) / 2) * h * .13;
+      c.strokeStyle = '#94a3b8'; c.lineWidth = 1 * V.px;
+      for(let l = 0; l < 2; l++) for(let u = 0; u < layers[l]; u++) for(let v = 0; v < layers[l + 1]; v++){ c.beginPath(); c.moveTo(lx(l), ly(l, u)); c.lineTo(lx(l + 1), ly(l + 1, v)); c.stroke(); }
+      c.fillStyle = INK; layers.forEach((n, l) => { for(let u = 0; u < n; u++){ c.beginPath(); c.arc(lx(l), ly(l, u), 4.5 * V.px, 0, 7); c.fill(); } });
+      text(V, f * .85, 'network', nx + nw / 2, y + h + f, {col: MUTE});
+      arrow(V, nx + nw + W * .015, H * .5, W * .76, H * .5);
+      text(V, f * 1.1, 'falls?', W * .87, H * .5, {bold: true});
+      return;
+    }
+    /* b >= 6: the two models and people */
+    const bw = W * .36, bh = H * .2, lx = W * .02, rx = W * .62;
+    box(V, lx, H * .16, bw, bh, f, ['Simulation', 'run many times']);
+    box(V, lx, H * .62, bw, bh, f, ['Network', 'trained on examples']);
+    box(V, rx, H * .39, bw, bh, f, ['People', 'what they predict']);
+    arrow(V, lx + bw + W * .02, H * .26, rx - W * .02, H * .46);
+    arrow(V, lx + bw + W * .02, H * .72, rx - W * .02, H * .52);
+    text(V, f, 'Same predictions?', rx + bw / 2, H * .39 - f * 1.2, {bold: true});
+  },
+});
+</script>
+</body>
+</html>

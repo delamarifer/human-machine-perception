@@ -11,6 +11,7 @@ const ORDER = [
   ['flow-matching', 'Flow matching basics (NeurIPS 2024 tutorial)'],
   ['same-coin', 'Diffusion and flow matching are the same coin (Gao et al. 2025)'],
   ['trilemma', 'The generative learning trilemma, then questions'],
+  ['projects', 'Potential projects and mentors for modeling cognition'],
 ];
 const PARTS = ORDER.map(r => r[0]);
 
@@ -23,4 +24,5 @@ const SEC_MINUTES = {
   'Flow Matching': 15,
   'Same Coin': 5,
   'Trilemma': 15,
+  'Projects': 4,
 };
