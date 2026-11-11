@@ -20,6 +20,11 @@
     background:#f8fafc; border:1px solid var(--line); border-left:4px solid var(--ink); border-radius:10px; padding:1.4vh 1.8vw; }
   .d8-algo > div{ padding-left:calc(var(--in, 0) * 2.2em); }
   .d8-algo .d8-kw{ font-family:var(--font); font-weight:700; }
+  .d8-terms{ display:flex; align-items:flex-start; justify-content:center; gap:1.4vw; text-align:center; }
+  .d8-terms > div{ display:flex; flex-direction:column; align-items:center; gap:.6vh; }
+  .d8-terms .d8-word{ font-size:clamp(1.5rem, 2.5vw, 2.3rem); font-weight:700; line-height:1.15; }
+  .d8-terms .d8-sym{ font-family:'Cambria Math', 'STIX Two Math', Cambria, Georgia, serif; font-size:clamp(1.1rem, 1.7vw, 1.6rem); color:var(--mute); }
+  .d8-terms .d8-op{ font-size:clamp(1.8rem, 3vw, 2.8rem); font-weight:700; padding-top:.1em; }
   .d8-note{ font-size:clamp(1.1rem, 1.6vw, 1.5rem); color:var(--ink); }
   @media (max-width: 820px), (max-aspect-ratio: 1/1){
     .stage{ padding:6vh 4vw 6.5vh; gap:1vh; }

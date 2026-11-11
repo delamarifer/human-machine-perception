@@ -1,12 +1,13 @@
 /* Day 8 part B: shared code for the toy 2D scenes (owner: Fernanda).
-   Everything drawn in these scenes is COMPUTED, not sketched: the data is a mixture of 8 small Gaussians on a ring,
-   so the noisy distribution at every noise level, its score, the ideal denoiser and the flow matching velocity all
-   have exact closed forms. A "perfect network" here means the exact answer a trained network is trying to learn.
+   Everything drawn in these scenes is COMPUTED, not sketched. The data is a spiral built as a chain of 64 small Gaussians
+   (the toy dataset idea follows the Welch Labs video for 3Blue1Brown, 2025; the numbers here are our own), so the noisy
+   distribution at every noise level, its score, the ideal denoiser and the flow matching velocity all have exact closed
+   forms. A "perfect network" here means the exact answer a trained network is trying to learn.
    Random numbers come from a fixed seed, so the pictures are the same on every load.
 
    Conventions
-   - Diffusion (DDPM): x_t = a x0 + s eps with a = sqrt(abar_t), s = sqrt(1 - abar_t); linear beta from 1e-4 to 0.02,
-     T = 1000 (the schedule in Ho et al. 2020). t = 0 is data, t = T is noise.
+   - Diffusion (DDPM): x_t = a x0 + s eps with a = sqrt(abar_t), s = sqrt(1 - abar_t). Schedule: beta linear from 0.1/N to 20/N
+     over N steps, which for N = 1000 is exactly the schedule in Ho et al. 2020 (1e-4 to 0.02). t = 0 is data, t = N is noise.
    - Flow matching: X_t = (1 - t) X0 + t X1, X0 ~ N(0, I) noise, X1 ~ data. t = 0 is noise, t = 1 is data
      (the NeurIPS 2024 tutorial's convention).
    Both are "x = alpha * data + sigma * noise", so one posterior routine serves both. */
@@ -22,7 +23,18 @@ function d8Rng(seed){
 
 /* ---------- the data: a Gaussian mixture ---------- */
 const D8_RING = (k = 8, r = 2.4) => Array.from({length: k}, (_, i) => [r * Math.cos(2 * Math.PI * i / k + Math.PI / 8), r * Math.sin(2 * Math.PI * i / k + Math.PI / 8)]);
-function d8Mix(mu = D8_RING(), tau = 0.16){ return {mu, tau, w: mu.map(() => 1 / mu.length)}; }
+/* K centers spaced evenly by arc length along an Archimedean spiral, then shifted so their mean is zero
+   (models rescale pixel values to be centered at zero too). */
+const D8_SPIRAL = (K = 64, turns = 1.55, r0 = 0.45, r1 = 2.75) => {
+  const M = 3000, raw = [], L = [0];
+  for(let i = 0; i <= M; i++){ const q = i / M, th = 2 * Math.PI * turns * q + .6, r = r0 + (r1 - r0) * q;
+    raw.push([r * Math.cos(th), r * Math.sin(th)]); if(i) L.push(L[i - 1] + Math.hypot(raw[i][0] - raw[i - 1][0], raw[i][1] - raw[i - 1][1])); }
+  const pts = []; let j = 0;
+  for(let k = 0; k < K; k++){ const target = L[M] * k / (K - 1); while(j < M && L[j] < target) j++; pts.push(raw[j]); }
+  const mx = pts.reduce((a, p) => a + p[0], 0) / K, my = pts.reduce((a, p) => a + p[1], 0) / K;
+  return pts.map(p => [p[0] - mx, p[1] - my]);
+};
+function d8Mix(mu = D8_SPIRAL(), tau = 0.11){ return {mu, tau, w: mu.map(() => 1 / mu.length)}; }
 function d8SampleData(mix, n, rng){
   return Array.from({length: n}, () => { const k = Math.min(mix.mu.length - 1, Math.floor(rng.u() * mix.mu.length));
     return [mix.mu[k][0] + mix.tau * rng.n(), mix.mu[k][1] + mix.tau * rng.n()]; });
@@ -52,33 +64,43 @@ function d8Post(mix, x, al, sg){
 }
 
 /* ---------- DDPM schedule ---------- */
-const D8_T = 1000;
-const D8_BETA = Array.from({length: D8_T + 1}, (_, t) => t === 0 ? 0 : 1e-4 + (0.02 - 1e-4) * (t - 1) / (D8_T - 1));
-const D8_ABAR = (() => { const a = [1]; for(let t = 1; t <= D8_T; t++) a[t] = a[t - 1] * (1 - D8_BETA[t]); return a; })();
-const d8AS = t => [Math.sqrt(D8_ABAR[t]), Math.sqrt(1 - D8_ABAR[t])];
+function d8Sched(N){
+  const beta = [0], abar = [1];
+  for(let t = 1; t <= N; t++){ beta[t] = .1 / N + (19.9 / N) * (t - 1) / Math.max(1, N - 1); abar[t] = abar[t - 1] * (1 - beta[t]); }
+  return {N, beta, abar, as: t => [Math.sqrt(abar[t]), Math.sqrt(1 - abar[t])]};
+}
+const D8_S100 = d8Sched(100);
 
-/* Forward noising of fixed (x0, eps) pairs to step t. */
-const d8Noised = (x0s, eps, t) => { const [a, s] = d8AS(t); return x0s.map((p, i) => [a * p[0] + s * eps[i][0], a * p[1] + s * eps[i][1]]); };
-
-/* Reverse runs with the exact denoiser. Returns trajectories: traj[i][j] is particle i after j recorded steps,
-   recorded every `every` steps from t = T down to t = 0. stochastic: DDPM ancestral (SDE); else DDIM, eta = 0 (ODE). */
-function d8Reverse(mix, xT, stochastic, rng, every = 5){
-  const traj = xT.map(p => [p.slice()]);
-  let xs = xT.map(p => p.slice());
-  for(let t = D8_T; t >= 1; t--){
-    const [a, s] = d8AS(t), [ap, sp] = d8AS(t - 1), al = 1 - D8_BETA[t];
-    xs = xs.map(x => {
-      const P = d8Post(mix, x, a, s), eps = P.E0;
-      if(stochastic){
-        const m = [(x[0] - D8_BETA[t] / s * eps[0]) / Math.sqrt(al), (x[1] - D8_BETA[t] / s * eps[1]) / Math.sqrt(al)];
-        const sd = t > 1 ? Math.sqrt(D8_BETA[t]) : 0;
-        return [m[0] + sd * rng.n(), m[1] + sd * rng.n()];
-      }
-      const x0 = P.E1; return [ap * x0[0] + sp * eps[0], ap * x0[1] + sp * eps[1]];
-    });
-    if((D8_T - t + 1) % every === 0) xs.forEach((x, i) => traj[i].push(x.slice()));
-  }
-  return traj;
+/* Forward noising of fixed (x0, eps) pairs straight to step t (the one-jump formula). */
+const d8Noised = (x0s, eps, t, S = D8_S100) => { const [a, s] = S.as(t); return x0s.map((p, i) => [a * p[0] + s * eps[i][0], a * p[1] + s * eps[i][1]]); };
+/* Forward noising step by step: the random walk. paths[i][t] is point i after t steps. */
+function d8Walks(x0s, rng, S = D8_S100){
+  return x0s.map(p => { let x = p.slice(); const tr = [x.slice()];
+    for(let t = 1; t <= S.N; t++){ const c = Math.sqrt(1 - S.beta[t]), d = Math.sqrt(S.beta[t]); x = [c * x[0] + d * rng.n(), c * x[1] + d * rng.n()]; tr.push(x.slice()); }
+    return tr; });
+}
+/* One reverse step from t to t-1 with the exact denoiser.
+   mode 'ddpm': the DDPM update plus fresh noise (Ho et al., Algorithm 2). 'mean': the same update with the noise line deleted.
+   Returns {m, x}: m = the point after the model's move, x = after the random step (equal to m for 'mean'). */
+function d8Step(mix, x, t, mode, rng, S = D8_S100){
+  const [a, s] = S.as(t), al = 1 - S.beta[t], eps = d8Post(mix, x, a, s).E0;
+  const m = [(x[0] - S.beta[t] / s * eps[0]) / Math.sqrt(al), (x[1] - S.beta[t] / s * eps[1]) / Math.sqrt(al)];
+  if(mode === 'mean' || t === 1) return {m, x: m};
+  const sd = Math.sqrt(S.beta[t]); return {m, x: [m[0] + sd * rng.n(), m[1] + sd * rng.n()]};
+}
+/* Reverse runs from t = N down to 0; traj[i][j] is particle i after j steps. mode 'ddpm' or 'mean'. */
+function d8Reverse(mix, xT, mode, rng, S = D8_S100){
+  return xT.map(p => { let x = p.slice(); const tr = [x.slice()];
+    for(let t = S.N; t >= 1; t--){ x = d8Step(mix, x, t, mode, rng, S).x; tr.push(x.slice()); }
+    return tr; });
+}
+/* DDIM (eta = 0) on `steps` evenly spaced steps of the schedule: deterministic. traj[i][j] after j of those steps. */
+function d8Ddim(mix, xT, steps, S = D8_S100){
+  const ts = Array.from({length: steps + 1}, (_, k) => Math.round(S.N * (steps - k) / steps));
+  return xT.map(p => { let x = p.slice(); const tr = [x.slice()];
+    for(let k = 0; k < steps; k++){ const t = ts[k], tp = ts[k + 1], [a, s] = S.as(t), [ap, sp] = S.as(tp), P = d8Post(mix, x, a, s);
+      x = [ap * P.E1[0] + sp * P.E0[0], ap * P.E1[1] + sp * P.E0[1]]; tr.push(x.slice()); }
+    return tr; });
 }
 
 /* ---------- flow matching ---------- */
@@ -108,6 +130,8 @@ function d8Canvas(cv, R = 3.8){
     cv.width = Math.max(1, r.width * d); cv.height = Math.max(1, r.height * d);
     V.w = cv.width; V.h = cv.height; V.k = Math.min(V.w, V.h) / (2 * R); V.cx = V.w / 2; V.cy = V.h / 2; V.px = d; };
   V.P = p => [V.cx + p[0] * V.k, V.cy - p[1] * V.k];
+  /* zoom: show the square of half-width r around point c (call after fit, before drawing) */
+  V.zoom = (c, r) => { V.k = Math.min(V.w, V.h) / (2 * r); V.cx = V.w / 2 - c[0] * V.k; V.cy = V.h / 2 + c[1] * V.k; };
   V.clear = () => ctx.clearRect(0, 0, V.w, V.h);
   V.dots = (pts, col, r = 2.6, alpha = 1) => { ctx.globalAlpha = alpha; ctx.fillStyle = col;
     pts.forEach(p => { const [X, Y] = V.P(p); ctx.beginPath(); ctx.arc(X, Y, r * V.px, 0, 7); ctx.fill(); }); ctx.globalAlpha = 1; };
