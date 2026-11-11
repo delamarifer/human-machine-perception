@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<script>document.write(`<link rel="stylesheet" href="d8-scene.css?v=${Date.now()}">`)</script>
+<title>From noise to an image, in a loop</title>
+<style>
+  /* Part diffusion (Day 8 part B). The generation loop, after the Welch Labs video for 3Blue1Brown (0:47 to 2:05):
+     noise in, the network outputs a change, add it, pass it back in, 50 times. One canvas draws the diagram and the images;
+     the cue sits underneath. Every image is computed (12-image dataset, exact denoiser, DDIM on a 50-step schedule). */
+  .loop-cell{ position:relative; flex:1 1 auto; min-height:0; opacity:0; transition:opacity .6s; }
+  .loop-cell.on{ opacity:1; }
+  .loop-cues{ display:grid; min-height:2.6em; }
+  .loop-cues > *{ grid-area:1 / 1; }
+  .loop-cues .d8s-item:not(.on){ transition:none; }
+  @media (max-width: 820px), (max-aspect-ratio: 1/1){ .loop-cues .lead{ font-size:clamp(.9rem, 2.6vw, 1.2rem); } }
+</style>
+</head>
+<body>
+<div class="d8s-wrap">
+  <h1 class="t deck-title">From noise to an image, in a loop</h1>
+  <div class="loop-cell" data-from="1"><canvas class="d8s-cv"></canvas></div>
+  <div class="loop-cues">
+    <div class="lead d8s-item" data-from="1" data-to="1">Start: a random brightness for every pixel</div>
+    <div class="lead d8s-item" data-from="2" data-to="2">The network outputs a change. Add it to the image, and pass the result back in</div>
+    <div class="lead d8s-item" data-from="3" data-to="3">Inside, the network guesses the finished image: at first, an average of everything it has seen</div>
+    <div class="lead d8s-item" data-from="4" data-to="4">Repeat: 5 steps</div>
+    <div class="lead d8s-item" data-from="5" data-to="5">10 steps</div>
+    <div class="lead d8s-item" data-from="6" data-to="6">20 steps</div>
+    <div class="lead d8s-item" data-from="7" data-to="7">30 steps</div>
+    <div class="lead d8s-item" data-from="8" data-to="8">40 steps</div>
+    <div class="lead d8s-item" data-from="9" data-to="9">50 steps: an image, made from noise, with no prompt at all</div>
+    <div class="lead d8s-item" data-from="10" data-to="10">This network is ideal for 12 images, so it can only return one of them. A real network makes new images</div>
+    <div class="lead d8s-item" data-from="11">Today: what each step does, and why it works</div>
+  </div>
+  <div class="d8s-cite d8s-item" data-from="1">Computed exactly: DDIM with 50 steps (Song, Meng and Ermon, ICLR 2021) and an ideal denoiser for 12 images (64 × 64, gray), which can only return one of its 12 images. Images: Wikimedia Commons, public domain and CC0. After <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a>, 0:47</div>
+</div>
+<script>document.write(`<script src="d8-toy.js?v=${Date.now()}"><\/script>`)</script>
+<script>
+/* BEAT 0 title only
+   BEAT 1 the starting image: pure noise (seeded), step 0 of 50
+   BEAT 2 the loop diagram fades in: image -> network -> change -> added back; one pass through the loop (step 1)
+   BEAT 3 inside the network box: its guess of the clean image (exact E[x0 | x_t], d8ImgPost(...).E1)
+   BEATS 4-9 the loop runs on to 5, 10, 20, 30, 40, 50 steps (animated only on the forward click)
+   BEAT 10 the caveat (ideal denoiser for 12 images); BEAT 11 what today explains. The picture stays at step 50.
+   The panels always show the LAST pass through the loop: the image after k steps, the change that pass added, and the guess
+   the network made on that pass. The change is shown contrast stretched (divided by 3 times its rms), as said on its caption. */
+const N = 64, STEPS = 50, S = d8Sched(STEPS), INK = '#0f172a', MUTE = '#64748b', LINE = '#cbd5e1';
+const STOP = [0, 0, 1, 1, 5, 10, 20, 30, 40, 50, 50, 50];
+let X = null, G = null, DX = null, W1 = null;   /* X[k] image after k steps; G[k], DX[k], W1[k] for the pass that made X[k] (k >= 1) */
+
+d8LoadImages(D8_HORSES, N).then(set => {
+  const r = d8Rng(41); let x = Float32Array.from({length: N * N}, () => r.n());
+  X = [x]; G = [null]; DX = [null]; W1 = [null];
+  for(let k = 0; k < STEPS; k++){
+    const t = STEPS - k, tp = t - 1, [a, s] = S.as(t), [ap, sp] = S.as(tp), P = d8ImgPost(set, x, a, s);
+    const y = new Float32Array(N * N), dx = new Float32Array(N * N);
+    for(let i = 0; i < N * N; i++){ y[i] = ap * P.E1[i] + sp * P.E0[i]; dx[i] = y[i] - x[i]; }
+    /* the weight of the most likely training image in the guess (for the notes and the hand-over) */
+    let best = 0, bi = 0; set.forEach((im, j) => { let q = 0; for(let i = 0; i < N * N; i++){ const d = x[i] - a * im[i]; q += d * d; } set[j]._q = q; });
+    const qs = set.map(im => im._q), mq = Math.min(...qs), w = qs.map(q => Math.exp(-(q - mq) / (2 * s * s))), Z = w.reduce((u, v) => u + v, 0);
+    w.forEach((v, j) => { if(v / Z > best){ best = v / Z; bi = j; } });
+    X.push(y); G.push(P.E1); DX.push(dx); W1.push({img: bi + 1, w: best}); x = y;
+  }
+  /* which training image did it end on, and how far from it (for the check) */
+  const last = X[STEPS]; let bestD = 1e9, bestJ = -1;
+  set.forEach((im, j) => { let q = 0; for(let i = 0; i < N * N; i++) q += (last[i] - im[i]) ** 2; q = Math.sqrt(q / (N * N)); if(q < bestD){ bestD = q; bestJ = j + 1; } });
+  window.d8LoopInfo = {endsOn: bestJ, rmsToIt: bestD, topWeight: W1.slice(1).map((o, k) => `${k + 1}:#${o.img}:${o.w.toFixed(3)}`)};
+  dispatchEvent(new Event('resize'));
+});
+
+/* paint a [-1, 1] gray image into the square (x0, y0, side) with a frame; sc stretches the contrast */
+const off = document.createElement('canvas'); off.width = off.height = N; const octx = off.getContext('2d');
+function img(ctx, x, x0, y0, side, d, sc = 1){
+  const id = octx.createImageData(N, N);
+  for(let i = 0; i < N * N; i++){ const g = Math.max(0, Math.min(255, Math.round(127.5 * (x[i] * sc + 1)))); id.data[4 * i] = id.data[4 * i + 1] = id.data[4 * i + 2] = g; id.data[4 * i + 3] = 255; }
+  octx.putImageData(id, 0, 0); ctx.imageSmoothingEnabled = true; ctx.drawImage(off, x0, y0, side, side);
+  ctx.strokeStyle = INK; ctx.lineWidth = 1.5 * d; ctx.strokeRect(x0, y0, side, side);
+}
+function arrow(ctx, pts, d, head){
+  ctx.strokeStyle = INK; ctx.fillStyle = INK; ctx.lineWidth = 2.2 * d; ctx.lineJoin = 'round';
+  const n = pts.length, [ex, ey] = pts[n - 1], [px, py] = pts[n - 2], L = Math.hypot(ex - px, ey - py), ux = (ex - px) / L, uy = (ey - py) / L;
+  ctx.beginPath(); pts.forEach(([x, y], i) => { const q = i === n - 1 ? [x - ux * head * .8, y - uy * head * .8] : [x, y]; i ? ctx.lineTo(...q) : ctx.moveTo(...q); }); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex - ux * head - uy * head * .5, ey - uy * head + ux * head * .5); ctx.lineTo(ex - ux * head + uy * head * .5, ey - uy * head - ux * head * .5); ctx.fill();
+}
+const rms = a => { let q = 0; for(let i = 0; i < a.length; i++) q += a[i] * a[i]; return Math.sqrt(q / a.length); };
+
+d8Scene({
+  name: 'd8Loop', nb: 11, anim: {2: 1400, 3: 700, 4: 1500, 5: 1500, 6: 2200, 7: 2200, 8: 2200, 9: 2200},
+  draw(V, b, p){
+    if(b === 0 || !X) return;
+    const c = V.ctx, W = V.w, H = V.h, d = V.px;
+    const k = Math.round(STOP[b - 1] + (STOP[b] - STOP[b - 1]) * p);
+    /* layout, all from the canvas size */
+    const f = Math.max(12 * d, Math.min(W / 46, H / 17)), font = (s, bold) => `${bold ? 'bold ' : ''}${s}px Calibri, Carlito, Arial, sans-serif`;
+    const arcH = 3.4 * f, capH = 2.9 * f;
+    const P = Math.max(40 * d, Math.min(.26 * W, H - arcH - capH));
+    const oy = Math.max(0, (H - arcH - P - capH) / 2);   /* centre the drawing vertically */
+    const Dx = Math.min(.355 * W, (W - P) / 2 - 2 * d), cx = [W / 2 - Dx, W / 2, W / 2 + Dx], top = oy + arcH, mid = top + P / 2;
+    const bw = Math.min(1.05 * P, 2 * Dx - P - 6 * f), bh = P;   /* the network box */
+    const diag = b === 2 ? Math.min(1, p * 2.2) : (b > 2 ? 1 : 0), inside = b === 3 ? p : (b > 3 ? 1 : 0);
+    c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+    /* captions shrink to fit their column on narrow screens */
+    const fit = (t, x, y, sz, bold, room) => { c.font = font(sz, bold); const w = c.measureText(t).width; if(w > room) c.font = font(sz * room / w, bold); c.fillText(t, x, y); };
+    const room = Math.min(2 * Dx - 2 * f, 2 * (W - cx[2]) - 2 * d);
+
+    /* the image (always) */
+    img(c, X[k], cx[0] - P / 2, top, P, d);
+    c.fillStyle = INK; c.font = font(f);
+    c.fillText(k === 0 ? 'pure noise' : 'the image', cx[0], top + P + 1.25 * f);
+    c.font = font(f, true); c.fillText(`step ${k} of ${STEPS}`, cx[0], top + P + 2.45 * f);
+    if(!diag) return;
+
+    c.globalAlpha = diag;
+    /* network box */
+    const bx = cx[1] - bw / 2;
+    c.lineWidth = 2.2 * d; c.strokeStyle = INK; c.fillStyle = '#f8fafc';
+    c.beginPath(); c.roundRect(bx, top, bw, bh, 12 * d); c.fill(); c.stroke();
+    c.fillStyle = INK; c.font = font(1.15 * f, true);
+    c.fillText('network', cx[1], inside ? top + 1.5 * f : mid + .4 * f);
+    /* arrows: image -> network -> change */
+    const gap = 1.1 * f, head = 1.0 * f;
+    arrow(c, [[cx[0] + P / 2 + gap * .5, mid], [bx - gap * .5, mid]], d, head);
+    arrow(c, [[bx + bw + gap * .5, mid], [cx[2] - P / 2 - gap * .5, mid]], d, head);
+    /* the change it output on the last pass (contrast stretched) */
+    const dk = DX[Math.max(1, k)];
+    if(k >= 1) img(c, dk, cx[2] - P / 2, top, P, d, 1 / (3 * rms(dk)));
+    else { c.strokeStyle = LINE; c.strokeRect(cx[2] - P / 2, top, P, P); }
+    c.fillStyle = INK; fit('the change it outputs', cx[2], top + P + 1.25 * f, f, false, room);
+    c.fillStyle = MUTE; fit('(contrast stretched)', cx[2], top + P + 2.4 * f, .85 * f, false, room);
+    /* the loop back: change -> added to the image */
+    const yA = oy + .9 * f;
+    arrow(c, [[cx[2], top - .5 * f], [cx[2], yA], [cx[0], yA], [cx[0], top - .35 * f]], d, head);
+    c.font = font(f, true); const lab = '+  add it to the image, and pass it back in', lw = c.measureText(lab).width + 1.2 * f;
+    c.fillStyle = '#fff'; c.fillRect(cx[1] - lw / 2, yA - .75 * f, lw, 1.5 * f);
+    c.fillStyle = INK; c.fillText(lab, cx[1], yA + .35 * f);
+
+    /* inside the box: its guess of the clean image on the last pass */
+    if(inside && k >= 1){
+      c.globalAlpha = diag * inside;
+      const gs = Math.min(bw - 1.6 * f, bh - 4.7 * f), gy = top + 2.1 * f;
+      img(c, G[k], cx[1] - gs / 2, gy, gs, d);
+      c.fillStyle = INK; fit('its guess of the', cx[1], gy + gs + 1.05 * f, .85 * f, false, bw - .6 * f); fit('finished image', cx[1], gy + gs + 2.05 * f, .85 * f, false, bw - .6 * f);
+    }
+    c.globalAlpha = 1;
+  },
+});
+</script>
+</body>
+</html>
