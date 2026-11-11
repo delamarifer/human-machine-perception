@@ -15,11 +15,20 @@ sc('d8Field', 'scenes/field.html', { notes: [
 ]});
 
 sc('d8Ddpm', 'scenes/ddpm.html', { notes: [
-  "(draft) Now generation. DDPM starts from noise and alternates two moves.",
-  "(draft) Follow one point. In blue, the step the model takes along its field. In gray, a random step, which DDPM adds after every model step. The random steps start large and shrink as t goes down. The point jumps around a lot, and still lands on the spiral.",
-  "(draft) Now 256 points at once. It looks like chaos at first, and then the spiral appears.",
-  "(draft) Here is the surprising part. Delete the line of code that adds the random step, and run the same points again. They no longer cover the spiral: they crowd toward the middle of the data. In the video, the same deletion in Stable Diffusion turns a sharp tree in the desert into a small, blurry one. In image space, averages look blurry.",
-  "(draft) The reason: for small steps, each reverse step is close to a Gaussian, and the network learns only its mean, its average. To draw a sample from that Gaussian, and not just take its average, you have to add the noise back: that is the plus sigma t z in Algorithm 2. It is not a hack; it falls out of the theory. And DDPM does this 1000 times, each a full pass through the network, while a GAN needs one pass. That cost is why diffusion did not take over right away."
+  "(draft) Now generation. DDPM starts from pure noise and repeats two moves. We will follow them in the paper's Algorithm 2.",
+  "(draft) Follow one point, starting from noise. First the model step, in blue: a small step in the direction the network gives. That is the highlighted part of line 4, built around the network's prediction epsilon theta, which takes the point x t and the time t.",
+  "(draft) Then the random step, in gray: line 3 draws fresh noise z, and the end of line 4 adds it, scaled by sigma t. The random step can look large, but it gets smaller as t goes down.",
+  "(draft) Now the whole loop of line 2: 100 steps. The point jumps around a lot, because the field changes with time and because of the random steps, and still lands on the spiral. On the right, the same algorithm runs on an image from our dataset of 12 images: noise at first, then a clear image.",
+  "(draft) Now 256 points at once. It looks like chaos at first, and then most points land on the spiral.",
+  "(draft) Now the surprising part. Delete the random step: line 3 and the end of line 4. Run the same points again. They rush to the middle of the spiral, then drift to one inner edge. They no longer cover the spiral. On the right, the same image without the random step stays a faded, low-contrast average for most of the run, and sharpens only near the end.",
+  "(draft) Why does this happen? For small steps, each step backward is close to a bell curve, a Gaussian, and the network learns only its center, the average. That is where the blue arrow ends. To draw a point from that bell curve, and not just take its center, we add zero-mean noise: plus sigma t z. The dashed circle has radius sigma t, and the gray dots are possible next points. So the random step is not a hack; it comes straight out of the theory. This is the very first step again: far from the spiral, the arrow points toward the middle of the data, which is the average showing."
+]});
+
+sc('d8DdpmGrid', 'scenes/ddpm-grid.html', { notes: [
+  "(draft) What does deleting the random step do to images?",
+  "(draft) First a picture to keep in mind, and this one is an illustration, not a computation. Imagine each part of the spiral is a different image from our dataset, and the middle of the spiral is their average. The average of our 12 images, on the right, is a gray blur. In the video, deleting the random step in Stable Diffusion turned a sharp tree in the desert into a sad, blurry one: an image that looks like an average. That example is from Welch Labs for 3Blue1Brown, 2025.",
+  "(draft) Now computed. Top row: eight starting noise images. Second row: where DDPM, with its random steps, takes each one, using the ideal denoiser for our 12 images. They end on five different images. On the left, the 256 points from the last slide, spread along the spiral.",
+  "(draft) Third row: the same eight noises with the random step deleted. All eight end on the same image, and it is the one closest to the average of the 12. That matches the spiral: the points crowd at one inner edge, near the middle. Our ideal denoiser always ends on a real image, so there is no blur here, just much less variety. The video says the same about its spiral. Its blurry tree comes from a real network, which on this path never quite reaches realistic images."
 ]});
 
 st(`
