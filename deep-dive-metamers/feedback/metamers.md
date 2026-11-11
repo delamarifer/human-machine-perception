@@ -13,3 +13,7 @@
 - [ ] IPCL is only a "later" slide (15), because the student's idea is about an AlexNet-scale model and our review said to leave IPCL training out. Enough?
 - [ ] Not added to `index.html`.
 - [ ] Speaker notes are all `(draft)`.
+
+## 2026-11-11: opening check of the idea (Fernanda)
+- [x] Slides 2 and 3 now restate the team's idea and their three questions, in our own words (no names, no quotes from the form), so the team can say if we understood it. Original text stays on the private review page.
+- [ ] Fernanda: check the paraphrase against the submission.

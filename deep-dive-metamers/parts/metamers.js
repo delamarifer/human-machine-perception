@@ -125,6 +125,37 @@ st(`${mmStyle}
 `, mmN('Now a project about model metamers.',
   'The general idea: a model can treat two images as the same, when people see them as very different. Which parts of the model cause this?'));
 
+/* 1b. The idea as the team sent it, in our own words (no names, no quotes from the form: public repo). Checked against the submission on the private review page. */
+st(`
+  <h1 class="t">Your Idea, in Our Words</h1>
+  <div class="metamers-col" style="flex:1 1 auto">
+    ${mmLine('1. Make metamers from a small network.', 1)}
+    ${mmLine('2. Find the features where photo and metamer differ. Use an SAE.', 2)}
+    ${mmLine('3. Remove those features. Make the metamers again.', 3)}
+    ${mmLine('4. Can people recognize them now?', 4)}
+    ${mmLine('Did we get it right?', 5, 'question')}
+  </div>
+`, mmN('Before we start, here is your idea, as we understood it. Please stop us if we got it wrong.',
+  'You want to take a small pretrained network, about the size of AlexNet, and make metamers from several layers.',
+  'Then you want to find where a photo and its metamer differ inside the network, and split that difference into features with a sparse autoencoder, an SAE.',
+  'Then you want to remove or edit those features, and make the metamers again.',
+  'Finally, you want to test if people, or a model that stands in for people, can now recognize them. The question: which features make the model ignore changes that we see, and does removing them fix the metamers?',
+  'Is this right? You also sent a second idea, about IPCL. We come back to it at the end.'));
+
+st(`
+  <h1 class="t">What You Asked Us</h1>
+  <div class="metamers-col" style="flex:1 1 auto">
+    ${mmLine('How do we measure recognition without a big study with people?', 1, 'question')}
+    ${mmLine('Are SAE features stable? Do they really cause anything?', 2, 'question')}
+    ${mmLine('What fits in two weeks? What comes first?', 3, 'question')}
+    ${mmLine('Today we answer these three.', 4, 'lead')}
+  </div>
+`, mmN('You also asked us some questions. These are the three main ones.',
+  'First: how can you measure if people recognize the metamers, without running a big study?',
+  'Second: how can you check that SAE features are stable from one training run to the next, and that they really matter?',
+  'Third: what is a realistic plan for two weeks, and which step should come first?',
+  'The rest of this talk answers these three questions.'));
+
 /* 2. What a metamer is. */
 st(`
   <h1 class="t">Same for the Model</h1>
