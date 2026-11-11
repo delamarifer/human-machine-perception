@@ -16,7 +16,8 @@ st(`
   <h1 class="t">Announcements</h1>
   <div class="d8-col" style="justify-content:flex-start;padding-top:2vh">
     <ul class="d8-ann">
-      <li class="b">Assignment #1 Due EOW</li>
+      <li class="b">Assignment #1 Due Friday</li>
+      <li class="b">Proposals Due Friday</li>
       <li class="b">Group Project Sign Ups: <a href="https://calendly.com/shreyalpandit/project-proposal-review" target="_blank" rel="noopener">Calendly w/ Shreya</a>, to chat on Thursday
         <ol class="d8-ann-groups b">
           <li>Blur and scrambling, people vs models</li>

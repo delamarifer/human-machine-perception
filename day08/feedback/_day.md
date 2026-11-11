@@ -23,7 +23,7 @@ Each comment is listed with its Google slide number and what the HTML does now.
 Comments on slides after 20 (GAN, VAE, and the pieces on slides 21 and later) are not built yet.
 
 ## Questions for Shreya
-- [ ] Slide 1 Assignment #1: the course site says Friday, Nov 13, 2pm. Keep "Due EOW" or use the site's date?
+- [x] Slide 1: "Assignment #1 Due Friday", plus "Proposals Due Friday" (Shreya, 2026-11-11).
 - [ ] Slide 3: examples for use cases. What do you want?
 - [ ] Slide 4 had no title in the Google deck. I used its first question as the title. OK?
 - [ ] Slide 5 years and citations: Hinton and Salakhutdinov 2006 (Science); Kingma and Welling 2014 (ICLR); Goodfellow et al. 2014 (NeurIPS); van den Oord et al. 2016 (NeurIPS). Confirm which citation you want on screen.
