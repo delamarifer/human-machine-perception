@@ -45,7 +45,7 @@ st(`
   "(draft) GANs are on this edge. They generate high-quality samples quickly, with one pass through the generator, but they have poor mode coverage.",
   "(draft) VAEs and normalizing flows are on this edge. They cover the data faithfully, and they sample fast, but they often suffer from low sample quality.",
   "(draft) And diffusion is on this edge: strong quality and strong coverage, but sampling often takes thousands of network evaluations.",
-  "(draft) So here is a question for you. Where does flow matching go? Remember the same-coin slide. With a Gaussian source it is the same model as diffusion, so it starts on the same edge. Its cost is still the number of steps."
+  "(draft) So here is a question for you. Where does flow matching go? Remember the blog post from the flow matching section: with a Gaussian source it is the same model as diffusion, so it starts on the same edge. Its cost is still the number of steps."
 ]});
 
 st(`
