@@ -22,26 +22,23 @@ sc('d8Ddpm', 'scenes/ddpm.html', { notes: [
   "(draft) The reason: for small steps, each reverse step is close to a Gaussian, and the network learns only its mean, its average. To draw a sample from that Gaussian, and not just take its average, you have to add the noise back: that is the plus sigma t z in Algorithm 2. It is not a hack; it falls out of the theory. And DDPM does this 1000 times, each a full pass through the network, while a GAN needs one pass. That cost is why diffusion did not take over right away."
 ]});
 
-st(`
-  <h1 class="t">Removing the random steps the right way</h1>
-  <div class="d8-body">
-    <div class="d8-row b" data-step="1"><div class="label">DDPM</div><div class="lead">model step, then random step</div></div>
-    <div class="d8-row b" data-step="2"><div class="label">A result from physics</div><div class="lead">a version with no random steps moves the whole cloud of points through the same distributions</div></div>
-    <div class="d8-row b" data-step="3"><div class="label">DDIM</div><div class="lead">that version: same trained network, no random steps, different step sizes</div></div>
-  </div>
-  ${cite(`${D8_REF.sde}; Song, Meng and Ermon, DDIM, ICLR 2021`)}
-`, { notes: [
-  "(draft) A few months after DDPM, two papers showed that the random steps can be removed after all, if you change the step sizes.",
-  "(draft) DDPM alternates a model step and a random step. Mathematically, that is a stochastic differential equation: motion along the field plus random motion.",
-  "(draft) Physicists know how a whole cloud of such randomly moving particles evolves; the tool is the Fokker-Planck equation. Using it, Song and colleagues showed there is a version with no randomness at all that moves the cloud through exactly the same distributions. Individual points take different paths, but the final cloud is the same.",
-  "(draft) Turned into an algorithm, this is DDIM, from Song, Meng and Ermon. It needs no retraining: same network, no random steps, different step sizes."
+sc('d8Sde', 'scenes/sde.html', { notes: [
+  "(draft) A few months after DDPM, two papers showed that the random steps can be removed after all, if you do it the right way. Each DDPM step is a full pass through a big network, and it takes hundreds of them, so this mattered a lot.",
+  "(draft) First, DDPM written as one equation. This kind of equation, with a random part, is called a stochastic differential equation, an SDE. Behind it is the field for our spiral at t equals 0.12, and one point.",
+  "(draft) We zoom in on that point. The first term is the model term: the move along the field the network predicts. Nabla log p is the field itself, the score; f and g are set by the noise schedule. The blue arrow is this term for one real step of our run.",
+  "(draft) The second term is the random term: a random kick, g times d w bar. It is the gray arrow, drawn from the tip of the blue one. I picked a step where the two are about the same size; early in a run, the random move is much bigger.",
+  "(draft) Add the two head to tail, and you get d x, the total move of the point in this one step. DDPM repeats this a hundred times, or a thousand.",
+  "(draft) Now the result from physics. Physicists know how a whole cloud of randomly moving points evolves; the tool is the Fokker-Planck equation. Using it, Song and colleagues found a second equation with no random term at all, and with half of the field term. It is an ordinary differential equation, an ODE. Same field, same point: the random arrow is gone, and the move along the field is half as big.",
+  "(draft) Let us check that the two give the same result. First, with random steps: 256 points from noise. The shading is the noisy data at each time t. The paths are jagged, and the points land on the spiral.",
+  "(draft) Now the same starting points with the ODE, no random steps. The rings are where the random version ended. The paths are smooth, the cloud stays inside the same shading at every time, and it ends on the same spiral. That is what Fokker-Planck promised: the same distributions.",
+  "(draft) But not the same points. Follow one starting point: with random steps it ends here, without them it ends there. The theory only says the cloud as a whole is the same, not each point."
 ]});
 
 sc('d8DdimScene', 'scenes/ddim.html', { notes: [
-  "(draft) Let us check that on our spiral.",
-  "(draft) First, the failure from before: the DDPM model step with the random step deleted, and the step sizes unchanged. The points crowd together.",
-  "(draft) DDIM uses the same trained network, with no random steps, but with step sizes that come from the ODE. The paths are smooth, and the points land on the spiral.",
-  "(draft) And DDIM can take much bigger steps. With 20 steps instead of 100, the points still land on the spiral.",
+  "(draft) Turned into an algorithm, the equation with no random term is DDIM, from Song, Meng and Ermon. It looks almost like DDPM: no random steps, and a new scaling of the step sizes. Let us check it on our spiral and on our twelve images.",
+  "(draft) First, the failure from before: the DDPM step with the random step simply deleted, and the step sizes unchanged. The arrows show the field at the current step. The points rush to the middle and stay crowded. On the right, eight different starting noises: the images stay faded for most of the run, and most runs end on the same image. With our perfect network for twelve images, the result is never blurry; in the video, with Stable Diffusion, it is a small blurry tree.",
+  "(draft) DDIM uses the same trained network, with no random steps, but with smaller moves along the field: the half from the equation on the previous slide. Now the paths follow the field, and the points land on the spiral. The eight images are sharp and varied.",
+  "(draft) And DDIM can take much bigger steps. With 20 steps instead of 100, the points still land on the spiral. Each noise even ends on the same image as with 100 steps: DDIM is deterministic, the same noise always gives the same image.",
   "(draft) No retraining, deterministic, and far fewer steps. DDIM generalizes to flow matching, which is what models like the open video model Wan 2.1 use. That is our next section."
 ]});
 }
