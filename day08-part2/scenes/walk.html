@@ -14,36 +14,41 @@
     <div class="d8s-plot" data-from="1"><canvas class="d8s-cv"></canvas></div>
     <div class="d8s-imgcol">
       <div class="d8s-imgbox" data-from="1"><canvas id="img"></canvas></div>
-      <div class="d8s-side">
-        <div class="lead d8s-item" data-from="2">Each noise step moves every point, and every pixel, in a random direction</div>
-        <div class="lead d8s-item" data-from="3">Brownian motion: where diffusion models get their name</div>
-        <div class="lead d8s-item" data-from="4">After 100 steps: Gaussian noise. The spiral and the picture are gone</div>
-      </div>
+      <div class="d8s-side"><div class="d8s-stack">
+        <div class="lead d8s-item" data-from="1" data-to="1">The spiral, and beside it one real image</div>
+        <div class="lead d8s-item" data-from="2" data-to="2">Each noise step moves the point, and every pixel, a little in a random direction</div>
+        <div class="lead d8s-item" data-from="3" data-to="3">Brownian motion: where diffusion models get their name</div>
+        <div class="lead d8s-item" data-from="4" data-to="4">After 100 steps: Gaussian noise. The spiral and the picture are gone</div>
+        <div class="lead d8s-item" data-from="5">Generating means running this film backwards. Here: a replay</div>
+      </div></div>
     </div>
   </div>
-  <div class="d8s-cite d8s-item" data-from="1">Computed with the DDPM forward process, 100 steps (schedule of Ho et al. 2020, rescaled), on the dots and on the image (Stable Diffusion 3.5, VulcanSphere, public domain). Toy example after <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a></div>
+  <div class="d8s-cite d8s-item" data-from="1">Computed with the DDPM forward process, 100 steps (schedule of Ho et al. 2020, rescaled), on the dots and on the image (the same astronaut image as two slides before, Stable Diffusion 3.5, VulcanSphere, public domain). Toy example after <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a></div>
 </div>
 <script>document.write(`<script src="d8-toy.js?v=${Date.now()}"><\/script>`)</script>
 <script>
 /* BEAT 0 title only
-   BEAT 1 the spiral
+   BEAT 1 the spiral, and the clean image (noise step 0)
    BEAT 2 one point's 100-step walk, animated
    BEAT 3 twelve walks, animated
    BEAT 4 every point walks 100 steps (dots only), animated
-   The image beside the dots goes through the same 100 noise steps, in step with the dots, on every animated beat. */
-const mix = d8Mix(), rng = d8Rng(13), DOT = '#4f6d9a', INK = '#0f172a', GREY = '#94a3b8';
+   BEAT 5 the same recorded film played backwards: every point retraces its own walk to the spiral, and the image goes from
+          noise back to clean. This is a REPLAY of the walks computed above, not a model: the notes say so.
+   The image beside the dots goes through the same 100 noise steps (d8ImgWalk, the same schedule), in step with the dots,
+   on every animated beat. Both use the DDPM step: shrink slightly toward the middle, then add a random step. */
+const mix = d8Mix(), rng = d8Rng(13), DOT = '#4f6d9a', INK = '#0f172a';
 const X0 = d8SampleData(mix, 420, rng), WALKS = d8Walks(X0, rng);
 const imgCv = document.getElementById('img'); let IMG = null;
 d8LoadImages(['../assets/horses/h09.webp'], 96).then(([x]) => { IMG = d8ImgWalk(x, d8Rng(19)); dispatchEvent(new Event('resize')); });
 const imgAt = k => IMG && d8ImgPaint(imgCv, IMG[k], `noise step ${k} of 100`);
 d8Scene({
-  name: 'd8Walk', nb: 4, anim: {2: 3600, 3: 3600, 4: 3600},
+  name: 'd8Walk', nb: 5, anim: {2: 3600, 3: 3600, 4: 3600, 5: 3600},
   draw(V, b, p){
     if(b === 0) return;
-    const k = b === 1 ? 0 : Math.round(p * 100);
+    const q = b === 5 ? 1 - p : p, k = b === 1 ? 0 : Math.round(q * 100);
     imgAt(k);
     if(b === 1){ V.dots(X0, DOT, 2.4); return; }
-    if(b === 4){ V.dots(X0, DOT, 2, .15); V.dots(WALKS.map(w => d8At(w, p)), DOT, 2.4); return; }
+    if(b >= 4){ V.dots(X0, DOT, 2, .15); V.dots(WALKS.map(w => d8At(w, q)), DOT, 2.4); return; }
     V.dots(X0, DOT, 2.4, .35);
     const n = b === 2 ? 1 : 12;
     for(let i = 0; i < n; i++){ const w = WALKS[i * 31]; V.line(d8Trail(w, p), INK, n === 1 ? 1.2 : .9, n === 1 ? .8 : .4); V.dots([w[0]], INK, 4); V.dots([d8At(w, p)], DOT, 4.5); }

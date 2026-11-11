@@ -49,19 +49,34 @@ st(`
   "(draft) The rule of thumb: if you can collect many examples of something, a diffusion model can learn to make new ones."
 ]});
 
+/* ---------- Images as points, noise as a random walk: the Welch Labs video, 12:14 to 13:46.
+   Three scenes: one real image becomes a point and noise becomes arrows (real-pixels), many two-pixel images make the spiral
+   dataset (pixels), and every point and the image walk to noise (walk). ---------- */
+sc('d8RealPixels', 'scenes/real-pixels.html', { notes: [
+  "(draft) To understand what a diffusion model learns, we first need a picture of where images live. We start from one real image.",
+  "(draft) Here is a real image: the astronaut riding a horse from the start, in gray levels, shrunk to 256 by 256 pixels. Each pixel is just one number, its brightness, from zero for black to one for white.",
+  "(draft) Let us pick two of its pixels. I did not pick them by eye: the computer found the darkest spot and the brightest spot in the picture. Pixel 1 is in the black sky, brightness 0.01. Pixel 2 is on the white horse, brightness 0.98. Underneath, the two pixels on their own make a tiny two-pixel image.",
+  "(draft) Now plot them. Pixel 1's brightness is the x coordinate, and pixel 2's brightness is the y coordinate. So this image, seen through these two pixels, is one point: 0.01, 0.98. A dark first pixel and a bright second pixel put the point at the top left.",
+  "(draft) The full image works the same way, with one axis per pixel. This image has 256 times 256 pixels, so it is one point in 65,536 dimensions. Nobody can draw that, so we keep looking at two of the axes.",
+  "(draft) Now add noise. Adding noise means adding a small random number to every pixel: look at the image, it got grainy. For our two pixels, the two random numbers make an arrow, here plus 0.09 and plus 0.12, and the point moves along that arrow. Adding noise to the image is adding a random arrow to the point.",
+  "(draft) Do it again and again. Every step draws a new random arrow, in a new direction, and adds it to wherever the point is now. Ten steps, ten arrows, head to tail.",
+  "(draft) After 100 steps the image is mostly noise, and the point has wandered far from where it started. A path made of random steps like this is called a random walk. Pixel 2 is now above 1, brighter than white, so the screen just shows it as white. Here the noise simply piles up; the version diffusion models use also pulls the point gently back toward the middle at every step, as we will see in a moment."
+]});
+
 sc('d8Pixels', 'scenes/pixels.html', { notes: [
-  "(draft) To understand what a diffusion model learns, we first need a picture of where images live.",
-  "(draft) Take an image with only two pixels. The first pixel's brightness is the x coordinate, and the second pixel's brightness is the y coordinate. A black pixel next to a white pixel is the point zero, one. Two white pixels are the point one, one. Every two-pixel image is a point.",
-  "(draft) A real image works the same way, with one axis per pixel and per color channel. A 512 by 512 color image is one point in 786,432 dimensions.",
-  "(draft) Almost every point in that space looks like static. Real images fill a tiny, very structured part of it. We cannot draw that, so we use a toy version in two dimensions: our data is a spiral. Each dot is one image. This toy example comes from a video by Welch Labs for 3Blue1Brown, which I recommend; the animations here are our own, computed exactly."
+  "(draft) One image is one point. So a whole dataset of images is a whole cloud of points.",
+  "(draft) Let us shrink images all the way down to two pixels, so we can see every one of them. Same axes as before: the first pixel's brightness on x, the second pixel's on y. An image with a black first pixel and a white second pixel is the point zero, one, at the top left. An all-white image is the point one, one, at the top right. Every two-pixel image is somewhere in this square.",
+  "(draft) Real images are not spread all over their space: almost every point in it looks like static. Real images sit in a tiny, very structured part of it. To get a structure we can see, we make up a toy dataset in two dimensions: a spiral. This toy example comes from a video by Welch Labs for 3Blue1Brown, which I recommend; the animations here are our own, computed exactly.",
+  "(draft) Each dot is one two-pixel image. Here are four of them, from the inner end of the spiral to the outer end, each with its two pixels. A diffusion model has to learn this shape, so that it can make new dots that land on the spiral."
 ]});
 
 sc('d8Walk', 'scenes/walk.html', { notes: [
-  "(draft) Diffusion models start by destroying the data with noise.",
-  "(draft) Here is our spiral.",
-  "(draft) Adding a little Gaussian noise to an image changes every pixel by a small random amount. For a point, that is a small step in a random direction. Do it 100 times, and the point goes on a random walk. In DDPM, each step also shrinks the point slightly toward the center, so the walk does not wander off forever.",
-  "(draft) This is Brownian motion, the same process that makes ink diffuse in water. That is where diffusion models get their name.",
-  "(draft) Let every point walk 100 steps. The spiral is gone, and what is left is a standard Gaussian cloud. Generating an image means running this film backwards: start from the cloud and recover the spiral."
+  "(draft) Diffusion models start by destroying the data with noise. Now we do that to the whole dataset at once.",
+  "(draft) Here is our spiral. Beside it is the astronaut from two slides ago; it gets the same noise steps as the dots.",
+  "(draft) Follow one point. Each noise step moves it a little in a random direction, and changes every pixel of the image a little. 100 steps make a random walk. In DDPM, each step also shrinks the point slightly toward the center, so the walk does not wander off forever.",
+  "(draft) Twelve walks from twelve starting points. This is Brownian motion, the same process that makes ink diffuse in water. That is where diffusion models get their name.",
+  "(draft) Let every point walk 100 steps. The spiral is gone, and what is left is a standard Gaussian cloud. The picture is gone too: it is pure noise.",
+  "(draft) Generating an image means running this film backwards: start from noise, and end on the spiral and on a clean picture. Here I am only replaying the film we recorded. A model never sees this film: it has to learn to run it backwards from any starting point. That is the rest of today."
 ]});
 
 /* ---------- The DDPM algorithms (Ho et al. 2020, Algorithms 1 and 2), typeset here, with the key details the Welch Labs video pulls out
