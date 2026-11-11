@@ -103,10 +103,10 @@ st(`${AR_CSS}
 /* 42: the probability model, one formula per click (her comment) */
 st(`
   <h1 class="t">Probability Model</h1>
-  <div class="d8-col" style="gap:2.4vh">
+  <div class="d8-col" style="gap:2.4vh;font-size:clamp(.9rem, 1.7vw, 1.5rem)">
     <div class="d8-math b">${d8Tex('p(\\mathbf{X}) = p(x_n \\mid x_1, \\dots, x_{n-1})\\; p(x_{n-1} \\mid x_1, \\dots, x_{n-2}) \\cdots p(x_2 \\mid x_1)\\; p(x_1)', true)}</div>
     <div class="d8-math b">${d8Tex('p(\\mathbf{X}) = \\prod_{i=1}^{n} p(x_i \\mid x_1, \\dots, x_{i-1})', true)}</div>
-    <div class="d8-math b">${d8Tex('p(\\text{Once upon a time}) = p(\\text{Once})\\; p(\\text{upon} \\mid \\text{Once})\\; p(\\text{a} \\mid \\text{Once, upon})\\; p(\\text{time} \\mid \\text{Once, upon, a})', true)}</div>
+    <div class="d8-math b">${d8Tex('\\begin{aligned} p(\\text{Once upon a time}) &= p(\\text{Once})\\; p(\\text{upon} \\mid \\text{Once}) \\\\ &\\quad \\times\\; p(\\text{a} \\mid \\text{Once, upon})\\; p(\\text{time} \\mid \\text{Once, upon, a}) \\end{aligned}', true)}</div>
   </div>
 `);
 
