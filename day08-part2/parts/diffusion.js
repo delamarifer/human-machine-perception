@@ -79,64 +79,21 @@ sc('d8Walk', 'scenes/walk.html', { notes: [
   "(draft) Generating an image means running this film backwards: start from noise, and end on the spiral and on a clean picture. Here I am only replaying the film we recorded. A model never sees this film: it has to learn to run it backwards from any starting point. That is the rest of today."
 ]});
 
-/* ---------- The DDPM algorithms (Ho et al. 2020, Algorithms 1 and 2), typeset here, with the key details the Welch Labs video pulls out
-   (9:35 to 11:20): noise is added during generation too, and the network predicts the total noise. The third detail, the time input, is ours. ---------- */
-const d8Mark = (html, step) => `<span class="d8-mark b" data-step="${step}">${html}</span>`;
-st(`
-  <style>
-    .algos-pair{ display:grid; grid-template-columns:1fr 1fr; gap:1.6vw; }
-    .algos-box{ border-top:3px solid var(--ink); border-bottom:3px solid var(--ink); padding:.6vh .4vw 1vh; font-family:'Cambria Math', 'STIX Two Math', Cambria, Georgia, serif;
-      font-size:clamp(1.05rem, 1.72vw, 1.65rem); line-height:1.55; }
-    .algos-box h3{ font-size:1.05em; border-bottom:1.5px solid var(--ink); margin-bottom:.4vh; padding-bottom:.2vh; }
-    .algos-box .ln{ display:grid; grid-template-columns:1.6em 1fr; }
-    .algos-box .ln i.n{ font-style:normal; color:var(--mute); }
-    .algos-box sub, .algos-box sup{ font-size:.62em; }
-    .d8-mark.b{ opacity:1; transform:none; border-radius:6px; padding:0 .12em; transition:box-shadow .5s, background .5s; }
-    .d8-mark.b.shown{ background:#e2e8f0; box-shadow:0 0 0 2.5px var(--ink); }
-    .algos-notes{ display:flex; flex-direction:column; gap:1.2vh; }
-    @media (max-width: 820px), (max-aspect-ratio: 1/1){ .algos-pair{ grid-template-columns:1fr; } }
-  </style>
-  <h1 class="t">The DDPM algorithms</h1>
-  <div class="d8-body" style="gap:2vh">
-    <div class="algos-pair b" data-step="1">
-      <div class="algos-box"><h3>Algorithm 1 · Training</h3>
-        <div class="ln"><i class="n">1</i><div><b>repeat</b></div></div>
-        <div class="ln"><i class="n">2</i><div>&nbsp;&nbsp;${v('x','0')} ~ ${v('q')}(${v('x','0')})</div></div>
-        <div class="ln"><i class="n">3</i><div>&nbsp;&nbsp;${v('t')} ~ Uniform({1, …, ${v('T')}})</div></div>
-        <div class="ln"><i class="n">4</i><div>&nbsp;&nbsp;${d8Mark(`${v('ε')} ~ 𝒩(0, 𝐈)`, 3)}</div></div>
-        <div class="ln"><i class="n">5</i><div>&nbsp;&nbsp;gradient step on ∇<sub>θ</sub> ‖ ${d8Mark(v('ε'), 3)} − ${v('ε','θ')}(${d8Mark(`√${v('ᾱ','t')} ${v('x','0')} + √(1 − ${v('ᾱ','t')}) ${v('ε')}`, 3)}, ${d8Mark(v('t'), 4)}) ‖<sup>2</sup></div></div>
-        <div class="ln"><i class="n">6</i><div><b>until</b> converged</div></div>
-      </div>
-      <div class="algos-box"><h3>Algorithm 2 · Sampling</h3>
-        <div class="ln"><i class="n">1</i><div>${v('x','T')} ~ 𝒩(0, 𝐈)</div></div>
-        <div class="ln"><i class="n">2</i><div><b>for</b> ${v('t')} = ${v('T')}, …, 1 <b>do</b></div></div>
-        <div class="ln"><i class="n">3</i><div>&nbsp;&nbsp;${d8Mark(`${v('z')} ~ 𝒩(0, 𝐈) if ${v('t')} &gt; 1, else ${v('z')} = 0`, 2)}</div></div>
-        <div class="ln"><i class="n">4</i><div>&nbsp;&nbsp;${v('x','t−1')} = (1/√${v('α','t')}) ( ${v('x','t')} − ((1 − ${v('α','t')})/√(1 − ${v('ᾱ','t')})) ${v('ε','θ')}(${v('x','t')}, ${d8Mark(v('t'), 4)}) ) ${d8Mark(`+ ${v('σ','t')}${v('z')}`, 2)}</div></div>
-        <div class="ln"><i class="n">5</i><div><b>end for</b></div></div>
-        <div class="ln"><i class="n">6</i><div><b>return</b> ${v('x','0')}</div></div>
-      </div>
-    </div>
-    <div class="algos-notes">
-      <div class="lead b" data-step="2">1. Generating adds fresh random noise at every step</div>
-      <div class="lead b" data-step="3">2. Training predicts the total noise added to the clean image, not one step back</div>
-      <div class="lead b" data-step="4">3. The network is always told the time ${v('t')}</div>
-    </div>
-  </div>
-  ${cite(`${D8_REF.ddpm}, Algorithms 1 and 2. Key details after ${d8Link('https://www.youtube.com/watch?v=iv-5mZ_9CPY', 'Welch Labs for 3Blue1Brown (2025)')}, 9:35`)}
-`, { notes: [
-  "(draft) Here is where you might expect a simple story: train the network to remove the noise one step at a time, then run it again and again. That naive approach does not work well, and almost no modern model works that way. Here is what the DDPM paper actually does.",
-  "(draft) These are the two algorithms from the DDPM paper, training on the left and generating on the right. The notation is dense, and you do not need to follow every symbol. We will pull out three details.",
-  "(draft) First surprise: when generating, at every step, after the network's update, the algorithm adds fresh random noise, z, scaled by sigma t. Noise is added not only in training but also while generating. This matters a lot in practice: we will see what happens if we delete it.",
-  "(draft) Second surprise: in training, the network does not learn to undo one small step. It is shown the clean image mixed with noise epsilon in one jump, and asked to predict epsilon: the total noise. It skips all the intermediate steps. That sounds harder than undoing one step. Next slide: why it works better.",
-  "(draft) Third detail, which we add to the video's two: the network always gets the time t as an input, in both algorithms. We will see why that is essential."
-]});
-
+/* ---------- Training (Ho et al. 2020, Algorithm 1) typeset beside our animation, terms highlighted as the animation shows them.
+   Follows the Welch Labs video, 9:35 to 11:20 (the algorithm and its surprise) and 13:46 to 16:05 (why the total noise).
+   Replaces the standalone "The DDPM algorithms" slide (Fernanda: put the algorithms next to the animation); Algorithm 2 goes
+   next to the generating animation. ---------- */
 sc('d8Target', 'scenes/target.html', { notes: [
-  "(draft) Now the network has to learn to reverse this. What exactly should it predict?",
-  "(draft) One training example: a clean point on the spiral, and the same point after 12 of the 100 noise steps.",
-  "(draft) The natural idea is to undo one step: given the point at step 12, predict where it was at step 11. That arrow is short, and its direction is mostly the random step we happened to draw.",
-  "(draft) Many walks pass through this neighborhood. Here are the one-step-back arrows of walks that ended near the same point. They point every which way. Their average, drawn four times longer, does point back toward the data. So a network trained this way can learn, but each training example is very noisy.",
-  "(draft) What the DDPM paper does instead is predict the total noise added over the whole walk. With the one-jump formula, that is the same as pointing straight back to the clean point. Here are those arrows for the same walks.",
-  "(draft) Their average points the same way as before. In fact one can show the two targets agree on average: the one-step target is the total-noise target plus the fresh noise of that single step. Dropping that extra noise gives the network much cleaner examples, without changing what it learns. That is line 5 of Algorithm 1: predict the total noise, and skip all the intermediate steps."
+  "(draft) Now the network has to learn to run this film backwards. What exactly should it predict? You might expect a simple story: train it to remove the noise one step at a time. That is not what works, and almost no modern model does it that way.",
+  "(draft) This is the training algorithm from the DDPM paper, the Berkeley paper that put diffusion on the map. The notation is dense, but it says only four things, and we will light them up one at a time on our spiral.",
+  "(draft) Line 2: pick a clean training image, called x zero. On our plot, that is one point of the spiral. On the right, a real image plays the same role.",
+  "(draft) Line 3: pick a time t, a random number of noise steps. Here t is 12 out of 100. Notice that t also goes into the network, at the end of line 5: the network is always told how much noise there is. Here is that point's walk, 12 small random steps.",
+  "(draft) Line 4: draw one sample of noise, epsilon. Here is the trick: those 12 small random steps add up to a single random draw. So you do not need to walk at all. Fade the clean point a little, that is the square root of alpha bar times x zero, and add the noise, scaled: you land exactly where the walk ended. On the right: the clean image, its noise epsilon, and the noisy image they make.",
+  "(draft) Line 5: the network is shown the noisy point and the time t, and must guess epsilon, the total noise that was added. The loss is how far its guess is from the real epsilon. On the plot, guessing the noise is the same as drawing this arrow back to the clean point. It skips all 12 steps at once, which sounds much harder than undoing one small step. So why does it work better?",
+  "(draft) Here is the naive idea: undo one step. Given the point at step 12, predict where it was at step 11. That arrow is short, and its direction is mostly the last random step we happened to draw.",
+  "(draft) Many walks pass through this neighborhood. Here are the one-step arrows of walks that ended near the same point. They point every which way. But on average, points are drifting away from the spiral, so their average, drawn four times longer, does point back toward the data. A network trained this way can learn, but every training example is mostly noise.",
+  "(draft) Now the DDPM target for the same walks: the total noise, which is the arrow back to each walk's own clean point. These already agree much more.",
+  "(draft) Their average, in bold. The two averages carry the same information: if you know one, a fixed formula gives you the other, so the network learns the same thing either way. But the total-noise target is far less noisy. Over all the noisy points at step 12, its random part is about three times smaller compared with its average. Cleaner examples, faster learning, same answer.",
+  "(draft) Do this at every point of the plane, and you get a field of arrows that point back to the data. That field is what the network epsilon theta learns. The next question is how the field changes with the amount of noise."
 ]});
 }

@@ -6,60 +6,186 @@
 <link rel="stylesheet" href="../../deck/deck.css">
 <script>document.write(`<link rel="stylesheet" href="d8-scene.css?v=${Date.now()}">`)</script>
 <title>What should the network predict?</title>
+<style>
+  /* Part diffusion (Day 8 part B). Left: the toy spiral. Right: Algorithm 1 of Ho et al. 2020 (typeset), a real image with its
+     noise, and one cue. The algorithm's terms are highlighted (data-hl) on the beat the animation shows them.
+     Follows the Welch Labs video for 3Blue1Brown, 9:35 to 11:20 and 13:46 to 16:05; every picture here is computed. */
+  .tg-body{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:.86fr 1.14fr; gap:2.2vw; }
+  .tg-col{ display:flex; flex-direction:column; gap:1.6vh; min-height:0; }
+  .tg-algo{ border-top:3px solid var(--ink); border-bottom:3px solid var(--ink); padding:.4vh .3vw .8vh;
+    font-family:'Cambria Math', 'STIX Two Math', 'Latin Modern Math', Cambria, Georgia, serif; font-size:clamp(.95rem, 1.4vw, 1.5rem); line-height:1.45; }
+  .tg-algo h3{ font-size:1em; font-family:var(--font); border-bottom:1.5px solid var(--ink); margin:0 0 .3vh; padding-bottom:.15vh; }
+  .tg-algo .tg-ln{ display:grid; grid-template-columns:1.5em 1fr; }
+  .tg-algo .tg-ln > i{ font-style:normal; color:var(--mute); }
+  .tg-algo .tg-in{ padding-left:1.1em; }
+  .tg-algo b{ font-family:var(--font); }
+  .tg-algo sub, .tg-algo sup{ font-size:.62em; }
+  .tg-imgs{ flex:1 1 auto; min-height:0; display:grid; grid-template-columns:repeat(3, 1fr); gap:1vw; }
+  .tg-img{ position:relative; min-height:0; opacity:0; transition:opacity .6s; }
+  .tg-img.on{ opacity:1; }
+  .tg-img canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .tg-cues{ display:grid; }
+  .tg-cues .lead{ font-size:clamp(1.2rem, 2.05vw, 2rem); line-height:1.3; }
+  .tg-cues > *{ grid-area:1 / 1; }
+  .tg-cues .d8s-item:not(.on){ transition:none; }
+  @media (max-width: 820px), (max-aspect-ratio: 1/1){
+    .tg-body{ grid-template-columns:1fr; grid-template-rows:1fr auto; gap:1vh; }
+    .tg-algo{ font-size:clamp(.72rem, 2.3vw, 1rem); }
+    .tg-imgs{ flex:0 0 14vh; }
+    .tg-cues .lead{ font-size:clamp(.9rem, 2.6vw, 1.2rem); }
+  }
+</style>
 </head>
 <body>
 <div class="d8s-wrap">
   <h1 class="t deck-title">What should the network predict?</h1>
-  <div class="d8s-body">
+  <div class="tg-body">
     <div class="d8s-plot" data-from="1"><canvas class="d8s-cv"></canvas></div>
-    <div class="d8s-side">
-      <div class="lead d8s-item" data-from="1">One training example: a clean point and the same point after 12 noise steps</div>
-      <div class="d8s-stack">
-        <div class="lead d8s-item" data-from="2" data-to="2">Naive target: undo one step</div>
-        <div class="lead d8s-item" data-from="3" data-to="3">Many walks pass here. One step back is mostly noise; the average points to the data</div>
-        <div class="lead d8s-item" data-from="4" data-to="4">DDPM target: all the noise added, which is the way back to the clean point</div>
-        <div class="lead d8s-item" data-from="5">Same direction on average, without the extra noise of a single step</div>
+    <div class="tg-col">
+      <div class="tg-algo d8s-item" data-from="1">
+        <h3>Algorithm 1 · Training</h3>
+        <div class="tg-ln"><i>1</i><div><b>repeat</b></div></div>
+        <div class="tg-ln"><i>2</i><div class="tg-in"><span class="d8s-hl" data-hl="2"><i>x</i><sub>0</sub> ~ <i>q</i>(<i>x</i><sub>0</sub>)</span></div></div>
+        <div class="tg-ln"><i>3</i><div class="tg-in"><span class="d8s-hl" data-hl="3"><i>t</i> ~ Uniform({1, …, <i>T</i>})</span></div></div>
+        <div class="tg-ln"><i>4</i><div class="tg-in"><span class="d8s-hl" data-hl="4"><i>ε</i> ~ 𝒩(0, 𝐈)</span></div></div>
+        <div class="tg-ln"><i>5</i><div class="tg-in">Take gradient descent step on<br>∇<sub><i>θ</i></sub> <span class="d8s-hl" data-hl="5">‖ <span class="d8s-hl" data-hl="8,9"><i>ε</i></span> − <span class="d8s-hl" data-hl="10"><i>ε</i><sub><i>θ</i></sub></span>(<span class="d8s-hl" data-hl="4">√<i>ᾱ</i><sub><i>t</i></sub> <i>x</i><sub>0</sub> + √(1 − <i>ᾱ</i><sub><i>t</i></sub>) <i>ε</i></span>, <span class="d8s-hl" data-hl="3"><i>t</i></span>) ‖<sup>2</sup></span></div></div>
+        <div class="tg-ln"><i>6</i><div><b>until</b> converged</div></div>
+      </div>
+      <div class="tg-imgs">
+        <div class="tg-img" data-from="2"><canvas id="tg-x0"></canvas></div>
+        <div class="tg-img" data-from="4"><canvas id="tg-eps"></canvas></div>
+        <div class="tg-img" data-from="4"><canvas id="tg-xt"></canvas></div>
+      </div>
+      <div class="tg-cues">
+        <div class="lead d8s-item" data-from="1" data-to="1">Training, as written in the DDPM paper</div>
+        <div class="lead d8s-item" data-from="2" data-to="2">Pick a clean training image <i>x</i><sub>0</sub>: one point of the data</div>
+        <div class="lead d8s-item" data-from="3" data-to="3">Pick a time <i>t</i>: here 12 of 100 noise steps</div>
+        <div class="lead d8s-item" data-from="4" data-to="4">The 12 random steps add up to one draw of noise <i>ε</i>: jump there in one go</div>
+        <div class="lead d8s-item" data-from="5" data-to="5">The network sees the noisy point and <i>t</i>, and must guess <i>ε</i>: the total noise</div>
+        <div class="lead d8s-item" data-from="6" data-to="6">Why not just undo one step? That arrow is mostly the last random step</div>
+        <div class="lead d8s-item" data-from="7" data-to="7">Many walks pass here. Their one-step arrows scatter; their average points to the data</div>
+        <div class="lead d8s-item" data-from="8" data-to="8">The same walks’ total noise: arrows back to their own clean points</div>
+        <div class="lead d8s-item" data-from="9" data-to="9">Same information on average, about <span id="tg-factor">3</span> times less noise</div>
+        <div class="lead d8s-item" data-from="10">At every point, the average arrow points back to the data: what <i>ε</i><sub><i>θ</i></sub> learns</div>
       </div>
     </div>
   </div>
-  <div class="d8s-cite d8s-item" data-from="1">Computed exactly on the toy spiral (DDPM forward process, step 12 of 100). Ho et al. 2020; Toy example after <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a></div>
+  <div class="d8s-cite d8s-item" data-from="1">Ho et al. 2020, Algorithm 1. Computed exactly on the toy spiral (step 12 of 100; field arrows at 0.4 of their length). Image: Stable Diffusion 3.5 (VulcanSphere), Wikimedia Commons, public domain. After <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a></div>
 </div>
 <script>document.write(`<script src="d8-toy.js?v=${Date.now()}"><\/script>`)</script>
 <script>
-/* BEAT 0 title only
-   BEAT 1 one walk: clean point x0 to x12 (12 of 100 steps)
-   BEATS 2-5 zoom in around x12. BEAT 2 its one-step-back arrow x12 -> x11
-   BEAT 3 one-step-back arrows of other walks that end near the same x12, and their exact average (scaled x4, bold)
-   BEAT 4 the same walks' arrows back to their own clean points
-   BEAT 5 the exact average of those, E[x0 | x12] - x12 (bold) */
+/* BEAT 0  title only
+   BEAT 1  Algorithm 1 and the data (the spiral)                                    [no highlight]
+   BEAT 2  one clean point x0, and a clean image                                    [line 2]
+   BEAT 3  zoom in; the point's 12-step noise walk, animated                        [line 3, and t inside eps_theta]
+   BEAT 4  the one-jump mix: faded point sqrt(abar) x0, plus the total noise sqrt(1 - abar) eps lands exactly on the walk's end x_t;
+           the image's noise eps and the noisy image                                [line 4, and the mix inside eps_theta]
+   BEAT 5  the target: the arrow from x_t back to sqrt(abar) x0, which is -sqrt(1 - abar) eps exactly   [the loss]
+   BEAT 6  the naive target: one step back, x_t -> x_{t-1}
+   BEAT 7  one-step arrows of other walks that end near x_t, and their exact average (drawn 4x longer)
+   BEAT 8  the same walks' total-noise arrows (each back to its own faded clean point)                  [eps in the loss]
+   BEAT 9  the exact average of those (bold); at this point it is within a few degrees of the one-step average   [eps in the loss]
+   BEAT 10 zoom out: the exact average total-noise arrow at every point (the field at step 12)          [eps_theta]
+   Exactness. Walk: x_k = sqrt(1 - beta_k) x_{k-1} + sqrt(beta_k) z_k, so x_t = sqrt(abar_t) x0 + (sum of the scaled z_k), and that sum
+   is one Gaussian draw with variance 1 - abar_t: it IS sqrt(1 - abar_t) eps. Averages use the exact posterior of the 64-Gaussian spiral:
+   E[x0 | x_t] (d8Post) and its spread; the one-step average is the DDPM posterior mean with x0 replaced by E[x0 | x_t] (it is linear in x0).
+   The shown walk is picked by a search, not by eye: among walks whose clean point is 0.45 to 0.8 away and that have 25 or more
+   neighbours within 0.22, the one where the total-noise target scatters least around its average (an outer arm, where the picture is
+   clearest). The "times less noise" number is NOT from that point: it is averaged over every noisy point at step 12 (4000 seeded samples). */
 const mix = d8Mix(), rng = d8Rng(17), DOT = '#4f6d9a', INK = '#0f172a', GREY = '#94a3b8', TT = 12, S = D8_S100;
 const X0 = d8SampleData(mix, 7000, rng);
 const W = X0.map(p => { let x = p.slice(); const tr = [x.slice()]; for(let t = 1; t <= TT; t++){ const c = Math.sqrt(1 - S.beta[t]), d = Math.sqrt(S.beta[t]); x = [c * x[0] + d * rng.n(), c * x[1] + d * rng.n()]; tr.push(x.slice()); } return tr; });
-/* the shown walk: the first one that ends off the spiral, where the exact average arrow back to the data is clearly long */
-const [a, s] = S.as(TT), near = e => Math.min(...mix.mu.map(m => Math.hypot(e[0] - m[0], e[1] - m[1])));
-let I = 0; for(let i = 0; i < W.length; i++){ const e = W[i][TT], d = near(e), E = d8Post(mix, e, a, s).E1;
-  if(d > .3 && d < .45 && Math.hypot(E[0] - e[0], E[1] - e[1]) > .3 && Math.hypot(e[0], e[1]) > 1.2){ I = i; break; } }
-const P = W[I][TT];
+const [a, s] = S.as(TT), ab = S.abar[TT], abp = S.abar[TT - 1], be = S.beta[TT];
+const c0 = Math.sqrt(abp) * be / (1 - ab), ct = Math.sqrt(1 - be) * (1 - abp) / (1 - ab), bt = be * (1 - abp) / (1 - ab);
+const sub = (u, v) => [u[0] - v[0], u[1] - v[1]], sc = (u, k) => [u[0] * k, u[1] * k], len = u => Math.hypot(u[0], u[1]);
+/* exact posterior of x0 given x_t: mean and total variance (trace) */
+function tgPost(x){
+  const t2 = mix.tau * mix.tau, v = a * a * t2 + s * s, pv = t2 * s * s / v;
+  let lw = mix.mu.map(m => -((x[0] - a * m[0]) ** 2 + (x[1] - a * m[1]) ** 2) / (2 * v)); const mx = Math.max(...lw); lw = lw.map(l => Math.exp(l - mx));
+  const Z = lw.reduce((p, q) => p + q, 0); let E = [0, 0], M2 = 0;
+  mix.mu.forEach((m, k) => { const w = lw[k] / Z, mm = [m[0] + a * t2 / v * (x[0] - a * m[0]), m[1] + a * t2 / v * (x[1] - a * m[1])];
+    E[0] += w * mm[0]; E[1] += w * mm[1]; M2 += w * (mm[0] ** 2 + mm[1] ** 2 + 2 * pv); });
+  return {E, tr: M2 - E[0] ** 2 - E[1] ** 2};
+}
+/* the two targets at x: average and squared scatter. one = x_{t-1} - x_t ; tot = sqrt(abar) x0 - x_t = -sqrt(1 - abar) eps */
+function tgTargets(x){ const q = tgPost(x);
+  return {one: [c0 * q.E[0] + (ct - 1) * x[0], c0 * q.E[1] + (ct - 1) * x[1]], v1: c0 * c0 * q.tr + 2 * bt,
+          tot: [a * q.E[0] - x[0], a * q.E[1] - x[1]], v2: a * a * q.tr}; }
+/* pick the shown walk (see the header) */
+let I = 0, best = Infinity;
+W.forEach((w, i) => { const e = w[TT], d = len(sub(w[0], e)); if(d < .45 || d > .8) return; const q = tgTargets(e), r = Math.sqrt(q.v2) / len(q.tot);
+  if(r >= best) return; let nb = 0; for(const u of W){ if(Math.hypot(u[TT][0] - e[0], u[TT][1] - e[1]) < .22) nb++; } if(nb - 1 >= 25){ best = r; I = i; } });
+const P = W[I][TT], C0 = W[I][0], FC0 = sc(C0, a), TG = tgTargets(P);
 const NB = W.map((w, i) => i).filter(i => i !== I && Math.hypot(W[i][TT][0] - P[0], W[i][TT][1] - P[1]) < .22).slice(0, 36);
-const Q = d8Post(mix, P, a, s), EX0 = Q.E1;
-/* exact mean of x_{t-1} given x_t: the DDPM posterior mean with x0 replaced by its expectation (it is linear in x0) */
-const ab = S.abar[TT], abp = S.abar[TT - 1], be = S.beta[TT];
-const c0 = Math.sqrt(abp) * be / (1 - ab), ct = Math.sqrt(1 - be) * (1 - abp) / (1 - ab);
-const EPREV = [c0 * EX0[0] + ct * P[0], c0 * EX0[1] + ct * P[1]];
-const sub = (u, v) => [u[0] - v[0], u[1] - v[1]], sc = (u, k) => [u[0] * k, u[1] * k];
+/* noise compared with signal, over all noisy points at step 12 (one-jump samples, seeded) */
+{ const r2 = d8Rng(99); let n1 = 0, s1 = 0, n2 = 0, s2 = 0;
+  for(let i = 0; i < 4000; i++){ const x0 = d8SampleData(mix, 1, r2)[0], x = [a * x0[0] + s * r2.n(), a * x0[1] + s * r2.n()], q = tgTargets(x);
+    n1 += q.v1; s1 += q.one[0] ** 2 + q.one[1] ** 2; n2 += q.v2; s2 += q.tot[0] ** 2 + q.tot[1] ** 2; }
+  window.tgNoise = {oneStep: Math.sqrt(n1 / s1), total: Math.sqrt(n2 / s2), factor: Math.sqrt((n1 / s1) / (n2 / s2))};
+  document.getElementById('tg-factor').textContent = Math.round(tgNoise.factor); }
+/* the field at step 12, on a grid, where the noisy data has some density */
+const FIELD = []; { const g = .38; let dmax = 0; const pts = [];
+  for(let x = -3.6; x <= 3.6; x += g) for(let y = -3.6; y <= 3.6; y += g){ const d = d8Post(mix, [x, y], a, s).dens; pts.push([x, y, d]); if(d > dmax) dmax = d; }
+  pts.forEach(([x, y, d]) => { if(d > .01 * dmax) FIELD.push([[x, y], tgTargets([x, y]).tot]); }); }
+
+/* the image: clean, its total noise, and the one-jump mix at step 12 */
+let IMG = null;
+d8LoadImages([D8_HORSES[8]], 96).then(([x0]) => { const r3 = d8Rng(23), e = new Float32Array(x0.length), xt = new Float32Array(x0.length);
+  for(let i = 0; i < x0.length; i++){ e[i] = r3.n(); xt[i] = a * x0[i] + s * e[i]; } IMG = {x0, e, xt}; dispatchEvent(new Event('resize')); });
+function paintImgs(){
+  d8ImgPaint(document.getElementById('tg-x0'), IMG && IMG.x0, 'clean x₀');
+  d8ImgPaint(document.getElementById('tg-eps'), IMG && IMG.e, 'total noise ε');
+  d8ImgPaint(document.getElementById('tg-xt'), IMG && IMG.xt, 'noisy, step 12');
+}
+
+function tag(V, p, text, dx, dy, align = 'center'){
+  const c = V.ctx, f = Math.max(13 * V.px, V.h / 30), [X, Y] = V.P(p);
+  c.font = `italic ${f}px 'Cambria Math', 'STIX Two Math', Cambria, Georgia, serif`; c.textAlign = align; c.textBaseline = 'middle';
+  const w = c.measureText(text).width, x0 = align === 'left' ? X + dx * f : align === 'right' ? X + dx * f - w : X + dx * f - w / 2;
+  c.fillStyle = 'rgba(255,255,255,.85)'; c.fillRect(x0 - f * .2, Y + dy * f - f * .62, w + f * .4, f * 1.24);
+  c.fillStyle = INK; c.fillText(text, X + dx * f, Y + dy * f); c.textBaseline = 'alphabetic';
+}
+/* zoom from the whole spiral (p = 0) to the square of half-width 1 around the middle of x_t and the faded clean point (p = 1) */
+const ZC = [(P[0] + FC0[0]) / 2, (P[1] + FC0[1]) / 2];
+function view(V, p){ const r = Math.exp(Math.log(V.R) * (1 - p)), q = (V.R - r) / (V.R - 1); V.zoom([ZC[0] * q, ZC[1] * q], r); }
+
 d8Scene({
-  name: 'd8Target', nb: 5,
-  draw(V, b){
+  name: 'd8Target', nb: 10, anim: {3: 2600, 10: 1400},
+  draw(V, b, p){
+    paintImgs();
     if(b === 0) return;
-    if(b >= 2) V.zoom(P, 1);
-    V.dots(X0.slice(0, b >= 2 ? 2500 : 420), DOT, 2.2, .3);
     const w = W[I];
-    V.line(w, INK, 1.1, b >= 3 ? .25 : .7); V.dots([w[0]], INK, 4.5, b >= 3 ? .4 : 1);
-    if(b === 2) V.arrow(P, sub(w[TT - 1], P), INK, 2.6, 1, 10);
-    if(b === 3){ NB.forEach(i => V.arrow(W[i][TT], sub(W[i][TT - 1], W[i][TT]), INK, 1.3, .55, 7)); V.arrow(P, sc(sub(EPREV, P), 4), INK, 4, 1, 13); }
-    if(b === 4){ NB.forEach(i => V.arrow(W[i][TT], sub(W[i][0], W[i][TT]), INK, 1, .3, 7)); V.arrow(P, sub(w[0], P), INK, 2.6, 1, 11); }
-    if(b === 5){ NB.forEach(i => V.arrow(W[i][TT], sub(W[i][0], W[i][TT]), INK, 1, .2, 7)); V.arrow(P, sub(EX0, P), INK, 4, 1, 13); }
+    if(b <= 2) view(V, 0);
+    else if(b === 3) view(V, Math.min(1, p / .4));
+    else if(b <= 9) view(V, 1);
+    else view(V, 1 - p);
+    const zoomed = b >= 3 && b <= 9;
+    V.dots(X0.slice(0, zoomed ? 2500 : 600), DOT, 2.2, b === 1 || b === 10 ? .45 : .3);
+    if(b === 10){
+      const k = .4 * Math.min(1, p * 1.5);
+      FIELD.forEach(([x, d]) => V.arrow(x, sc(d, k), INK, 1.3, .7, 6));
+      return;
+    }
+    if(b === 2){ V.dots([C0], INK, 6); tag(V, C0, 'x₀', 0, -1.1); return; }
+    /* the walk */
+    const wp = b === 3 ? Math.max(0, (p - .4) / .6) : 1, trail = d8Trail(w, wp), wa = b >= 7 ? .2 : b >= 5 ? .35 : .8;
+    V.line(trail, INK, 1.2, wa); V.dots([C0], INK, 5, b >= 7 ? .4 : 1);
+    if(b === 3){ V.dots([d8At(w, wp)], DOT, 5.5); if(wp >= 1) tag(V, P, 'step 12', 0, 1.2); if(b <= 5) tag(V, C0, 'x₀', 0, -1.1); return; }
+    if(b <= 5) tag(V, C0, 'x₀', 0, -1.1);
+    if(b === 4){
+      V.arrow(C0, sub(FC0, C0), GREY, 1.4, 1, 7); V.dots([FC0], GREY, 4.5);
+      V.arrow(FC0, sub(P, FC0), INK, 2.6, 1, 11);
+      tag(V, FC0, '√ᾱ x₀', 0, 1.2); tag(V, [(FC0[0] + P[0]) / 2, (FC0[1] + P[1]) / 2], '√(1−ᾱ) ε', 1, 0, 'left');
+    }
+    if(b === 5){ V.dots([FC0], GREY, 4.5); V.arrow(P, sub(FC0, P), INK, 3, 1, 12); tag(V, FC0, '√ᾱ x₀', 0, 1.2); }
+    if(b === 6) V.arrow(P, sub(w[TT - 1], P), INK, 2.8, 1, 10);
+    if(b === 7){ NB.forEach(i => V.arrow(W[i][TT], sub(W[i][TT - 1], W[i][TT]), INK, 1.3, .55, 7));
+      V.arrow(P, sc(TG.one, 4), INK, 4, 1, 13); tag(V, sc([P[0] + 4 * TG.one[0], P[1] + 4 * TG.one[1]], 1), 'average ×4', 0, 1.2); }
+    if(b === 8) NB.forEach(i => V.arrow(W[i][TT], sub(sc(W[i][0], a), W[i][TT]), INK, 1.1, .4, 7));
+    if(b === 9){ NB.forEach(i => V.arrow(W[i][TT], sub(sc(W[i][0], a), W[i][TT]), INK, 1, .15, 7));
+      V.arrow(P, TG.tot, INK, 4, 1, 13); tag(V, [P[0] + TG.tot[0], P[1] + TG.tot[1]], 'average', 0, 1.2); }
     V.dots([P], DOT, 5.5);
+    if(b === 4) tag(V, P, 'xₜ', 0, 1.2);
   },
 });
 </script>
