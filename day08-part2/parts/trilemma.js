@@ -58,7 +58,7 @@ st(`
   </div>
   ${cite(`${D8_REF.tri}. Speed-up measured against the predictor-corrector sampler of Song et al. 2021`)}
 `, { notes: [
-  "(draft) The trilemma paper also explains why diffusion sits where it does, and this is the slide from the start of the hour coming back.",
+  "(draft) The trilemma paper also explains why diffusion sits where it does, and it is the reason we needed the random steps earlier.",
   "(draft) The reverse step is assumed to be Gaussian, and that is justified only when the steps are small. So you need many of them.",
   "(draft) If you take a large step, the true reverse step is no longer Gaussian. Many plausible clean images correspond to the same noisy image, so the distribution has many modes.",
   "(draft) Their fix is to model each large reverse step with a conditional GAN, which can represent a multimodal distribution. This mixes two of the families we have seen today.",

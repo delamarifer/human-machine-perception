@@ -69,7 +69,7 @@ st(`
 
 sc('d8Euler', 'scenes/euler.html', { notes: [
   "(draft) Once the network is trained, sampling means solving an ODE. Any solver works; the simplest is Euler's method.",
-  "(draft) With one step, you take the velocity at the noise and jump all the way. At t equals zero, the velocity is the mean of the data minus x, so every sample lands on the mean of the data. For our ring, that is the center.",
+  "(draft) With one step, you take the velocity at the noise and jump all the way. At t equals zero, the velocity is the mean of the data minus x, so every sample lands on the mean of the data. For our spiral, that is its center, where there is no data at all: the blurry average again.",
   "(draft) With four steps, the clusters begin to appear.",
   "(draft) With forty steps, the samples match the data. Here too the number of network evaluations is the cost of a sample, and paths that bend need more steps."
 ]});
