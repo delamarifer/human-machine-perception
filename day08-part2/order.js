@@ -5,8 +5,8 @@
    One file per part. Avoid apostrophes inside the strings. */
 const ORDER = [
   ['start', 'Title'],
-  ['diffusion', 'DDPM: add noise, learn to remove it (CVPR 2022 Part 1)'],
-  ['score-sde', 'Score functions and the SDE view (CVPR 2022 Part 2)'],
+  ['diffusion', 'Images as points, noise as a random walk, the DDPM target (after the Welch Labs video, with CVPR 2022 Part 1)'],
+  ['score-sde', 'The time-dependent field, DDPM sampling, DDIM (after the Welch Labs video, with CVPR 2022 Part 2)'],
   ['flow-matching', 'Flow matching basics (NeurIPS 2024 tutorial)'],
   ['same-coin', 'Diffusion and flow matching are the same coin (Gao et al. 2025)'],
   ['trilemma', 'The generative learning trilemma, then questions'],
@@ -16,8 +16,8 @@ const PARTS = ORDER.map(r => r[0]);
 /* Minutes per section (only sets the widths in the progress bar). From Fernanda's plan for the hour. */
 const SEC_MINUTES = {
   'Start': 1,
-  'Diffusion': 15,
-  'Score and SDE': 10,
+  'Diffusion': 12,
+  'Vector Field': 13,
   'Flow Matching': 15,
   'Same Coin': 5,
   'Trilemma': 15,

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="d8-scene.css">
+<title>What should the network predict?</title>
+</head>
+<body>
+<div class="d8s-wrap">
+  <h1 class="t deck-title">What should the network predict?</h1>
+  <div class="d8s-body">
+    <div class="d8s-plot" data-from="1"><canvas class="d8s-cv"></canvas></div>
+    <div class="d8s-side">
+      <div class="lead d8s-item" data-from="1">One training example: a clean point and the same point after 12 noise steps</div>
+      <div class="d8s-stack">
+        <div class="lead d8s-item" data-from="2" data-to="2">Naive target: undo one step</div>
+        <div class="lead d8s-item" data-from="3" data-to="3">Many walks pass here. One step back is mostly noise; the average points to the data</div>
+        <div class="lead d8s-item" data-from="4" data-to="4">DDPM target: all the noise added, which is the way back to the clean point</div>
+        <div class="lead d8s-item" data-from="5">Same direction on average, without the extra noise of a single step</div>
+      </div>
+    </div>
+  </div>
+  <div class="d8s-cite d8s-item" data-from="1">Computed exactly on the toy spiral (DDPM forward process, step 12 of 100). Ho et al. 2020; Toy example after <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a></div>
+</div>
+<script src="d8-toy.js"></script>
+<script>
+/* BEAT 0 title only
+   BEAT 1 one walk: clean point x0 to x12 (12 of 100 steps)
+   BEATS 2-5 zoom in around x12. BEAT 2 its one-step-back arrow x12 -> x11
+   BEAT 3 one-step-back arrows of other walks that end near the same x12, and their exact average (scaled x4, bold)
+   BEAT 4 the same walks' arrows back to their own clean points
+   BEAT 5 the exact average of those, E[x0 | x12] - x12 (bold) */
+const mix = d8Mix(), rng = d8Rng(17), DOT = '#4f6d9a', INK = '#0f172a', GREY = '#94a3b8', TT = 12, S = D8_S100;
+const X0 = d8SampleData(mix, 7000, rng);
+const W = X0.map(p => { let x = p.slice(); const tr = [x.slice()]; for(let t = 1; t <= TT; t++){ const c = Math.sqrt(1 - S.beta[t]), d = Math.sqrt(S.beta[t]); x = [c * x[0] + d * rng.n(), c * x[1] + d * rng.n()]; tr.push(x.slice()); } return tr; });
+/* the shown walk: the first one that ends off the spiral, where the exact average arrow back to the data is clearly long */
+const [a, s] = S.as(TT), near = e => Math.min(...mix.mu.map(m => Math.hypot(e[0] - m[0], e[1] - m[1])));
+let I = 0; for(let i = 0; i < W.length; i++){ const e = W[i][TT], d = near(e), E = d8Post(mix, e, a, s).E1;
+  if(d > .3 && d < .45 && Math.hypot(E[0] - e[0], E[1] - e[1]) > .3 && Math.hypot(e[0], e[1]) > 1.2){ I = i; break; } }
+const P = W[I][TT];
+const NB = W.map((w, i) => i).filter(i => i !== I && Math.hypot(W[i][TT][0] - P[0], W[i][TT][1] - P[1]) < .22).slice(0, 36);
+const Q = d8Post(mix, P, a, s), EX0 = Q.E1;
+/* exact mean of x_{t-1} given x_t: the DDPM posterior mean with x0 replaced by its expectation (it is linear in x0) */
+const ab = S.abar[TT], abp = S.abar[TT - 1], be = S.beta[TT];
+const c0 = Math.sqrt(abp) * be / (1 - ab), ct = Math.sqrt(1 - be) * (1 - abp) / (1 - ab);
+const EPREV = [c0 * EX0[0] + ct * P[0], c0 * EX0[1] + ct * P[1]];
+const sub = (u, v) => [u[0] - v[0], u[1] - v[1]], sc = (u, k) => [u[0] * k, u[1] * k];
+d8Scene({
+  name: 'd8Target', nb: 5,
+  draw(V, b){
+    if(b === 0) return;
+    if(b >= 2) V.zoom(P, 1);
+    V.dots(X0.slice(0, b >= 2 ? 2500 : 420), DOT, 2.2, .3);
+    const w = W[I];
+    V.line(w, INK, 1.1, b >= 3 ? .25 : .7); V.dots([w[0]], INK, 4.5, b >= 3 ? .4 : 1);
+    if(b === 2) V.arrow(P, sub(w[TT - 1], P), INK, 2.6, 1, 10);
+    if(b === 3){ NB.forEach(i => V.arrow(W[i][TT], sub(W[i][TT - 1], W[i][TT]), INK, 1.3, .55, 7)); V.arrow(P, sc(sub(EPREV, P), 4), INK, 4, 1, 13); }
+    if(b === 4){ NB.forEach(i => V.arrow(W[i][TT], sub(W[i][0], W[i][TT]), INK, 1, .3, 7)); V.arrow(P, sub(w[0], P), INK, 2.6, 1, 11); }
+    if(b === 5){ NB.forEach(i => V.arrow(W[i][TT], sub(W[i][0], W[i][TT]), INK, 1, .2, 7)); V.arrow(P, sub(EX0, P), INK, 4, 1, 13); }
+    V.dots([P], DOT, 5.5);
+  },
+});
+</script>
+</body>
+</html>

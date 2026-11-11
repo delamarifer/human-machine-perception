@@ -1,98 +1,57 @@
-/* PART: diffusion (Day 8 part B). Owner: Fernanda. DDPM intuition and training objective, following Part 1 of the
-   CVPR 2022 tutorial (Kreis, Gao, Vahdat) and Ho et al. 2020. About 15 minutes.
-   Equations follow Ho et al. 2020 (their eq. 2, 4, Algorithms 1 and 2). The animation is computed exactly on a toy 2D mixture
-   (scenes/d8-toy.js); nothing is a copied figure. All notes are drafts for Fernanda. */
+/* PART: diffusion (Day 8 part B). Owner: Fernanda. About 12 minutes.
+   Rebuilt 2026-11-11 at Fernanda's request around the explanation in the Welch Labs guest video for 3Blue1Brown,
+   "But how do AI images and videos actually work?" (2025, https://www.youtube.com/watch?v=iv-5mZ_9CPY), 8:20 to 16:10:
+   an image as a point, a 2D spiral as the toy data, adding noise as a random walk, and why DDPM predicts the total noise.
+   The animations are our own, computed exactly on our own spiral (scenes/d8-toy.js); nothing is copied from the video.
+   Equations follow Ho et al. 2020. All notes are drafts for Fernanda. */
 {
 section('Diffusion');
 const v = d8v;
 
-/* ---------- 1. scene: forward noising, then the reverse run ---------- */
-sc('d8Noise', 'scenes/noise.html', { notes: [
-  "(draft) The idea behind diffusion models fits in one sentence: destroy the data slowly, and learn to undo it.",
-  "(draft) Here is our data for the next half hour. It is a toy distribution in two dimensions: eight small clusters on a ring. Think of every dot as one image. Real images live in millions of dimensions, but the math is the same, and in two dimensions we can see it.",
-  "(draft) The forward process adds a little Gaussian noise at every step. After 100 of the 1000 steps, the clusters are already blurring.",
-  "(draft) After 300 steps, the ring is barely there.",
-  "(draft) After all 1000 steps, there is nothing left of the data. What we have is a standard Gaussian: pure noise. This direction needs no learning at all. It is just adding noise.",
-  "(draft) The reverse process is the generative model. Start from pure noise, and remove a little noise at each step. Every dot finds its way to one of the clusters. Here the denoiser is exact, because for this toy distribution we can compute it. In a real model, a neural network learns it. The rest of this section is how."
+sc('d8Pixels', 'scenes/pixels.html', { notes: [
+  "(draft) To understand what a diffusion model learns, we first need a picture of where images live.",
+  "(draft) Take an image with only two pixels. The first pixel's brightness is the x coordinate, and the second pixel's brightness is the y coordinate. A black pixel next to a white pixel is the point zero, one. Two white pixels are the point one, one. Every two-pixel image is a point.",
+  "(draft) A real image works the same way, with one axis per pixel and per color channel. A 512 by 512 color image is one point in 786,432 dimensions.",
+  "(draft) Almost every point in that space looks like static. Real images fill a tiny, very structured part of it. We cannot draw that, so we use a toy version in two dimensions: our data is a spiral. Each dot is one image. This toy example comes from a video by Welch Labs for 3Blue1Brown, which I recommend; the animations here are our own, computed exactly."
 ]});
 
-/* ---------- 2. the forward process ---------- */
-st(`
-  <h1 class="t">The forward process: a fixed noise schedule</h1>
-  <div class="d8-body">
-    <div class="d8-row b" data-step="1"><div class="label">One step</div>
-      <div class="d8-eq">${v('q')}(${v('x','t')} | ${v('x','t−1')}) = 𝒩( ${v('x','t')} ; √(1 − ${v('β','t')}) ${v('x','t−1')} , ${v('β','t')} 𝐈 )</div></div>
-    <div class="d8-row b" data-step="2"><div class="label">Any step, in one jump</div>
-      <div class="d8-eq">${v('x','t')} = √${v('ᾱ','t')} ${v('x','0')} + √(1 − ${v('ᾱ','t')}) ${v('ε')} ,&nbsp;&nbsp; ${v('ε')} ~ 𝒩(0, 𝐈)</div></div>
-    <div class="d8-row b" data-step="3"><div class="label">At the end</div>
-      <div class="d8-eq">${v('ᾱ','T')} ≈ 0 &nbsp;⇒&nbsp; ${v('x','T')} ≈ 𝒩(0, 𝐈)</div></div>
-  </div>
-  ${cite(`${D8_REF.ddpm}. Their schedule: ${v('β','t')} from 0.0001 to 0.02, ${v('T')} = 1000`)}
-`, { notes: [
-  "(draft) Now the same thing in equations. The forward process is fixed: there is nothing to learn in it.",
-  "(draft) One step: scale the previous image down a little, by the square root of one minus beta t, and add Gaussian noise with variance beta t. Beta t is the noise schedule. It is small, and it grows with t.",
-  "(draft) Because every step is Gaussian, we can jump to any step directly. Alpha bar t is the product of all the one minus betas up to t. The noisy image is a weighted sum of the clean image and fresh noise. This is what makes training cheap: we never have to run the chain step by step.",
-  "(draft) At the last step, alpha bar is close to zero, so x T is just a standard Gaussian. That is where sampling will start. In Ho et al., beta goes from 0.0001 to 0.02 over 1000 steps, and that is the schedule in our animation."
+sc('d8Walk', 'scenes/walk.html', { notes: [
+  "(draft) Diffusion models start by destroying the data with noise.",
+  "(draft) Here is our spiral.",
+  "(draft) Adding a little Gaussian noise to an image changes every pixel by a small random amount. For a point, that is a small step in a random direction. Do it 100 times, and the point goes on a random walk. In DDPM, each step also shrinks the point slightly toward the center, so the walk does not wander off forever.",
+  "(draft) This is Brownian motion, the same process that makes ink diffuse in water. That is where diffusion models get their name.",
+  "(draft) Let every point walk 100 steps. The spiral is gone, and what is left is a standard Gaussian cloud. Generating an image means running this film backwards: start from the cloud and recover the spiral."
 ]});
 
-/* ---------- 3. the reverse process ---------- */
-st(`
-  <h1 class="t">The reverse process: learn each denoising step</h1>
-  <div class="d8-body">
-    <div class="d8-row b" data-step="1"><div class="label">Model</div>
-      <div class="d8-eq">${v('p','θ')}(${v('x','t−1')} | ${v('x','t')}) = 𝒩( ${v('x','t−1')} ; ${v('μ','θ')}(${v('x','t')}, ${v('t')}) , ${v('σ','t','2')} 𝐈 )</div></div>
-    <div class="d8-row b" data-step="2"><div class="label">Why Gaussian</div>
-      <div class="lead">For small steps, the true reverse step is close to Gaussian</div></div>
-    <div class="d8-row b" data-step="3"><div class="label">The cost</div>
-      <div class="lead">Small steps mean many steps: one network evaluation each</div></div>
-  </div>
-  ${cite(`${D8_REF.ddpm}; ${D8_REF.tri}`)}
-`, { notes: [
-  "(draft) The reverse process is where the learning happens.",
-  "(draft) Each reverse step is modeled as a Gaussian. A neural network predicts its mean from the noisy image and the step number t. The variance is fixed by the schedule.",
-  "(draft) Why is a Gaussian allowed? Because when each forward step adds only a little noise, the true reverse step is also close to a Gaussian. This only holds for small steps.",
-  "(draft) And that is the cost. Small steps mean many steps, and every step is one pass through the network. Keep this in mind: it comes back in the trilemma at the end."
+sc('d8Target', 'scenes/target.html', { notes: [
+  "(draft) Now the network has to learn to reverse this. What exactly should it predict?",
+  "(draft) One training example: a clean point on the spiral, and the same point after 12 of the 100 noise steps.",
+  "(draft) The natural idea is to undo one step: given the point at step 12, predict where it was at step 11. That arrow is short, and its direction is mostly the random step we happened to draw.",
+  "(draft) Many walks pass through this neighborhood. Here are the one-step-back arrows of walks that ended near the same point. They point every which way. Their average, drawn four times longer, does point back toward the data. So a network trained this way can learn, but each training example is very noisy.",
+  "(draft) What the DDPM paper does instead is predict the total noise added over the whole walk. With the one-jump formula, that is the same as pointing straight back to the clean point. Here are those arrows for the same walks.",
+  "(draft) Their average points the same way as before. In fact one can show the two targets agree on average: the one-step target is the total-noise target plus the fresh noise of that single step. Dropping that extra noise gives the network much cleaner examples, without changing what it learns. This is the surprising choice in DDPM: it skips all the intermediate steps."
 ]});
 
-/* ---------- 4. training ---------- */
 st(`
-  <h1 class="t">Training: predict the noise that was added</h1>
+  <h1 class="t">Training: show a noisy image, ask for the noise</h1>
   <div class="d8-body">
-    <div class="d8-algo">
-      <div class="b" data-step="1"><span class="d8-kw">repeat</span></div>
-      <div class="b" data-step="1" style="--in:1">take an image ${v('x','0')}, a step ${v('t')} ~ Uniform{1, …, ${v('T')}}, noise ${v('ε')} ~ 𝒩(0, 𝐈)</div>
-      <div class="b" data-step="2" style="--in:1">make it noisy: ${v('x','t')} = √${v('ᾱ','t')} ${v('x','0')} + √(1 − ${v('ᾱ','t')}) ${v('ε')}</div>
-      <div class="b" data-step="3" style="--in:1">gradient step on &nbsp;‖ ${v('ε')} − ${v('ε','θ')}(${v('x','t')}, ${v('t')}) ‖<sup>2</sup></div>
+    <div class="d8-terms b" data-step="1">
+      <div><div class="d8-word">noisy image</div><div class="d8-sym">${v('x','t')}</div></div>
+      <div class="d8-op">=</div>
+      <div><div class="d8-word">faded clean image</div><div class="d8-sym">√${v('ᾱ','t')} ${v('x','0')}</div></div>
+      <div class="d8-op">+</div>
+      <div><div class="d8-word">noise</div><div class="d8-sym">√(1 − ${v('ᾱ','t')}) ${v('ε')}</div></div>
     </div>
-    <div class="lead b" data-step="4">A regression problem: the network is a denoiser</div>
+    <div class="d8-row b" data-step="2"><div class="label">The network sees</div><div class="lead">the noisy image and the time ${v('t')}</div></div>
+    <div class="d8-row b" data-step="3"><div class="label">It must say</div><div class="lead">which noise was added</div></div>
+    <div class="d8-row b" data-step="4"><div class="label">The loss</div><div class="lead">how far its guess is from the true noise (squared error)</div></div>
   </div>
-  ${cite(`${D8_REF.ddpm}, Algorithm 1 (the simplified objective)`)}
+  ${cite(`${D8_REF.ddpm}, Algorithm 1`)}
 `, { notes: [
-  "(draft) Training turns out to be very simple.",
-  "(draft) Take a clean training image, pick a random step t, and draw some Gaussian noise.",
-  "(draft) Make the noisy image in one jump, with the formula from two slides ago.",
-  "(draft) Then ask the network to tell you which noise was added. The loss is the squared error between the true noise and the predicted noise. Ho et al. derived it from a variational bound and then dropped the weights, and this simplified loss gave better samples.",
-  "(draft) So diffusion training is a regression problem. The network is a denoiser, trained at every noise level at once. There is no adversary, as in a GAN, and no encoder, as in a VAE."
-]});
-
-/* ---------- 5. sampling ---------- */
-st(`
-  <h1 class="t">Sampling: start from noise, denoise ${v('T')} times</h1>
-  <div class="d8-body">
-    <div class="d8-algo">
-      <div class="b" data-step="1">${v('x','T')} ~ 𝒩(0, 𝐈)</div>
-      <div class="b" data-step="2"><span class="d8-kw">for</span> ${v('t')} = ${v('T')}, …, 1</div>
-      <div class="b" data-step="2" style="--in:1">${v('x','t−1')} = (1 / √${v('α','t')}) ( ${v('x','t')} − (${v('β','t')} / √(1 − ${v('ᾱ','t')})) ${v('ε','θ')}(${v('x','t')}, ${v('t')}) ) + ${v('σ','t')} ${v('z')} ,&nbsp; ${v('z')} ~ 𝒩(0, 𝐈)</div>
-      <div class="b" data-step="3"><span class="d8-kw">return</span> ${v('x','0')}</div>
-    </div>
-    <div class="lead b" data-step="4">1000 network evaluations for one image</div>
-  </div>
-  ${cite(`${D8_REF.ddpm}, Algorithm 2`)}
-`, { notes: [
-  "(draft) Sampling runs the chain backwards.",
-  "(draft) Start from pure Gaussian noise.",
-  "(draft) At each step, subtract the noise the network predicts, scaled by the schedule, and then add back a small amount of fresh noise. Alpha t is one minus beta t. That fresh noise matters: it makes this a stochastic process, and we will see why in a minute.",
-  "(draft) After the last step, you have a sample. This is what you watched in the animation: the dots moving from the noise to the clusters.",
-  "(draft) With the schedule from Ho et al., that is 1000 network evaluations for one image. A GAN needs one. This is the slow sampling problem."
+  "(draft) Here is the whole training recipe, almost without equations.",
+  "(draft) Take a clean image from the dataset and pick a random time t. The noisy image is the clean image, faded, plus noise. How much it fades and how much noise is added is fixed in advance: the larger t, the more noise. Because of this formula we never have to run the 100 or 1000 small steps one by one; we jump straight to time t.",
+  "(draft) The network gets two inputs: the noisy image, and the time t, so it knows how much noise to expect.",
+  "(draft) Its job is to say which noise was added: the total noise from the last slide.",
+  "(draft) The loss is the squared distance between its guess and the noise we really added. That is all: a regression problem, repeated over many images and every value of t. There is no adversary, as in a GAN, and no encoder, as in a VAE."
 ]});
 }

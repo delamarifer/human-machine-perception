@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="d8-scene.css">
+<title>Adding noise is a random walk</title>
+</head>
+<body>
+<div class="d8s-wrap">
+  <h1 class="t deck-title">Adding noise is a random walk</h1>
+  <div class="d8s-body">
+    <div class="d8s-plot" data-from="1"><canvas class="d8s-cv"></canvas></div>
+    <div class="d8s-side">
+      <div class="lead d8s-item" data-from="2">Each noise step moves the point in a random direction</div>
+      <div class="lead d8s-item" data-from="3">Brownian motion: where diffusion models get their name</div>
+      <div class="lead d8s-item" data-from="4">After 100 steps: Gaussian noise, the spiral is gone</div>
+    </div>
+  </div>
+  <div class="d8s-cite d8s-item" data-from="1">Computed with the DDPM forward process, 100 steps (schedule of Ho et al. 2020, rescaled). Toy example after <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a></div>
+</div>
+<script src="d8-toy.js"></script>
+<script>
+/* BEAT 0 title only
+   BEAT 1 the spiral
+   BEAT 2 one point's 100-step walk, animated
+   BEAT 3 twelve walks, animated
+   BEAT 4 every point walks 100 steps (dots only), animated */
+const mix = d8Mix(), rng = d8Rng(13), DOT = '#4f6d9a', INK = '#0f172a', GREY = '#94a3b8';
+const X0 = d8SampleData(mix, 420, rng), WALKS = d8Walks(X0, rng);
+d8Scene({
+  name: 'd8Walk', nb: 4, anim: {2: 3600, 3: 3600, 4: 3600},
+  draw(V, b, p){
+    if(b === 0) return;
+    if(b === 1){ V.dots(X0, DOT, 2.4); return; }
+    if(b === 4){ V.dots(X0, DOT, 2, .15); V.dots(WALKS.map(w => d8At(w, p)), DOT, 2.4); return; }
+    V.dots(X0, DOT, 2.4, .35);
+    const n = b === 2 ? 1 : 12;
+    for(let i = 0; i < n; i++){ const w = WALKS[i * 31]; V.line(d8Trail(w, p), INK, n === 1 ? 1.2 : .9, n === 1 ? .8 : .4); V.dots([w[0]], INK, 4); V.dots([d8At(w, p)], DOT, 4.5); }
+  },
+});
+</script>
+</body>
+</html>

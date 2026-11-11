@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../deck/deck.css">
+<link rel="stylesheet" href="d8-scene.css">
+<title>An image is a point</title>
+</head>
+<body>
+<div class="d8s-wrap">
+  <h1 class="t deck-title">An image is a point</h1>
+  <div class="d8s-body">
+    <div class="d8s-plot" data-from="1"><canvas class="d8s-cv"></canvas></div>
+    <div class="d8s-side">
+      <div class="lead d8s-item" data-from="1">An image with two pixels is a point in 2D</div>
+      <div class="lead d8s-item" data-from="2">One axis per pixel: a 512 × 512 color image is a point in 786,432 dimensions</div>
+      <div class="lead d8s-item" data-from="3">Real images fill a tiny, structured part of that space. Our toy version: a spiral</div>
+    </div>
+  </div>
+  <div class="d8s-cite d8s-item" data-from="1">Toy example after <a href="https://www.youtube.com/watch?v=iv-5mZ_9CPY" target="_blank" rel="noopener" onclick="event.stopPropagation()">Welch Labs for 3Blue1Brown (2025)</a></div>
+</div>
+<script src="d8-toy.js"></script>
+<script>
+/* BEAT 0 title only
+   BEAT 1 three two-pixel images and their points (black = 0, white = 1)
+   BEAT 2 the cue about many pixels (the picture stays)
+   BEAT 3 the spiral dataset appears in the same space */
+const mix = d8Mix(), rng = d8Rng(3), DOT = '#4f6d9a', INK = '#0f172a';
+const SP = d8SampleData(mix, 420, rng);
+const W = v => (v - .5) * 6.4;                          // pixel value 0..1 to plot coordinate
+const IMGS = [[0, 1], [1, 1], [.25, .62]];
+function icon(V, px, at){
+  const [X, Y] = V.P(at), s = Math.max(14, V.h / 18);
+  px.forEach((v, i) => { const g = Math.round(255 * v); V.ctx.fillStyle = `rgb(${g},${g},${g})`; V.ctx.fillRect(X + i * s, Y - s / 2, s, s);
+    V.ctx.strokeStyle = INK; V.ctx.lineWidth = 1.5 * V.px; V.ctx.strokeRect(X + i * s, Y - s / 2, s, s); });
+}
+d8Scene({
+  name: 'd8Pixels', nb: 3,
+  draw(V, b){
+    if(b === 0) return;
+    const c = V.ctx, f = Math.max(12, V.h / 30);
+    V.line([[W(0), W(0)], [W(1), W(0)]], INK, 1.4); V.line([[W(0), W(0)], [W(0), W(1)]], INK, 1.4);
+    c.fillStyle = INK; c.font = `${f}px Calibri, Carlito, Arial, sans-serif`; c.textAlign = 'center';
+    const [x0, y0] = V.P([W(0), W(0)]), [x1] = V.P([W(1), W(0)]), [, y1] = V.P([W(0), W(1)]);
+    c.fillText('0', x0, y0 + f * 1.2); c.fillText('1', x1, y0 + f * 1.2); c.fillText('pixel 1', (x0 + x1) / 2, y0 + f * 1.2);
+    c.textAlign = 'right'; c.fillText('1', x0 - f * .5, y1 + f * .35); c.save(); c.translate(x0 - f * .8, (y0 + y1) / 2); c.rotate(-Math.PI / 2); c.textAlign = 'center'; c.fillText('pixel 2', 0, 0); c.restore();
+    if(b >= 3) V.dots(SP, DOT, 2.4, .9);
+    IMGS.forEach((px, i) => { const p = [W(px[0]), W(px[1])], o = [[.18, -.4], [-1.25, -.4], [.18, -.2]][i]; V.dots([p], INK, 5); icon(V, px, [p[0] + o[0], p[1] + o[1]]); });
+  },
+});
+</script>
+</body>
+</html>
