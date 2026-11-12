@@ -54,3 +54,4 @@ Two hours: 30 min discussion, 50 min workbooks, 40 min project work. Preview: `d
   - Embodied: rubber hand: real hand hidden, both brushed together, "That's my hand.", a hammer comes down, "Many people flinch".
 - [x] New closing slide "Does today's AI have any of this?" (four questions, hands up). Remove it if you'd rather go straight to the form.
 - [ ] Check: "In the original video, about half of viewers missed it" (Simons and Chabris 1999) and "Many people flinch" (Armel and Ramachandran 2003): wording is mine (draft).
+- [x] Gorilla slide: the original video (Daniel Simons, YouTube) is embedded on click 2 in place of the redrawn animation; click 3 hides it (and stops it) and the drawing circles the gorilla.

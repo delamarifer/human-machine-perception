@@ -162,25 +162,20 @@ st(`
   ${cite('Duck-rabbit: Fliegende Blätter (1892), public domain · Jastrow, Popular Science Monthly (1899) · Rao and Ballard, Nature Neuroscience (1999)')}
 `);
 
-/* 2. Global workspace theory: the invisible gorilla, redrawn as an animation (Simons and Chabris 1999).
-   Two teams pass a ball; while the class counts the white team's passes, a gorilla walks through. */
+/* 2. Global workspace theory: the invisible gorilla (Simons and Chabris 1999). The original video is embedded
+   (Daniel Simons' YouTube, Shreya's request); the next click hides it and the drawing circles the gorilla. */
 const d8lPl = (x, y, team) => `<g transform="translate(${x} ${y})" class="d8l-p${team}"><circle cx="0" cy="-30" r="13"/><path d="M-22 18 Q-22 -6 0 -8 Q22 -6 22 18 Z"/></g>`;
 const d8lGorilla = `<g class="d8l-gor-fig"><circle cx="0" cy="-70" r="20"/><ellipse cx="0" cy="-16" rx="34" ry="42"/><path d="M-30 -40 Q-62 -10 -52 30 M30 -40 Q62 -10 52 30" class="d8l-arm"/><path d="M-16 20 L-20 62 M16 20 L20 62" class="d8l-arm"/></g>`;
 st(`
   <h1 class="t">Can you process information without being consciously aware of it?</h1>
   <div class="d8l-col d8l-th">
     ${d8lHands}
-    <svg class="d8l-svg d8l-th-svg d8l-gw" viewBox="0 0 1000 440" role="img" aria-label="Two teams pass balls; while you count the white team's passes, a gorilla walks through the middle">
-      <g class="b" data-step="2">
+    <div class="d8l-stage">
+    <svg class="d8l-svg d8l-th-svg d8l-gw" viewBox="0 0 1000 440" role="img" aria-label="The gorilla walked right through the middle while the players passed the ball">
+      <g class="b d8l-gor-reveal" data-step="3">
         <rect x="130" y="20" width="740" height="370" rx="12" class="d8l-court"/>
         ${d8lPl(300, 150, 'w')}${d8lPl(520, 330, 'w')}${d8lPl(730, 140, 'w')}
         ${d8lPl(420, 110, 'b')}${d8lPl(660, 300, 'b')}${d8lPl(260, 320, 'b')}
-        <circle r="9" class="d8l-ball d8l-ball-w"/>
-        <circle r="9" class="d8l-ball d8l-ball-b"/>
-        <g class="d8l-gor-walk">${d8lGorilla}</g>
-        <text x="500" y="428" class="d8l-t d8l-c d8l-ask">Count the passes between the players in white</text>
-      </g>
-      <g class="b d8l-gor-reveal" data-step="3">
         <rect x="132" y="22" width="736" height="366" rx="11" class="d8l-veil"/>
         <g transform="translate(520 225)">${d8lGorilla}</g>
         <circle cx="520" cy="205" r="96" class="d8l-dash"/>
@@ -188,7 +183,9 @@ st(`
       </g>
       <text x="500" y="428" class="d8l-t d8l-c d8l-bg b" data-step="4">In the original video, about half of viewers missed it.</text>
     </svg>
-    ${d8lTheory('Global workspace theory', 'You can process information without being consciously aware of it. <a href="https://www.youtube.com/watch?v=vJG698U2Mvo" target="_blank" rel="noopener">The original video</a>', W + 'Global_workspace_theory', 5)}
+    <div class="d8l-video b" data-step="2"><iframe src="https://www.youtube-nocookie.com/embed/vJG698U2Mvo?rel=0" title="Selective attention test (Daniel Simons)" referrerpolicy="strict-origin-when-cross-origin" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe><div class="d8l-hands">Count the passes between the players in white</div></div>
+    </div>
+    ${d8lTheory('Global workspace theory', 'You can process information without being consciously aware of it.', W + 'Global_workspace_theory', 5)}
   </div>
   ${cite('Simons and Chabris, Gorillas in our midst, Perception (1999) · Baars, A Cognitive Theory of Consciousness (1988)')}
 `);

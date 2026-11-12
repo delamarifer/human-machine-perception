@@ -103,6 +103,11 @@
   .d8l-th-svg .d8l-bt{ font-size:26px; }
   .d8l-th-svg .d8l-t{ font-size:30px; }
   .d8l-th-svg .d8l-q2{ font-size:36px; }
+  .d8l-stage{ display:grid; justify-items:center; align-items:center; }
+  .d8l-stage > *{ grid-area:1 / 1; }
+  .d8l-video{ display:flex; flex-direction:column; align-items:center; gap:.8vh; }
+  .d8l-video iframe{ height:43vh; aspect-ratio:16 / 9; border:0; border-radius:10px; background:#000; }
+  .d8l-video:not(.shown), .d8l-stage:has(.d8l-gor-reveal.shown) .d8l-video{ opacity:0; pointer-events:none; }
   .d8l-theory{ border:2px solid var(--ink); border-radius:12px; padding:1.1vh 1.4vw; display:flex; flex-wrap:wrap; align-items:baseline; gap:.4vh 1.2vw; font-size:clamp(1.05rem, 1.8vw, 1.6rem); line-height:1.3; }
   .d8l-theory a{ color:inherit; }
   .d8l-theory > a{ margin-left:auto; font-size:.85em; }
@@ -155,4 +160,16 @@
   }
 `;
   document.head.appendChild(el);
+})();
+
+/* Embedded videos (the gorilla slide): when the video is hidden again, reload it so it stops playing. */
+(function(){
+  const sync = () => document.querySelectorAll('.d8l-stage').forEach(st => {
+    const v = st.querySelector('.d8l-video'), f = v && v.querySelector('iframe');
+    if (!f) return;
+    const on = v.classList.contains('shown') && !st.querySelector('.d8l-gor-reveal.shown');
+    if (on) f.dataset.live = '1';
+    else if (f.dataset.live) { delete f.dataset.live; f.src = f.src; }
+  });
+  new MutationObserver(sync).observe(document.documentElement, { subtree:true, attributes:true, attributeFilter:['class'] });
 })();
