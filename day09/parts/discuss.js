@@ -120,12 +120,10 @@ st(`
 `);
 
 /* Four theories, one slide each, each with an animated example (examples chosen by Shreya, 2026-11-12).
-   The title is the question (Shreya's claims, posed as questions at her request); the class votes with hands;
-   the drawing plays the example; the last click names the theory, with Shreya's sentence for it. Not a progression:
+   The title is the question (Shreya's claims, posed as questions at her request); the drawing plays the example; the last click names the theory, with Shreya's sentence for it. Not a progression:
    each slide stands on its own. Replaces the "Where do you stand?" list and the theory jigsaw. */
 const W = 'https://en.wikipedia.org/wiki/';
 const d8lTheory = (name, claim, href, step) => `<div class="d8l-theory b" data-step="${step}"><b>${name}</b><span>${claim}</span><a href="${href}" target="_blank" rel="noopener">Start here</a></div>`;
-const d8lHands = `<div class="d8l-hands b" data-step="1">Hands up: yes · no · not sure</div>`;
 
 /* 1. Predictive processing: the duck-rabbit. Image shared by Shreya (Fliegende Blätter, 1892, public domain).
    Positions from the image's pixels (640 x 563, drawn at x 300, y 40, scale 0.625): bill tip (66, 240) -> (341, 190);
@@ -133,7 +131,6 @@ const d8lHands = `<div class="d8l-hands b" data-step="1">Hands up: yes · no · 
 st(`
   <h1 class="t">Does your brain construct what you see based on what it expects to see?</h1>
   <div class="d8l-col d8l-th">
-    ${d8lHands}
     <svg class="d8l-svg d8l-th-svg d8l-pp" viewBox="0 0 1000 440" role="img" aria-label="The duck-rabbit: the same drawing read as a duck looking left or a rabbit looking right">
       <g class="b" data-step="2">
         <image href="assets/duck-rabbit.png" x="300" y="40" width="400" height="352"/>
@@ -170,7 +167,6 @@ const d8lGorilla = `<g class="d8l-gor-fig"><circle cx="0" cy="-70" r="20"/><elli
 st(`
   <h1 class="t">Can you process information without being consciously aware of it?</h1>
   <div class="d8l-col d8l-th">
-    ${d8lHands}
     <div class="d8l-stage">
     <svg class="d8l-svg d8l-th-svg d8l-gw" viewBox="0 0 1000 440" role="img" aria-label="The gorilla walked right through the middle while the players passed the ball">
       <g class="b d8l-gor-reveal d8l-after" data-step="3">
@@ -219,7 +215,6 @@ st(`
 st(`
   <h1 class="t">Can a system behave intelligently without being conscious?</h1>
   <div class="d8l-col d8l-th">
-    ${d8lHands}
     <svg class="d8l-svg d8l-th-svg d8l-sb" viewBox="0 0 1000 440" role="img" aria-label="Split brain: with the bridge between the two halves cut, a word seen on the left reaches only the right half; the person says they saw nothing, yet the left hand picks out the object">
       <g class="b" data-step="2">
         <rect x="300" y="14" width="400" height="64" rx="8" class="d8l-ln"/>
@@ -271,7 +266,6 @@ const d8lBrush = (x, cls) => `<g class="${cls}"><g transform="translate(${x} 0)"
 st(`
   <h1 class="t">Can you fully understand the world without interacting with it through your body?</h1>
   <div class="d8l-col d8l-th">
-    ${d8lHands}
     <div class="d8l-stage">
     <svg class="d8l-svg d8l-th-svg d8l-rh" viewBox="0 0 1000 440" role="img" aria-label="Rubber hand illusion: the real hand is hidden behind a screen, a rubber hand lies in view, both are brushed together, and the person comes to feel the rubber hand as their own">
       <g class="b d8l-after" data-step="3">
@@ -321,7 +315,6 @@ st(`
       <li class="b">Is its information integrated, one whole?</li>
       <li class="b">Can it understand the world without a body?</li>
     </ul>
-    <div class="d8l-vote b">Hands up: yes · no · not sure</div>
   </div>
 `);
 
