@@ -19,6 +19,18 @@ Two hours: 30 min discussion, 50 min workbooks, 40 min project work. Preview: `d
   - "Theory jigsaw": each project group reads up on one theory (Wikipedia links) for 5 min and answers three questions, then reports back in 1 min.
 - The form link is in. assets/form-qr.svg encodes it (made with segno), and the slide shows it next to the link.
 
+## Round 4 (2026-11-12): workbooks with TODOs, solutions kept private
+- Three notebooks of our own in day09/workbook/, named for their content:
+  - Track A: autoencoders-and-vaes (built from Day 8 workbook sections 1-2), 5 TODOs.
+  - Track B: gans-from-2d-to-digits (was gan-lite), 3 TODOs.
+  - Track C: diffusion-on-a-spiral (replaces the outside Colab, which had point values), 3 TODOs plus 1 optional.
+- Each TODO raises NotImplementedError with a hint, and a check cell after it says when it works.
+- Solutions: private/day09-workbooks/solutions/*-solutions.ipynb, built with private/day09-workbooks/build.py.
+  private/ is git-ignored, so neither is ever pushed. Edit build.py, not the notebooks, and re-run it.
+- Point values removed: the MIT HW5 link (which had point values) is gone from "Done early?". The diffusion lecture notes stay.
+- Solutions run end to end with every check passing, on 2 CPU threads while the machine was heavily loaded:
+  A about 5 min, B 37 s, C about 1 min.
+
 ## Open questions
 - [ ] Jigsaw: groups 1 and 5 take predictive processing, 2 and 6 global workspace, 3 integrated information, 4 embodied cognition. Change these if you like.
 - [ ] What exactly was yesterday's Turing test question? The slide says "Yesterday: can a machine pass as human?". Reword it to match.

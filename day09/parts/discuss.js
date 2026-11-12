@@ -151,8 +151,9 @@ st(`
     <ol class="d8l-list d8l-tasks">
       <li class="b" data-step="2">What does it claim, in one sentence?</li>
       <li class="b" data-step="3">What evidence would support it?</li>
-      <li class="b" data-step="4">Could a GAN, a chatbot or a robot have a mind under it? Report back in one minute.</li>
+      <li class="b" data-step="4">By this theory, what does today’s AI already have, and what is it missing?</li>
     </ol>
+    <div class="d8l-vote b" data-step="5">Report back to the room in one minute</div>
   </div>
 `);
 
