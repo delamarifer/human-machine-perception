@@ -33,6 +33,26 @@
   .d8l-tasks > li{ font-size:clamp(.95rem, 1.6vw, 1.45rem); }
   .d8l-form{ display:flex; align-items:center; justify-content:center; gap:4vw; }
   .d8l-form img{ height:30vh; width:auto; flex:0 0 auto; }
+  .d8l-svg{ width:100%; height:auto; max-height:52vh; flex:0 1 auto; min-height:0; overflow:visible; }
+  .d8l-svg .d8l-ln{ fill:none; stroke:var(--ink); stroke-width:3; }
+  .d8l-svg .d8l-wall{ stroke:var(--ink); stroke-width:10; stroke-dasharray:2 14; stroke-linecap:round; }
+  .d8l-svg .d8l-wall2{ fill:#f1f5f9; stroke:var(--ink); stroke-width:5; }
+  .d8l-svg .d8l-slot{ stroke:#fff; stroke-width:8; }
+  .d8l-svg .d8l-bub{ fill:#fff; stroke:var(--ink); stroke-width:2.5; }
+  .d8l-svg .d8l-book{ fill:#fff; stroke:var(--ink); stroke-width:3; }
+  .d8l-svg .d8l-tag{ fill:var(--ink); }
+  .d8l-svg text{ fill:var(--ink); font-family:var(--font); }
+  .d8l-svg .d8l-t{ font-size:22px; font-weight:600; }
+  .d8l-svg .d8l-bt{ font-size:18px; font-weight:600; }
+  .d8l-svg .d8l-s{ font-size:18px; fill:var(--mute); }
+  .d8l-svg .d8l-inv{ fill:#fff; font-weight:700; }
+  .d8l-svg .d8l-q2{ font-size:26px; font-weight:700; }
+  .d8l-svg .d8l-zh{ font-size:28px; font-weight:600; }
+  .d8l-svg .d8l-c{ text-anchor:middle; }
+  /* messages slide across the wall: right when sent to the players, left when they answer */
+  .d8l-svg .b.d8l-fly-r{ transform:translateX(-60px); transition:opacity .5s ease, transform 1.1s ease; }
+  .d8l-svg .b.d8l-fly-l{ transform:translateX(60px); transition:opacity .5s ease, transform 1.1s ease; }
+  .d8l-svg .b.shown{ transform:none; }
   .d8l-quote{ font-size:clamp(1.3rem, 2.6vw, 2.3rem); font-style:italic; text-align:center; }
   @media (max-width: 820px), (max-aspect-ratio: 1/1){
     .d8l-form{ flex-direction:column; }
