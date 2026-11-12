@@ -120,11 +120,11 @@ st(`
 `);
 
 /* Interactive: the class votes on each claim with hands, then the next click names the theory behind it. */
-const D8L_CLAIMS = [
-  ['The brain is always guessing what it will see next, and learns from its mistakes.', 'Predictive processing'],
-  ['You are only aware of what gets shared with the whole brain at once.', 'Global workspace theory'],
-  ['A system can act intelligently without experiencing anything at all.', 'Integrated information theory'],
-  ['You cannot understand the world without a body that acts in it.', 'Embodied cognition'],
+const D8L_CLAIMS = [  // Shreya's wording (2026-11-12)
+  ['Your brain constructs what you see based on what it expects to see.', 'Predictive processing'],
+  ['You can process information without being consciously aware of it.', 'Global workspace theory'],
+  ['Not all information-processing systems are conscious, even if they behave intelligently.', 'Integrated information theory'],
+  ['You cannot fully understand the world without interacting with it through your body.', 'Embodied cognition'],
 ];
 st(`
   <h1 class="t">Where do you stand?</h1>

@@ -30,7 +30,7 @@
   .d8l-ex-card > div{ display:flex; flex-direction:column; gap:.6vh; min-width:0; }
   .d8l-ex-img{ height:20vh; width:auto; border-radius:6px; flex:none; }
   .d8l-vote{ text-align:center; font-size:clamp(1.25rem, 2.25vw, 2rem); color:var(--mute); }
-  .d8l-claims{ margin:0 auto; padding:0; list-style:none; display:flex; flex-direction:column; gap:1.8vh; max-width:52em; width:100%; }
+  .d8l-claims{ margin:0 auto; padding:0; list-style:none; display:flex; flex-direction:column; gap:1.8vh; max-width:66em; width:100%; }
   .d8l-claims > li{ font-size:clamp(1.31rem, 2.44vw, 2.19rem); line-height:1.3; }
   .d8l-claims em{ display:inline; margin-left:.5em; font-style:normal; font-weight:700; font-size:.8em; white-space:nowrap; }
   .d8l-claims em::before{ content:'→ '; }
