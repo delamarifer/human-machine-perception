@@ -1,4 +1,4 @@
-/* PART: workbooks (Day 8 lab, owner: Shreya). Notebooks from Shreya's list (2026-11-12) plus the Day 8 workbook.
+/* PART: workbooks (Day 9, owner: Shreya). Notebooks from Shreya's list (2026-11-12) plus the Day 8 workbook.
    Track A: our Day 8 workbook. Track B: our light GAN notebook, workbook/gan-lite.ipynb (2D ring, then MNIST; about 40 s of CPU training in all). It replaced the deepmancer GAN notebook, which needs about 1.5 h on a CPU. Track C: diffusion on a 2D spiral (Colab, built on smalldiffusion).
    Stretch: MIT 6.S191 Lab 2 debiasing (DB-VAE, needs a GPU), MIT diffusion course Lab 3 (conditional MNIST). Pen and paper: MIT 6.7960 HW5. */
 {
@@ -14,7 +14,7 @@ st(`
         <a href="${C}github/delamarifer/human-machine-perception/blob/main/day08/workbook/generative-models-workbook.ipynb" target="_blank" rel="noopener">Open in Colab</a></div>
       <div class="d8l-card b"><small>Track B · GANs</small><b>Generator vs discriminator</b>
         <span>Train a GAN on 2D points, then on MNIST digits. Under a minute on a CPU.</span>
-        <a href="${C}github/delamarifer/human-machine-perception/blob/main/day08-lab/workbook/gan-lite.ipynb" target="_blank" rel="noopener">Open in Colab</a></div>
+        <a href="${C}github/delamarifer/human-machine-perception/blob/main/day09/workbook/gan-lite.ipynb" target="_blank" rel="noopener">Open in Colab</a></div>
       <div class="d8l-card b"><small>Track C · diffusion</small><b>From noise to a spiral</b>
         <span>Build a diffusion model from scratch on 2D points: schedule, model, train, sample</span>
         <a href="${C}drive/1gNZkGePLZmH9uGdjhroxkYe_GXA5KDSy" target="_blank" rel="noopener">Open in Colab</a></div>

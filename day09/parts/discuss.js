@@ -1,4 +1,4 @@
-/* PART: discuss (Day 8 lab, owner: Shreya). Plan from Shreya (2026-11-12): start from yesterday's Turing test question, move to
+/* PART: discuss (Day 9, owner: Shreya). Plan from Shreya (2026-11-12): start from yesterday's Turing test question, move to
    open questions and theories about humans and the mind; students submit questions they want to explore in a Google Form,
    to ground a future discussion. Wording is (draft). The first draft (course-linked prompts) is in _removed.js. */
 {

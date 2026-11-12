@@ -1,4 +1,4 @@
-/* PART: projects (Day 8 lab, owner: Shreya). Checklist is the proposal rubric from syllabus.html; groups and Calendly from the Day 8 deck. */
+/* PART: projects (Day 9, owner: Shreya). Checklist is the proposal rubric from syllabus.html; groups and Calendly from the Day 8 deck. */
 {
 section('Project Work');
 

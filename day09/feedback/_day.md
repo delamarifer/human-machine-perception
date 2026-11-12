@@ -1,4 +1,6 @@
-# Day 8 lab (2026-11-12), owner: Shreya
+# Day 9 (2026-11-12), owner: Shreya
+
+Was drafted as day08-lab. Renamed to day09 and pushed to main on Shreya's request. It is NOT linked from the home page (her request): the URL is .../day09/deck.html.
 
 Two hours: 30 min discussion, 50 min workbooks, 40 min project work. Preview: `deck.html` (13 slides).
 
@@ -20,7 +22,4 @@ Two hours: 30 min discussion, 50 min workbooks, 40 min project work. Preview: `d
 ## Open questions
 - [ ] Jigsaw: groups 1 and 5 take predictive processing, 2 and 6 global workspace, 3 integrated information, 4 embodied cognition. Change these if you like.
 - [ ] What exactly was yesterday's Turing test question? The slide says "Yesterday: can a machine pass as human?". Reword it to match.
-- [ ] Folder name `day08-lab`: Day 9 in the syllabus is robotics and multimodal, so this isn't called day09. Rename it?
 - [ ] Announcements were copied from the Day 8 deck. Are they still right today?
-- [ ] The Colab links for Track B (gan-lite) and the Day 8 workbook only work once day08-lab is pushed to main.
-- [ ] Not linked on the home page yet; the home page is a shared file.

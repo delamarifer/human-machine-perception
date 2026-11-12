@@ -1,4 +1,4 @@
-/* Day 8 lab helpers (owner: Shreya). Class names carry the d8l- prefix. */
+/* Day 9 helpers (owner: Shreya). Class names carry the d8l- prefix. */
 (() => {
   const el = document.createElement('style'); el.id = 'd8l-style';
   el.textContent = `

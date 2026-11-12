@@ -1,4 +1,4 @@
-/* Day 8 lab session (owner: Shreya), 2026-11-12. Two hours: 30 min open discussion, 50 min workbooks, 40 min project work.
+/* Day 9 session (owner: Shreya), 2026-11-12. Two hours: 30 min open discussion, 50 min workbooks, 40 min project work.
    Plan from Shreya's message: "a combination of open discussion on ai and human intelligence/philosophy, some workbooks to
    actually practice, and then some project work time". Avoid apostrophes inside the strings. */
 const ORDER = [

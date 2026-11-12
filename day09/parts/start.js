@@ -1,4 +1,4 @@
-/* PART: start (Day 8 lab, owner: Shreya). Announcements copied from the Day 8 deck (start.js); check they still hold today. No speaker notes. */
+/* PART: start (Day 9, owner: Shreya). Announcements copied from the Day 8 deck (start.js); check they still hold today. No speaker notes. */
 {
 section('Start');
 
@@ -16,7 +16,7 @@ st(`
 st(`
   <div class="center" style="margin:auto">
     <div class="statement" style="font-weight:700;font-size:clamp(2rem,3.7vw,3.3rem)">Discuss · Practice · Build</div>
-    <div class="label" style="margin-top:2.2vh">Day 8 Lab · Human and Machine Perception</div>
+    <div class="label" style="margin-top:2.2vh">Day 9 · Human and Machine Perception</div>
   </div>
 `);
 
