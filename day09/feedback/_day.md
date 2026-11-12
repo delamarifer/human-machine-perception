@@ -35,3 +35,7 @@ Two hours: 30 min discussion, 50 min workbooks, 40 min project work. Preview: `d
 - [ ] Jigsaw: groups 1 and 5 take predictive processing, 2 and 6 global workspace, 3 integrated information, 4 embodied cognition. Change these if you like.
 - [ ] What exactly was yesterday's Turing test question? The slide says "Yesterday: can a machine pass as human?". Reword it to match.
 - [ ] Announcements were copied from the Day 8 deck. Are they still right today?
+
+## Round 5 (2026-11-12)
+- [x] Solutions now in the public repo, not linked from the deck: `day09/workbook/solutions/` (with `build.py`, which builds both versions: `python3 day09/workbook/solutions/build.py`). Shreya OK'd that students could find them on GitHub.
+- [x] Final "Groups" slide deleted; the deck ends on "Project time · 40 minutes".

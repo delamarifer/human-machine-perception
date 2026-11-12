@@ -5,7 +5,7 @@ const ORDER = [
   ['start',     'Announcements, title, the plan for the two hours'],
   ['discuss',   'Discussion: from the Turing test to the mind, open questions, four theories, students submit questions in a Google Form'],
   ['workbooks', 'Workbook practice: pick a track (autoencoders and VAEs, GANs, diffusion), stretch notebooks, checkpoints'],
-  ['projects',  'Project work time: the proposal rubric as a checklist, groups, Calendly'],
+  ['projects',  'Project work time: the proposal rubric as a checklist'],
 ];
 const PARTS = ORDER.map(r => r[0]);
 
