@@ -39,3 +39,4 @@ Two hours: 30 min discussion, 50 min workbooks, 40 min project work. Preview: `d
 ## Round 5 (2026-11-12)
 - [x] Solutions now in the public repo, not linked from the deck: `day09/workbook/solutions/` (with `build.py`, which builds both versions: `python3 day09/workbook/solutions/build.py`). Shreya OK'd that students could find them on GitHub.
 - [x] Final "Groups" slide deleted; the deck ends on "Project time · 40 minutes".
+- [x] "Every track runs on a CPU. Stuck? Ask a neighbor." removed from the "By the end" slide.

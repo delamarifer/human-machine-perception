@@ -1,5 +1,5 @@
 /* PART: workbooks (Day 9, owner: Shreya). Three tracks, our own notebooks in day09/workbook/, each with TODOs and checks.
-   Solution copies are built by private/day09-workbooks/build.py into private/day09-workbooks/solutions/ (git-ignored, never posted).
+   Solution copies and build.py are in day09/workbook/solutions/ (in the public repo, not linked from the deck).
    Track A: autoencoders-and-vaes (from the Day 8 workbook, sections 1-2). Track B: gans-from-2d-to-digits. Track C: diffusion-on-a-spiral.
    Done early: MIT 6.S191 Lab 2 debiasing (needs a GPU), MIT diffusion course Lab 3, the MIT diffusion lecture notes.
    No graded homework is linked, so no point values appear (Shreya, 2026-11-12). */
@@ -45,7 +45,6 @@ st(`
       <li class="b">Track A: all 5 TODOs pass, and a walk from a 1 to a 7</li>
       <li class="b">Track B: all 3 TODOs pass, and all 8 clusters covered</li>
       <li class="b">Track C: 3 TODOs pass, and samples landing on the spiral</li>
-      <li class="b">Every track runs on a CPU. Stuck? Ask a neighbor.</li>
     </ul>
   </div>
 `);
