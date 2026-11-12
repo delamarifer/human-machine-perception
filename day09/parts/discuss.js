@@ -120,16 +120,16 @@ st(`
 `);
 
 /* Interactive: the class votes on each claim with hands, then the next click names the theory behind it. */
-const D8L_CLAIMS = [  // Shreya's wording (2026-11-12)
-  ['Your brain constructs what you see based on what it expects to see.', 'Predictive processing'],
-  ['You can process information without being consciously aware of it.', 'Global workspace theory'],
-  ['Not all information-processing systems are conscious, even if they behave intelligently.', 'Integrated information theory'],
-  ['You cannot fully understand the world without interacting with it through your body.', 'Embodied cognition'],
+const D8L_CLAIMS = [  // Shreya's claims (2026-11-12), posed as questions at her request
+  ['Does your brain construct what you see based on what it expects to see?', 'Predictive processing'],
+  ['Can you process information without being consciously aware of it?', 'Global workspace theory'],
+  ['Can a system behave intelligently without being conscious?', 'Integrated information theory'],
+  ['Can you fully understand the world without interacting with it through your body?', 'Embodied cognition'],
 ];
 st(`
   <h1 class="t">Where do you stand?</h1>
   <div class="d8l-col">
-    <div class="d8l-vote b" data-step="1">Hands up: agree · disagree · not sure</div>
+    <div class="d8l-vote b" data-step="1">Hands up: yes · no · not sure</div>
     <ul class="d8l-claims">
       ${D8L_CLAIMS.map(([c, t], k) => `<li><span class="b" data-step="${2 * k + 2}">${k + 1}. ${c}</span><em class="b" data-step="${2 * k + 3}">${t}</em></li>`).join('')}
     </ul>
