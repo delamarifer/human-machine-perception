@@ -44,3 +44,13 @@ Two hours: 30 min discussion, 50 min workbooks, 40 min project work. Preview: `d
 - [ ] Proposal submission form with a required "link to your proposal" question, proposal kept in the group's feedback folder: waiting on Shreya (I can't create Google Forms; options: Shreya makes it and sends the link, or reuse forms.gle/wBXHE6AFaHf8RR4T8).
 - [x] "Where do you stand?" claims reworded in Shreya's words (2026-11-12); list widened so each claim wraps cleanly.
 - [x] Same four claims posed as yes/no questions; hands-up prompt is now "yes · no · not sure". Claim 3 became "Can a system behave intelligently without being conscious?" (check this keeps your meaning).
+
+## Round 6 (2026-11-12): theories one at a time, animated
+- [x] "Where do you stand?" list and the theory jigsaw replaced by one slide per theory (slides 7-10), not a progression.
+  Each: the question as title → hands up (yes · no · not sure) → animated example → the theory with Shreya's sentence and a Start here link.
+  - Predictive processing: duck-rabbit (labels "A duck, looking left" then "A rabbit, looking right"; positions read from the image's pixels).
+  - Global workspace: invisible gorilla redrawn: two teams pass balls, a gorilla walks through while the class counts; reveal; link to the original video.
+  - IIT: split brain: bridge cut, KEY flashed on the left, "I saw nothing.", the left hand picks out the key, "One head, two minds?"
+  - Embodied: rubber hand: real hand hidden, both brushed together, "That's my hand.", a hammer comes down, "Many people flinch".
+- [x] New closing slide "Does today's AI have any of this?" (four questions, hands up). Remove it if you'd rather go straight to the form.
+- [ ] Check: "In the original video, about half of viewers missed it" (Simons and Chabris 1999) and "Many people flinch" (Armel and Ramachandran 2003): wording is mine (draft).

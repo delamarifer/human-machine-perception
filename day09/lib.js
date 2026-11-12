@@ -94,6 +94,60 @@
   .shown > .d8l-note-out{ animation:d8l-note-out 2.2s ease-in-out forwards; }
   @keyframes d8l-note-in{ 0%{ opacity:1; transform:translate(120px,218px); } 40%{ transform:translate(270px,200px); } 100%{ opacity:1; transform:translate(440px,200px); } }
   @keyframes d8l-note-out{ 0%{ opacity:1; transform:translate(560px,200px); } 60%{ transform:translate(730px,200px); } 100%{ opacity:1; transform:translate(880px,218px); } }
+  /* the four theory slides: question as title, a hands-up line, an animated example, then the theory */
+  h1.t:has(+ .d8l-th){ font-size:clamp(1.6rem, 3vw, 2.6rem); line-height:1.15; }
+  .d8l-th{ gap:1.4vh; }
+  .d8l-hands{ text-align:center; color:var(--mute); font-size:clamp(1.1rem, 1.8vw, 1.6rem); }
+  .d8l-svg.d8l-th-svg{ max-height:47vh; min-height:36vh; }
+  .d8l-th-svg .d8l-s{ font-size:27px; }
+  .d8l-th-svg .d8l-bt{ font-size:26px; }
+  .d8l-th-svg .d8l-t{ font-size:30px; }
+  .d8l-th-svg .d8l-q2{ font-size:36px; }
+  .d8l-theory{ border:2px solid var(--ink); border-radius:12px; padding:1.1vh 1.4vw; display:flex; flex-wrap:wrap; align-items:baseline; gap:.4vh 1.2vw; font-size:clamp(1.05rem, 1.8vw, 1.6rem); line-height:1.3; }
+  .d8l-theory a{ color:inherit; }
+  .d8l-theory > a{ margin-left:auto; font-size:.85em; }
+  .d8l-svg .d8l-ring{ fill:none; stroke:var(--ink); stroke-width:3; stroke-dasharray:8 6; }
+  .d8l-svg .d8l-arrow{ fill:none; stroke:var(--ink); stroke-width:3; stroke-linecap:round; }
+  .d8l-svg .d8l-bg, .d8l-svg .d8l-halo{ paint-order:stroke; stroke:#fff; stroke-width:10px; stroke-linejoin:round; }
+  .d8l-svg:has(.d8l-bg.shown) .d8l-ask, .d8l-svg:has(.d8l-cut.shown) .d8l-ask, .d8l-gw:has(.d8l-gor-reveal.shown) .d8l-ask{ opacity:0; }
+  .d8l-pp:has(.d8l-rab.shown) .d8l-duck{ opacity:0; }
+  .d8l-svg .d8l-court{ fill:#f8fafc; stroke:var(--ink); stroke-width:2; }
+  .d8l-svg .d8l-pw{ fill:#fff; stroke:var(--ink); stroke-width:3; }
+  .d8l-svg .d8l-pb{ fill:var(--ink); }
+  .d8l-svg .d8l-ball{ fill:#fff; stroke:var(--ink); stroke-width:3; }
+  .d8l-svg .d8l-gor-fig circle, .d8l-svg .d8l-gor-fig ellipse{ fill:var(--ink); }
+  .d8l-svg .d8l-arm{ fill:none; stroke:var(--ink); stroke-width:16; stroke-linecap:round; }
+  .d8l-svg .d8l-veil{ fill:#fff; opacity:.75; }
+  .d8l-svg .d8l-gor-walk{ opacity:0; }
+  .shown > .d8l-ball-w{ animation:d8l-pass-w 3.6s ease-in-out infinite; }
+  .shown > .d8l-ball-b{ animation:d8l-pass-b 3.2s ease-in-out infinite; }
+  .shown > .d8l-gor-walk{ animation:d8l-walk 9s linear 4s both; }
+  .d8l-gw:has(.d8l-gor-reveal.shown) .d8l-ball{ animation-play-state:paused; }
+  .d8l-gw:has(.d8l-gor-reveal.shown) .d8l-gor-walk{ animation:none; opacity:0; }
+  @keyframes d8l-pass-w{ 0%,8%{ transform:translate(300px,140px); } 30%,41%{ transform:translate(520px,320px); } 63%,74%{ transform:translate(730px,130px); } 97%,100%{ transform:translate(300px,140px); } }
+  @keyframes d8l-pass-b{ 0%,8%{ transform:translate(420px,100px); } 30%,41%{ transform:translate(660px,290px); } 63%,74%{ transform:translate(260px,310px); } 97%,100%{ transform:translate(420px,100px); } }
+  @keyframes d8l-walk{ 0%{ opacity:0; transform:translate(900px,225px); } 4%{ opacity:1; } 42%,58%{ transform:translate(520px,225px); } 96%{ opacity:1; } 100%{ opacity:0; transform:translate(140px,225px); } }
+  .d8l-svg .d8l-hemi{ fill:#f1f5f9; stroke:var(--ink); stroke-width:3; }
+  .d8l-svg .d8l-bridge{ fill:#cbd5e1; stroke:var(--ink); stroke-width:3; }
+  .d8l-svg .d8l-gap{ fill:#fff; }
+  .d8l-svg .d8l-key{ fill:none; stroke:var(--ink); stroke-width:5; stroke-linecap:round; }
+  .shown > .d8l-flash{ animation:d8l-flash 2.4s ease forwards; }
+  @keyframes d8l-flash{ 0%,55%{ opacity:1; } 100%{ opacity:.2; } }
+  .d8l-svg .d8l-hand rect{ fill:#fff; stroke:var(--ink); stroke-width:3; }
+  .d8l-svg .d8l-rubber rect{ fill:#e2e8f0; }
+  .d8l-svg .d8l-screen{ fill:var(--ink); }
+  .d8l-svg .d8l-cloth{ fill:#cbd5e1; stroke:var(--ink); stroke-width:2; }
+  .d8l-svg .d8l-bristle{ fill:var(--ink); }
+  .d8l-svg .d8l-handle{ stroke:var(--ink); stroke-width:7; stroke-linecap:round; }
+  .shown > .d8l-brush{ animation:d8l-brush 1.4s ease-in-out infinite; }
+  .d8l-rh:has(.d8l-threat.shown) .d8l-brush{ animation-play-state:paused; }
+  @keyframes d8l-brush{ 0%,100%{ transform:translate(0,150px); } 50%{ transform:translate(0,232px); } }
+  .d8l-svg .d8l-hammer rect{ fill:var(--ink); }
+  .d8l-svg .d8l-hammer path{ stroke:var(--ink); stroke-width:9; stroke-linecap:round; }
+  .shown > .d8l-hammer{ animation:d8l-hammer 1.2s ease-in forwards; }
+  .shown > .d8l-flinch{ animation:d8l-flinch 1.2s forwards; }
+  @keyframes d8l-hammer{ 0%{ transform:translate(0,0); } 70%,100%{ transform:translate(0,70px); } }
+  @keyframes d8l-flinch{ 0%,65%{ opacity:0; } 75%,100%{ opacity:1; } }
   .d8l-quote{ font-size:clamp(1.62rem, 3.25vw, 2.88rem); font-style:italic; text-align:center; }
   @media (max-width: 820px), (max-aspect-ratio: 1/1){
     .d8l-form{ flex-direction:column; }
