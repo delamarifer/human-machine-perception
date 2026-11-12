@@ -14,6 +14,7 @@
   .d8l-card span{ font-size:clamp(1.06rem, 1.62vw, 1.5rem); line-height:1.35; }
   .d8l-card a{ color:inherit; font-size:clamp(1.06rem, 1.56vw, 1.44rem); margin-top:auto; }
   .d8l-list{ margin:0 auto; padding-left:1.4em; display:flex; flex-direction:column; gap:2vh; max-width:42em; }
+  .projects-submit{ margin:0 auto; max-width:48em; text-align:center; font-size:clamp(1.1rem, 1.9vw, 1.7rem); color:var(--muted,#475569); }
   .d8l-list > li{ font-size:clamp(1.31rem, 2.5vw, 2.25rem); line-height:1.3; }
   .d8l-list a{ color:inherit; }
   .d8l-list .d8l-sub{ display:block; font-size:.72em; color:var(--mute); margin-top:.3vh; }

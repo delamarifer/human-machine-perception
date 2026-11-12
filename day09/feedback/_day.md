@@ -58,3 +58,7 @@ Two hours: 30 min discussion, 50 min workbooks, 40 min project work. Preview: `d
 - [x] Gorilla slide, clicks 5-6: the workspace drawn (vision → workspace → speech, memory, action). The attended passes are broadcast; the gorilla is stopped before it gets in. "Seen by the eyes, never broadcast: you can't report it."
 - [x] Rubber hand slide, click 2: a real demonstration embedded (National Geographic, "Is That My Real Hand?" on YouTube); the drawing then explains it.
 - [x] "Hands up: yes · no · not sure" removed from the four theory slides and the "Does today's AI have any of this?" slide.
+
+## Round 7 (2026-11-12): proposal submission link
+- Slide 16 (Project time): last click adds "Put your proposal doc in your feedback folder, then submit its link, one per group", linking the new Project Proposal Submission form (public viewform link, not the /edit link).
+- [ ] Site pages (index.html, syllabus.html, templates.html) and day03 still link the old proposal form (forms.gle/wBXHE6AFaHf8RR4T8), which now asks students to sign in. Shared files: swap only with Shreya's go-ahead.
