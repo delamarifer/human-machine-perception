@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Day 8 Notes · Computer Vision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.querySelector('main'), {delimiters: [{left: '\\[', right: '\\]', display: true}, {left: '\\(', right: '\\)', display: false}], throwOnError: false})"></script>
+<style>
+  :root{ --bg:#0a0d16; --line:#25304a; --text:#e9edf6; --mute:#9aa5bd; --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa; }
+  *{ box-sizing:border-box; } html{ scroll-behavior:smooth; }
+  body{ margin:0; background:var(--bg); color:var(--text); font:16.5px/1.65 Inter, system-ui, sans-serif; }
+  a{ color:var(--cyan); }
+  .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line); display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
+  .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap; font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
+  .spine b{ color:var(--text); font-weight:500; }
+  .page{ margin-left:44px; }
+  .hero{ border-bottom:1px solid var(--line); background:radial-gradient(120% 90% at 78% 40%, #121a33 0%, var(--bg) 60%); }
+  .hero-in{ max-width:46rem; margin:0 auto; padding:8vh 24px 4vh; }
+  .back{ margin:0 0 2.2em; display:flex; align-items:center; gap:1.2em; flex-wrap:wrap; font-size:.95rem; }
+  .back a{ color:var(--mute); text-decoration:none; } .back a:hover{ color:var(--text); }
+  .back button{ margin-left:auto; font:600 .85rem/1 'Space Grotesk', sans-serif; color:var(--bg); background:var(--cyan); border:0; border-radius:999px; padding:.45em .9em; cursor:pointer; }
+  .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--cyan); }
+  h1{ margin:0 0 .35em; font:700 clamp(2.1rem, 6vw, 3.4rem)/.95 'Space Grotesk', sans-serif; text-transform:uppercase; background:linear-gradient(90deg,#fff,#c7fff4 55%,#e4d8ff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lead{ max-width:42rem; color:#d3d9e6; margin:0 0 1.2em; }
+  .toc{ display:flex; flex-wrap:wrap; gap:8px; margin:0; padding:0; list-style:none; }
+  .toc a{ color:var(--mute); text-decoration:none; font:500 .88rem/1 'Space Grotesk', sans-serif; border:1px solid var(--line); border-radius:999px; padding:.35em .75em; }
+  main{ max-width:46rem; margin:28px auto 72px; padding:36px 40px 56px; background:#fff; color:#1c1917; border-radius:18px; box-shadow:0 18px 50px rgba(0,0,0,.35); }
+  main a{ color:#0f766e; } main h2, main h3, main strong{ color:#1c1917; } main figcaption{ color:#57534e; }
+  main .callout{ background:#f5f5f4; color:#1c1917; }
+  section{ padding-top:2.2em; scroll-margin-top:1.25rem; }
+  #why{ --c:var(--cyan); } #what{ --c:var(--violet); } #families{ --c:var(--sky); } #latent{ --c:var(--amber); } #ae{ --c:var(--pink); } #vae{ --c:var(--violet); } #gan{ --c:var(--sky); } #ar{ --c:var(--cyan); } #recap{ --c:var(--amber); }
+  .katex-display{ margin:.8em 0; overflow-x:auto; overflow-y:hidden; }
+  table.recap{ width:100%; border-collapse:collapse; font-size:.92rem; margin:1em 0; } table.recap th, table.recap td{ text-align:left; padding:.5em .6em; border-top:1px solid #e7e5e4; vertical-align:top; } table.recap th{ background:#1c1917; color:#fafaf9; border-top:none; } table.recap td:first-child{ font-weight:700; white-space:nowrap; }
+  h2{ margin:0 0 .7em; font:700 1.4rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
+  h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
+  h3{ margin:1.2em 0 .3em; font:700 1.05rem/1.3 'Space Grotesk', sans-serif; }
+  p{ margin:0 0 .75em; } ul,ol{ margin:0 0 .9em; padding-left:1.2em; } li{ margin:.25em 0; }
+  .callout{ margin:1em 0; padding:14px 16px; border-radius:14px; border-left:4px solid var(--c,var(--cyan)); } .callout p{ margin:0; }
+  figure{ margin:1em 0; } figure img{ width:100%; border-radius:12px; display:block; } figcaption{ margin-top:.4em; font-size:.9rem; }
+  code{ font:.9em ui-monospace, SFMono-Regular, Menlo, monospace; background:#f5f5f4; padding:.1em .3em; border-radius:5px; }
+  pre{ margin:1em 0; padding:14px 16px; background:#0f172a; color:#e2e8f0; border-radius:12px; overflow-x:auto; font:.82rem/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre code{ background:none; padding:0; font:inherit; color:inherit; }
+  pre .c{ color:#94a3b8; }
+  .code-cap{ margin:-.5em 0 1em; font-size:.9rem; color:#57534e; }
+  @media (max-width:700px){ .spine{ display:none; } .page{ margin-left:0; } main{ margin:16px; padding:24px 18px; } .back button{ margin-left:0; } }
+  @media print{ body,.page,.hero,main{ background:#fff; color:#111; box-shadow:none; } .spine,.back{ display:none; } .page,main{ margin:0; } h1{ color:#111; background:none; -webkit-text-fill-color:#111; } a{ color:#111; } }
+</style>
+
+</head>
+<body>
+<div class="spine" aria-hidden="true"><span><b>Computer Vision</b> &nbsp;/&nbsp; Day 8</span></div>
+<div class="page">
+<header class="hero"><div class="hero-in">
+  <div class="back"><a href="../index.html">← Home</a><a href="deck.html">Slides</a><a href="../day07/lecture-notes.html">Day 7 notes</a>
+    <button type="button" onclick="window.print()">Download PDF</button></div>
+  <p class="kicker">Day 8 · Shreya Pandit</p>
+  <h1>Lecture notes</h1>
+  <p class="lead">Generative modeling. A classifier looks at an image and names it. A generative model learns what images look like, so it can make new ones. These notes follow the Day 8 slides: what generative models are for, what they learn, and four families of them: autoencoders, variational autoencoders, GANs and autoregressive models.</p>
+  <nav class="toc">
+    <a href="#why">Why generate</a><a href="#what">What a generative model is</a><a href="#families">The families</a><a href="#latent">Latent variables</a><a href="#ae">Autoencoders</a><a href="#vae">VAEs</a><a href="#gan">GANs</a><a href="#ar">Autoregressive</a><a href="#recap">Recap</a>
+  </nav>
+</div></header>
+<main>
+
+  <section id="why">
+    <h2>Why generate</h2>
+    <p>Generative models are behind chatbots, text-to-image systems such as Stable Diffusion, text-to-video systems such as Sora, and protein design tools such as RFdiffusion (Watson et al., Nature 2023). These tasks look different, but they share four features (Kaiming He, MIT 6.7960, Lecture 14):</p>
+    <ul>
+      <li>There are <strong>many good answers</strong> to one input. A prompt has many valid images.</li>
+      <li>Some answers are <strong>more plausible</strong> than others.</li>
+      <li>The training data may contain <strong>no exact answer</strong> to the question asked.</li>
+      <li>The output is <strong>richer than a label</strong>: a whole image, sentence or molecule.</li>
+    </ul>
+    <p>A model that predicts one fixed output cannot handle that. We need a model that describes how likely each possible output is, and can draw new ones.</p>
+  </section>
+
+  <section id="what">
+    <h2>What a generative model is</h2>
+    <p>A <strong>generative model learns the distribution of the data, \(p(x)\), so it can sample new data.</strong></p>
+    <figure>
+      <img src="assets/lecture/disc-vs-gen.png" alt="Discriminative: an image goes in, a label comes out. Generative: a label goes in, an image comes out">
+      <figcaption>Discriminative vs generative. Kaiming He, MIT 6.7960 Deep Learning, Lecture 14, page 15.</figcaption>
+    </figure>
+    <p>A <em>discriminative</em> model maps an image \(x\) to a label \(y\) and predicts one output. A <em>generative</em> model goes the other way, or produces \(x\) on its own, and samples from a distribution. The output is now a distribution, not a single label. In fact a softmax classifier already outputs a distribution, \(p(\text{class} \mid x)\). A generative model does the same for whole images.</p>
+    <p>Generative modeling is probabilistic modeling. There is some true distribution behind the data we collect. We fit an estimated distribution to it by optimizing a loss, then sample new data from the estimate: \(x' \sim p(x)\).</p>
+    <figure>
+      <img src="assets/lecture/prob-model-29.png" alt="Data, the data distribution, the estimated distribution, and a new sample drawn from it">
+      <figcaption>Data, the data distribution, the estimated distribution, a new sample. Kaiming He, MIT 6.7960, Lecture 14, page 29.</figcaption>
+    </figure>
+  </section>
+
+  <section id="families">
+    <h2>The families of generative models</h2>
+    <ul>
+      <li><strong>Autoencoders and VAEs</strong> encode the data into a simple distribution, then generate it back.</li>
+      <li><strong>GANs</strong> train a generator against a discriminator that asks: real or generated?</li>
+      <li><strong>Autoregressive models</strong> predict each piece from the pieces before it.</li>
+      <li><strong>Diffusion models</strong> turn noise into data, one small step at a time.</li>
+      <li><strong>Flow matching</strong> moves a simple distribution into the data distribution over time.</li>
+    </ul>
+    <p>These notes cover the first three in detail. Diffusion and flow matching are in <a href="../day08-part2/deck.html">Part B</a>.</p>
+  </section>
+
+  <section id="latent">
+    <h2>Latent variables</h2>
+    <p>A <strong>latent variable</strong> is a hidden cause behind the data we see. Picture a shadow on a wall. We see the shadow (the data), not what cast it (the latent variable). From a person-shaped shadow we guess a person, but the shadow in the slides was cast by a pile of scrap: we can only infer the cause, and the guess can be wrong.</p>
+    <p>Generative models use the same idea. Instead of modeling every pixel directly, they learn a few hidden factors, a small code \(z\), that explain the image. Autoencoders and VAEs learn \(z\) by compressing real images. GANs start from a random \(z\) and learn to turn it into images. Both rely on a small hidden code; they differ in how they learn it.</p>
+  </section>
+
+  <section id="ae">
+    <h2>Autoencoders</h2>
+    <p>The question: can we learn a compressed representation of an image, and reconstruct the original? An autoencoder has two parts. The <strong>encoder</strong> \(f\) maps an image \(x\) (a 32 × 32 digit is 1024 numbers) to a short code \(z\). The <strong>decoder</strong> \(g\) maps the code back to an image \(\hat{x}\). Training compares the output with the input:</p>
+    \[ \mathcal{L} = \frac{1}{N}\sum_{i=1}^{N} \big\lVert x_i - \hat{x}_i \big\rVert^2, \qquad \hat{x}_i = g\big(f(x_i)\big) \]
+    <p>No labels are needed: the input is its own target. Over training the loss falls and the reconstructions sharpen.</p>
+    <figure>
+      <img src="assets/ae-recon-compare.png" alt="Test digits, their reconstruction from a 2-number code, and from a 64-number code">
+      <figcaption>Top: test digits. Middle: rebuilt from a 2-number code. Bottom: rebuilt from a 64-number code. Our workbook, section 1.4 (MNIST, LeCun et al., 1998).</figcaption>
+    </figure>
+    <p>The <strong>bottleneck</strong> is the narrow layer in the middle. Everything the decoder knows about the image has to pass through it. A smaller bottleneck compresses more, and the reconstruction gets blurrier: with 2 numbers, a 4 can come back as a 9.</p>
+    <h3>The latent space problem</h3>
+    <p>Each image's code is a point in latent space. Codes of similar images cluster together, but the clusters sit far apart, with empty space between them. To generate, we would pick a code and decode it. Codes in the empty space decode into blurry or meaningless shapes, and codes picked at random from \(\mathcal{N}(0, I)\) often land in a gap. The loss only asks the autoencoder to rebuild its training images, not to fill the space between them, so we cannot sample new images reliably. VAEs fix this.</p>
+    <h3>Applications</h3>
+    <ul>
+      <li><strong>Image generators.</strong> Stable Diffusion works on an autoencoder's code, not on pixels (Rombach et al., CVPR 2022).</li>
+      <li><strong>Generating from learned codes.</strong> A transformer writes codes, and the autoencoder's decoder paints them (Esser et al., CVPR 2021).</li>
+      <li><strong>Filling in missing parts.</strong> Hide most of an image, and a masked autoencoder fills in the rest (He et al., CVPR 2022).</li>
+      <li><strong>Anomaly detection.</strong> A high reconstruction error flags defects in factory inspection (Bergmann et al., CVPR 2019).</li>
+    </ul>
+  </section>
+
+  <section id="vae">
+    <h2>Variational autoencoders</h2>
+    <p>A VAE encodes to a distribution, not a point, so we can sample new images. For each image the encoder outputs a mean \(\mu\) and a standard deviation \(\sigma\), which define a Gaussian \(q(z \mid x)\) in latent space. The decoder turns a code sampled from it back into an image.</p>
+    <h3>Two terms in the loss</h3>
+    \[ \mathcal{L}(\phi, \theta; x) = \underbrace{-\,\mathbb{E}_{q_\phi(z \mid x)}\big[\log p_\theta(x \mid z)\big]}_{\text{reconstruction}} \;+\; \underbrace{D_{KL}\big(q_\phi(z \mid x)\,\|\,p(z)\big)}_{\text{regularization}} \]
+    <p>The <strong>reconstruction</strong> term asks the decoded sample \(\hat{x}\) to look like \(x\). The <strong>regularization</strong> term keeps each image's Gaussian close to the prior \(p(z) = \mathcal{N}(0, I)\). For a diagonal Gaussian it has a closed form:</p>
+    \[ D_{KL} = \frac{1}{2}\sum_{j}\left(\sigma_j^2 + \mu_j^2 - 1 - \log \sigma_j^2\right) \]
+    <p>This term spreads the codes evenly around the center of the latent space and penalizes packing them into small regions, which would amount to memorizing the data.</p>
+    <h3>Why regularize</h3>
+    <p>We want two properties. <strong>Continuity</strong>: points close in latent space decode to similar content. <strong>Completeness</strong>: any point sampled from the latent space decodes to meaningful content. Without regularization, the encoder can use tiny variances (pointed distributions) and far-apart means, which leaves gaps. With a normal prior, the means are pulled to the center and the variances are kept reasonable, so the groups overlap and the gaps close. During training, codes that start scattered move inside the prior and group by class.</p>
+    <h3>The reparameterization trick</h3>
+    <p>Sampling \(z \sim \mathcal{N}(\mu, \sigma^2)\) is random, so the gradient cannot flow back through it to \(\mu\) and \(\sigma\), or to the encoder's weights \(\phi\). The fix moves the randomness into a separate noise term:</p>
+    \[ z = \mu + \sigma \odot \epsilon, \qquad \epsilon \sim \mathcal{N}(0, I) \]
+    <p>Here \(\odot\) multiplies each dimension. Now \(z\) is a plain formula of \(\mu\) and \(\sigma\), so the gradient of the loss reaches them, and through them the encoder. The noise \(\epsilon\) does not depend on the network.</p>
+<pre><code>def reparameterize(mu, logvar):
+    std = torch.exp(0.5 * logvar)                 <span class="c"># the network predicts log(sigma^2)</span>
+    eps = torch.randn_like(std)                   <span class="c"># noise from N(0, I)</span>
+    return mu + std * eps
+
+def vae_loss(x, recon, mu, logvar, kl_weight=1.0):
+    rec = F.mse_loss(recon, x, reduction="none").flatten(1).sum(1).mean()
+    kl = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1).mean()
+    return rec + kl_weight * kl</code></pre>
+    <p class="code-cap">Our code, from the Day 8 workbook (section 2).</p>
+    <h3>Generation</h3>
+    <p>To generate, sample a point from the prior and decode it. Because the latent space is organized, samples decode to realistic images, and walking across it morphs one digit into another.</p>
+    <figure>
+      <img src="assets/vae-decode-grid.png" alt="A grid of latent codes from our VAE, decoded into digits that change smoothly">
+      <figcaption>Our VAE on MNIST: a grid of codes over [−2, 2] in each direction, decoded. Our workbook, section 2.4.</figcaption>
+    </figure>
+    <h3>Applications</h3>
+    <ul>
+      <li><strong>Molecule design.</strong> Encode molecules into a continuous space, then search it for better properties (Gómez-Bombarelli et al., ACS Central Science 2018).</li>
+      <li><strong>Image generation.</strong> A deep hierarchical VAE generates high-resolution faces (Vahdat and Kautz, NeurIPS 2020).</li>
+      <li><strong>Latent space for image generators.</strong> Stable Diffusion runs on the code of a KL-regularized autoencoder (Rombach et al., CVPR 2022).</li>
+    </ul>
+  </section>
+
+  <section id="gan">
+    <h2>Generative adversarial networks</h2>
+    <p>The goal of a GAN is to output samples from the complex data distribution in one step. The idea: do not model the density at all, just learn to sample. We cannot sample from a complex distribution directly, so we sample something simple, noise \(z\), and learn a transformation from it to the data distribution.</p>
+    <p>Two networks compete. The <strong>generator</strong> \(g_\theta: \mathcal{Z} \to \mathcal{X}\) turns noise into an imitation of the data, to trick the discriminator. The <strong>discriminator</strong> \(d_\phi: \mathcal{X} \to [0, 1]\) scores how real an image looks, and tries to tell real data from the generator's fakes. The discriminator acts like a teacher pointing out errors; the generator is the student (Torralba, Isola and Freeman, Foundations of Computer Vision, Ch. 32).</p>
+    <p>Early in training the fakes are far from the real data, and the discriminator separates them easily. As the generator improves, the fakes move closer, and the discriminator has a harder time. At the end the fakes match the real data, and the discriminator can only guess: 1/2.</p>
+    <h3>The min-max objective</h3>
+    \[ \min_{G}\,\max_{D}\; \mathbb{E}_{x \sim p_{\text{data}}}\big[\log D(x)\big] + \mathbb{E}_{z \sim p_z}\big[\log\big(1 - D(G(z))\big)\big] \]
+    <p>The discriminator maximizes: it scores real images near 1 and generated ones near 0. The generator minimizes: it makes \(D(G(z))\) close to 1, so the fakes pass as real (Goodfellow et al., NeurIPS 2014). Only the second term depends on \(G\); the real-data term has no \(G\) in it, so its gradient with respect to \(G\) is zero. At the global optimum, \(G\) reproduces the true data distribution.</p>
+    <h3>The training loop</h3>
+    <ol>
+      <li>Fix G, train D for \(k\) steps.</li>
+      <li>Gradient ascent on D.</li>
+      <li>Fix D, train G one step.</li>
+      <li>Gradient descent on G.</li>
+    </ol>
+    <p>Repeat. Taking \(k\) updates of D per update of G keeps D ahead of G. Once trained, the generator maps Gaussian noise to the target data manifold. CycleGANs go further and map one data manifold to another, such as horses to zebras (Zhu et al., ICCV 2017).</p>
+    <h3>Applications</h3>
+    <ul>
+      <li><strong>Realistic faces.</strong> StyleGAN generates faces of people who do not exist (Karras et al., CVPR 2019).</li>
+      <li><strong>Image-to-image translation.</strong> CycleGAN turns horses into zebras, summer into winter, photos into paintings (Zhu et al., ICCV 2017).</li>
+      <li><strong>Super-resolution.</strong> SRGAN sharpens low-resolution images with realistic detail (Ledig et al., CVPR 2017).</li>
+    </ul>
+  </section>
+
+  <section id="ar">
+    <h2>Autoregressive models</h2>
+    <p>An autoregressive model generates content one piece at a time, each piece predicted from the pieces before it. Given “Once upon ___”, the predictor fills in “a”. It is trained on many pairs of a prefix and the next element (“Once upon a” → “time”, “There and back” → “again”). To sample, it predicts an element, appends it to the input, and predicts again: “Colorless green ideas sleep” → “furiously” → “.”.</p>
+    <h3>The probability model</h3>
+    <p>The chain rule of probability makes this exact. The probability of a sequence is a product of next-element probabilities:</p>
+    \[ p(\mathbf{X}) = p(x_n \mid x_1, \dots, x_{n-1})\; p(x_{n-1} \mid x_1, \dots, x_{n-2}) \cdots p(x_2 \mid x_1)\; p(x_1) = \prod_{i=1}^{n} p(x_i \mid x_1, \dots, x_{i-1}) \]
+    \[ p(\text{Once upon a time}) = p(\text{Once})\; p(\text{upon} \mid \text{Once})\; p(\text{a} \mid \text{Once, upon})\; p(\text{time} \mid \text{Once, upon, a}) \]
+    <p>Each factor is a classification problem. To model \(p(\text{time} \mid \text{Once, upon, a})\), treat it as a next-word classifier that outputs a probability for every word in the vocabulary. Images work the same way: read the pixels in order, predict a distribution over colors for the next pixel, sample one, place it, and repeat until the image is complete.</p>
+    <h3>Training</h3>
+    <p>Training scores each prediction with the cross-entropy loss. The ground truth \(x_n\) is one-hot, so it picks out the log probability the model gave to the right color (or word):</p>
+    \[ \mathcal{L} = -\sum_{k} x_{n,k}\, \log \hat{x}_{n,k} \]
+  </section>
+
+  <section id="recap">
+    <h2>Recap</h2>
+    <table class="recap">
+      <tr><th>Family</th><th>How it makes an image</th><th>Trained with</th><th>Strength</th><th>Watch out</th></tr>
+      <tr><td>Autoencoder</td><td>Decode a code</td><td>Reconstruction loss</td><td>Compression, denoising</td><td>Gaps in the code space; not reliable to sample</td></tr>
+      <tr><td>VAE</td><td>Decode a sample from \(\mathcal{N}(0, I)\)</td><td>Reconstruction + KL</td><td>Smooth, complete latent space</td><td>Samples can be blurry</td></tr>
+      <tr><td>GAN</td><td>Generator maps noise to an image in one step</td><td>Min-max game with a discriminator</td><td>Sharp samples</td><td>Training can be unstable</td></tr>
+      <tr><td>Autoregressive</td><td>Predict the next element, one at a time</td><td>Next-element classification (cross-entropy)</td><td>Exact likelihood</td><td>Slow sampling, one step at a time</td></tr>
+    </table>
+    <div class="callout" style="--c:var(--amber)"><p><strong>Discussion.</strong> Every family here uses a small hidden code or a sequence of simple choices to describe complex images. Which one would you pick to generate test images for a perception experiment, and why?</p></div>
+  </section>
+
+</main>
+</div>
+</body>
+</html>
