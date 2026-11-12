@@ -25,6 +25,10 @@
   .d8l-theories .d8l-card{ padding:1.4vh 1.2vw; gap:.6vh; }
   .d8l-theories .d8l-card small{ text-transform:none; letter-spacing:0; }
   .d8l-card .d8l-for{ font-style:italic; }
+  .d8l-theories .d8l-card span a{ font-size:inherit; margin:0; }
+  .d8l-ex-card{ flex-direction:row !important; align-items:center; justify-content:space-between; gap:1vw !important; }
+  .d8l-ex-card > div{ display:flex; flex-direction:column; gap:.6vh; min-width:0; }
+  .d8l-ex-img{ height:20vh; width:auto; border-radius:6px; flex:none; }
   .d8l-vote{ text-align:center; font-size:clamp(1.25rem, 2.25vw, 2rem); color:var(--mute); }
   .d8l-claims{ margin:0 auto; padding:0; list-style:none; display:flex; flex-direction:column; gap:1.8vh; max-width:52em; width:100%; }
   .d8l-claims > li{ font-size:clamp(1.31rem, 2.44vw, 2.19rem); line-height:1.3; }

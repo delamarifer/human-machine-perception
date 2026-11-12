@@ -40,3 +40,5 @@ Two hours: 30 min discussion, 50 min workbooks, 40 min project work. Preview: `d
 - [x] Solutions now in the public repo, not linked from the deck: `day09/workbook/solutions/` (with `build.py`, which builds both versions: `python3 day09/workbook/solutions/build.py`). Shreya OK'd that students could find them on GitHub.
 - [x] Final "Groups" slide deleted; the deck ends on "Project time · 40 minutes".
 - [x] "Every track runs on a CPU. Stuck? Ask a neighbor." removed from the "By the end" slide.
+- [x] Theory jigsaw cards each have an example (Shreya's choices): duck-rabbit image for predictive processing, the invisible gorilla video (Daniel Simons' YouTube) for global workspace, split-brain experiments for IIT, the rubber hand illusion for embodied cognition (Wikipedia links).
+- [ ] Proposal submission form with a required "link to your proposal" question, proposal kept in the group's feedback folder: waiting on Shreya (I can't create Google Forms; options: Shreya makes it and sends the link, or reuse forms.gle/wBXHE6AFaHf8RR4T8).

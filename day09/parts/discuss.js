@@ -137,16 +137,18 @@ st(`
   ${cite('Rao and Ballard, Nature Neuroscience (1999) · Baars, A Cognitive Theory of Consciousness (1988) · Tononi, BMC Neuroscience (2004) · Varela, Thompson and Rosch, The Embodied Mind (1991)')}
 `);
 
-/* Interactive: each table reads up on one theory for five minutes, then reports to the room in one minute. */
+/* Interactive: each table reads up on one theory for five minutes, then reports to the room in one minute.
+   Examples per theory are Shreya's (2026-11-12): duck-rabbit image (she shared it; from Fliegende Blätter, 1892, public domain),
+   the invisible gorilla (Simons and Chabris 1999; video on Daniel Simons' YouTube channel), split-brain, rubber hand illusion. */
 const W = 'https://en.wikipedia.org/wiki/';
 st(`
   <h1 class="t">Theory jigsaw · 8 minutes</h1>
   <div class="d8l-col">
     <div class="d8l-theories">
-      <div class="d8l-card b" data-step="1"><b>Predictive processing</b><a href="${W}Predictive_coding" target="_blank" rel="noopener">Start here</a></div>
-      <div class="d8l-card b" data-step="1"><b>Global workspace theory</b><a href="${W}Global_workspace_theory" target="_blank" rel="noopener">Start here</a></div>
-      <div class="d8l-card b" data-step="1"><b>Integrated information theory</b><a href="${W}Integrated_information_theory" target="_blank" rel="noopener">Start here</a></div>
-      <div class="d8l-card b" data-step="1"><b>Embodied cognition</b><a href="${W}Embodied_cognition" target="_blank" rel="noopener">Start here</a></div>
+      <div class="d8l-card d8l-ex-card b" data-step="1"><div><b>Predictive processing</b><span>Example: duck or rabbit?</span><a href="${W}Predictive_coding" target="_blank" rel="noopener">Start here</a></div><img class="d8l-ex-img" src="assets/duck-rabbit.png" alt="The duck-rabbit drawing: read as a duck facing left or a rabbit facing right"></div>
+      <div class="d8l-card b" data-step="1"><b>Global workspace theory</b><span>Example: <a href="https://www.youtube.com/watch?v=vJG698U2Mvo" target="_blank" rel="noopener">The invisible gorilla</a> (video)</span><a href="${W}Global_workspace_theory" target="_blank" rel="noopener">Start here</a></div>
+      <div class="d8l-card b" data-step="1"><b>Integrated information theory</b><span>Example: <a href="${W}Split-brain" target="_blank" rel="noopener">Split-brain experiments</a></span><a href="${W}Integrated_information_theory" target="_blank" rel="noopener">Start here</a></div>
+      <div class="d8l-card b" data-step="1"><b>Embodied cognition</b><span>Example: <a href="${W}Rubber_hand_illusion" target="_blank" rel="noopener">The rubber hand illusion</a></span><a href="${W}Embodied_cognition" target="_blank" rel="noopener">Start here</a></div>
     </div>
     <ol class="d8l-list d8l-tasks">
       <li class="b" data-step="2">What does it claim, in one sentence?</li>
