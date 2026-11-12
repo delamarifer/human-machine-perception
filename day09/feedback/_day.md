@@ -61,4 +61,4 @@ Two hours: 30 min discussion, 50 min workbooks, 40 min project work. Preview: `d
 
 ## Round 7 (2026-11-12): proposal submission link
 - Slide 16 (Project time): last click adds "Put your proposal doc in your feedback folder, then submit its link, one per group", linking the new Project Proposal Submission form (public viewform link, not the /edit link).
-- [x] Home page (index.html) now links the new form (2026-11-12). [ ] syllabus.html, templates.html and day03 still link the old proposal form (forms.gle/wBXHE6AFaHf8RR4T8), which now asks students to sign in. Shared files: swap only with Shreya's go-ahead.
+- [x] Home page (index.html) now links the new form (2026-11-12). [x] syllabus.html, templates.html updated too: due Friday 13 November, new form. Day 3 slides still name the old form (left as a past deck). and day03 still link the old proposal form (forms.gle/wBXHE6AFaHf8RR4T8), which now asks students to sign in. Shared files: swap only with Shreya's go-ahead.
