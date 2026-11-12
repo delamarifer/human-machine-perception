@@ -212,7 +212,7 @@ st(`
   'On the left, a voice describes the place. On the right, the person sees the last photos where the object appeared, with a label.',
   'They counted how many rooms people searched before they found the object. With no help: 1.93 rooms on average. With the voice: 1.10. With the photos: 1.09. Voice and photo were about the same.',
   'One caveat. These averages count only trials where the system gave correct information. The photos were correct only 53 percent of the time, and the voice 72 percent.',
-  'Still, this is good news for you. A last-seen photo, with no voice and no language model, is a useful answer.'));
+  'Still, this is good news for you. A last-seen photo, with no voice, is a useful answer. In MemPal, a large model, GPT-4V, still found and labelled the object in the photos. Your version would use a small matching model instead.'));
 
 /* 8. Close work: GO-Finder. */
 st(`
