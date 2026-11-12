@@ -107,7 +107,20 @@
   .d8l-stage > *{ grid-area:1 / 1; }
   .d8l-video{ display:flex; flex-direction:column; align-items:center; gap:.8vh; }
   .d8l-video iframe{ height:43vh; aspect-ratio:16 / 9; border:0; border-radius:10px; background:#000; }
-  .d8l-video:not(.shown), .d8l-stage:has(.d8l-gor-reveal.shown) .d8l-video{ opacity:0; pointer-events:none; }
+  .d8l-video:not(.shown), .d8l-stage:has(.d8l-after.shown) .d8l-video{ opacity:0; pointer-events:none; }
+  .d8l-svg .d8l-wsp{ fill:#f1f5f9; stroke:var(--ink); stroke-width:3; }
+  .d8l-svg .d8l-mod{ fill:#fff; stroke:var(--ink); stroke-width:3; }
+  .d8l-svg .d8l-stop{ fill:none; stroke:var(--ink); stroke-width:6; stroke-linecap:round; }
+  .d8l-gw:has(.d8l-gw-diag.shown) .d8l-gor-reveal, .d8l-gw:has(.d8l-gw-diag.shown) .d8l-gw-half{ opacity:0; }
+  .d8l-svg .d8l-draw{ stroke-dasharray:300; stroke-dashoffset:300; }
+  .shown > .d8l-draw{ animation:d8l-draw .9s ease-out forwards; }
+  .shown > .d8l-d2{ animation-delay:1.3s; }
+  .d8l-svg .d8l-pop{ opacity:0; }
+  .shown > .d8l-pop{ animation:d8l-pop .5s ease .8s forwards; }
+  @keyframes d8l-draw{ to{ stroke-dashoffset:0; } }
+  @keyframes d8l-pop{ to{ opacity:1; } }
+  .d8l-svg .d8l-gw-gor .d8l-stop{ opacity:0; }
+  .shown > .d8l-stop{ animation:d8l-pop .3s ease .9s forwards; }
   .d8l-theory{ border:2px solid var(--ink); border-radius:12px; padding:1.1vh 1.4vw; display:flex; flex-wrap:wrap; align-items:baseline; gap:.4vh 1.2vw; font-size:clamp(1.05rem, 1.8vw, 1.6rem); line-height:1.3; }
   .d8l-theory a{ color:inherit; }
   .d8l-theory > a{ margin-left:auto; font-size:.85em; }
@@ -162,12 +175,12 @@
   document.head.appendChild(el);
 })();
 
-/* Embedded videos (the gorilla slide): when the video is hidden again, reload it so it stops playing. */
+/* Embedded videos (gorilla and rubber hand slides): when the video is hidden again, reload it so it stops playing. */
 (function(){
   const sync = () => document.querySelectorAll('.d8l-stage').forEach(st => {
     const v = st.querySelector('.d8l-video'), f = v && v.querySelector('iframe');
     if (!f) return;
-    const on = v.classList.contains('shown') && !st.querySelector('.d8l-gor-reveal.shown');
+    const on = v.classList.contains('shown') && !st.querySelector('.d8l-after.shown');
     if (on) f.dataset.live = '1';
     else if (f.dataset.live) { delete f.dataset.live; f.src = f.src; }
   });

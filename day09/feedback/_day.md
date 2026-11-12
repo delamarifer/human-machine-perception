@@ -55,3 +55,5 @@ Two hours: 30 min discussion, 50 min workbooks, 40 min project work. Preview: `d
 - [x] New closing slide "Does today's AI have any of this?" (four questions, hands up). Remove it if you'd rather go straight to the form.
 - [ ] Check: "In the original video, about half of viewers missed it" (Simons and Chabris 1999) and "Many people flinch" (Armel and Ramachandran 2003): wording is mine (draft).
 - [x] Gorilla slide: the original video (Daniel Simons, YouTube) is embedded on click 2 in place of the redrawn animation; click 3 hides it (and stops it) and the drawing circles the gorilla.
+- [x] Gorilla slide, clicks 5-6: the workspace drawn (vision → workspace → speech, memory, action). The attended passes are broadcast; the gorilla is stopped before it gets in. "Seen by the eyes, never broadcast: you can't report it."
+- [x] Rubber hand slide, click 2: a real demonstration embedded (National Geographic, "Is That My Real Hand?" on YouTube); the drawing then explains it.

@@ -163,7 +163,8 @@ st(`
 `);
 
 /* 2. Global workspace theory: the invisible gorilla (Simons and Chabris 1999). The original video is embedded
-   (Daniel Simons' YouTube, Shreya's request); the next click hides it and the drawing circles the gorilla. */
+   (Daniel Simons' YouTube, Shreya's request); the next click hides it and the drawing circles the gorilla.
+   Clicks 5-6 draw the workspace (Baars): the attended passes are broadcast; the unattended gorilla never gets in. */
 const d8lPl = (x, y, team) => `<g transform="translate(${x} ${y})" class="d8l-p${team}"><circle cx="0" cy="-30" r="13"/><path d="M-22 18 Q-22 -6 0 -8 Q22 -6 22 18 Z"/></g>`;
 const d8lGorilla = `<g class="d8l-gor-fig"><circle cx="0" cy="-70" r="20"/><ellipse cx="0" cy="-16" rx="34" ry="42"/><path d="M-30 -40 Q-62 -10 -52 30 M30 -40 Q62 -10 52 30" class="d8l-arm"/><path d="M-16 20 L-20 62 M16 20 L20 62" class="d8l-arm"/></g>`;
 st(`
@@ -172,7 +173,7 @@ st(`
     ${d8lHands}
     <div class="d8l-stage">
     <svg class="d8l-svg d8l-th-svg d8l-gw" viewBox="0 0 1000 440" role="img" aria-label="The gorilla walked right through the middle while the players passed the ball">
-      <g class="b d8l-gor-reveal" data-step="3">
+      <g class="b d8l-gor-reveal d8l-after" data-step="3">
         <rect x="130" y="20" width="740" height="370" rx="12" class="d8l-court"/>
         ${d8lPl(300, 150, 'w')}${d8lPl(520, 330, 'w')}${d8lPl(730, 140, 'w')}
         ${d8lPl(420, 110, 'b')}${d8lPl(660, 300, 'b')}${d8lPl(260, 320, 'b')}
@@ -181,11 +182,33 @@ st(`
         <circle cx="520" cy="205" r="96" class="d8l-dash"/>
         <text x="500" y="76" class="d8l-q2 d8l-c d8l-halo">Did you see the gorilla?</text>
       </g>
-      <text x="500" y="428" class="d8l-t d8l-c d8l-bg b" data-step="4">In the original video, about half of viewers missed it.</text>
+      <text x="500" y="428" class="d8l-t d8l-c d8l-bg b d8l-gw-half" data-step="4">In the original video, about half of viewers missed it.</text>
+      <g class="b d8l-gw-diag" data-step="5">
+        <ellipse cx="500" cy="210" rx="178" ry="92" class="d8l-wsp"/>
+        <text x="500" y="160" class="d8l-bt d8l-c">workspace</text>
+        <text x="500" y="186" class="d8l-s d8l-c">what you are aware of</text>
+        <rect x="40" y="180" width="180" height="60" rx="10" class="d8l-mod"/><text x="130" y="219" class="d8l-bt d8l-c">vision</text>
+        <rect x="790" y="50" width="180" height="60" rx="10" class="d8l-mod"/><text x="880" y="89" class="d8l-bt d8l-c">speech</text>
+        <rect x="790" y="180" width="180" height="60" rx="10" class="d8l-mod"/><text x="880" y="219" class="d8l-bt d8l-c">memory</text>
+        <rect x="790" y="310" width="180" height="60" rx="10" class="d8l-mod"/><text x="880" y="349" class="d8l-bt d8l-c">action</text>
+        <path d="M220 200 L326 200" class="d8l-arrow d8l-draw"/>
+        <text x="500" y="240" class="d8l-q2 d8l-c d8l-pop">the passes</text>
+        <path d="M640 170 L790 80" class="d8l-arrow d8l-draw d8l-d2"/>
+        <path d="M660 210 L790 210" class="d8l-arrow d8l-draw d8l-d2"/>
+        <path d="M640 250 L790 340" class="d8l-arrow d8l-draw d8l-d2"/>
+        <text x="500" y="428" class="d8l-t d8l-c">Attended: broadcast to the whole brain</text>
+      </g>
+      <g class="b d8l-gw-gor" data-step="6">
+        <rect x="0" y="400" width="1000" height="40" class="d8l-gap"/>
+        <path d="M220 228 Q270 290 318 270" class="d8l-arrow d8l-draw"/>
+        <path d="M312 252 L330 288 M330 252 L312 288" class="d8l-stop"/>
+        <text x="130" y="290" class="d8l-bt d8l-c">the gorilla</text>
+        <text x="500" y="428" class="d8l-t d8l-c">Seen by the eyes, never broadcast: you can’t report it</text>
+      </g>
     </svg>
     <div class="d8l-video b" data-step="2"><iframe src="https://www.youtube-nocookie.com/embed/vJG698U2Mvo?rel=0" title="Selective attention test (Daniel Simons)" referrerpolicy="strict-origin-when-cross-origin" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe><div class="d8l-hands">Count the passes between the players in white</div></div>
     </div>
-    ${d8lTheory('Global workspace theory', 'You can process information without being consciously aware of it.', W + 'Global_workspace_theory', 5)}
+    ${d8lTheory('Global workspace theory', 'You can process information without being consciously aware of it.', W + 'Global_workspace_theory', 7)}
   </div>
   ${cite('Simons and Chabris, Gorillas in our midst, Perception (1999) · Baars, A Cognitive Theory of Consciousness (1988)')}
 `);
@@ -240,7 +263,8 @@ st(`
   ${cite('Gazzaniga, Bogen and Sperry, PNAS (1962) · Tononi, BMC Neuroscience (2004)')}
 `);
 
-/* 4. Embodied cognition: the rubber hand illusion (Botvinick and Cohen 1998). Seen from behind the person.
+/* 4. Embodied cognition: the rubber hand illusion (Botvinick and Cohen 1998). Click 2 plays a real demonstration
+   (National Geographic, "Is That My Real Hand?", on YouTube; Shreya asked for a real example); the drawing then explains it. Seen from behind the person.
    The real left hand is hidden behind a screen; a rubber hand lies in view; both are brushed at the same time. */
 const d8lHand = (x, y, cls) => `<g transform="translate(${x} ${y})" class="${cls}"><rect x="-32" y="-30" width="64" height="72" rx="18"/><rect x="-30" y="-84" width="13" height="58" rx="6"/><rect x="-14" y="-94" width="13" height="68" rx="6"/><rect x="2" y="-90" width="13" height="64" rx="6"/><rect x="18" y="-74" width="12" height="50" rx="6"/><rect x="28" y="-8" width="40" height="13" rx="6" transform="rotate(-30 28 -2)"/></g>`;
 const d8lBrush = (x, cls) => `<g class="${cls}"><g transform="translate(${x} 0)"><rect x="-10" y="-60" width="20" height="18" rx="3" class="d8l-bristle"/><path d="M0 -60 L0 -118" class="d8l-handle"/></g></g>`;
@@ -248,8 +272,9 @@ st(`
   <h1 class="t">Can you fully understand the world without interacting with it through your body?</h1>
   <div class="d8l-col d8l-th">
     ${d8lHands}
+    <div class="d8l-stage">
     <svg class="d8l-svg d8l-th-svg d8l-rh" viewBox="0 0 1000 440" role="img" aria-label="Rubber hand illusion: the real hand is hidden behind a screen, a rubber hand lies in view, both are brushed together, and the person comes to feel the rubber hand as their own">
-      <g class="b" data-step="2">
+      <g class="b d8l-after" data-step="3">
         <rect x="120" y="20" width="560" height="300" rx="12" class="d8l-court"/>
         <rect x="372" y="34" width="16" height="276" rx="4" class="d8l-screen"/>
         ${d8lHand(260, 190, 'd8l-hand')}
@@ -262,24 +287,26 @@ st(`
         <text x="850" y="100" class="d8l-bt d8l-c">in plain view</text>
         <path d="M740 90 L600 140" class="d8l-arrow"/>
       </g>
-      <g class="b" data-step="3">
+      <g class="b" data-step="4">
         ${d8lBrush(260, 'd8l-brush')}${d8lBrush(540, 'd8l-brush')}
         <text x="850" y="170" class="d8l-bt d8l-c">both brushed at</text>
         <text x="850" y="200" class="d8l-bt d8l-c">the same time</text>
       </g>
-      <g class="b" data-step="4">
+      <g class="b" data-step="5">
         <rect x="700" y="340" width="250" height="56" rx="12" class="d8l-bub"/>
         <path d="M700 368 L612 372" class="d8l-ln"/>
         <text x="825" y="376" class="d8l-bt d8l-c">“That’s my hand.”</text>
       </g>
-      <g class="b d8l-threat" data-step="5">
+      <g class="b d8l-threat" data-step="6">
         <g class="d8l-hammer"><rect x="510" y="20" width="60" height="30" rx="5"/><path d="M570 35 L660 35"/></g>
         <text x="500" y="410" class="d8l-q2 d8l-flinch" text-anchor="end">!</text>
       </g>
-      <text x="850" y="260" class="d8l-bt d8l-c b" data-step="6">Many people flinch,</text>
-      <text x="850" y="290" class="d8l-bt d8l-c b" data-step="6">as if it were their own</text>
+      <text x="850" y="260" class="d8l-bt d8l-c b" data-step="7">Many people flinch,</text>
+      <text x="850" y="290" class="d8l-bt d8l-c b" data-step="7">as if it were their own</text>
     </svg>
-    ${d8lTheory('Embodied cognition', 'You cannot fully understand the world without interacting with it through your body.', W + 'Embodied_cognition', 7)}
+    <div class="d8l-video b" data-step="2"><iframe src="https://www.youtube-nocookie.com/embed/DphlhmtGRqI?rel=0" title="Is That My Real Hand? (National Geographic)" referrerpolicy="strict-origin-when-cross-origin" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe><div class="d8l-hands">A real rubber hand experiment</div></div>
+    </div>
+    ${d8lTheory('Embodied cognition', 'You cannot fully understand the world without interacting with it through your body.', W + 'Embodied_cognition', 8)}
   </div>
   ${cite('Botvinick and Cohen, Nature (1998) · Armel and Ramachandran, Proc. R. Soc. B (2003) · Varela, Thompson and Rosch, The Embodied Mind (1991)')}
 `);
