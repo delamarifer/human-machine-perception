@@ -131,3 +131,11 @@
 ## 2026-11-10: RL Environments slide removed (Shreya's request)
 - The RL Environments slide (future part: the Scale quote and the agent-action-observation-reward loop) is gone. "Can research combat
   the need for real-data?" now leads straight into the robotics data gap. Recoverable from git history (commit 8b68aa7).
+
+## 2026-11-12: lecture notes brought up to date (Shreya's request)
+- day07/lecture-notes.html now matches the slides: a lead for "Adaptation and agents"; Data worksheet review; in Adapting models, the farm
+  example's "f calls the soybeans corn", the fine-tuning formulas, a short note on which layers to fine-tune (Yosinski et al. 2014), and the
+  KL broken down class by class; Looking ahead without the removed RL paragraph; a new Agents and memory section (where learning lives,
+  the agent loop and the mug example, challenges, memory in humans, the memory layers and dreaming, papers, evaluation questions);
+  and a short Project plan section that points to Fernanda's Part 2 slides for the project review.
+- [ ] Nader, Schafe and LeDoux (2000) and Malmberg et al. (2019) are still unchecked, in the notes as on the slides.

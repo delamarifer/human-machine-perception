@@ -31,7 +31,8 @@
   main a{ color:#0f766e; } main h2, main h3, main strong{ color:#1c1917; } main figcaption{ color:#57534e; }
   main .callout{ background:#f5f5f4; color:#1c1917; }
   section{ padding-top:2.2em; scroll-margin-top:1.25rem; }
-  #adapt{ --c:var(--sky); } #future{ --c:var(--cyan); }
+  #worksheet{ --c:var(--amber); } #adapt{ --c:var(--sky); } #future{ --c:var(--cyan); } #agents{ --c:var(--violet); } #project{ --c:var(--pink); }
+  table.n{ width:100%; border-collapse:collapse; margin:.6em 0 1em; font-size:.92rem; } table.n th, table.n td{ text-align:left; padding:.4em .6em; border-top:1px solid #e7e5e4; vertical-align:top; } table.n th{ border-top:none; color:#57534e; font-weight:600; }
   h2{ margin:0 0 .7em; font:700 1.4rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
   h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
   h3{ margin:1.2em 0 .3em; font:700 1.05rem/1.3 'Space Grotesk', sans-serif; }
@@ -55,20 +56,27 @@
     <button type="button" onclick="window.print()">Download PDF</button></div>
   <p class="kicker">Day 7 · Fernanda de la Torre · Shreya Pandit</p>
   <h1>Lecture notes</h1>
-  <p class="lead">Adaptation and future data. A trained model is a starting point, not an end. This day is about reusing what a model already knows for a new task, learning from a teacher, keeping old skills while learning new ones, and the data the next models will need.</p>
+  <p class="lead">Adaptation and agents. A trained model is a starting point, not an end. This day is about reusing what a model already knows for a new task, learning from a teacher, and keeping old skills while learning new ones. Then it steps outside the model: an agent that sees, acts and remembers, and where its learning lives.</p>
   <nav class="toc">
-    <a href="#adapt">Adapting models</a><a href="#future">Looking ahead</a>
+    <a href="#worksheet">Data worksheet</a><a href="#adapt">Adapting models</a><a href="#future">Looking ahead</a><a href="#agents">Agents and memory</a><a href="#project">Project plan</a>
   </nav>
 </div></header>
 <main>
+  <section id="worksheet">
+    <h2>Data worksheet review</h2>
+    <p>The day opens with the Dataset Guidebook from Day 6. Share what you found: the dataset or simulator you picked, whether you can trust it and what you checked, and one thing that surprised you.</p>
+  </section>
+
   <section id="adapt">
     <h2>Adapting existing models</h2>
-    <p>Chapter 37 frames adaptation with a farm. Last season a drone learned a model <em>f</em> for fields of wheat and corn. This season the corn has become soybeans. Start from <em>f</em>, not from scratch, to get <em>f′</em>. Pretraining is how prior knowledge is acquired in the first place. Adaptation is how it is used to solve a new task.</p>
+    <p>Chapter 37 frames adaptation with a farm. Last season a drone learned a model <em>f</em> for fields of wheat and corn. This season the corn has become soybeans. The old model can only answer with the classes it was trained on, so it calls the soybeans “corn”. Start from <em>f</em>, not from scratch, to get <em>f′</em>, which answers {wheat, soybeans}. Pretraining is how prior knowledge is acquired in the first place. Adaptation is how it is used to solve a new task.</p>
     <figure>
       <img src="assets/adapt/ch37-pretraining-adaptation.png" alt="Chapter 37 Figure 37.1: training from scratch compared with starting from prior knowledge">
       <figcaption>Foundations of Computer Vision, Ch. 37, Figure 37.1. CC BY-NC-ND 4.0.</figcaption>
     </figure>
     <p>Training from scratch is data hungry. Starting with prior knowledge is data efficient. The methods are fine-tuning, domain adaptation, test-time adaptation, continual learning, monitoring, and human feedback loops. In fine-tuning, you can freeze some layers, fine-tune others, and train a new head from scratch (Fig. 37.3).</p>
+    <p>Fine-tuning in symbols. Start from the pretrained weights, <em>θ<sub>0</sub> = θ<sub>pre</sub></em>. Put a new head on the features, <em>f′(x) = W · g<sub>θ</sub>(x)</em>. Train on the new labeled images with <em>L = (1/N) Σ<sub>i</sub> CE(f′(x<sub>i</sub>), y<sub>i</sub>)</em>, taking gradient steps <em>θ ← θ − η ∇<sub>θ</sub>L</em> with a small <em>η</em> so the weights stay near <em>θ<sub>pre</sub></em>. Fine-tuning subparts splits the parameters into frozen ones (never updated), fine-tuned ones (small steps) and a new head (bigger steps).</p>
+    <p>Which layers to fine-tune is a choice you test on a validation set. Early layers learn general features such as edges and textures, which transfer widely, and later layers are more specific to the original task (Yosinski et al., NeurIPS 2014). With little data, train only the head or the head and the last block. With more data, or a task far from the pretraining data, unfreeze more. In practice: start with the head, unfreeze one more block at a time, and stop when validation accuracy stops improving.</p>
     <p>In PyTorch, start from a network pretrained on ImageNet. Turn off gradients for the layers you freeze, leave them on for the block you fine-tune, and replace the last layer with a new one for your classes. The fine-tuned block gets a smaller learning rate than the new head, so it stays close to what it already learned.</p>
 <pre><code>import torch, torch.nn as nn, torch.nn.functional as F
 from torchvision import models
@@ -102,6 +110,15 @@ for x, y in loader:                                <span class="c"># your labele
       <figcaption>Foundations of Computer Vision, Ch. 37, Figure 37.4. CC BY-NC-ND 4.0.</figcaption>
     </figure>
     <p><strong>Knowledge distillation</strong> (Hinton, Vinyals and Dean, 2015) softens the teacher’s outputs with a temperature: <em>p<sub>i</sub> = exp(z<sub>i</sub>/T) / Σ<sub>j</sub> exp(z<sub>j</sub>/T)</em>. In the slide’s example, at T = 4 the teacher’s probability for “cat” falls from 0.77 to 0.40 and “tiger” rises to 0.28. The student is trained on <em>L = α · T² · KL(p ‖ q) + (1 − α) · CE</em>, where the KL term matches the teacher’s soft targets and the cross-entropy term matches the true label. With α = 0.5, the example gives KL 0.056, CE 0.571 and L 0.730. In offline distillation the teacher is frozen and only the student learns.</p>
+    <p>Where the KL of 0.056 comes from, class by class at T = 4:</p>
+    <table class="n">
+      <tr><th>class</th><th>teacher p</th><th>student q</th><th>p · log(p/q)</th></tr>
+      <tr><td>cat</td><td>0.403</td><td>0.321</td><td>+0.093</td></tr>
+      <tr><td>tiger</td><td>0.284</td><td>0.204</td><td>+0.094</td></tr>
+      <tr><td>giraffe</td><td>0.148</td><td>0.232</td><td>−0.066</td></tr>
+      <tr><td>dog</td><td>0.164</td><td>0.243</td><td>−0.065</td></tr>
+    </table>
+    <p>The teacher puts more weight on cat and tiger than the student does; the student spreads too much onto giraffe and dog. Scaled by T² and weighted by α, the KL term is 16 × 0.056 × 0.5 = 0.445; the label term is 0.571 × 0.5 = 0.286; together 0.730.</p>
     <p>In PyTorch, the loss is a few lines. The teacher runs under <code>torch.no_grad()</code>, so gradients reach only the student. Here the teacher is the fine-tuned ResNet-18 from above (about 11 million parameters), and the student is a MobileNet with about 1.5 million.</p>
 <pre><code>def distillation_loss(student_logits, teacher_logits, labels, T=4.0, alpha=0.5):
     p = F.softmax(teacher_logits / T, dim=-1)          <span class="c"># soft targets</span>
@@ -142,9 +159,52 @@ for x, y in loader:
   <section id="future">
     <h2>Looking ahead</h2>
     <p>As you build, can you predict forward? ColorizeBot was trained on ImageNet photos and used on old photographs. CLEAR (Lin et al., 2021) follows Flickr images from 2004 to 2014.</p>
-    <p>Can research reduce the need for real data? One direction is reinforcement-learning environments. An agent takes an action, the environment returns an observation and a reward, and the model learns by trial and error in a realistic simulation (Rane, Scale AI blog, 2026).</p>
+    <p>Can research reduce the need for real data? That question is left open for discussion.</p>
     <p>Robotics is where the data gap is widest. Datasets such as DROID (2024), Open X-Embodiment (2023) and RoboCasa (2024) still face coverage shift across robots and rooms, the sim-to-real gap, human video that has no robot actions, and the need for richer labels (Levin, Scale AI blog, 2025).</p>
     <div class="callout"><p><strong>Discussion.</strong> How would you collect the data robots are missing, and what would your method still fail to cover? What new algorithm could let a robot learn a skill from a handful of examples, without big data at all?</p></div>
+  </section>
+
+  <section id="agents">
+    <h2>Agents and memory</h2>
+    <h3>Where does learning live?</h3>
+    <p>Today’s methods put what a model learns in three places: in the weights (fine-tuning), in a smaller model (knowledge distillation), or in the context, kept across sessions (agent memory). The last one leaves the weights alone.</p>
+    <h3>From model to agent</h3>
+    <p>A model rarely works alone. It sits inside a loop: perceive (a screen or a camera), decide, act, remember. The environment gives an image; perception models detect objects, segment and estimate depth; the agent, often a vision-language model, plans and picks the next action given its task; actions such as clicking, typing, moving an arm or grasping change the world, which gives a new image. Memory is read and written along the way.</p>
+    <p>One pass, for the task “put the mug in the sink”: see the camera frame; perceive the mug and the sink; decide to grasp the mug by its handle and move right; act, and a new frame arrives; remember a note for next time, such as “mugs: grasp by the handle”. The slide’s example is illustrative, not a real run.</p>
+    <h3>Current challenges</h3>
+    <p>As at the weight level, agents forget, here on long-horizon tasks, when early steps no longer fit in what the model can see at once. And context has to be shared across sessions, or across several agents working on one task.</p>
+    <h3>Memory in humans</h3>
+    <p>Long-term memory is often split into explicit (declarative, with conscious recall: semantic facts and episodic events) and implicit (non-declarative: procedural skills and emotional conditioning); the slide’s tree is based on Malmberg et al. (2019). Four ideas carry over to agents:</p>
+    <ul>
+      <li><strong>Hippocampus.</strong> It captures experiences fast and keeps an index that points to traces across the cortex (<a href="https://pubmed.ncbi.nlm.nih.gov/3008780/">Teyler and DiScenna, 1986</a>). In an agent: transcripts, notes and an index file.</li>
+      <li><strong>Replay during sleep.</strong> Recent experiences are replayed and slowly folded into the neocortex, a slow learner that would be disrupted by fast changes (<a href="https://pubmed.ncbi.nlm.nih.gov/7624455/">McClelland, McNaughton and O’Reilly, 1995</a>). In an agent: “dreaming”, an offline pass over past sessions.</li>
+      <li><strong>Existing schema.</strong> New information that fits what you already know is consolidated faster (<a href="https://pubmed.ncbi.nlm.nih.gov/17412951/">Tse et al., 2007</a>). In an agent: add to an existing page rather than a new file.</li>
+      <li><strong>Recalling a memory.</strong> Recall makes a memory editable again (Nader, Schafe and LeDoux, 2000). In an agent: a note is checked and corrected when it is read.</li>
+    </ul>
+    <p>Fast and slow stores kept apart is the same idea as avoiding catastrophic forgetting: quick changes to one shared store overwrite what it knew.</p>
+    <h3>Agent memory</h3>
+    <p>One way to organize an agent’s memory (<a href="https://www.anthropic.com/research/components-of-agent-memory">Martin, The components of agent memory, 2026</a>), from bottom to top:</p>
+    <ul>
+      <li><strong>Transcripts</strong>: a complete, searchable event log.</li>
+      <li><strong>Memory notes</strong>: salient observations the agent writes down, marked checked or unconfirmed.</li>
+      <li><strong>Memory representations</strong>: pages computed from transcripts and notes, linked to each other, such as a wiki.</li>
+      <li><strong>Injected context</strong>: a small amount loaded into every session, such as the current goal and an index.</li>
+    </ul>
+    <p>Each layer up is smaller and more abstract. <strong>Dreaming</strong> is an offline pass that reads the transcripts and updates the layers above: it writes notes, builds and links pages, and promotes what every session needs. Reading goes the other way: injected context is always loaded, wiki pages are followed by their links, transcripts are searched. Dreaming also corrects: in one example from the post, a wrong note (“Mt Moon DONE”) made a game-playing agent loop; checked against the transcript, the note was fixed and the agent got through. Links carry much of the knowledge: one dreamed wiki grew from 103 pages and 766 links after 2 sessions to 222 pages and 12,893 links after 128.</p>
+    <p>Open questions remain about memory beyond text (images, embeddings, maps of a scene) and about how to structure stored pieces and their relations. Papers to start with:</p>
+    <ul>
+      <li><a href="https://arxiv.org/abs/2310.08560">Packer et al., MemGPT: Towards LLMs as Operating Systems (2023)</a></li>
+      <li><a href="https://arxiv.org/abs/2504.13171">Lin et al., Sleep-time Compute: Beyond Inference Scaling at Test-time (2025)</a></li>
+      <li><a href="https://arxiv.org/abs/2603.10600">Fang et al., Trajectory-Informed Memory Generation for Self-Improving Agent Systems (2026)</a></li>
+      <li><a href="https://www.anthropic.com/research/components-of-agent-memory">Martin, The components of agent memory (2026)</a></li>
+    </ul>
+    <div class="callout"><p><strong>Evaluation, for discussion.</strong> What exactly are we evaluating: the model, the memory, or the whole agent? Which numbers would tell you it works? How would you test it, and what makes that hard?</p></div>
+  </section>
+
+  <section id="project">
+    <h2>Project plan</h2>
+    <p>The detailed proposal has four sections, each a quarter of the grade: problem and motivation, approach, evaluation, and a realistic plan (smallest working version and its day, what you add if there is time, the biggest risk and plan B, who does what). Templates: <a href="../templates.html">project templates</a>, Step 2.</p>
+    <p>A team should not plan three times the project. Plan the same core as one person would, then add pieces in parallel, each with an owner, and agree early on how the pieces fit together. The project review itself is in the <a href="../day07-part2/deck.html">Part 2 slides</a>.</p>
   </section>
 
 </main>
