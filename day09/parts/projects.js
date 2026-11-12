@@ -26,7 +26,7 @@ st(`
       <li>Uncertainty and active vision</li>
       <li>What rotation robustness costs</li>
     </ol>
-    <div class="b" style="text-align:center;font-size:clamp(1rem,1.8vw,1.6rem)">Proposals due Friday · chat today: <a style="color:inherit" href="https://calendly.com/shreyalpandit/project-proposal-review" target="_blank" rel="noopener">Calendly w/ Shreya</a></div>
+    <div class="b" style="text-align:center;font-size:clamp(1.25rem, 2.25vw, 2rem)">Proposals due Friday · chat today: <a style="color:inherit" href="https://calendly.com/shreyalpandit/project-proposal-review" target="_blank" rel="noopener">Calendly w/ Shreya</a></div>
   </div>
 `);
 }
