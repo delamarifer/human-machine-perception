@@ -43,6 +43,7 @@
   .d10-tbl td:first-child{ font-weight:700; white-space:nowrap; }
   .d10-tbl td:last-child, .d10-tbl th:last-child{ white-space:nowrap; color:var(--mute); }
   .d10-tbl tr.b{ transform:none; }
+  .d10-tools td:last-child{ white-space:normal; width:24%; }
 
   /* who he is: bullets and a portrait */
   .d10-who{ display:grid; grid-template-columns:1.4fr 1fr; gap:4vw; align-items:center; }
