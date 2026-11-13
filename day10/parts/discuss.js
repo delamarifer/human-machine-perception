@@ -1,5 +1,6 @@
 /* PART: discuss (Day 10, owner: Shreya). Google Slide 10 (2026-11-13), "Discussion: Creativity, consent, and culture".
-   Shreya's wording; one topic and its question per click. No speaker notes. */
+   Shreya's wording; one topic and its question per click. The Compute topic was added at Shreya's request (2026-11-13),
+   wording is (draft). No speaker notes. */
 {
 section('Discussion');
 
@@ -9,6 +10,7 @@ const D10_TOPICS = [
   ['Ownership: Who owns the result?', 'Can an AI-generated image be copyrighted? Who should receive the rights?'],
   ['Culture: Who has the right to use cultural art?', 'Who should decide whether a cultural style can be used by AI?'],
   ['Human value: What makes human art special?', 'Does knowing the story or feelings behind an artwork change how we value it?'],
+  ['Compute: What does it cost?', 'Training and running big models uses a lot of energy. Is the art worth it, and who should pay that cost?'],
 ];
 
 st(`
