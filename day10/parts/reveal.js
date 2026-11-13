@@ -1,20 +1,9 @@
-/* PART: reveal (Day 10, owner: Shreya). Report back, then ONE animated pipeline slide (Shreya, 2026-11-13) that replaces the
+/* PART: reveal (Day 10, owner: Shreya). Google Slide 14 (Report back was removed, 2026-11-13). ONE animated pipeline slide (Shreya, 2026-11-13) that replaces the
    three deep-dive tables, the backbone slide and "You already know every stage". Click 1: the six stages. Clicks 2-4: each
    work fills the stages, replacing the one before. Click 5: our lab fills the same stages. Upright text is documented;
    italic text is our reconstruction. No day labels (Shreya). No speaker notes. */
 {
 section('Reveal');
-
-st(`
-  <h1 class="t">Report back</h1>
-  <div class="d10-col">
-    <ul class="d10-list">
-      <li class="b">Show one result, one equation and one finding</li>
-      <li class="b">Which lab did each piece come from?</li>
-    </ul>
-  </div>
-`);
-
 /* each row: [name, [Data, Curate, Represent, Generate, Render, Display]]; wrap a guess in <i> */
 const D10_ROWS = [
   ['Machine Hallucination: NYC (2019)', [

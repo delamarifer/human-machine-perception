@@ -43,3 +43,18 @@ Preview: `python3 -m http.server 8148`, then `day10/deck.html` (20 slides).
 
 - Renamed (2026-11-13, Shreya): the Fashion-MNIST notebook is now `workbook/generative-system-lab.ipynb` (solutions: `generative-system-lab-solutions.ipynb`).
 - Moved to private/day10-unused/ (git-ignored) on 2026-11-13, Shreya's request: the unused labs (mini-machine-hallucination, doodle-city-hallucination, doodle-city-from-class-labs), their solutions, and build.py / build_labs.py. build_fashion.py now stands alone.
+
+## Round 4 (2026-11-13): the HTML deck follows Shreya's edited Google Slides
+- New order (17 slides): title "What if a machine could dream?", the NYC video, Who is Refik Anadol?, What does he actually make?,
+  What does machine hallucination mean?, Reverse-engineer the system, How do outputs become an artwork?, From archive to artwork,
+  Lab: Become a generative artist, the discussion, then Work 2, Work 3, Step 1, One pipeline, Why alive, Whose data, Sources.
+- Her comments applied: "Who is" as a few bullets; "What does he make" merged with the video gallery, titles only;
+  machine hallucination as 2 questions with animated answers (her text, simple English).
+- Images downloaded from her slides into day10/assets/ (JPEG).
+- Parts: new system.js, lab.js, discuss.js; Work 1, Step 2 and Report back removed (deleted in her slides).
+
+## Open questions (Round 4)
+- [x] "What does he actually make?" now shows three titled works: her Unsupervised image (matched to the studio video), Large Nature Model: Rainforest and Echoes of the Earth. Her two unmatched images are in private/day10-unused/assets/
+- [x] Lab slide: the unfinished line "At each stage, think through ..." was removed (Shreya).
+- [ ] "Reverse-engineer the system" and "How do outputs become an artwork?" are title-only in the Google Slides; shown as statement slides.
+- [ ] The slides after the discussion (Work 2, Work 3, Step 1, pipeline, wrap-up): keep, cut, or move?

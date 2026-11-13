@@ -44,6 +44,42 @@
   .d10-tbl td:last-child, .d10-tbl th:last-child{ white-space:nowrap; color:var(--mute); }
   .d10-tbl tr.b{ transform:none; }
 
+  /* who he is: bullets and a portrait */
+  .d10-who{ display:grid; grid-template-columns:1.4fr 1fr; gap:4vw; align-items:center; }
+  .d10-who .d10-list{ margin:0; }
+  .d10-portrait{ width:100%; max-height:58vh; object-fit:cover; border-radius:14px; }
+  /* image tiles with a title under each */
+  .d10-tile{ margin:0; display:flex; flex-direction:column; gap:.8vh; align-items:center; }
+  .d10-tile img{ width:100%; aspect-ratio:16 / 9; object-fit:cover; border-radius:10px; }
+  .d10-tile figcaption{ font-size:clamp(1rem, 1.5vw, 1.4rem); text-align:center; }
+  .d10-gallery + .d10-gallery{ margin-top:1vh; }
+  /* one large piece at a time, each replacing the one before (same place on the slide) */
+  .d10-stack{ display:grid; justify-items:center; align-items:center; flex:1 1 auto; min-height:0; }
+  .d10-stack > .d10-one{ grid-area:1 / 1; }
+  .d10-stack img, .d10-stack .d10-video iframe{ height:62vh; width:auto; max-width:100%; aspect-ratio:16 / 9; object-fit:cover; }
+  .d10-stack figcaption, .d10-stack .d10-cap{ font-size:clamp(1.4rem, 2.6vw, 2.4rem); font-weight:700; }
+  .d10-stack .d10-cap small{ font-weight:400; font-size:.62em; margin-top:.3vh; }
+  .d10-stack > .d10-one > .d10-video iframe{ height:56vh; }
+  .d10-one.shown.d10-gone{ opacity:0; pointer-events:none; }
+  /* machine hallucination: two questions and answers, with two images */
+  .d10-hall{ display:grid; grid-template-columns:1.3fr 1fr; gap:3vw; align-items:center; }
+  .d10-qa{ display:flex; flex-direction:column; gap:1.4vh; }
+  .d10-qq{ font-size:clamp(1.35rem, 2.4vw, 2.15rem); font-weight:700; line-height:1.25; }
+  .d10-qans{ font-size:clamp(1.15rem, 2vw, 1.8rem); line-height:1.35; padding-left:1em; border-left:4px solid var(--ink); margin-bottom:1.6vh; }
+  .d10-hall-imgs{ display:flex; flex-direction:column; gap:1.6vh; width:100%; }
+  .d10-hall-imgs img{ width:100%; max-height:27vh; object-fit:cover; border-radius:10px; }
+  .d10-hall .d10-stack img{ height:auto; aspect-ratio:auto; }      /* the stack rule sizes big single pieces; not these */
+  /* a made-up chat: the question on the right, the confident wrong answer on the left */
+  .d10-chat{ display:flex; flex-direction:column; gap:1.4vh; width:100%; }
+  .d10-msg{ padding:1.2vh 1.1vw; border-radius:14px; font-size:clamp(1.1rem, 1.9vw, 1.7rem); line-height:1.3; max-width:92%; }
+  .d10-user{ align-self:flex-end; background:#e2e8f0; }
+  .d10-bot{ align-self:flex-start; border:2px solid var(--ink); }
+  .d10-truth{ font-size:clamp(1rem, 1.6vw, 1.45rem); color:var(--mute); font-style:italic; }
+  /* discussion topics: the topic in bold, its question underneath */
+  .d10-topics{ max-width:60em; gap:2.2vh; }
+  .d10-topics > li{ font-size:clamp(1.45rem, 2.6vw, 2.4rem); line-height:1.25; }
+  .d10-topics .d10-sub{ display:block; font-size:.8em; color:var(--mute); margin-top:.3vh; }
+
   /* one animated pipeline: six stage boxes, then layers that replace each other in the same place */
   .d10-pipe{ display:flex; flex-direction:column; gap:2.4vh; }
   .d10-pipe-head, .d10-layer-cells{ display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:1vw; }
@@ -60,6 +96,7 @@
     .d10-pipe-head, .d10-layer-cells{ grid-template-columns:repeat(3, minmax(0,1fr)); }
     .d10-gallery, .d10-cards{ grid-template-columns:1fr; gap:1.4vh; }
     .d10-io{ grid-template-columns:1fr; } .d10-arrow{ display:none; }
+    .d10-who, .d10-hall{ grid-template-columns:1fr; }
     .d10-flow{ grid-template-columns:repeat(3, minmax(0,1fr)); }
   }
 `;
@@ -71,22 +108,25 @@
   const sync = () => document.querySelectorAll('.d10-video').forEach(v => {
     const f = v.querySelector('iframe'); if (!f) return;
     const slide = v.closest('.slide');
-    const on = v.classList.contains('shown') && slide && slide.classList.contains('active');
+    const on = v.classList.contains('shown') && slide && slide.classList.contains('active') && !v.closest('.d10-gone');
     if (on) f.dataset.live = '1';
     else if (f.dataset.live) { delete f.dataset.live; f.src = f.src; }
   });
   new MutationObserver(sync).observe(document.documentElement, { subtree:true, attributes:true, attributeFilter:['class'] });
 })();
 
-/* The one-pipeline slide: only the newest shown layer stays visible; earlier ones get .d10-gone. */
+/* Swap slides (the one-pipeline slide, "What does he actually make?"): only the newest shown item stays visible;
+   earlier ones get .d10-gone. */
 (function(){
   let busy = false;
   const sync = () => {
     if (busy) return; busy = true;
-    document.querySelectorAll('.d10-layers').forEach(box => {
-      const shown = [...box.querySelectorAll('.d10-layer.shown')];
-      box.querySelectorAll('.d10-layer').forEach(l => l.classList.toggle('d10-gone', shown.length > 0 && l !== shown[shown.length - 1]));
-    });
+    [['.d10-layers', ':scope > .d10-layer'], ['.d10-stack', ':scope > .d10-one']].forEach(([boxSel, itemSel]) =>
+      document.querySelectorAll(boxSel).forEach(box => {
+        const items = [...box.querySelectorAll(itemSel)];
+        const shown = items.filter(l => l.classList.contains('shown'));
+        items.forEach(l => l.classList.toggle('d10-gone', shown.length > 0 && l !== shown[shown.length - 1]));
+      }));
     busy = false;
   };
   new MutationObserver(sync).observe(document.documentElement, { subtree:true, attributes:true, attributeFilter:['class'] });

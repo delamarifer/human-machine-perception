@@ -1,19 +1,7 @@
-/* PART: clues (Day 10, owner: Shreya). Google Slides 5-7. Facts as sourced in the sources slide. No speaker notes.
+/* PART: clues (Day 10, owner: Shreya). Google Slides 11-12 (Work 1 was removed, Shreya 2026-11-13). Facts as sourced in the sources slide. No speaker notes.
    The "No research needed" slide was removed (Shreya, 2026-11-13), matching the Google Slides. */
 {
 section('Clues');
-
-st(`
-  <h1 class="t">Work 1 · Machine Hallucination: NYC (2019)</h1>
-  <div class="d10-col">
-    <ul class="d10-list">
-      <li class="b">Over 100 million public photos of New York, cut down to 9.5 million</li>
-      <li class="b">Photos with people removed by another algorithm</li>
-      <li class="b">Trained with StyleGAN; shown at Artechouse</li>
-    </ul>
-  </div>
-`);
-
 st(`
   <h1 class="t">Work 2 · Unsupervised, MoMA (2022)</h1>
   <div class="d10-col">
