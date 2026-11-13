@@ -58,3 +58,4 @@ Preview: `python3 -m http.server 8148`, then `day10/deck.html` (20 slides).
 - [x] Lab slide: the unfinished line "At each stage, think through ..." was removed (Shreya).
 - [ ] "Reverse-engineer the system" and "How do outputs become an artwork?" are title-only in the Google Slides; shown as statement slides.
 - [ ] The slides after the discussion (Work 2, Work 3, Step 1, pipeline, wrap-up): keep, cut, or move?
+- Slides 11-17 removed (Shreya, 2026-11-13): Work 2, Work 3, Step 1, One pipeline, Why alive, Whose data, Sources. The deck ends at the discussion (10 slides).
