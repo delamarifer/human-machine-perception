@@ -79,6 +79,7 @@
   .d10-topics{ max-width:62em; gap:1.5vh; }
   .d10-topics > li{ font-size:clamp(1.3rem, 2.2vw, 2.05rem); line-height:1.22; }
   .d10-topics .d10-sub{ display:block; font-size:.62em; color:var(--mute); margin-top:.3vh; }
+  .d10-topics > li.shown.d10-dim{ opacity:.3; }     /* earlier topics fade; the newest one stays black (set in JS below) */
 
   /* one animated pipeline: six stage boxes, then layers that replace each other in the same place */
   .d10-pipe{ display:flex; flex-direction:column; gap:2.4vh; }
@@ -127,6 +128,12 @@
         const shown = items.filter(l => l.classList.contains('shown'));
         items.forEach(l => l.classList.toggle('d10-gone', shown.length > 0 && l !== shown[shown.length - 1]));
       }));
+    /* discussion topics: every shown topic except the newest one is dimmed */
+    document.querySelectorAll('.d10-topics').forEach(box => {
+      const items = [...box.querySelectorAll(':scope > li')];
+      const shown = items.filter(l => l.classList.contains('shown'));
+      items.forEach(l => l.classList.toggle('d10-dim', shown.length > 0 && l !== shown[shown.length - 1]));
+    });
     busy = false;
   };
   new MutationObserver(sync).observe(document.documentElement, { subtree:true, attributes:true, attributeFilter:['class'] });
