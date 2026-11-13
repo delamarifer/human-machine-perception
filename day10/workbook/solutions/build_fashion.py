@@ -8,14 +8,65 @@ Solution version -> day10/workbook/solutions/generative-system-lab-solutions.ipy
 Fashion-MNIST (the Hugging Face copy), with shirts as the thing to remove. Every stage reuses an idea from the class labs:
 a CNN, CLIP zero-shot, RSA, checking the data, VAEs and GANs, latent walks and guidance, filters and the metamer test.
 Shreya (2026-11-13): no day labels in the notebook, no cards or groups (everyone runs the same thing).
-Same TODO markers as build.py. The earlier doodle version is build_labs.py.
+Standalone: earlier drafts and their build scripts are in private/day10-unused/ (not in the repo).
 """
-import sys
+import re
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from build import md, code, sol, write  # noqa: E402
+import nbformat as nbf
 
+ROOT = Path(__file__).resolve().parents[3]
+OUT_STUDENT = ROOT / "day10" / "workbook"
+OUT_SOLUTION = Path(__file__).resolve().parent
 NAME = "generative-system-lab"
+
+md = lambda s: ("md", s.strip("\n"))
+code = lambda s: ("code", s.strip("\n"))
+sol = lambda s: ("sol", s.strip("\n"))     # solution version only (teacher notes)
+
+# In a code cell, a block between "#>> TODO n: what to write" and "#<<" holds the solution lines.
+# In the student version it becomes the TODO line plus raise NotImplementedError(...), at the same indentation.
+MARK = re.compile(r"^(?P<ind>[ \t]*)#>> TODO(?P<n> \d+)?: (?P<msg>.*)$")
+
+
+def render(src, solution):
+    out, i, lines = [], 0, src.split("\n")
+    while i < len(lines):
+        m = MARK.match(lines[i])
+        if not m:
+            out.append(lines[i]); i += 1; continue
+        ind, n, msg = m.group("ind"), (m.group("n") or "").strip(), m.group("msg")
+        label = f"TODO {n}" if n else "TODO"
+        j = i + 1
+        while lines[j].strip() != "#<<":
+            j += 1
+        out.append(f"{ind}# {label}: {msg}")
+        if solution:
+            out.extend(lines[i + 1:j])
+        else:
+            out.append(f'{ind}raise NotImplementedError("{label}: {msg}")')
+        i = j + 1
+    return "\n".join(out)
+
+
+def write(cells, name=NAME):
+    for solution in (False, True):
+        nb = nbf.v4.new_notebook(metadata={"kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
+                                           "language_info": {"name": "python"}})
+        for kind, src in cells:
+            if kind == "sol" and not solution:
+                continue
+            if kind in ("md", "sol"):
+                if kind == "md" and solution and src.startswith("# "):
+                    src = src.replace("\n", "\n\n> **Solutions.** Teacher copy, with the TODOs filled in and notes on what students should see.\n", 1)
+                nb.cells.append(nbf.v4.new_markdown_cell(src))
+            else:
+                nb.cells.append(nbf.v4.new_code_cell(render(src, solution)))
+        path = (OUT_SOLUTION / f"{name}-solutions.ipynb") if solution else (OUT_STUDENT / f"{name}.ipynb")
+        for i, c in enumerate(nb.cells):
+            c.id = f"c{i:03d}"     # fixed ids, so a rebuild only changes what changed
+        path.parent.mkdir(parents=True, exist_ok=True)
+        nbf.write(nb, path)
+        print("wrote", path.relative_to(ROOT))
 
 CELLS = [
 md(r"""

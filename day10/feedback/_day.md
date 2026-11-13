@@ -26,7 +26,7 @@ Preview: `python3 -m http.server 8148`, then `day10/deck.html` (20 slides).
 ## Open questions
 - [ ] Run the class-labs notebook on a Colab T4 GPU once: the DCGAN default there is untested (547 s on a CPU).
 - [ ] Card A: fine-tuning did worse than from scratch in our run (58% vs 76% judged Eiffel Tower by CLIP). Keep as a discussion point, or change the setup?
-- [ ] The Colab link on slide 11 works only after day10/workbook is pushed to main.
+- [x] Pushed to main (66dfd93); the Colab link on the Step 2 slide works.
 - [ ] Vimeo players show black in the Browser pane screenshots; the NYC player plays when opened directly. Check them in a real browser.
 - [ ] Unsupervised: the Google Slides outline says 2021 (the NFT release); the MoMA installation ran 2022-23. The HTML deck says 2022.
 - [ ] The studio also has a "Data Process Reel" (Vimeo 943452720, 2 min 54 s) showing how they build works. A possible reveal before the deep dives.
@@ -42,3 +42,4 @@ Preview: `python3 -m http.server 8148`, then `day10/deck.html` (20 slides).
 - The doodle notebooks (build_labs.py, build.py) are kept but not linked.
 
 - Renamed (2026-11-13, Shreya): the Fashion-MNIST notebook is now `workbook/generative-system-lab.ipynb` (solutions: `generative-system-lab-solutions.ipynb`).
+- Moved to private/day10-unused/ (git-ignored) on 2026-11-13, Shreya's request: the unused labs (mini-machine-hallucination, doodle-city-hallucination, doodle-city-from-class-labs), their solutions, and build.py / build_labs.py. build_fashion.py now stands alone.
