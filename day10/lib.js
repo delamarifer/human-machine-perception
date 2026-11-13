@@ -76,8 +76,8 @@
   .d10-bot{ align-self:flex-start; border:2px solid var(--ink); }
   .d10-truth{ font-size:clamp(1rem, 1.6vw, 1.45rem); color:var(--mute); font-style:italic; }
   /* discussion topics: the topic in bold, its question underneath */
-  .d10-topics{ max-width:60em; gap:1.9vh; }
-  .d10-topics > li{ font-size:clamp(1.45rem, 2.6vw, 2.4rem); line-height:1.25; }
+  .d10-topics{ max-width:62em; gap:1.5vh; }
+  .d10-topics > li{ font-size:clamp(1.3rem, 2.2vw, 2.05rem); line-height:1.22; }
   .d10-topics .d10-sub{ display:block; font-size:.62em; color:var(--mute); margin-top:.3vh; }
 
   /* one animated pipeline: six stage boxes, then layers that replace each other in the same place */
