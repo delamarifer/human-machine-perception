@@ -22,7 +22,9 @@ The existing `day11/` folder is the copy of the Anadol deck (commit db744c3), so
 
 ## Open questions
 - [x] Slide 8 (video): the clip is portrait (900 x 1600): a humanoid robot walking on a busy city sidewalk. The player is
-      now 9:16, so there are no black bars. Draft title "What does this robot need to figure out?" leads into the problems slide.
+      now 9:16, so there are no black bars. Shreya: it is Rizzbot. Now "Meet Rizzbot" (draft): the video, then "Is it an embodied agent?", then: a Unitree G1;
+      reports say a person nearby controls much of it, so who is making the decisions? Sources: Spectrum News 1 Texas,
+      NBC, Unitree press release (2025). Reports disagree on how much is autonomous.
 - [ ] Slide 8: the Drive player only plays for viewers signed in with access: share the file "anyone with the link",
       or put the MP4 in assets/ so it plays from the deck.
 - [ ] Slide 8: the video would not play in the Browser pane (only the first frame showed), so its length is not checked.

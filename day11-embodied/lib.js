@@ -56,6 +56,12 @@
   .d11-video{ display:flex; flex-direction:column; align-items:center; gap:.8vh; }
   .d11-video iframe{ height:68vh; aspect-ratio:9 / 16; max-width:100%; border:0; border-radius:10px; background:#000; }   /* her clip is a portrait phone video, 900 x 1600 */
 
+  /* Meet Rizzbot: the portrait video on the left, the questions on the right */
+  .d11-rizz{ display:grid; grid-template-columns:auto 1fr; gap:4vw; align-items:center; }
+  .d11-rizz-side{ display:flex; flex-direction:column; gap:4vh; }
+  .d11-rizz-side .d11-q{ text-align:left; margin:0; }
+  .d11-rizz-side .d11-ans{ font-size:clamp(1.3rem, 2.3vw, 2.1rem); line-height:1.35; }
+
   /* common problems: six numbered cards, then the takeaway */
   .d11-probs{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:4.5vh 1.6vw; }
   .d11-prob{ border-top:6px solid var(--ink); padding-top:1.2vh; display:flex; flex-direction:column; gap:.6vh; }

@@ -65,13 +65,23 @@ st(`
 `);
 
 /* Google slide 7: Shreya's Drive video (9ED16C18-....MP4, 14 MB, portrait 900 x 1600): a humanoid robot walking on a busy
-   city sidewalk. The Google slide has no title; this one (draft) sets up the next slide, the common problems.
+   city sidewalk. Shreya: "its called rizzbot". Rizzbot ("Jake the Rizzbot") is a Unitree G1 humanoid in a cowboy hat that
+   went viral in 2025 (Austin, Los Angeles, New York). Reports say a human operator nearby controls much of it (Spectrum News
+   1 Texas, 2025-07-01; NBC, 2025-07; Unitree's own press release calls it a G1 "operated by users"). That makes it a test
+   of slide 2's definition: who is making the decisions? Title and questions are drafts.
    The Drive player only plays for viewers signed in with access, unless the file is shared "anyone with the link". */
 st(`
-  <h1 class="t">What does this robot need to figure out?</h1>
+  <h1 class="t">Meet Rizzbot</h1>
   <div class="d11-col">
-    <div class="d11-video b"><iframe src="https://drive.google.com/file/d/1NqSyWv1mEJnL5OSuNrYRtzMkkHmRSkcI/preview" title="Video from the Day 11 slides" allow="autoplay; fullscreen" allowfullscreen></iframe></div>
+    <div class="d11-rizz">
+      <div class="d11-video b" data-step="1"><iframe src="https://drive.google.com/file/d/1NqSyWv1mEJnL5OSuNrYRtzMkkHmRSkcI/preview" title="Rizzbot, a humanoid robot, walking on a city sidewalk" allow="autoplay; fullscreen" allowfullscreen></iframe></div>
+      <div class="d11-rizz-side">
+        <div class="d11-q b" data-step="2">Is it an embodied agent?</div>
+        <div class="d11-ans b" data-step="3">A Unitree G1 humanoid. Reports say a person nearby controls much of what it does.<br><b>Who is making the decisions?</b></div>
+      </div>
+    </div>
   </div>
+  ${cite('Spectrum News 1 Texas (2025) · NBC (2025) · Unitree press release')}
 `);
 
 /* Google slide 8, her items in her order; short names on top, her words underneath. Item 3 had no name in her slide. */
