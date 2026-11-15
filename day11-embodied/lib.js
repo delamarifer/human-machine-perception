@@ -93,7 +93,10 @@
   /* figure on the left, steps on the right */
   .d11-split{ display:grid; grid-template-columns:1.2fr 1fr; gap:3vw; align-items:center; }
   .d11-fig{ margin:0; } .d11-fig img{ width:100%; max-height:58vh; object-fit:contain; border-radius:12px; display:block; }
-  .d11-wide img{ height:30vh; max-height:none; width:auto; max-width:100%; object-fit:contain; margin:0 auto; }
+  .d11-duo{ display:grid; grid-template-columns:1fr 1fr; gap:2vw; max-width:62em; margin:0 auto; width:100%; }
+  .d11-duo img{ width:100%; height:34vh; object-fit:cover; }
+  .d11-duo figcaption{ text-align:center; margin-top:.6vh; font-size:clamp(1rem, 1.5vw, 1.4rem); }
+  .d11-wide img{ height:42vh; max-height:none; width:auto; max-width:100%; object-fit:contain; margin:0 auto; }
   .d11-side{ display:flex; flex-direction:column; gap:2.4vh; }
   .d11-step{ font-size:clamp(1.25rem, 2.2vw, 2rem); line-height:1.3; }
   .d11-callout{ font-size:clamp(1.2rem, 2.1vw, 1.9rem); line-height:1.35; border-left:6px solid var(--ink); padding:.4vh 1.2vw; }

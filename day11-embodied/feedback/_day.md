@@ -54,7 +54,8 @@ The existing `day11/` folder is the copy of the Anadol deck (commit db744c3), so
 - [ ] Slide 10: the four-aspect grouping is mine. OK, or keep her plain list? She asked for "images from MIT labs":
       lab photos are not free to reuse; send any you have permission for.
 - [ ] Slide 14: $25,000 needs a source (and for which robot?).
-- [ ] Slides 13, 15, 16 use her photos of a talk's slides: low resolution, blurry on a projector. The Nature paper
-      (open access) has clean figures for 16-17 if you want them.
+- [x] Slides 13, 15, 16: her photos of a talk's slides replaced (Shreya, 2026-11-16) with the papers' own figures, all CC BY 4.0:
+      13 = F3RM Fig. 1 panels 1-2 (arXiv 2308.07931); 15 = Buchner et al., Nature 2023, Figs 1e (hand) and 4a (walker);
+      16 = Li et al., Nature 2025, Fig. 1. The Matusik ICRA 2024 hand is dropped (no open-license image found).
 - [ ] Slide 16: her first line ended "solve for the actions the ...": what was the rest?
 - [ ] Slide 15: title is a draft.

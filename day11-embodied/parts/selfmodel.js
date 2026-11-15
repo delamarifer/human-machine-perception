@@ -26,7 +26,7 @@ st(`
   <h1 class="t">What is missing in the 3D Scene Representation?</h1>
   <div class="d11-col">
     <div class="d11-split">
-      <figure class="d11-fig b" data-step="1"><img src="assets/f3rm-scan-nerf.jpg" alt="Left: a robot arm scans a table of objects. Right: the NeRF of the table, with the robot gone"></figure>
+      <figure class="d11-fig b" data-step="1"><img src="assets/f3rm-fig1.jpg" alt="Left: a robot arm scans a table of objects with a camera from many angles. Right: the 3D feature field of the table, with the robot gone"></figure>
       <div class="d11-side">
         <div class="d11-step b" data-step="1"><b>1.</b> Scan Scene</div>
         <div class="d11-step b" data-step="2"><b>2.</b> Train NeRF and Distill Features</div>
@@ -38,7 +38,7 @@ st(`
       </div>
     </div>
   </div>
-  ${cite('Shen et al., Distilled Feature Fields Enable Few-Shot Language-Guided Manipulation, 2023')}
+  ${cite('Figure: Shen et al., Distilled Feature Fields Enable Few-Shot Language-Guided Manipulation, CoRL 2023 (CC BY 4.0), panels 1-2')}
 `);
 
 /* Google slide 13: her TODO "insert image of a robot arm, include arrows pointing to the different parts (segments and
@@ -95,26 +95,29 @@ st(`
 st(`
   <h1 class="t">What about cheap, soft, 3D-printed robots?</h1>
   <div class="d11-col">
-    <figure class="d11-fig d11-wide b" data-step="1"><img src="assets/printed-hands.jpg" alt="Left: a pneumatic robot hand 3D printed in one piece. Right: a 3D-printed multi-material hand"></figure>
+    <div class="d11-duo">
+      <figure class="d11-fig b" data-step="1"><img src="assets/vcj-hand.jpg" alt="A robot hand with bones, tendons and ligaments, 3D printed in one piece"><figcaption>A hand with bones and tendons</figcaption></figure>
+      <figure class="d11-fig b" data-step="2"><img src="assets/vcj-walker.jpg" alt="A six-legged walking robot with a gripper, 3D printed in one piece, with air tubes connected"><figcaption>A walking robot driven by air</figcaption></figure>
+    </div>
     <div class="d11-pair2">
       <div class="d11-step b" data-step="2">3D printed in one piece, no assembly. Connect tubes to each of the joints</div>
       <div class="d11-callout b" data-step="3">No precise joint sensors, no exact model: how do we <b>model</b> and <b>control</b> them?</div>
     </div>
   </div>
-  ${cite('Left: 3D printing of a pneumatic hand, MIT, Inkbit, ETH Zurich, Nature 2023 · Right: Matusik et al., ICRA 2024')}
+  ${cite('Photos: Buchner et al., Vision-controlled jetting for composite systems and robots, Nature 2023 (ETH Zurich, Inkbit, MIT; CC BY 4.0), Figs 1e and 4a')}
 `);
 
 /* Google slide 15, her words. Her first line ends "solve for the actions the": shown as "solve for the actions". */
 st(`
   <h1 class="t">Robot State Estimation &amp; Control From Vision Alone</h1>
   <div class="d11-col">
-    <figure class="d11-fig d11-wide b" data-step="1"><img src="assets/njf-vision-control.jpg" alt="Four panels: desired motion, predicted motion, predicted depth, predicted Jacobian"></figure>
+    <figure class="d11-fig d11-wide b" data-step="1"><img src="assets/njf-fig1.jpg" alt="Left: from one camera image, a network predicts how each point of a robot hand moves for a command. Right: an optimizer finds the command that produces a desired motion, and the hand executes it"></figure>
     <div class="d11-pair2">
       <div class="d11-step b" data-step="2">Given motion trajectories, solve for the actions</div>
       <div class="d11-callout b" data-step="3">Cannot predict what happens if you apply a certain amount of pressure</div>
     </div>
   </div>
-  ${cite('Li et al., Unifying 3D Representation and Control of Diverse Robots with a Single Camera, 2024')}
+  ${cite('Figure: Li et al., Controlling diverse robots by inferring Jacobian fields with deep networks, Nature 2025 (CC BY 4.0), Fig. 1')}
 `);
 
 /* Google slide 16: her CSAIL news link. Facts from MIT News (2025-07-24) and the paper in Nature (2025-06-25):
