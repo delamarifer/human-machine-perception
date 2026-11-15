@@ -93,6 +93,12 @@
   /* figure on the left, steps on the right */
   .d11-split{ display:grid; grid-template-columns:1.2fr 1fr; gap:3vw; align-items:center; }
   .d11-fig{ margin:0; } .d11-fig img{ width:100%; max-height:58vh; object-fit:contain; border-radius:12px; display:block; }
+  /* one figure panel at a time, each replacing the one before in the same place */
+  .d11-swap{ display:grid; align-items:center; justify-items:center; }
+  .d11-swap > *{ grid-area:1 / 1; }
+  .d11-swap > .shown.d11-gone{ opacity:0; }
+  .d11-njf{ grid-template-columns:1.9fr 1fr; gap:2vw; }
+  .d11-njf .d11-fig img{ max-height:66vh; }
   .d11-duo{ display:grid; grid-template-columns:1fr 1fr; gap:2vw; max-width:62em; margin:0 auto; width:100%; }
   .d11-duo img{ width:100%; height:34vh; object-fit:cover; }
   .d11-duo figcaption{ text-align:center; margin-top:.6vh; font-size:clamp(1rem, 1.5vw, 1.4rem); }
@@ -137,6 +143,11 @@
       const shown = items.filter(l => l.classList.contains('shown'));
       const all = box.parentElement.querySelector('.d11-all.shown');
       items.forEach(l => l.classList.toggle('d11-dim', !all && shown.length > 0 && l !== shown[shown.length - 1]));
+    });
+    document.querySelectorAll('.d11-swap').forEach(box => {
+      const items = [...box.querySelectorAll(':scope > .b')];
+      const shown = items.filter(l => l.classList.contains('shown'));
+      items.forEach(l => l.classList.toggle('d11-gone', shown.length > 0 && l !== shown[shown.length - 1]));
     });
     busy = false;
   };

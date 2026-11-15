@@ -111,13 +111,19 @@ st(`
 st(`
   <h1 class="t">Robot State Estimation &amp; Control From Vision Alone</h1>
   <div class="d11-col">
-    <figure class="d11-fig d11-wide b" data-step="1"><img src="assets/njf-fig1.jpg" alt="Left: from one camera image, a network predicts how each point of a robot hand moves for a command. Right: an optimizer finds the command that produces a desired motion, and the hand executes it"></figure>
-    <div class="d11-pair2">
-      <div class="d11-step b" data-step="2">Given motion trajectories, solve for the actions</div>
-      <div class="d11-callout b" data-step="3">Cannot predict what happens if you apply a certain amount of pressure</div>
+    <div class="d11-split d11-njf">
+      <div class="d11-swap">
+        <figure class="d11-fig b" data-step="1"><img src="assets/njf-fig1a.jpg" alt="From one camera image, a network predicts how each point of a robot hand moves for a motor command"></figure>
+        <figure class="d11-fig b" data-step="2"><img src="assets/njf-fig1b.jpg" alt="An optimizer finds the command that produces a desired motion, and the hand executes it"></figure>
+      </div>
+      <div class="d11-side">
+        <div class="d11-step b" data-step="1">From one image: how each point moves for each command</div>
+        <div class="d11-step b" data-step="2">Given motion trajectories, solve for the actions</div>
+        <div class="d11-callout b" data-step="3">Cannot predict what happens if you apply a certain amount of pressure</div>
+      </div>
     </div>
   </div>
-  ${cite('Figure: Li et al., Controlling diverse robots by inferring Jacobian fields with deep networks, Nature 2025 (CC BY 4.0), Fig. 1')}
+  ${cite('Figure: Li et al., Controlling diverse robots by inferring Jacobian fields with deep networks, Nature 2025 (CC BY 4.0), Fig. 1a and 1b')}
 `);
 
 /* Google slide 16: her CSAIL news link. Facts from MIT News (2025-07-24) and the paper in Nature (2025-06-25):

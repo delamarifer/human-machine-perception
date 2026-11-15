@@ -59,3 +59,5 @@ The existing `day11/` folder is the copy of the Anadol deck (commit db744c3), so
       16 = Li et al., Nature 2025, Fig. 1. The Matusik ICRA 2024 hand is dropped (no open-license image found).
 - [ ] Slide 16: her first line ended "solve for the actions the ...": what was the rest?
 - [ ] Slide 15: title is a draft.
+- [x] Slide 16: the figure is split into panels a and b, each shown large (one replaces the other), text on the right
+      (Shreya, 2026-11-16). The first line, "From one image: how each point moves for each command", is a draft I added for panel a.
