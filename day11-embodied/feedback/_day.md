@@ -21,8 +21,11 @@ The existing `day11/` folder is the copy of the Anadol deck (commit db744c3), so
 9. What are common problems? Her six items, then "Closely related to vision / perception problems!"
 
 ## Open questions
-- [ ] Slide 8 (video): what title? It says "Watch" for now. And the Drive player only plays for viewers signed in with
-      access: share the file "anyone with the link", or give me the MP4 to put in assets/.
+- [x] Slide 8 (video): the clip is portrait (900 x 1600): a humanoid robot walking on a busy city sidewalk. The player is
+      now 9:16, so there are no black bars. Draft title "What does this robot need to figure out?" leads into the problems slide.
+- [ ] Slide 8: the Drive player only plays for viewers signed in with access: share the file "anyone with the link",
+      or put the MP4 in assets/ so it plays from the deck.
+- [ ] Slide 8: the video would not play in the Browser pane (only the first frame showed), so its length is not checked.
 - [ ] Slide 9, item 3 had no name: I called it "Configuration". "relevant to the environment": did you mean "relative to"?
 - [ ] Slide 2: "Is robot interchangeable?" is shown as written, with robot in quotes. Want "Is an embodied agent the same as a robot?"
 - [ ] Slide 5: OK to show students' words (anonymous) in class?

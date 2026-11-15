@@ -64,10 +64,11 @@ st(`
   ${cite('Photos: Larry D. Moore (CC BY 4.0) · Jonte (CC BY-SA 4.0) · Dllu (CC BY 4.0) · NASA/JPL-Caltech/MSSS, via Wikimedia Commons')}
 `);
 
-/* Google slide 7: Shreya's Drive video (9ED16C18-....MP4, 14 MB). The Google slide has no title: "Watch" is a placeholder.
+/* Google slide 7: Shreya's Drive video (9ED16C18-....MP4, 14 MB, portrait 900 x 1600): a humanoid robot walking on a busy
+   city sidewalk. The Google slide has no title; this one (draft) sets up the next slide, the common problems.
    The Drive player only plays for viewers signed in with access, unless the file is shared "anyone with the link". */
 st(`
-  <h1 class="t">Watch</h1>
+  <h1 class="t">What does this robot need to figure out?</h1>
   <div class="d11-col">
     <div class="d11-video b"><iframe src="https://drive.google.com/file/d/1NqSyWv1mEJnL5OSuNrYRtzMkkHmRSkcI/preview" title="Video from the Day 11 slides" allow="autoplay; fullscreen" allowfullscreen></iframe></div>
   </div>

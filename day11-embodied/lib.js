@@ -54,7 +54,7 @@
 
   /* the video */
   .d11-video{ display:flex; flex-direction:column; align-items:center; gap:.8vh; }
-  .d11-video iframe{ height:60vh; aspect-ratio:4 / 3; max-width:100%; border:0; border-radius:10px; background:#000; }
+  .d11-video iframe{ height:68vh; aspect-ratio:9 / 16; max-width:100%; border:0; border-radius:10px; background:#000; }   /* her clip is a portrait phone video, 900 x 1600 */
 
   /* common problems: six numbered cards, then the takeaway */
   .d11-probs{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:4.5vh 1.6vw; }
