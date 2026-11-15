@@ -5,8 +5,10 @@ const ORDER = [
   ['agents', 'Examples of embodied agents, the video, the common problems'],
   ['labs',   'Embodied intelligence labs at MIT, the robot vacuum pipeline'],
   ['selfmodel', 'Vision for self-state, what 3D scenes miss, how robots work today, soft printed robots, control from vision, Neural Jacobian Fields'],
+  ['njf',    'Body Jacobian, Jacobian fields, scene flow and optical flow, training data, self-supervised training, control along a trajectory'],
+  ['learning', 'Reinforcement learning, diffusion policy, the data problem'],
 ];
 const PARTS = ORDER.map(r => r[0]);
 
 /* Minutes per section (sets the widths in the progress bar). Draft: change freely. */
-const SEC_MINUTES = { 'Start': 12, 'Embodied agents': 14, 'Robots that know themselves': 14 };
+const SEC_MINUTES = { 'Start': 12, 'Embodied agents': 14, 'Robots that know themselves': 14, 'Jacobian fields': 18, 'Learning to act': 10 };

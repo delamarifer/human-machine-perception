@@ -61,3 +61,35 @@ The existing `day11/` folder is the copy of the Anadol deck (commit db744c3), so
 - [ ] Slide 15: title is a draft.
 - [x] Slide 16: the figure is split into panels a and b, each shown large (one replaces the other), text on the right
       (Shreya, 2026-11-16). The first line, "From one image: how each point moves for each command", is a draft I added for panel a.
+
+## Round 3 (2026-11-16): Google slides 17-29 -> HTML slides 18-32 (parts njf.js, learning.js)
+No photos of talk slides (Shreya). Drawings and animations made for the deck, KaTeX for the math, and figures from
+Li et al., Nature 2025 (CC BY 4.0). Her comments applied on 17, 18, 24, 25.
+18. Background: Body Jacobian: a drawn 3-joint arm (positions from forward kinematics). One click per joint: that joint
+    turns a little and the tip slides along its Jacobian column (arrow). Then x-dot = J(q) q-dot.
+19. Body Jacobian: the formula (new): the matrix with one column per joint, then the linearization, then her line.
+20. Learn a Jacobian field: Nature Fig. 2a-b, delta-x = J(x | I) delta-u, her line.
+21. A Jacobian field on a soft finger (new, her comment "animation"): a jointless finger, an arrow at every point, then
+    it bends along the arrows. Ends on the talk's question: how could we supervise this?
+22. The key insight: 3D flow (draft title; her slide said "3D flow field"): the equation with labels.
+23. Scene flow and optical flow: a side view of a pinhole camera, computed projections; the points move and their images move.
+24. Training data: Nature Fig. 4a (the spiral-column robot), her lines, 12 cameras (from the paper).
+25. Self-supervised training: 3D from one image: four boxes, pixelNeRF (Yu et al., CVPR 2021).
+26. Self-supervised training: two losses, in symbols (labelled as the idea, not the paper's exact form).
+27. The pneumatic hand, moving (draft title; her comment "animate the predicted 3D motion"): Nature Fig. 3a frames as a
+    loop, then the authors' own YouTube video (dFZ1RvJMN7A, from the project page).
+28. How do we control the robot with a Jacobian field? (her comment "better math"): least squares, pseudo-inverse,
+    and what the paper does (gradient steps, about 12 Hz).
+29. Given a motion trajectory: Nature Fig. 3d and the per-step solve.
+30. Reinforcement learning: a drawn agent-environment loop and the objective. Her slide had a photo of Allegro-hand
+    results, which is not RL, so it is not used.
+31. Diffusion Policy: imitation learning, then an illustration of denoising an action sequence (Chi et al., RSS 2023),
+    then her question "How can we get the target trajectories?"
+32. Where does robot data come from? (draft title; her slide said "data"): numbers quoted from her Scale AI link
+    (a company blog post, 2025-09-24): trillions of tokens, billions of images, about 5,000 hours of open robot data.
+
+## Open questions (Round 3)
+- [ ] Draft titles on 22, 27, 32. And 30: is RL meant to be its own topic here, or was the Allegro image meant elsewhere?
+- [ ] 26: the losses are written as the idea; want the paper's exact loss instead?
+- [ ] 32: the source is a company blog. Add an independent source (e.g. the Open X-Embodiment or DROID papers)?
+- [ ] 27: the YouTube video needs internet in class.
