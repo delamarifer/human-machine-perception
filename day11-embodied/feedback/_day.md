@@ -35,3 +35,26 @@ The existing `day11/` folder is the copy of the Anadol deck (commit db744c3), so
       the scale backwards). Counts are shown as submitted.
 - [ ] Minutes per section in the progress bar (order.js) are a guess.
 - [ ] Should this replace `day11/` (the Anadol copy) and get a link on the home page?
+
+## Round 2 (2026-11-16): Google slides 9-16 -> HTML slides 10-17 (parts labs.js, selfmodel.js)
+10. CSAIL Embodied Intelligence Group: her 18 labs grouped into four aspects (seeing and sensing, bodies and movement,
+    planning and reasoning, language and people), one column per click, then the Quest mission.
+11. Vacuum: Roomba photo, "We can't even build a vacuum robot", then a 4-stage pipeline (sense, where am I, plan, move),
+    each tagged with its name from the common-problems slide, then "sense again".
+12. Vision for Self-State Estimation: her four lines, one per click.
+13. What is missing in the 3D Scene Representation?: her image (cropped), scan, train NeRF, "no robot", robotics vs vision.
+14. How do robots work today?: a drawn robot arm with her arrows (rigid segments, joints with sensors). On the sensors
+    click the arm moves and the angle readout updates; then "basically blind"; then "$25,000 (source to add)".
+15. What about cheap, soft, 3D-printed robots? (draft title; her slide had none): her image and line, then the problem.
+16. Robot State Estimation & Control From Vision Alone: her image and two lines.
+17. Robots that know themselves: Neural Jacobian Fields in five rows (train, learn, use, tested on, limits), from MIT
+    News (2025-07-24) and the Nature paper (2025-06-25). The CSAIL page she linked refuses automated reads.
+
+## Open questions (Round 2)
+- [ ] Slide 10: the four-aspect grouping is mine. OK, or keep her plain list? She asked for "images from MIT labs":
+      lab photos are not free to reuse; send any you have permission for.
+- [ ] Slide 14: $25,000 needs a source (and for which robot?).
+- [ ] Slides 13, 15, 16 use her photos of a talk's slides: low resolution, blurry on a projector. The Nature paper
+      (open access) has clean figures for 16-17 if you want them.
+- [ ] Slide 16: her first line ended "solve for the actions the ...": what was the rest?
+- [ ] Slide 15: title is a draft.

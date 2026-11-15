@@ -70,6 +70,51 @@
   .d11-prob span{ font-size:clamp(1rem, 1.6vw, 1.5rem); line-height:1.3; }
   .d11-take{ text-align:center; font-size:clamp(1.5rem, 2.8vw, 2.6rem); font-weight:700; }
 
+  /* CSAIL labs: four aspects as columns, one per click */
+  .d11-labs{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:1.8vw; }
+  .d11-lab h2{ margin:0 0 1vh; font-size:clamp(1.15rem, 1.9vw, 1.75rem); border-bottom:3px solid var(--ink); padding-bottom:.6vh; }
+  .d11-lab ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:1.1vh; }
+  .d11-lab li{ font-size:clamp(.95rem, 1.45vw, 1.35rem); line-height:1.2; }
+  .d11-lab li small{ display:block; color:var(--mute); font-size:.78em; }
+  .d11-quest{ text-align:center; font-size:clamp(1.05rem, 1.7vw, 1.6rem); margin-top:1vh; }
+
+  /* Vacuum: photo and her line, then the pipeline underneath */
+  .d11-vac{ display:grid; grid-template-columns:auto 1fr; gap:3vw; align-items:center; }
+  .d11-vac-fig{ margin:0; } .d11-vac-fig img{ height:30vh; width:auto; border-radius:12px; display:block; }
+  .d11-vac .d11-q{ text-align:left; margin:0; }
+  .d11-vac-pipe{ display:grid; grid-template-columns:1fr auto 1fr auto 1fr auto 1fr; gap:1vw; align-items:stretch; }
+  .d11-vstep{ border:2px solid var(--ink); border-radius:12px; padding:1.6vh 1vw; display:flex; flex-direction:column; gap:.6vh; text-align:center; }
+  .d11-vstep b{ font-size:clamp(1.25rem, 2.1vw, 1.95rem); }
+  .d11-vstep span{ font-size:clamp(.95rem, 1.45vw, 1.35rem); line-height:1.25; }
+  .d11-vstep small{ font-size:clamp(.8rem, 1.1vw, 1.05rem); color:var(--mute); text-transform:uppercase; letter-spacing:.05em; margin-top:auto; }
+  .d11-varrow{ align-self:center; font-size:clamp(1.6rem, 2.6vw, 2.4rem); color:var(--mute); }
+  .d11-vloop{ text-align:center; font-size:clamp(1.15rem, 2vw, 1.8rem); }
+
+  /* figure on the left, steps on the right */
+  .d11-split{ display:grid; grid-template-columns:1.2fr 1fr; gap:3vw; align-items:center; }
+  .d11-fig{ margin:0; } .d11-fig img{ width:100%; max-height:58vh; object-fit:contain; border-radius:12px; display:block; }
+  .d11-wide img{ height:30vh; max-height:none; width:auto; max-width:100%; object-fit:contain; margin:0 auto; }
+  .d11-side{ display:flex; flex-direction:column; gap:2.4vh; }
+  .d11-step{ font-size:clamp(1.25rem, 2.2vw, 2rem); line-height:1.3; }
+  .d11-callout{ font-size:clamp(1.2rem, 2.1vw, 1.9rem); line-height:1.35; border-left:6px solid var(--ink); padding:.4vh 1.2vw; }
+  .d11-split2{ display:grid; grid-template-columns:1fr 1fr; gap:1vw; }
+  .d11-split2 > div{ border:2px solid var(--ink); border-radius:12px; padding:1.4vh 1vw; font-size:clamp(1.05rem, 1.7vw, 1.55rem); text-align:center; }
+  .d11-split2 small{ display:block; font-weight:700; font-size:1.1em; margin-bottom:.4vh; }
+  .d11-pair2{ display:flex; flex-direction:column; gap:2vh; max-width:52em; margin:0 auto; }
+
+  /* the drawn robot arm and its sensor readout */
+  .d11-arm{ width:100%; max-height:62vh; display:block; }
+  .d11-armlab.shown.d11-gone{ opacity:0; }
+  .d11-readout{ display:grid; grid-template-columns:repeat(3, auto); gap:.4vh 2vw; justify-content:start; font-variant-numeric:tabular-nums; }
+  .d11-readout small{ grid-column:1 / -1; color:var(--mute); font-size:clamp(.9rem, 1.3vw, 1.2rem); text-transform:uppercase; letter-spacing:.06em; }
+  .d11-readout div{ font-size:clamp(1.3rem, 2.3vw, 2.1rem); display:flex; gap:.5vw; align-items:baseline; }
+  .d11-readout b{ min-width:3.2em; }
+
+  @media (max-width: 820px), (max-aspect-ratio: 1/1){
+    .d11-labs{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+    .d11-split, .d11-vac{ grid-template-columns:1fr; }
+    .d11-vac-pipe{ grid-template-columns:1fr; } .d11-varrow{ display:none; }
+  }
   @media (max-width: 820px), (max-aspect-ratio: 1/1){
     .d11-views, .d11-kinds, .d11-theme{ grid-template-columns:1fr; }
     .d11-probs{ grid-template-columns:repeat(2, minmax(0,1fr)); }
@@ -92,6 +137,39 @@
     });
     busy = false;
   };
+  new MutationObserver(sync).observe(document.documentElement, { subtree:true, attributes:true, attributeFilter:['class'] });
+})();
+
+/* The drawn robot arm: at rest until the "sensors report" click, then it moves to a second pose (and back when you go
+   back). The readout shows each joint's angle as it turns. */
+(function(){
+  const REST = [0, 0, 0], MOVED = [-28, 35, -40];
+  const state = new WeakMap();
+  const draw = (svg, a) => {
+    ['d11-j0', 'd11-j1', 'd11-j2'].forEach((c, k) => {
+      const g = svg.querySelector('.' + c), [ox, oy] = g.dataset.o.split(' ');
+      g.setAttribute('transform', `rotate(${a[k].toFixed(1)} ${ox} ${oy})`);
+    });
+    const box = svg.closest('.slide');
+    a.forEach((v, k) => { const el = box && box.querySelector('.d11-r' + k); if (el) el.textContent = `${Math.round(v)}°`; });
+  };
+  const sync = () => document.querySelectorAll('.d11-arm').forEach(svg => {
+    const slide = svg.closest('.slide');
+    const go = slide && slide.querySelector('.d11-arm-go.shown');
+    const target = go ? MOVED : REST;
+    svg.querySelectorAll('.d11-armlab').forEach(l => l.classList.toggle('d11-gone', !!go));   /* arrows would point at the old pose */
+    const s = state.get(svg) || { a: REST.slice(), target: null };
+    if (s.target === target) return;
+    s.target = target; state.set(svg, s);
+    const from = s.a.slice(), t0 = performance.now(), dur = 1800;
+    const tick = now => {
+      if (s.target !== target) return;
+      const u = Math.min(1, (now - t0) / dur), e = u < .5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+      s.a = from.map((f, k) => f + (target[k] - f) * e); draw(svg, s.a);
+      if (u < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
   new MutationObserver(sync).observe(document.documentElement, { subtree:true, attributes:true, attributeFilter:['class'] });
 })();
 

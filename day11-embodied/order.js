@@ -3,8 +3,10 @@
 const ORDER = [
   ['intro',  'Title, what an embodied agent is, last week\'s discussion question and your answers, what it means to experience'],
   ['agents', 'Examples of embodied agents, the video, the common problems'],
+  ['labs',   'Embodied intelligence labs at MIT, the robot vacuum pipeline'],
+  ['selfmodel', 'Vision for self-state, what 3D scenes miss, how robots work today, soft printed robots, control from vision, Neural Jacobian Fields'],
 ];
 const PARTS = ORDER.map(r => r[0]);
 
 /* Minutes per section (sets the widths in the progress bar). Draft: change freely. */
-const SEC_MINUTES = { 'Start': 12, 'Embodied agents': 10 };
+const SEC_MINUTES = { 'Start': 12, 'Embodied agents': 14, 'Robots that know themselves': 14 };
