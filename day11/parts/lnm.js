@@ -84,10 +84,29 @@ st(`
       <div class="b" data-step="4"><b>Generate</b><span>realistic species and abstract “dreams”</span></div>
       <div class="b" data-step="5"><b>Exhibit</b><span>images, sound and scent at DATALAND</span></div>
     </div>
-    <div class="d10-callout b" data-step="6"><b>Why build it?</b> The studio wants AI to help people notice hidden patterns in nature and care about it.</div>
-    <div class="d10-callout d10-callout-q b" data-step="7"><b>Not published:</b> the model’s architecture, how it was trained, and how much of each kind of data it used. <i>In the lab, you build a small version yourself.</i></div>
+    <div class="d10-callout d10-callout-q b" data-step="6"><b>Not published:</b> the model’s architecture, how it was trained, and how much of each kind of data it used. <i>In the lab, you build a small version yourself.</i></div>
   </div>
   ${cite('DATALAND blog, "Training AI to Understand Nature" (July 2026)')}
+`);
+
+/* One worked example: the sound pipeline (Shreya, 2026-11-16, with her sources). Checked 2026-11-16 against
+   refikanadol.com/iconiq ("pre-trained audio neural networks and a custom audio latent diffusion model trained on a broad
+   spectrum of complex nature sounds"), the NVIDIA AI Art Gallery page (Macaulay Library recordings, "particularly of
+   Amazonian birds"; ambisonic audio from 16 rainforests; audio tagging; latent diffusion "trained on ... unlabeled audio")
+   and Studio International's review (16 rainforests; a "250-channel sound system"). Not found in those sources, so left
+   out: "100,000 hours", real-time audio generation, and audio driven by visitor biometrics (biometrics drive the visuals). */
+st(`
+  <h1 class="t">Example: the sound pipeline</h1>
+  <div class="d10-col">
+    <div class="d10-pipe5 d10-pipe4">
+      <div class="b" data-step="1"><b>Record</b><span>360° microphones in 16 rainforests, plus Cornell’s Macaulay Library, mostly Amazonian birds</span></div>
+      <div class="b" data-step="2"><b>Tag</b><span>pre-trained audio networks label what is in each recording</span></div>
+      <div class="b" data-step="3"><b>Generate</b><span>an audio latent diffusion model, trained on unlabeled nature sounds, makes new sound</span></div>
+      <div class="b" data-step="4"><b>Play</b><span>a 250-channel sound system in the gallery</span></div>
+    </div>
+    <div class="d10-callout d10-callout-q b" data-step="5"><b>Not published:</b> how many hours of sound, and the model’s details. <i>Same idea as the images: diffusion in a latent space, but for audio.</i></div>
+  </div>
+  ${cite('refikanadol.com/iconiq · NVIDIA AI Art Gallery · Studio International (Aug 2026)')}
 `);
 
 /* 16 rainforests, the Smithsonian and NHM London, and the scent details (L'Oreal's Fragrance Metier turned the ecological
@@ -128,6 +147,37 @@ st(`
     <div class="d10-gnote b" data-step="4">Who is the artist here?</div>
   </div>
   ${cite('dataland.art/data-scent · GCI Magazine · dataland.art/data-chocolate · Artnet (Jan 2024) · photos: Refik Anadol Studio, DATALAND')}
+`);
+
+/* Purpose (Shreya, 2026-11-16: "a revised version"). Why build it: the studio's stated aim (DATALAND blog), the moonflower
+   ("blooms for a single night") and zero-harvest capture (headspace capture, Osmobloom) from dataland.art/data-scent.
+   Beyond art: general uses of the same kinds of tools, not the studio's own work: acoustic monitoring for chainsaws and
+   species (e.g. Rainforest Connection); terrestrial LiDAR for tree biomass and carbon (e.g. Calders et al., Methods in
+   Ecology and Evolution, 2015); smell loss as an early sign of Parkinson's (e.g. Doty, Nature Reviews Neurology, 2012). */
+st(`
+  <h1 class="t">Why build it?</h1>
+  <div class="d10-col">
+    <div class="d10-crea-kinds d10-purpose">
+      <div class="b" data-step="1"><b>Feel the data</b><span>1.2 billion data points become something you can see, hear and smell</span></div>
+      <div class="b" data-step="2"><b>Archive what is disappearing</b><span>record rare plants, like a moonflower that blooms for a single night, before they are gone</span></div>
+      <div class="b" data-step="3"><b>Collect without harm</b><span>capture a scent from the air around a flower, without picking it</span></div>
+    </div>
+  </div>
+  ${cite('DATALAND blog (July 2026) · dataland.art/data-scent')}
+`);
+
+st(`
+  <h1 class="t">The same tools, beyond art</h1>
+  <div class="d10-col">
+    <table class="d10-tbl d10-beyond">
+      <tr><th>Data</th><th>Another use</th></tr>
+      <tr class="b" data-step="1"><td>Sound</td><td>Microphones in the canopy count endangered species and detect chainsaws or gunshots in real time</td></tr>
+      <tr class="b" data-step="2"><td>3D scans</td><td>Laser scans measure each tree, to estimate how much carbon a forest stores</td></tr>
+      <tr class="b" data-step="3"><td>Scent</td><td>Losing the sense of smell can be an early sign of Parkinson’s, so precise smell tests could help early screening</td></tr>
+    </table>
+    <div class="d10-gnote b" data-step="4">Which of these would you build?</div>
+  </div>
+  ${cite('Examples of the same kinds of tools in other fields, not the studio’s work: Rainforest Connection · Calders et al. (2015) · Doty (2012)')}
 `);
 
 /* The tools, stage by stage (Shreya, 2026-11-13; moved here from system.js on 2026-11-16 so it closes the LNM section). Only what sources confirm: Dezeen (NYC: StyleGAN, people removed),

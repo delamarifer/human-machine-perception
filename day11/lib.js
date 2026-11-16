@@ -168,6 +168,11 @@
   .d10-pipe5 > div{ border:2px solid var(--ink); border-radius:12px; padding:2vh 1vw; text-align:center; }
   .d10-pipe5 b{ display:block; font-size:clamp(1.3rem, 2.3vw, 2.1rem); }
   .d10-pipe5 span{ display:block; margin-top:.8vh; font-size:clamp(1rem, 1.55vw, 1.4rem); color:var(--mute); line-height:1.3; }
+  .d10-pipe4{ grid-template-columns:repeat(4, minmax(0,1fr)); }
+  .d10-pipe4 + .d10-callout{ margin-top:4vh; }
+  .d10-purpose{ margin-top:2vh; }
+  .d10-beyond td:last-child, .d10-beyond th:last-child{ white-space:normal; color:var(--ink); }
+  .d10-beyond td{ padding:1.6vh .8vw; }
   .d10-callout{ font-size:clamp(1.15rem, 2vw, 1.8rem); line-height:1.35; border-left:6px solid var(--ink); padding:.4vh 1.2vw; }
   .d10-callout-q{ border-left-style:dashed; }
   .d10-choc{ display:grid; grid-template-rows:1fr 1fr; gap:1.6vh; }

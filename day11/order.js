@@ -6,11 +6,11 @@
 const ORDER = [
   ['start',    'Title, the NYC video, who Anadol is, what he makes, what machine hallucination means'],
   ['system',   'Reverse-engineer the system, from archive to artwork (Machine Hallucination: NYC)'],
-  ['lnm',      'The Large Nature Model as the worked example, four kinds of data, field data to Machine Dreams, beyond images (sound, scent, flavor), then what tools his studio used'],
+  ['lnm',      'The Large Nature Model as the worked example, four kinds of data, field data to Machine Dreams, the sound pipeline, beyond images (sound, scent, flavor), why build it, the same tools beyond art, then what tools his studio used'],
   ['lab',      'Lab: become a generative artist (the Generative System Lab in Colab)'],
   ['discuss',  'Discussion: creativity, consent, ownership, culture, human value'],
 ];
 const PARTS = ORDER.map(r => r[0]);
 
 /* Minutes per section (sets the widths in the progress bar). */
-const SEC_MINUTES = { 'Start': 15, 'System': 4, 'Large Nature Model': 14, 'Lab': 30, 'Discussion': 12 };
+const SEC_MINUTES = { 'Start': 15, 'System': 4, 'Large Nature Model': 18, 'Lab': 30, 'Discussion': 12 };
