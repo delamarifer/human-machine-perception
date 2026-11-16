@@ -7,8 +7,9 @@ const ORDER = [
   ['selfmodel', 'Vision for self-state, what 3D scenes miss, how robots work today, soft printed robots, control from vision, Neural Jacobian Fields'],
   ['njf',    'Body Jacobian, Jacobian fields, scene flow and optical flow, training data, self-supervised training, control along a trajectory'],
   ['learning', 'Reinforcement learning, diffusion policy, the data problem'],
+  ['tedrake', 'Russ Tedrake: academia and industry at once, how they feed each other, his path'],
 ];
 const PARTS = ORDER.map(r => r[0]);
 
 /* Minutes per section (sets the widths in the progress bar). Draft: change freely. */
-const SEC_MINUTES = { 'Start': 12, 'Embodied agents': 14, 'Robots that know themselves': 14, 'Jacobian fields': 18, 'Learning to act': 10 };
+const SEC_MINUTES = { 'Start': 12, 'Embodied agents': 14, 'Robots that know themselves': 14, 'Jacobian fields': 18, 'Learning to act': 10, 'Academia and industry': 6 };

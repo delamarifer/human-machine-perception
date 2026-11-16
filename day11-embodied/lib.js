@@ -470,3 +470,22 @@ D11_ARM.s = 0.7;
   .d11-logos{ display:flex; align-items:center; justify-content:center; gap:3vw; flex-wrap:wrap; }
   .d11-logos img{ height:clamp(2rem, 6vh, 4.5rem); width:auto; filter:grayscale(1) brightness(.35); }
 `; document.head.appendChild(el); })();
+/* Tedrake segment */
+(() => { const el = document.createElement('style'); el.textContent = `
+  .d11-ted2{ display:grid; grid-template-columns:1fr 1fr; gap:3vw; }
+  .d11-tedside{ border:2px solid var(--ink); border-radius:14px; padding:2vh 1.6vw; display:flex; flex-direction:column; gap:.8vh; }
+  .d11-tedside small, .d11-tedcard small{ font-size:clamp(.9rem, 1.25vw, 1.2rem); text-transform:uppercase; letter-spacing:.08em; color:var(--mute); }
+  .d11-tedside > b{ font-size:clamp(1.4rem, 2.4vw, 2.2rem); }
+  .d11-tedside ul{ margin:.4vh 0 0; padding-left:1.2em; display:flex; flex-direction:column; gap:1vh; }
+  .d11-tedside li{ font-size:clamp(1.05rem, 1.7vw, 1.6rem); line-height:1.3; }
+  .d11-tedflow{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:2vw; }
+  .d11-tedcard{ border:2px solid var(--ink); border-radius:14px; padding:2vh 1.4vw; display:flex; flex-direction:column; gap:.8vh; }
+  .d11-tedcard b{ font-size:clamp(1.3rem, 2.1vw, 1.95rem); line-height:1.2; }
+  .d11-tedcard span{ font-size:clamp(1rem, 1.55vw, 1.45rem); line-height:1.35; }
+  .d11-tedpath{ display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:1.2vw; position:relative; }
+  .d11-tedstep{ border-top:5px solid var(--ink); padding-top:1.2vh; display:flex; flex-direction:column; gap:.6vh; }
+  .d11-tedstep i{ font-style:normal; font-weight:700; color:var(--mute); font-size:clamp(1rem, 1.5vw, 1.4rem); min-height:1.3em; }
+  .d11-tedstep b{ font-size:clamp(1.1rem, 1.8vw, 1.7rem); line-height:1.25; }
+  .d11-tedstep small{ font-size:clamp(.95rem, 1.35vw, 1.3rem); color:var(--mute); }
+  @media (max-width: 820px), (max-aspect-ratio: 1/1){ .d11-ted2, .d11-tedflow, .d11-tedpath{ grid-template-columns:1fr; } }
+`; document.head.appendChild(el); })();
