@@ -51,18 +51,6 @@ st(`
   ${cite('Chi et al., Diffusion Policy: Visuomotor Policy Learning via Action Diffusion, RSS 2023 · Illustration made for this course')}
 `);
 
-/* Google slide 29: "data" and her link. Title is a draft. Numbers quoted from the Scale AI post (a company blog). */
-st(`
-  <h1 class="t">Where does robot data come from?</h1>
-  <div class="d11-col">
-    <div class="d11-quotes">
-      <div class="d11-big b">Language models: <b>trillions of tokens</b> from the internet</div>
-      <div class="d11-big b">Vision models: <b>billions of images</b></div>
-      <div class="d11-big b">Robots: the open datasets DROID and Open X-Embodiment, about <b>5,000 hours</b> combined
-        <small>Robot interaction data can’t be scraped from the web: it has to be collected in the real world</small></div>
-      <div class="d11-callout b">So who collects it, how, and at what cost?</div>
-    </div>
-  </div>
-  ${cite('Scale AI, “Expanding Our Data Engine for Physical AI”, Ben Levin, 24 Sept 2025 (a company blog post)')}
-`);
+/* Google slide 29 ("data", the Scale AI numbers) moved to parts/malik.js on 2026-11-16 (Shreya: merge it with
+   "Three ways to get robot data": the numbers show how limited robot data is, then the three ways). */
 }

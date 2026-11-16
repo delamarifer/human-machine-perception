@@ -119,3 +119,15 @@ Li et al., Nature 2025 (CC BY 4.0). Her comments applied on 17, 18, 24, 25.
 - [ ] No photo: none is freely licensed. TRI offers a press headshot; use it?
 - [ ] Should "How did he get there?" end with ways in that fit your students (programs, internships)? I did not add
   any, since I don't know which apply to them.
+
+## Round 7 (2026-11-16): "The big picture", from Jitendra Malik's ETH Zurich talk (slides 12-17)
+Placed after the labs and the vacuum (the vacuum leads into navigation), before Tedrake (now slides 18-20).
+- 12 Three central problems, with his status for each. 13 Navigation: GOAT, the Airbnb test (figure, then his clip
+  0:42-3:25). 14 Locomotion: the humanoid in San Francisco (figure, then his clip 4:28-5:30). 15 Why manipulation is hard:
+  the data gap, drawn to scale as 1 square of 10,000. 16 Three levels of action. 17 Three ways to get robot data.
+- [ ] Titles and "Which would you bet on?" are drafts. His numbers are labelled as his estimates.
+- [ ] Slide 17 overlaps with "Where does robot data come from?" near the end (the Scale AI numbers). Keep both, merge,
+  or move one?
+- [ ] The two clips need internet in class.
+- [ ] Not yet done: adding "Forces and contact" to the common-problems slide, and the closing Turing / child-machine
+  slide from the rest of his talk.
