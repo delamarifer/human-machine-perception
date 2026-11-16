@@ -93,3 +93,6 @@ Li et al., Nature 2025 (CC BY 4.0). Her comments applied on 17, 18, 24, 25.
 - [ ] 26: the losses are written as the idea; want the paper's exact loss instead?
 - [ ] 32: the source is a company blog. Add an independent source (e.g. the Open X-Embodiment or DROID papers)?
 - [ ] 27: the YouTube video needs internet in class.
+
+## Round 4 (2026-11-16): slide 2 reworked
+- [ ] Slide 2 "What is an embodied agent?" is now a drawn loop (agent decides, acts, world changes, agent senses) beside your three lines, word for word. Drafts to check: the line "Its actions change what it senses next" and the closing "A robot is one kind of embodied agent".

@@ -415,3 +415,4 @@ D11_ANIM.denoise = {
 (() => { const el = document.createElement('style'); el.textContent = `.d11-short img{ height:34vh; } .d11-col{ overflow:visible; }`; document.head.appendChild(el); })();
 /* bigger arrows for the arm */
 D11_ARM.s = 0.7;
+(() => { const el = document.createElement('style'); el.textContent = `.d11-def-q{ text-align:left; margin:0; font-style:italic; font-size:clamp(1.5rem, 2.8vw, 2.6rem); }`; document.head.appendChild(el); })();
