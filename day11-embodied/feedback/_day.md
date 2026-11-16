@@ -167,3 +167,7 @@ Placed after the labs and the vacuum (the vacuum leads into navigation), before 
 ## Round 12 (2026-11-16): Mary's room dropped
 - Slide 6 now ends on your line "To know vs to feel" alone (Nagel's bat already makes the same point). The red-apple
   question from Round 5 is closed.
+
+## Round 13 (2026-11-16): definition moves before the examples
+- "What is an embodied agent?" is now slide 6 (first slide of "Embodied agents"), right before the examples. The deck
+  now opens: title, last week's question, the poll, your answers, what it means to experience, then the definition.

@@ -1,8 +1,8 @@
 /* Day 11 session: Embodied Intelligence (owner: Shreya). Built from Shreya's Google Slides "Day 11 - Embodied Intelligence"
    (2026-11-15), slides 1-8 so far. No speaker notes (Shreya's preference). Avoid apostrophes inside the strings. */
 const ORDER = [
-  ['intro',  'Title, what an embodied agent is, last week\'s discussion question and your answers, what it means to experience'],
-  ['agents', 'Examples of embodied agents, the video, the common problems'],
+  ['intro',  'Title, last week\'s discussion question and your answers, what it means to experience'],
+  ['agents', 'What an embodied agent is, examples, the video, the common problems'],
   ['labs',   'Embodied intelligence labs at MIT, the robot vacuum pipeline'],
   ['malik',  'Jitendra Malik: three central problems, why manipulation is hard, three levels of action, where robot data comes from; walk-through of teleoperation (with diffusion policy), videos of people, simulation (with reinforcement learning) and the reward problem'],
   ['tedrake', 'Russ Tedrake: academia and industry at once, how they feed each other, his path'],

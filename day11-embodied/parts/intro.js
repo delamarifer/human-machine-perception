@@ -13,36 +13,8 @@ st(`
   </div>
 `);
 
-/* Google slide 2, her wording, reworked 2026-11-16 (Shreya: "maybe we can rework"). Her three lines kept word for word;
-   the drawn loop (senses, decides, acts) and the closing line are drafts. */
-st(`
-  <h1 class="t">What is an embodied agent?</h1>
-  <div class="d11-col">
-    <div class="d11-split">
-      <svg class="d11-svg" viewBox="0 0 560 400" role="img" aria-label="A loop: the agent senses the world, decides, and acts on the world, which changes">
-        <defs><marker id="d11-ah1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#0f172a"/></marker></defs>
-        <g class="b" data-step="2"><rect x="180" y="30" width="200" height="90" rx="14" fill="#fff" stroke="#0f172a" stroke-width="3"/>
-          <text x="280" y="70" text-anchor="middle" font-size="28" font-weight="700">Agent</text>
-          <text x="280" y="100" text-anchor="middle" font-size="19" fill="#64748b">makes decisions</text></g>
-        <g class="b" data-step="2"><rect x="180" y="280" width="200" height="90" rx="14" fill="#fff" stroke="#0f172a" stroke-width="3"/>
-          <text x="280" y="320" text-anchor="middle" font-size="28" font-weight="700">World</text>
-          <text x="280" y="350" text-anchor="middle" font-size="19" fill="#64748b">changes</text></g>
-        <g class="b" data-step="2"><path d="M380 75 C 480 75, 480 325, 388 325" fill="none" stroke="#0f172a" stroke-width="3" marker-end="url(#d11-ah1)"/>
-          <text x="478" y="208" font-size="24" font-weight="600">acts</text></g>
-        <g class="b" data-step="3"><path d="M180 325 C 80 325, 80 75, 172 75" fill="none" stroke="#0f172a" stroke-width="3" marker-end="url(#d11-ah1)"/>
-          <text x="10" y="208" font-size="24" font-weight="600">senses</text></g>
-      </svg>
-      <div class="d11-side">
-        <div class="d11-q d11-def-q b" data-step="1">Is “robot” interchangeable?</div>
-        <div class="d11-step b" data-step="2">An agent that can <b>make decisions</b> and <b>take actions</b></div>
-        <div class="d11-step b" data-step="3">Its actions change what it senses next</div>
-        <div class="d11-step b" data-step="4">It doesn’t have to be a physical robot</div>
-        <div class="d11-callout b" data-step="5">A robot is one kind of embodied agent</div>
-      </div>
-    </div>
-  </div>
-`);
-
+/* Google slide 2 ("What is an embodied agent?") moved to parts/agents.js on 2026-11-16, just before the examples
+   (Shreya's request). */
 /* Google slide 3 */
 st(`
   <h1 class="t">Discussion question from last week</h1>
