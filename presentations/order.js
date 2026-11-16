@@ -5,7 +5,7 @@ const ORDER = [
   ['setup',    'Title, when you present (Thu and Fri, 2-4 pm, 20-minute slots, sign-up doc), what you hand in'],
   ['talk',     'The talk: one five-slide outline for everyone, how it is graded'],
   ['writeup',  'The write-up: five parts and weights'],
-  ['examples', 'Three formats (paper, interactive article, blog post), one real example of each, then the checklist for before Thursday'],
+  ['examples', 'Three formats (paper, interactive article, blog post), one real example of each, then the checklist for before Thursday and Friday'],
 ];
 const PARTS = ORDER.map(r => r[0]);
 

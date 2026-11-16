@@ -30,7 +30,7 @@ st(`
   <div class="pr-col">
     <div class="pr-cards">
       <div class="pr-card b"><small>Last day</small><div class="pr-big">15%</div><b>Presentation</b><span>One slide per idea, in the order of the outline</span></div>
-      <div class="pr-card b"><small>Last day</small><div class="pr-big">20%</div><b>Write-up</b><span>3 to 4 pages, like a short paper, with a link to your code or demo</span></div>
+      <div class="pr-card b"><small>Last day</small><div class="pr-big">20%</div><b>Write-up</b><span>A paper, interactive article or blog post, with a link to your code or demo</span></div>
       <div class="pr-card b"><small>After the talks</small><div class="pr-big">A2</div><b>Assignment 2</b><span>Write about two projects by other teams</span></div>
     </div>
   </div>

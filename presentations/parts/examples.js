@@ -73,15 +73,15 @@ st(`
 `);
 
 st(`
-  <h1 class="t">Before Thursday</h1>
+  <h1 class="t">Before Thursday and Friday</h1>
   <div class="pr-col">
     <ul class="pr-list">
       <li class="b"><b>Sign up for one slot</b><span class="pr-sub">In the sign-up doc</span></li>
       <li class="b"><b>Showing a demo? Record it</b><span class="pr-sub">A screen recording, in case the live demo fails</span></li>
       <li class="b"><b>Rehearse once with a timer</b></li>
       <li class="b"><b>Listen closely to the other talks</b><span class="pr-sub">Assignment 2 is about two of them</span></li>
-      <li class="b"><b>Finish the write-up</b></li>
-      <li class="b"><b>Hand in your slides, write-up and code</b><span class="pr-sub">Through the <a href="https://forms.gle/cNFBCB6xVkyc3eRG8" target="_blank">submission form</a>, by the last day</span></li>
+      <li class="b"><b>Put your slides, write-up and code in your project folder</b><span class="pr-sub">The Google Drive folder for your project. What is there on the last day is what we grade</span></li>
+      <li class="b"><b>Then tick the form to say you are done</b><span class="pr-sub"><a href="https://forms.gle/cNFBCB6xVkyc3eRG8" target="_blank">Hand-in form</a>: your project number and one checkbox</span></li>
     </ul>
   </div>
 `);
