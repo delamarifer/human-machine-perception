@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Day 11 Notes · Generative art</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.querySelector('main'), {delimiters: [{left: '\\[', right: '\\]', display: true}, {left: '\\(', right: '\\)', display: false}], throwOnError: false})"></script>
+<style>
+  :root{ --bg:#0a0d16; --line:#25304a; --text:#e9edf6; --mute:#9aa5bd; --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa; }
+  *{ box-sizing:border-box; } html{ scroll-behavior:smooth; }
+  body{ margin:0; background:var(--bg); color:var(--text); font:16.5px/1.65 Inter, system-ui, sans-serif; }
+  a{ color:var(--cyan); }
+  .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line); display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
+  .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap; font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
+  .spine b{ color:var(--text); font-weight:500; }
+  .page{ margin-left:44px; }
+  .hero{ border-bottom:1px solid var(--line); background:radial-gradient(120% 90% at 78% 40%, #121a33 0%, var(--bg) 60%); }
+  .hero-in{ max-width:46rem; margin:0 auto; padding:8vh 24px 4vh; }
+  .back{ margin:0 0 2.2em; display:flex; align-items:center; gap:1.2em; flex-wrap:wrap; font-size:.95rem; }
+  .back a{ color:var(--mute); text-decoration:none; } .back a:hover{ color:var(--text); }
+  .back button{ margin-left:auto; font:600 .85rem/1 'Space Grotesk', sans-serif; color:var(--bg); background:var(--cyan); border:0; border-radius:999px; padding:.45em .9em; cursor:pointer; }
+  .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--cyan); }
+  h1{ margin:0 0 .35em; font:700 clamp(2.1rem, 6vw, 3.4rem)/.95 'Space Grotesk', sans-serif; text-transform:uppercase; background:linear-gradient(90deg,#fff,#c7fff4 55%,#e4d8ff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lead{ max-width:42rem; color:#d3d9e6; margin:0 0 1.2em; }
+  .toc{ display:flex; flex-wrap:wrap; gap:8px; margin:0; padding:0; list-style:none; }
+  .toc a{ color:var(--mute); text-decoration:none; font:500 .88rem/1 'Space Grotesk', sans-serif; border:1px solid var(--line); border-radius:999px; padding:.35em .75em; }
+  main{ max-width:46rem; margin:28px auto 72px; padding:36px 40px 56px; background:#fff; color:#1c1917; border-radius:18px; box-shadow:0 18px 50px rgba(0,0,0,.35); }
+  main a{ color:#0f766e; } main h2, main h3, main strong{ color:#1c1917; } main figcaption{ color:#57534e; }
+  main .callout{ background:#f5f5f4; color:#1c1917; }
+  section{ padding-top:2.2em; scroll-margin-top:1.25rem; }
+  .katex-display{ margin:.8em 0; overflow-x:auto; overflow-y:hidden; }
+  table.recap{ width:100%; border-collapse:collapse; font-size:.92rem; margin:1em 0; } table.recap th, table.recap td{ text-align:left; padding:.5em .6em; border-top:1px solid #e7e5e4; vertical-align:top; } table.recap th{ background:#1c1917; color:#fafaf9; border-top:none; } table.recap td:first-child{ font-weight:700; white-space:nowrap; }
+  h2{ margin:0 0 .7em; font:700 1.4rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
+  h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
+  h3{ margin:1.2em 0 .3em; font:700 1.05rem/1.3 'Space Grotesk', sans-serif; }
+  p{ margin:0 0 .75em; } ul,ol{ margin:0 0 .9em; padding-left:1.2em; } li{ margin:.25em 0; }
+  .callout{ margin:1em 0; padding:14px 16px; border-radius:14px; border-left:4px solid var(--c,var(--cyan)); } .callout p{ margin:0; }
+  figure{ margin:1em 0; } figure img{ width:100%; border-radius:12px; display:block; } figcaption{ margin-top:.4em; font-size:.9rem; }
+  code{ font:.9em ui-monospace, SFMono-Regular, Menlo, monospace; background:#f5f5f4; padding:.1em .3em; border-radius:5px; }
+  pre{ margin:1em 0; padding:14px 16px; background:#0f172a; color:#e2e8f0; border-radius:12px; overflow-x:auto; font:.82rem/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre code{ background:none; padding:0; font:inherit; color:inherit; }
+  pre .c{ color:#94a3b8; }
+  .code-cap{ margin:-.5em 0 1em; font-size:.9rem; color:#57534e; }
+  @media (max-width:700px){ .spine{ display:none; } .page{ margin-left:0; } main{ margin:16px; padding:24px 18px; } .back button{ margin-left:0; } }
+  @media print{ body,.page,.hero,main{ background:#fff; color:#111; box-shadow:none; } .spine,.back{ display:none; } .page,main{ margin:0; } h1{ color:#111; background:none; -webkit-text-fill-color:#111; } a{ color:#111; } }
+</style>
+
+<style>
+  #creative{ --c:var(--pink); } #genart{ --c:var(--violet); } #anadol{ --c:var(--sky); } #pipeline{ --c:var(--cyan); } #lnm{ --c:var(--amber); } #senses{ --c:var(--pink); } #purpose{ --c:var(--violet); } #tools{ --c:var(--sky); } #lab{ --c:var(--cyan); } #discuss{ --c:var(--amber); }
+  table.recap td:first-child{ white-space:normal; }
+  .stages{ counter-reset:st; list-style:none; padding-left:0; }
+  .stages li{ counter-increment:st; position:relative; padding-left:2.1em; }
+  .stages li::before{ content:counter(st); position:absolute; left:0; top:.1em; width:1.5em; height:1.5em; border-radius:50%; background:#1c1917; color:#fafaf9; font:700 .8rem/1.5em 'Space Grotesk', sans-serif; text-align:center; }
+</style>
+</head>
+<body>
+<div class="spine" aria-hidden="true"><span><b>Computer Vision</b> &nbsp;/&nbsp; Day 11</span></div>
+<div class="page">
+<header class="hero"><div class="hero-in">
+  <div class="back"><a href="../index.html">← Home</a><a href="deck.html">Slides</a><a href="../day08/lecture-notes.html">Day 8 notes</a>
+    <button type="button" onclick="window.print()">Download PDF</button></div>
+  <p class="kicker">Day 11 · Shreya Pandit</p>
+  <h1>Generative art</h1>
+  <p class="lead">What if a machine could dream? These notes follow the Day 11 slides: what we mean by creative, what generative art is and how it changed, Refik Anadol's AI artworks, and how one of his systems goes from an archive of data to an artwork. The Large Nature Model is the worked example.</p>
+  <nav class="toc">
+    <a href="#creative">Can AI be creative?</a><a href="#genart">Generative art</a><a href="#anadol">Refik Anadol</a><a href="#pipeline">Archive to artwork</a><a href="#lnm">Large Nature Model</a><a href="#senses">Beyond images</a><a href="#purpose">Why build it</a><a href="#tools">Tools</a><a href="#lab">Lab</a><a href="#discuss">Discussion</a>
+  </nav>
+</div></header>
+<main>
+
+  <section id="creative">
+    <h2>Can AI be creative?</h2>
+    <p>We started with a poll: on a scale from 1 (strongly disagree) to 5 (strongly agree), <em>"AI can be creative."</em> The class did not agree, partly because we had not said what <em>creative</em> means. Creativity research gives us two useful tools.</p>
+    <h3>A simple test: new and useful</h3>
+    <p>The standard definition says something is creative if it is both <strong>new</strong> and <strong>useful</strong> (Runco and Jaeger, 2012). Random noise is new, but not useful. A copy is useful, but not new. You need both.</p>
+    <h3>Three kinds of creativity</h3>
+    <p>Margaret Boden (<em>The Creative Mind</em>, 1990) describes three kinds:</p>
+    <ul>
+      <li><strong>Combining</strong> familiar ideas in a new way.</li>
+      <li><strong>Exploring</strong> a space of possibilities, inside the rules of a style.</li>
+      <li><strong>Transforming</strong> the space itself, so that new things become possible.</li>
+    </ul>
+    <div class="callout" style="--c:var(--pink)"><p><strong>Link to models.</strong> A generative model that samples from its latent space is <em>exploring</em>. Most people agree AI can combine and explore. Whether it can transform is the open argument.</p></div>
+  </section>
+
+  <section id="genart">
+    <h2>What is generative art?</h2>
+    <p>Generative art is art made by a <strong>system</strong> that the artist designs, which then runs with some autonomy (after Philip Galanter, "What is Generative Art?", 2003).</p>
+    <ul class="stages">
+      <li><strong>The artist designs a system:</strong> rules, randomness, limits and inputs.</li>
+      <li><strong>The system runs on its own</strong>, with some freedom.</li>
+      <li><strong>The work comes out.</strong> The artist gives up some control: the same rules give a different result each time.</li>
+    </ul>
+    <p>The system can be instructions, a machine, code or a trained model. It does not need a computer.</p>
+    <h3>A short history: what is the system made of?</h3>
+    <table class="recap">
+      <tr><th>When</th><th>System</th><th>Example</th></tr>
+      <tr><td>1960s</td><td>Written rules</td><td>Sol LeWitt wrote instructions for wall drawings, such as <em>Wall Drawing 831 (Geometric Forms)</em>; assistants draw them, and they can be made again elsewhere.</td></tr>
+      <tr><td>1960s–70s</td><td>Code</td><td>Vera Molnar's plotter drawings, such as <em>Interruptions à recouvrements</em> (1969): many short lines with small random changes. Frieder Nake showed computer drawings in 1965. Harold Cohen began AARON in the late 1960s, named it in the early 1970s, and worked on it until he died in 2016.</td></tr>
+      <tr><td>2000s</td><td>Creative coding</td><td>Processing (Casey Reas and Ben Fry) made code easy for artists. Six lines can draw two sets of circles whose overlap makes a new pattern.</td></tr>
+      <tr><td>2010s–now</td><td>Learned models</td><td>Anna Ridler photographed and hand-labeled about 10,000 tulips and trained a GAN on them (<em>Mosaic Virus</em>, 2019). Then came diffusion models.</td></tr>
+    </table>
+    <div class="callout" style="--c:var(--violet)"><p><strong>The artist's work shifts:</strong> from drawing, to writing rules, to choosing data.</p></div>
+  </section>
+
+  <section id="anadol">
+    <h2>Refik Anadol</h2>
+    <p>Refik Anadol is a media artist and director. He works with data, machine learning and architecture, and his themes are nature, memory, human imagination and shared experience. His studio is in Los Angeles.</p>
+    <h3>Three works</h3>
+    <ul>
+      <li><strong><em>Unsupervised</em></strong> (studies 2021; MoMA, New York, 2022–23). A model trained on the collection of the Museum of Modern Art makes new images. In the lobby, live data from the room changed them.</li>
+      <li><strong><em>Large Nature Model: Rainforest</em></strong> (NVIDIA GTC, 2024). A model that learned from nature, not from art: our worked example below.</li>
+      <li><strong><em>Echoes of the Earth: Living Archive</em></strong> (Serpentine North, London, 2024). Nature data turned into large moving images and sound.</li>
+    </ul>
+    <h3>What does "machine hallucination" mean?</h3>
+    <p>In a chatbot, a <strong>hallucination</strong> is an answer that sounds right but is made up or wrong. For example, a chatbot might confidently name a winner of the "Nobel Prize in Computer Vision", which does not exist.</p>
+    <p>Anadol uses the word differently. A <strong>machine hallucination</strong> is a new image that a model imagines after learning patterns in data. The machine is not dreaming or feeling anything: it makes new combinations of what it learned. In Boden's terms, that is combining and exploring.</p>
+  </section>
+
+  <section id="pipeline">
+    <h2>From archive to artwork</h2>
+    <p>We reverse-engineered <em>Machine Hallucination: NYC</em> (2019). <strong>In:</strong> over 100 million public photos of New York. <strong>Out:</strong> a film across the walls and floor of a room. What happens in between?</p>
+    <figure><img src="assets/nyc-still.jpg" alt="A visitor standing in the Machine Hallucination: NYC room, with images on the walls and floor"><figcaption><em>Machine Hallucination: NYC</em>, Refik Anadol Studio, 2019 (still from the studio's video).</figcaption></figure>
+    <ol class="stages">
+      <li><strong>Data:</strong> collect it.</li>
+      <li><strong>Curate:</strong> filter it. For NYC, every photo with a person in it was removed. That choice shapes everything after it.</li>
+      <li><strong>Represent:</strong> embed it, turning each image into numbers, as in our CLIP lab.</li>
+      <li><strong>Generate:</strong> train a model that learns to make more images like these.</li>
+      <li><strong>Render:</strong> move through the model's space over time, so the images flow into each other.</li>
+      <li><strong>Display:</strong> fit the result to the room.</li>
+    </ol>
+  </section>
+
+  <section id="lnm">
+    <h2>The Large Nature Model</h2>
+    <p>Most AI learns from human text and images. The Large Nature Model learns from nature. Refik Anadol Studio built it for DATALAND, its museum of AI art in Los Angeles, where it makes the images, sounds and scents of the first exhibition, <em>Machine Dreams: Rainforest</em>. Its data comes from field trips to 16 rainforests and from institutions like the Smithsonian and the Natural History Museum, London: 1.2 billion ecological data points, including more than 100 million images of plants, animals and fungi.</p>
+    <h3>What did it learn from?</h3>
+    <table class="recap">
+      <tr><th>Data</th><th>Question it answers</th><th>How it was collected</th><th>Used for</th></tr>
+      <tr><td>Images</td><td>What does nature look like?</td><td>Archives of the Smithsonian, the Natural History Museum (London), Cornell Lab and Getty; AI tools label each species and habitat</td><td>Realistic plants, animals and fungi</td></tr>
+      <tr><td>Sound</td><td>How does nature change over time?</td><td>360° and binaural microphones over whole days and nights; about 250,000 Amazon birdsongs from Cornell Lab</td><td>The gallery soundscapes</td></tr>
+      <tr><td>3D scans</td><td>How is a forest built?</td><td>Laser scanners (LiDAR) and photogrammetry; many scans from Ghent University's forest lab</td><td>Depth, scale and structure</td></tr>
+      <tr><td>Sensors</td><td>What can we not see?</td><td>Rainfall, soil moisture, sap flow, temperature and humidity, from Chile, Australia and California</td><td>Climate and forest behavior (details not published)</td></tr>
+    </table>
+    <h3>From field data to <em>Machine Dreams</em></h3>
+    <p><strong>Collect</strong> (archives, field trips, sensors) → <strong>Describe</strong> (species, habitats, written descriptions) → <strong>Train</strong> (one model on every kind of data) → <strong>Generate</strong> (realistic species and abstract "dreams") → <strong>Exhibit</strong> (images, sound and scent at DATALAND).</p>
+    <div class="callout" style="--c:var(--amber)"><p><strong>Not published:</strong> the model's architecture, how it was trained, and how much of each kind of data it used.</p></div>
+    <h3>Example: the sound pipeline</h3>
+    <ol class="stages">
+      <li><strong>Record:</strong> 360° microphones in 16 rainforests, plus recordings from Cornell's Macaulay Library, mostly of Amazonian birds.</li>
+      <li><strong>Tag:</strong> pre-trained audio networks label what is in each recording.</li>
+      <li><strong>Generate:</strong> an audio latent diffusion model, trained on unlabeled nature sounds, makes new sound. It is the same idea as the image models: diffusion in a latent space, but for audio.</li>
+      <li><strong>Play:</strong> a 250-channel sound system in the gallery.</li>
+    </ol>
+    <p>Not published: how many hours of sound, and the model's details.</p>
+  </section>
+
+  <section id="senses">
+    <h2>Beyond images: sound, scent and flavor</h2>
+    <p>Generative art does not have to be a picture.</p>
+    <ul>
+      <li><strong>Sound.</strong> Field recordings and birdsong become the soundscapes visitors hear.</li>
+      <li><strong>Scent.</strong> L'Oréal's perfumers used the same ecological data to turn visual and environmental patterns into twelve scents. They captured living plants without cutting them (headspace capture, Osmobloom), for example a rare Amazonian moonflower, and used new molecules for abstract ideas.</li>
+      <li><strong>Flavor.</strong> From data on wild cacao genes and the chemistry of flavor, the model proposed new chocolate recipes. A chef, Valerie Gordon, chose four and made them by hand.</li>
+    </ul>
+    <figure><img src="assets/lnm-scent.jpg" alt="Plants and glass vials in a lab in front of the exhibition screens"><figcaption>The Data.Scent botanical laboratory (DATALAND).</figcaption></figure>
+    <div class="callout" style="--c:var(--pink)"><p><strong>Who is the artist here?</strong> The model, the perfumers, the chef, or the studio?</p></div>
+  </section>
+
+  <section id="purpose">
+    <h2>Why build it?</h2>
+    <ul>
+      <li><strong>Feel the data.</strong> 1.2 billion data points become something you can see, hear and smell.</li>
+      <li><strong>Archive what is disappearing.</strong> Record rare plants, like a moonflower that blooms for a single night, before they are gone.</li>
+      <li><strong>Collect without harm.</strong> Capture a scent from the air around a flower, without picking it.</li>
+    </ul>
+    <h3>The same tools, beyond art</h3>
+    <p>These are examples from other fields, not the studio's own work:</p>
+    <ul>
+      <li><strong>Sound:</strong> microphones in the canopy count endangered species and detect chainsaws or gunshots in real time (e.g. Rainforest Connection).</li>
+      <li><strong>3D scans:</strong> laser scans measure each tree, to estimate how much carbon a forest stores (e.g. Calders et al., 2015).</li>
+      <li><strong>Scent:</strong> losing the sense of smell can be an early sign of Parkinson's disease, so precise smell tests could help early screening (e.g. Doty, 2012).</li>
+    </ul>
+  </section>
+
+  <section id="tools">
+    <h2>What tools did his studio use?</h2>
+    <p>Only what sources confirm, across his works:</p>
+    <table class="recap">
+      <tr><th>Stage</th><th>Tool</th><th>Work</th></tr>
+      <tr><td>Data</td><td>Google Cloud Storage and BigQuery hold the archive</td><td>Large Nature Model</td></tr>
+      <tr><td>Curate</td><td>An algorithm removed every photo with a person (which one is not public)</td><td><em>Machine Hallucination: NYC</em></td></tr>
+      <tr><td>Represent</td><td>1024-dimensional embeddings of the collection</td><td><em>Unsupervised</em></td></tr>
+      <tr><td>Generate</td><td>StyleGAN · StyleGAN2-ADA · NVIDIA Picasso, fine-tuned on nature</td><td>NYC · <em>Unsupervised</em> · Large Nature Model</td></tr>
+      <tr><td>Render</td><td>Live data from a ceiling camera and a weather station steers it</td><td><em>Unsupervised</em></td></tr>
+      <tr><td>Compute</td><td>Google Cloud GPUs and Vertex AI · NVIDIA DGX A100</td><td>Large Nature Model</td></tr>
+      <tr><td>Display</td><td>A 16K film on the walls · a giant LED wall in the lobby</td><td>NYC · <em>Unsupervised</em></td></tr>
+    </table>
+    <p>Not public: their rendering software, the people-removal model, and their training settings. Part of reverse-engineering is knowing where the evidence stops.</p>
+  </section>
+
+  <section id="lab">
+    <h2>Lab: become a generative artist</h2>
+    <p>In the <a href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/day11/workbook/generative-system-lab.ipynb">Generative System Lab</a> you build a small version of this pipeline on Fashion-MNIST, small pictures of clothes. Like Anadol removed people, you remove the shirts. Run the notebook top to bottom and fill in TODOs 1–5:</p>
+    <table class="recap">
+      <tr><th>Stage</th><th>What happens</th><th>TODO</th></tr>
+      <tr><td>Data</td><td>Look at the images before using them</td><td>–</td></tr>
+      <tr><td>Curate</td><td>Remove the shirts; train a small CNN; try CLIP zero-shot</td><td>1: the CNN layers · 2: CLIP's best caption</td></tr>
+      <tr><td>Represent</td><td>Do CLIP and the CNN see the wardrobe the same way?</td><td>3: correlation of the two RDMs</td></tr>
+      <tr><td>Generate</td><td>A VAE or a GAN; did the shirts come back? Is it copying its data?</td><td>–</td></tr>
+      <tr><td>Render</td><td>Walk through the latent space</td><td>4: slerp between two points</td></tr>
+      <tr><td>Evaluate</td><td>Can your partner tell real from generated?</td><td>5: Sobel edge magnitude</td></tr>
+      <tr><td>Display, System</td><td>Put it on the wall; the pipeline as a plan of tools</td><td>–</td></tr>
+    </table>
+    <p>When you finish, <a href="https://forms.gle/RksDxmwqRrxhoKpf9">submit your Colab link</a>.</p>
+  </section>
+
+  <section id="discuss">
+    <h2>Discussion</h2>
+    <ul>
+      <li><strong>Creativity:</strong> if a person chooses the prompt but AI creates the image, who is the artist?</li>
+      <li><strong>Consent:</strong> should AI companies ask artists before using their work to train AI models?</li>
+      <li><strong>Ownership:</strong> can an AI-generated image be copyrighted? Who should receive the rights?</li>
+      <li><strong>Culture:</strong> who should decide whether a cultural style can be used by AI?</li>
+      <li><strong>Human value:</strong> does knowing the story or feelings behind an artwork change how we value it?</li>
+      <li><strong>Compute:</strong> training and running big models uses a lot of energy. Is the art worth it, and who should pay that cost?</li>
+      <li><strong>Evaluation:</strong> who decides if AI art is good: the model, the audience, or the art world? What can no metric measure?</li>
+    </ul>
+    <div class="callout" style="--c:var(--amber)"><p><strong>Back to the start.</strong> From 1 to 5, can AI be creative? Did your answer change? Was Anadol's model creative, or his studio?</p></div>
+  </section>
+
+  <section id="sources">
+    <h2 style="--c:var(--mute)">Sources</h2>
+    <ul style="font-size:.92rem">
+      <li>Runco and Jaeger, "The Standard Definition of Creativity", <em>Creativity Research Journal</em> (2012) · Margaret Boden, <em>The Creative Mind</em> (1990) · Philip Galanter, "What is Generative Art?" (2003)</li>
+      <li>Harold Cohen and AARON: <a href="https://whitney.org/exhibitions/harold-cohen-aaron">Whitney Museum</a> · <a href="https://computerhistory.org/blog/harold-cohen-and-aaron/">Computer History Museum</a></li>
+      <li>Refik Anadol Studio videos on Vimeo · MoMA · Serpentine Galleries · Dezeen · Towards Data Science · Google Cloud</li>
+      <li>DATALAND blog, "Training AI to Understand Nature" (July 2026) · <a href="https://dataland.art/data-scent">dataland.art/data-scent</a> · <a href="https://dataland.art/data-chocolate">dataland.art/data-chocolate</a> · <a href="https://refikanadol.com/iconiq/">refikanadol.com/iconiq</a> · <a href="https://www.nvidia.com/en-us/research/ai-art-gallery/artists/refik-anadol/">NVIDIA AI Art Gallery</a> · Studio International (Aug 2026) · Artnet (Jan 2024) · GCI Magazine</li>
+      <li>Photos: Refik Anadol Studio, DATALAND</li>
+    </ul>
+  </section>
+
+</main>
+</div>
+</body>
+</html>
