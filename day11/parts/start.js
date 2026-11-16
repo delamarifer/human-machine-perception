@@ -15,16 +15,8 @@ st(`
   </div>
 `);
 
-/* the hook. Machine Hallucination: NYC, 5 min 36 s on Vimeo; play about 2 minutes. */
-st(`
-  <h1 class="t">What would you need to build this?</h1>
-  <div class="d10-col">
-    ${d10Vimeo('450313024', 'Machine Hallucination: NYC (Refik Anadol Studio)', 'Machine Hallucination: NYC <small>Refik Anadol Studio, 2019</small>')}
-  </div>
-`);
-
 /* Opening poll (Shreya, 2026-11-16): a quick Google Form, a 1-5 agree scale then one open question. Form:
-   https://forms.gle/TPYtFArkZh8B6rgH8 (QR code made with segno). Results are shown live from the form's Responses tab. */
+   https://forms.gle/TPYtFArkZh8B6rgH8 (QR code made with segno). Moved before the NYC video (Shreya, 2026-11-16); results are shown live from the form's Responses tab. */
 st(`
   <h1 class="t">Can AI be creative?</h1>
   <div class="d10-col">
@@ -36,8 +28,16 @@ st(`
         </div>
         <div class="d10-poll-why b" data-step="2">Why did you choose that number?</div>
       </div>
-      <div class="d10-qr b" data-step="1"><img src="assets/creative-poll-qr.svg" alt="QR code for the poll form"><span>forms.gle/TPYtFArkZh8B6rgH8</span></div>
+      <div class="d10-qr b" data-step="1"><a href="https://forms.gle/TPYtFArkZh8B6rgH8" target="_blank" rel="noopener"><img src="assets/creative-poll-qr.svg" alt="QR code for the poll form"></a><a href="https://forms.gle/TPYtFArkZh8B6rgH8" target="_blank" rel="noopener">forms.gle/TPYtFArkZh8B6rgH8</a></div>
     </div>
+  </div>
+`);
+
+/* the hook. Machine Hallucination: NYC, 5 min 36 s on Vimeo; play about 2 minutes. */
+st(`
+  <h1 class="t">What would you need to build this?</h1>
+  <div class="d10-col">
+    ${d10Vimeo('450313024', 'Machine Hallucination: NYC (Refik Anadol Studio)', 'Machine Hallucination: NYC <small>Refik Anadol Studio, 2019</small>')}
   </div>
 `);
 
@@ -63,7 +63,8 @@ st(`
 
 /* A short intro to generative art (Shreya, 2026-11-15: "just the 2"). Definition after Galanter (2003): art made with a
    system that runs with some autonomy (rules, a program, a machine). Timeline examples checked 2026-11-15: Frieder Nake
-   exhibited computer drawings in 1965; Harold Cohen's AARON first shown 1972-73; Anna Ridler, Myriad (Tulips), 2018,
+   exhibited computer drawings in 1965; Harold Cohen conceived AARON in the late 1960s at UCSD, named it in the early
+   1970s and worked on it until his death in 2016 (Whitney and Computer History Museum pages, read 2026-11-16); Anna Ridler, Myriad (Tulips), 2018,
    about 10,000 hand-labeled photos of tulips (V&A, Wikipedia). LeWitt and Processing dated by decade only. */
 /* What is generative art? as a diagram: Artist -> System -> Work, one box per click. The Work box holds a small canvas that
    draws a new random pattern every time it appears (lib.js, d10DrawGen): same rules, different result. */
@@ -113,7 +114,7 @@ st(`
   ${cite('Photos: Zarateman (CC0) · Vera Molnar (CC0) · Jean-no (CC0) · art_inthecity (CC BY 2.0), via Wikimedia Commons')}
 `, {notes: `(draft) Generative art is much older than AI, and even older than computers. The question for this slide is simple: what is the system made of? We will see four answers, from the 1960s to today. Each time, the artist still designs the system, but the system changes. As we go, ask yourself: where is the art? In the idea, in the system, or in the final object?
 [click] (draft) We start in the 1960s with Sol LeWitt. This is Wall Drawing 831, Geometric Forms, at the Guggenheim in Bilbao. LeWitt did not paint this himself. He wrote instructions, and other people, often a team of assistants, drew it on the wall. The instructions can be carried out again in another museum, by other people, and the result will be a little different each time. LeWitt wrote that the idea becomes a machine that makes the art. So here the system is just written rules, and the people who follow them are the machine. No computer at all.
-[click] (draft) In the 1960s and 70s, artists start to use real computers. This is Vera Molnar, Interruptions à recouvrements, from 1969. She wrote programs that place many short lines, then add small random changes and gaps, and a plotter, a machine that holds a pen, draws the result. At the same time, Frieder Nake showed computer drawings in Stuttgart in 1965. Harold Cohen, a painter, built a program called AARON in the early 1970s, which made drawings on its own, and he kept working on it for decades. Now the system is code: the artist writes the rules in a language the computer understands, and the computer carries them out. Randomness is part of the design.
+[click] (draft) In the 1960s and 70s, artists start to use real computers. This is Vera Molnar, Interruptions à recouvrements, from 1969. She wrote programs that place many short lines, then add small random changes and gaps, and a plotter, a machine that holds a pen, draws the result. At the same time, Frieder Nake showed computer drawings in Stuttgart in 1965. Harold Cohen, a painter, began a program in the late 1960s and named it AARON in the early 1970s. It made drawings on its own, and he kept working on it until he died in 2016. Now the system is code: the artist writes the rules in a language the computer understands, and the computer carries them out. Randomness is part of the design.
 [click] (draft) In the 2000s, Processing, made by Casey Reas and Ben Fry, made code much easier for artists and designers. It is free, and it is made for drawing. On the left you see six lines of Processing code: they draw two sets of circles, one around each of two centers. On the right is the result. Where the circles overlap, a new pattern appears that nobody drew directly. This is called creative coding: a very small rule can give a rich image. The pattern on our previous slide works the same way, with some randomness added, so it is new every time.[click] (draft) Today, the system can be a model that learns from data. This is Anna Ridler, Mosaic Virus, from 2019. She took about 10,000 photos of tulips herself and labeled each one by hand. Then she trained a GAN, a kind of generative model, on those photos, and it makes new tulips that never existed. Notice where her work went: not into drawing tulips, and not into writing rules for tulips, but into making and labeling the dataset. After GANs came diffusion models, which power most of today's image generators. This is the world Refik Anadol works in.
 [click] (draft) So the artist's work keeps shifting: from drawing, to writing rules, to choosing data. In all four cases, the artist designs a system and gives up some control. What changes is what they design. Keep this in mind when we look at Anadol: a lot of his art is in the data he chooses, how he cleans it, and how he shows the result. That is exactly the pipeline we will reverse-engineer today.`});
 
@@ -139,7 +140,7 @@ st(`
   <h1 class="t">What does he actually make?</h1>
   <div class="d10-col">
     <div class="d10-stack">
-      <div class="d10-one b" data-step="1">${d10Vimeo('778348607', 'Unsupervised, MoMA (Refik Anadol Studio)', 'Unsupervised <small>MoMA, New York · 2022–23</small>', '1')}</div>
+      <div class="d10-one b" data-step="1">${d10Vimeo('646851267', 'Unsupervised: MoMA previews (Refik Anadol Studio)', 'Unsupervised <small>studies for MoMA, New York · 2021; shown 2022–23</small>', '1')}</div>
       <div class="d10-one b" data-step="2">${d10Vimeo('952896412', 'Large Nature Model: Rainforest (Refik Anadol Studio)', 'Large Nature Model: Rainforest <small>NVIDIA GTC · 2024</small>', '2')}</div>
       <div class="d10-one b" data-step="3">${d10Vimeo('952230679', 'Echoes of the Earth: Living Archive (Refik Anadol Studio)', 'Echoes of the Earth: Living Archive <small>Serpentine North, London · 2024</small>', '3')}</div>
     </div>

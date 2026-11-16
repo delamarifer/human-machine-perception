@@ -21,6 +21,8 @@
   .d10-io{ display:grid; grid-template-columns:1fr auto 1.2fr auto 1fr; align-items:center; gap:1.4vw; }
   .d10-box{ border:2px solid var(--ink); border-radius:14px; padding:2.2vh 1.2vw; text-align:center; font-size:clamp(1.2rem, 2.1vw, 1.9rem); line-height:1.3; }
   .d10-box small{ display:block; font-size:.7em; text-transform:uppercase; letter-spacing:.08em; color:var(--mute); margin-bottom:.6vh; }
+  .d10-work{ font-size:clamp(1.1rem, 1.9vw, 1.7rem); margin-bottom:2.4vh; }
+  .d10-out img{ display:block; width:100%; height:16vh; object-fit:cover; border-radius:8px; margin-bottom:1vh; }
   .d10-mid{ border-style:dashed; font-weight:700; }
   .d10-arrow{ font-size:clamp(1.6rem, 2.6vw, 2.4rem); color:var(--mute); }
   .d10-flow{ display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:1vw; }
@@ -108,6 +110,8 @@
   .d10-qr-box{ width:min(26vw, 44vh); aspect-ratio:1; border:2px dashed var(--mute); border-radius:12px; display:flex; align-items:center; justify-content:center; color:var(--mute); font-size:clamp(1rem, 1.6vw, 1.4rem); }
   .d10-qr img{ width:min(26vw, 44vh); aspect-ratio:1; }
   .d10-qr span{ font-size:clamp(.95rem, 1.4vw, 1.3rem); color:var(--mute); }
+  .d10-qr > a:last-child{ font-size:clamp(1rem, 1.5vw, 1.4rem); color:var(--ink); text-decoration:underline; text-underline-offset:3px; }
+  .d10-qr > a:first-child{ display:block; line-height:0; }
   .d10-crea{ display:flex; flex-direction:column; gap:4vh; }
   .d10-crea small{ display:block; font-size:clamp(.95rem, 1.4vw, 1.3rem); text-transform:uppercase; letter-spacing:.08em; color:var(--mute); margin-bottom:1.2vh; }
   .d10-crea-def b{ font-size:clamp(2rem, 3.8vw, 3.4rem); }
@@ -146,7 +150,7 @@
   .d10-lnm-list > li{ font-size:clamp(1.2rem, 2.1vw, 1.9rem); }
   .d10-stats{ display:flex; gap:2.5vw; margin-top:3vh; }
   .d10-stats > div{ border-top:6px solid var(--ink); padding-top:1vh; }
-  .d10-stats b{ display:block; font-size:clamp(1.8rem, 3.6vw, 3.2rem); line-height:1.05; }
+  .d10-stats b{ display:block; font-size:clamp(1.8rem, 3.6vw, 3.2rem); line-height:1.05; white-space:nowrap; }
   .d10-stats span{ font-size:clamp(1rem, 1.6vw, 1.45rem); color:var(--mute); }
   .d10-lnm-fig{ margin:0; }
   .d10-lnm-fig img{ width:100%; max-height:56vh; object-fit:cover; border-radius:12px; display:block; }

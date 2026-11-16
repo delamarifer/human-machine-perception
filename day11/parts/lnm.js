@@ -16,27 +16,28 @@ st(`
     <div class="d10-lnm">
       <div>
         <ul class="d10-list d10-lnm-list">
-          <li class="b">Most AI learns from human text and images. This one learns from nature.</li>
-          <li class="b">Built by Refik Anadol Studio for DATALAND, its museum of AI art in Los Angeles</li>
-          <li class="b">It makes the visuals, sounds and scents of the first exhibition, <i>Machine Dreams: Rainforest</i></li>
+          <li class="b" data-step="1">Most AI learns from human text and images. This one learns from nature.</li>
+          <li class="b" data-step="2">Built by Refik Anadol Studio for DATALAND, its museum of AI art in Los Angeles</li>
+          <li class="b" data-step="3">Data from field trips to 16 rainforests, and from institutions like the Smithsonian and the Natural History Museum, London</li>
+          <li class="b" data-step="4">It makes the visuals, sounds and scents of the first exhibition, <i>Machine Dreams: Rainforest</i></li>
         </ul>
-        <div class="d10-stats b">
+        <div class="d10-stats b" data-step="5">
           <div><b>1.2 billion</b><span>ecological data points</span></div>
           <div><b>100 million+</b><span>images of plants, animals and fungi</span></div>
         </div>
       </div>
-      <figure class="d10-lnm-fig b" data-step="1"><img src="assets/lnm-canopy.jpg" alt="Two researchers climbing tall rainforest trees with ropes">
+      <figure class="d10-lnm-fig b" data-step="3"><img src="assets/lnm-canopy.jpg" alt="Two researchers climbing tall rainforest trees with ropes">
         <figcaption>The field team climbing into the canopy</figcaption></figure>
     </div>
   </div>
-  ${cite('DATALAND blog, "Training AI to Understand Nature" (July 2026) · photo: Refik Anadol Studio')}
+  ${cite('DATALAND blog, "Training AI to Understand Nature" (July 2026) · refikanadol.com · photo: Refik Anadol Studio')}
 `);
 
 /* four kinds of data, one per click, each replacing the one before */
 const D10_KINDS = [
   ['Images', 'What does nature look like?', ['lnm-photos.jpg', 'Leaves photographed next to a color chart and a ruler'],
     'A photo on its own is isolated. The team wanted the model to know where a species lives and what it lives with.',
-    'Museum and research archives: Smithsonian, Natural History Museum, Cornell Lab, Getty. AI tools on Google Cloud label each species and habitat and write a description.',
+    'Museum and research archives: Smithsonian, Natural History Museum (London), Cornell Lab, Getty. AI tools on Google Cloud label each species and habitat and write a description.',
     'The realistic plants, animals and fungi in the art'],
   ['Sound', 'How does nature change over time?', ['lnm-sound.jpg', 'A 360-degree microphone recording a forest stream'],
     'Dawn choruses, insects, rain and streams show the rhythm of a day and how species respond to each other.',
@@ -89,7 +90,11 @@ st(`
   ${cite('DATALAND blog, "Training AI to Understand Nature" (July 2026)')}
 `);
 
-/* Beyond images (Shreya, 2026-11-16): the point is the other creative modalities, sound first, then scent, then flavor.
+/* 16 rainforests, the Smithsonian and NHM London, and the scent details (L'Oreal's Fragrance Metier turned the ecological
+   data into twelve olfactory concepts; headspace capture, Osmobloom, eco-extraction, synthetic molecules; the moonflower
+   captured without harvesting): Shreya's text, 2026-11-16, with her sources refikanadol.com/iconiq, GCI Magazine,
+   Personal Care Insights and dataland.art/data-scent.
+   Beyond images (Shreya, 2026-11-16): the point is the other creative modalities, sound first, then scent, then flavor.
    Scent: dataland.art/data-scent, read 2026-11-16: twelve "Living Scents" for Machine Dreams: Rainforest, made with
    L'Oreal Luxe's fragrance experts, built from "headspace capture" (sampling the air around a living plant, analysed by
    GC-MS). That page does not say how much the model chose, so the slide says so. Photo: g-lab.jpg from that page
@@ -112,7 +117,7 @@ st(`
       <div class="d10-sense b" data-step="2">
         <img src="assets/lnm-scent.jpg" alt="Plants and glass vials in a lab in front of the exhibition screens">
         <b>Scent</b>
-        <span>Twelve “Living Scents”, made with L’Oréal’s fragrance experts by sampling the air around living plants. How much the model chose is not public.</span>
+        <span>L’Oréal’s perfumers turned the same ecological data into twelve scents. They captured living plants without cutting them, like a rare Amazonian moonflower, and used new molecules for abstract ideas.</span>
       </div>
       <div class="d10-sense b" data-step="3">
         <img src="assets/lnm-chocolate-pieces.jpg" alt="Four chocolates on a marble counter">
@@ -122,6 +127,30 @@ st(`
     </div>
     <div class="d10-gnote b" data-step="4">Who is the artist here?</div>
   </div>
-  ${cite('dataland.art/data-scent · dataland.art/data-chocolate · Artnet (Jan 2024) · photos: Refik Anadol Studio, DATALAND')}
+  ${cite('dataland.art/data-scent · GCI Magazine · dataland.art/data-chocolate · Artnet (Jan 2024) · photos: Refik Anadol Studio, DATALAND')}
+`);
+
+/* The tools, stage by stage (Shreya, 2026-11-13; moved here from system.js on 2026-11-16 so it closes the LNM section). Only what sources confirm: Dezeen (NYC: StyleGAN, people removed),
+   refikanadol.com and Towards Data Science (Unsupervised: StyleGAN2-ADA, 1024-d embeddings), MoMA press release (camera,
+   weather station, media wall), Google Cloud case study (Large Nature Model: Vertex AI, Cloud Storage, BigQuery, GPUs),
+   the studio's own GTC video (NVIDIA Picasso fine-tuned), AV Interactive (DGX A100 at GTC 2024), Vimeo (16K film). */
+const D10_TOOLS = [
+  ['Data', 'Google Cloud Storage and BigQuery hold the archive', 'Large Nature Model'],
+  ['Curate', 'an algorithm removed every photo with a person (which one is not public)', 'Machine Hallucination: NYC'],
+  ['Represent', '1024-dimensional embeddings of the collection', 'Unsupervised'],
+  ['Generate', 'StyleGAN · StyleGAN2-ADA · NVIDIA Picasso, fine-tuned on nature', 'NYC · Unsupervised · Large Nature Model'],
+  ['Render', 'live data from a ceiling camera and a weather station steers it', 'Unsupervised'],
+  ['Compute', 'Google Cloud GPUs and Vertex AI · NVIDIA DGX A100', 'Large Nature Model'],
+  ['Display', 'a 16K film on the walls · a giant LED wall in the lobby', 'NYC · Unsupervised'],
+];
+st(`
+  <h1 class="t">What tools did his studio use?</h1>
+  <div class="d10-col">
+    <table class="d10-tbl d10-tools">
+      <tr><th>Stage</th><th>Tool</th><th>Work</th></tr>
+      ${D10_TOOLS.map(r => `<tr class="b"><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}
+    </table>
+  </div>
+  ${cite('Not public: their rendering software, the people-removal model, and their training settings.')}
 `);
 }
