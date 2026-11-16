@@ -4,13 +4,12 @@ const ORDER = [
   ['intro',  'Title, what an embodied agent is, last week\'s discussion question and your answers, what it means to experience'],
   ['agents', 'Examples of embodied agents, the video, the common problems'],
   ['labs',   'Embodied intelligence labs at MIT, the robot vacuum pipeline'],
-  ['malik',  'Jitendra Malik: three central problems (navigation, locomotion, manipulation), why manipulation is hard, three levels of action, three ways to get robot data'],
+  ['malik',  'Jitendra Malik: three central problems, why manipulation is hard, three levels of action, where robot data comes from; walk-through of teleoperation (with diffusion policy), videos of people, simulation (with reinforcement learning) and the reward problem'],
   ['tedrake', 'Russ Tedrake: academia and industry at once, how they feed each other, his path'],
   ['selfmodel', 'Vision for self-state, what 3D scenes miss, how robots work today, soft printed robots, control from vision, Neural Jacobian Fields'],
   ['njf',    'Body Jacobian, Jacobian fields, scene flow and optical flow, training data, self-supervised training, control along a trajectory'],
-  ['learning', 'Reinforcement learning, diffusion policy, the data problem'],
 ];
 const PARTS = ORDER.map(r => r[0]);
 
 /* Minutes per section (sets the widths in the progress bar). Draft: change freely. */
-const SEC_MINUTES = { 'Start': 12, 'Embodied agents': 14, 'The big picture': 18, 'Robots that know themselves': 14, 'Jacobian fields': 18, 'Learning to act': 10, 'Academia and industry': 6 };
+const SEC_MINUTES = { 'Start': 12, 'Embodied agents': 14, 'The big picture': 30, 'Robots that know themselves': 14, 'Jacobian fields': 18, 'Academia and industry': 6 };

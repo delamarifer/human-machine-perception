@@ -131,3 +131,14 @@ Placed after the labs and the vacuum (the vacuum leads into navigation), before 
 - [ ] The two clips need internet in class.
 - [ ] Not yet done: adding "Forces and contact" to the common-problems slide, and the closing Turing / child-machine
   slide from the rest of his talk.
+
+## Round 8 (2026-11-16): Malik's data walk-through (slides 17-24); "Learning to act" folded in
+- 17 Where does robot data come from? (your Scale AI numbers, moved here) -> 18 1. Teleoperation (DROID photo, his points,
+  clip 13:13-15:36) -> 19 Diffusion Policy (your slide, moved: what people train on teleoperation data) -> 20 2. Videos of
+  people (DexMV figure, clip 15:36-16:46) -> 21 3. Simulation (Isaac Gym image, clip 16:46-18:39) -> 22 Reinforcement
+  learning (your slide, moved) -> 23 The catch: writing the reward (his pouring example; the formula is an illustration)
+  -> 24 Three ways to get robot data: which would you bet on? (recap).
+- parts/learning.js is gone: its two slides now live in parts/malik.js. The section "Learning to act" is gone too.
+- [ ] The deck now ends on "Given a motion trajectory" (the Jacobian section). It needs a close: Malik's answer (Turing's
+  child machine, the child watching her father) back to your opening question?
+- [ ] The three clips need internet in class.

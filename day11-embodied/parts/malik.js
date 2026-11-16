@@ -128,9 +128,125 @@ st(`
   ${cite('Scale AI, “Expanding Our Data Engine for Physical AI”, Ben Levin, 24 Sept 2025 (a company blog post)')}
 `);
 
-/* 13:04-18:39 */
+/* 13:04-18:39: his walk-through of the three standard answers, one slide each, in his order. Each ends with the clip
+   of that part of the talk. Shreya's own slides "Diffusion Policy" (behavior cloning on teleoperation data, his 18:30
+   remark) and "Reinforcement learning" (training in simulation) move here from learning.js, where they answer him. */
+const T = d11Tex;
 st(`
-  <h1 class="t">Three ways to get robot data</h1>
+  <h1 class="t">1. Teleoperation</h1>
+  <div class="d11-col">
+    <div class="d11-split d11-mk-split">
+      <div class="d11-swap">
+        <figure class="d11-fig b" data-step="1"><img src="assets/mk-droid.jpg" alt="The DROID data-collection setup: a robot arm on a portable desk with cameras, and a VR headset the operator uses to drive it"></figure>
+        ${mkClip(793, 936, 'Malik talk: teleoperation').replace('class="d11-yt d11-mk-clip b"', 'class="d11-yt d11-mk-clip b" data-step="5"')}
+      </div>
+      <div class="d11-side">
+        <div class="d11-step b" data-step="1">A person drives the robot, here with a VR headset, and we record what it sees and does</div>
+        <div class="d11-step b" data-step="2">The data is in the robot’s own body: exactly what we need</div>
+        <div class="d11-step b" data-step="3">But it makes a person behave like a robot: the operator can see, but can’t <b>feel</b></div>
+        <div class="d11-callout b" data-step="4">So the motions come out slow and clumsy. Demo videos are often sped up about 5×</div>
+      </div>
+    </div>
+  </div>
+  ${cite('Photo: DROID, Khazatsky et al., 2024 (CC BY 4.0) · ' + MK_CITE)}
+`);
+
+/* Shreya's slide, moved from learning.js: what people train on teleoperation data. */
+st(`
+  <h1 class="t">Diffusion Policy</h1>
+  <div class="d11-col">
+    <div class="d11-split d11-fwrap">
+      <canvas class="d11-canvas b" data-step="2" data-anim="noiseStill" width="620" height="400" aria-label="Dots for a sequence of robot actions, starting as random noise and becoming a smooth path from a start to a goal"></canvas>
+      <div class="d11-side">
+        <div class="d11-step b" data-step="1"><b>Imitation learning</b> methods: learn from demonstrations</div>
+        <div class="d11-step b" data-step="2">Start from noise: a random sequence of actions</div>
+        <div class="d11-step b" data-step="3" data-anim="denoise">Denoise, step by step, given what the camera sees</div>
+        <div class="d11-callout b" data-step="4">How can we get the target trajectories?</div>
+      </div>
+    </div>
+  </div>
+  ${cite('Chi et al., Diffusion Policy: Visuomotor Policy Learning via Action Diffusion, RSS 2023 · Illustration made for this course')}
+`);
+
+st(`
+  <h1 class="t">2. Videos of people</h1>
+  <div class="d11-col">
+    <div class="d11-split d11-mk-split d11-mk-wide">
+      <div class="d11-swap">
+        <figure class="d11-fig b" data-step="1"><img src="assets/mk-dexmv.jpg" alt="Top row: video of a person's hand moving objects. Middle: the hand and object recovered in 3D. Bottom: a robot hand doing the same tasks in a simulator"></figure>
+        ${mkClip(936, 1006, 'Malik talk: learning from videos of people').replace('class="d11-yt d11-mk-clip b"', 'class="d11-yt d11-mk-clip b" data-step="5"')}
+      </div>
+      <div class="d11-side">
+        <div class="d11-step b" data-step="1">Film people doing the task: natural, and there is a lot of it</div>
+        <div class="d11-step b" data-step="2">Recover the hand in 3D, then turn its motion into robot motion</div>
+        <div class="d11-step b" data-step="3">Problem 1: a different body. The motion has to be translated</div>
+        <div class="d11-callout b" data-step="4">Problem 2: a video shows no forces</div>
+      </div>
+    </div>
+  </div>
+  ${cite('Figure: DexMV, Qin et al., 2022 (CC BY 4.0) · ' + MK_CITE)}
+`);
+
+st(`
+  <h1 class="t">3. Simulation</h1>
+  <div class="d11-col">
+    <div class="d11-split d11-mk-split">
+      <div class="d11-swap">
+        <figure class="d11-fig b" data-step="1"><img src="assets/ex-sim.jpg" alt="Simulated robots learning in a physics simulator: a humanoid, an arm, a legged robot and a hand"></figure>
+        ${mkClip(1006, 1119, 'Malik talk: simulation').replace('class="d11-yt d11-mk-clip b"', 'class="d11-yt d11-mk-clip b" data-step="5"')}
+      </div>
+      <div class="d11-side">
+        <div class="d11-step b" data-step="1">Practice in a physics simulator: everything is there, forces included</div>
+        <div class="d11-step b" data-step="2">It already worked: navigation and locomotion were both trained this way</div>
+        <div class="d11-step b" data-step="3">Too different from the real world? Malik: “just more engineering”</div>
+        <div class="d11-callout b" data-step="4">The real problem: telling the robot what “good” means</div>
+      </div>
+    </div>
+  </div>
+  ${cite('Figure: Isaac Gym, Makoviychuk et al., 2021 (CC BY 4.0) · ' + MK_CITE)}
+`);
+
+/* Shreya's slide, moved from learning.js: how a robot practices in simulation. */
+st(`
+  <h1 class="t">Reinforcement learning</h1>
+  <div class="d11-col">
+    <div class="d11-split">
+      <svg class="d11-svg" viewBox="0 0 560 380" role="img" aria-label="The reinforcement learning loop: the agent sends an action to the environment, which returns a new state and a reward">
+        <defs><marker id="d11-ah4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#0f172a"/></marker></defs>
+        <g class="b" data-step="1"><rect x="190" y="30" width="180" height="80" rx="14" fill="#fff" stroke="#0f172a" stroke-width="3"/>
+          <text x="280" y="68" text-anchor="middle" font-size="26" font-weight="700">Agent</text><text x="280" y="94" text-anchor="middle" font-size="17" fill="#64748b">the robot’s policy π</text></g>
+        <g class="b" data-step="1"><rect x="190" y="260" width="180" height="80" rx="14" fill="#fff" stroke="#0f172a" stroke-width="3"/>
+          <text x="280" y="298" text-anchor="middle" font-size="26" font-weight="700">Environment</text><text x="280" y="324" text-anchor="middle" font-size="17" fill="#64748b">the world</text></g>
+        <g class="b" data-step="2"><path d="M370 70 C 470 70, 470 300, 378 300" fill="none" stroke="#0f172a" stroke-width="3" marker-end="url(#d11-ah4)"/>
+          <text x="478" y="190" font-size="22" font-style="italic">action a<tspan font-size="15" dy="5">t</tspan></text></g>
+        <g class="b" data-step="3"><path d="M190 300 C 90 300, 90 70, 182 70" fill="none" stroke="#0f172a" stroke-width="3" marker-end="url(#d11-ah4)"/>
+          <text x="6" y="170" font-size="22" font-style="italic">state s<tspan font-size="15" dy="5">t+1</tspan></text>
+          <text x="6" y="206" font-size="22" font-style="italic">reward r<tspan font-size="15" dy="5">t+1</tspan></text></g>
+      </svg>
+      <div class="d11-side">
+        <div class="d11-step b" data-step="2">The robot acts</div>
+        <div class="d11-step b" data-step="3">The world changes, and gives a reward</div>
+        <div class="d11-math b" data-step="4">${T(String.raw`\max_{\pi}\; \mathbb E\Big[\sum_{t} \gamma^{t}\, r_t\Big]`)}</div>
+        <div class="d11-callout b" data-step="4">Learning from rewards, by trial and error</div>
+      </div>
+    </div>
+  </div>
+`);
+
+/* 17:43-18:39: the reward problem. The reward terms are an illustration, not his slide. */
+st(`
+  <h1 class="t">The catch: writing the reward</h1>
+  <div class="d11-col">
+    <div class="d11-step b" data-step="1">Malik’s example: a robot learning to pour. Every stage needs its own term in the reward</div>
+    <div class="d11-math d11-mk-reward b" data-step="2">${T(String.raw`r \;=\; w_1\, r_{\text{reach}} + w_2\, r_{\text{grasp}} + w_3\, r_{\text{lift}} + w_4\, r_{\text{tilt}} + \dots + w_{10}\, r_{\text{pour}}`)}<small>illustration</small></div>
+    <div class="d11-step b" data-step="3">About 10 terms here. For some tasks, 150. And every weight <i>w</i> has to be tuned by hand</div>
+    <div class="d11-callout b" data-step="4">So many people gave up and copied teleoperation data instead: with Diffusion Policy you are running on day two</div>
+  </div>
+  ${cite(MK_CITE)}
+`);
+
+st(`
+  <h1 class="t">Three ways to get robot data: which would you bet on?</h1>
   <div class="d11-col">
     <div class="d11-mk-three d11-mk-src">
       <div class="d11-mk-srccard b"><b>Teleoperation</b><span>A person drives the robot and we record it</span>
@@ -140,7 +256,6 @@ st(`
       <div class="d11-mk-srccard b"><b>Simulation</b><span>Practice in a physics simulator</span>
         <em>+ Everything, forces included. It worked for walking and navigation</em><em>− Writing rewards for manipulation is hard</em></div>
     </div>
-    <div class="d11-callout b">Which would you bet on?</div>
   </div>
   ${cite(MK_CITE)}
 `);

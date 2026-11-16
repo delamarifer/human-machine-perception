@@ -517,3 +517,8 @@ D11_ARM.s = 0.7;
   .d11-mk-srccard em{ font-style:normal; font-size:clamp(1rem, 1.6vw, 1.5rem); line-height:1.3; }
   @media (max-width: 820px), (max-aspect-ratio: 1/1){ .d11-mk-three, .d11-mk-data{ grid-template-columns:1fr; } .d11-mk-level{ grid-template-columns:1fr; } .d11-mk-level small{ grid-row:auto; } }
 `; document.head.appendChild(el); })();
+(() => { const el = document.createElement('style'); el.textContent = `
+  .d11-mk-reward{ text-align:center; font-size:clamp(1.3rem, 2.4vw, 2.2rem); }
+  .d11-mk-reward small{ display:block; font-size:.5em; color:var(--mute); margin-top:.4vh; }
+`; document.head.appendChild(el); })();
+(() => { const el = document.createElement('style'); el.textContent = `.d11-mk-wide{ grid-template-columns:1.9fr 1fr; } @media (max-width: 820px), (max-aspect-ratio: 1/1){ .d11-mk-wide{ grid-template-columns:1fr; } }`; document.head.appendChild(el); })();
