@@ -89,29 +89,39 @@ st(`
   ${cite('DATALAND blog, "Training AI to Understand Nature" (July 2026)')}
 `);
 
+/* Beyond images (Shreya, 2026-11-16): the point is the other creative modalities, sound first, then scent, then flavor.
+   Scent: dataland.art/data-scent, read 2026-11-16: twelve "Living Scents" for Machine Dreams: Rainforest, made with
+   L'Oreal Luxe's fragrance experts, built from "headspace capture" (sampling the air around a living plant, analysed by
+   GC-MS). That page does not say how much the model chose, so the slide says so. Photo: g-lab.jpg from that page
+   ("The Data.Scent botanical laboratory", no credit given). Flavor: dataland.art/data-chocolate. */
 st(`
   <div class="center" style="margin:auto">
-    <div class="statement" style="font-weight:700;font-size:clamp(2rem,3.7vw,3.3rem)">How do outputs become an artwork?</div>
+    <div class="statement" style="font-weight:700;font-size:clamp(2rem,3.7vw,3.3rem)">Beyond images: what else can a model make?</div>
   </div>
 `);
 
 st(`
-  <h1 class="t">Flavor as a medium</h1>
+  <h1 class="t">Sound, scent and flavor</h1>
   <div class="d10-col">
-    <div class="d10-lnm">
-      <ul class="d10-list d10-lnm-list">
-        <li class="b"><b>Data in:</b> the genes of wild cacao, the chemistry of flavor, and sensor data from the rainforest</li>
-        <li class="b"><b>The model:</b> the Large Nature Model proposed new “conceptual recipes”</li>
-        <li class="b"><b>The human:</b> a chef, Valerie Gordon, chose four and made them by hand</li>
-        <li class="b"><b>The visit:</b> in the gallery, “The Data Well” reads your pulse and movement and picks one for you</li>
-        <li class="b"><b>Who is the artist here?</b></li>
-      </ul>
-      <div class="d10-choc b" data-step="1">
+    <div class="d10-senses">
+      <div class="d10-sense b" data-step="1">
+        <img src="assets/lnm-sound.jpg" alt="A 360-degree microphone recording a forest stream">
+        <b>Sound</b>
+        <span>Field recordings over whole days and nights, and about 250,000 Amazon birdsongs, become the soundscapes in the gallery.</span>
+      </div>
+      <div class="d10-sense b" data-step="2">
+        <img src="assets/lnm-scent.jpg" alt="Plants and glass vials in a lab in front of the exhibition screens">
+        <b>Scent</b>
+        <span>Twelve “Living Scents”, made with L’Oréal’s fragrance experts by sampling the air around living plants. How much the model chose is not public.</span>
+      </div>
+      <div class="d10-sense b" data-step="3">
         <img src="assets/lnm-chocolate-pieces.jpg" alt="Four chocolates on a marble counter">
-        <img src="assets/lnm-chocolate-chef.jpg" alt="A chef placing chocolates on a counter">
+        <b>Flavor</b>
+        <span>From cacao genes and flavor chemistry, the model proposed recipes. A chef, Valerie Gordon, chose four and made them by hand.</span>
       </div>
     </div>
+    <div class="d10-gnote b" data-step="4">Who is the artist here?</div>
   </div>
-  ${cite('dataland.art/data-chocolate (DATALAND × Valerie Confections, 2026) · photos: DATALAND')}
+  ${cite('dataland.art/data-scent · dataland.art/data-chocolate · Artnet (Jan 2024) · photos: Refik Anadol Studio, DATALAND')}
 `);
 }

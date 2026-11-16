@@ -117,6 +117,13 @@
   .d10-crea-kinds b{ font-size:clamp(1.5rem, 2.6vw, 2.4rem); }
   .d10-crea-kinds span{ font-size:clamp(1.05rem, 1.7vw, 1.55rem); color:var(--mute); }
   @media (max-width: 760px){ .d10-poll, .d10-crea-kinds{ grid-template-columns:1fr; } }
+  /* Sound, scent and flavor (Day 11): three cards, one per click */
+  .d10-senses{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:1.8vw; }
+  .d10-sense{ display:flex; flex-direction:column; gap:1vh; }
+  .d10-sense img{ width:100%; height:30vh; object-fit:cover; border-radius:12px; }
+  .d10-sense b{ font-size:clamp(1.5rem, 2.6vw, 2.4rem); }
+  .d10-sense span{ font-size:clamp(1rem, 1.55vw, 1.45rem); line-height:1.35; }
+  @media (max-width: 760px){ .d10-senses{ grid-template-columns:1fr; } }
   /* A short history: a large spotlight on the newest example, a row of steps underneath */
   .d10-hist{ justify-content:flex-start; gap:2.4vh; }
   .d10-spot{ height:44vh; flex:none; }
