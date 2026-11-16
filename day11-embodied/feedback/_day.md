@@ -96,3 +96,17 @@ Li et al., Nature 2025 (CC BY 4.0). Her comments applied on 17, 18, 24, 25.
 
 ## Round 4 (2026-11-16): slide 2 reworked
 - [ ] Slide 2 "What is an embodied agent?" is now a drawn loop (agent decides, acts, world changes, agent senses) beside your three lines, word for word. Drafts to check: the line "Its actions change what it senses next" and the closing "A robot is one kind of embodied agent".
+
+## Round 5 (2026-11-16): screen fit, slide 6 visuals, real images, labs, vacuum, robot cost
+- Every slide now shrinks its content to fit between the title and the credit line, and the layout stops widening past
+  about 16:9 on ultrawide screens. Checked for overlaps at 1280x720, 1440x760, 1920x1080 and 2560x1080: none.
+- [ ] Slide 6: a small drawing per view (bat, broadcast, turning to look, dictionary loop) and a gray-to-red apple for
+  Mary's room. The apple is the only red on the slide: OK with the color rule?
+- [ ] Slide 7: the virtual examples are now real figures from CC BY 4.0 papers (Isaac Gym, MineDojo, OSWorld, ASE).
+  "A virtual character" became "A simulated character" (the ASE sword-and-shield character).
+- [ ] Slide 10: headers line up at every width; logos added for MIT and the MIT Media Lab only (public domain on
+  Commons). The individual labs' logos are not freely licensed: add them anyway (the site is public)?
+- [ ] Slide 11: "We can't even build a vacuum robot" removed; draft: "It looks simple. What does a robot vacuum have
+  to solve?"
+- [ ] Slide 14: "$25,000" removed; draft point: "This only works because the body is built to match an exact model:
+  rigid parts, precise sensors" (leads into the soft-robot slide).

@@ -416,3 +416,57 @@ D11_ANIM.denoise = {
 /* bigger arrows for the arm */
 D11_ARM.s = 0.7;
 (() => { const el = document.createElement('style'); el.textContent = `.d11-def-q{ text-align:left; margin:0; font-style:italic; font-size:clamp(1.5rem, 2.8vw, 2.6rem); }`; document.head.appendChild(el); })();
+
+/* Fit to the screen (Shreya: "more sensitive to wide screen"). On ultrawide screens the content keeps a 16:9-ish width;
+   on short screens a slide whose content is taller than the space between the title and the credit line is scaled down
+   (CSS zoom), so nothing slides under the title or the credit. Hidden .b items still take their space, so one fit holds
+   for every click of a slide. */
+(() => { const el = document.createElement('style'); el.textContent = `
+  .stage > .d11-col{ width:100%; max-width:182vh; margin-inline:auto; }
+  .stage > h1.t, .stage > .cite{ max-width:182vh; }
+  @media (min-aspect-ratio: 2/1){ .stage > h1.t{ margin-inline:auto; width:100%; } }
+`; document.head.appendChild(el); })();
+(function(){
+  const fit = () => {
+    const sl = document.querySelector('.slide.active'); if (!sl) return;
+    sl.querySelectorAll('.d11-col').forEach(col => {
+      col.style.zoom = 1;
+      const cr = col.getBoundingClientRect();
+      const h1 = sl.querySelector('h1.t'), cite = sl.querySelector('.cite');
+      const lo = Math.max(cr.top, h1 ? h1.getBoundingClientRect().bottom + 12 : 0);
+      const hi = Math.min(cr.bottom, cite ? cite.getBoundingClientRect().top - 12 : innerHeight - 8);
+      const have = hi - lo;
+      for (let k = 0; k < 4; k++) {
+        const z = parseFloat(col.style.zoom) || 1;
+        const kids = [...col.children].filter(c => c.getClientRects().length);
+        if (!kids.length) return;
+        const need = Math.max(...kids.map(c => c.getBoundingClientRect().bottom)) - Math.min(...kids.map(c => c.getBoundingClientRect().top));
+        if (need <= have + 1) break;
+        col.style.zoom = Math.max(0.55, z * have / need - 0.005).toFixed(3);
+      }
+    });
+  };
+  let t = 0; const later = () => { clearTimeout(t); t = setTimeout(fit, 0); };
+  addEventListener('resize', later);
+  new MutationObserver(later).observe(document.documentElement, { subtree:true, attributes:true, attributeFilter:['class'] });
+  addEventListener('load', later);
+})();
+(() => { const el = document.createElement('style'); el.textContent = `
+  .d11-view-ic{ display:grid; grid-template-columns:clamp(4.5rem, 12vh, 10rem) 1fr; column-gap:1.6vw; row-gap:.6vh; align-content:start; }
+  .d11-view-ic > :not(.d11-ic){ grid-column:2; }
+  .d11-view-ic > .d11-ic{ grid-column:1; grid-row:1 / span 4; align-self:center; }
+  .d11-ic svg{ width:100%; display:block; }
+`; document.head.appendChild(el); })();
+(() => { const el = document.createElement('style'); el.textContent = `
+  .d11-mary{ display:flex; align-items:center; justify-content:center; gap:1.6vw; }
+  .d11-mary svg{ height:clamp(2.6rem, 8vh, 6rem); width:auto; }
+`; document.head.appendChild(el); })();
+/* Labs slide: the four headers share one row (subgrid), so a header that wraps to two lines no longer pushes its
+   underline below the others; logos row under the list. */
+(() => { const el = document.createElement('style'); el.textContent = `
+  .d11-labs{ grid-template-rows:auto auto; row-gap:0; }
+  .d11-lab{ display:grid; grid-template-rows:subgrid; grid-row:span 2; }
+  .d11-lab h2{ align-self:end; }
+  .d11-logos{ display:flex; align-items:center; justify-content:center; gap:3vw; flex-wrap:wrap; }
+  .d11-logos img{ height:clamp(2rem, 6vh, 4.5rem); width:auto; filter:grayscale(1) brightness(.35); }
+`; document.head.appendChild(el); })();

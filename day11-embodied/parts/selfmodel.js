@@ -43,7 +43,8 @@ st(`
 
 /* Google slide 13: her TODO "insert image of a robot arm, include arrows pointing to the different parts (segments and
    sensors)". Drawn arm (lib.js moves it): the joints turn and the sensor readout updates.
-   $25,000 is from her slide: source to add. */
+   Her "$25,000" line was removed at her request (2026-11-16) for a broader point (draft) that leads into the next
+   slide: knowing your pose from joint sensors needs a body built to match an exact model. */
 st(`
   <h1 class="t">How do robots work today?</h1>
   <div class="d11-col">
@@ -85,7 +86,7 @@ st(`
         </div>
         <div class="d11-step d11-arm-go b" data-step="4">Each sensor reports the angle of its joint</div>
         <div class="d11-callout b" data-step="5">It’s basically <b>blind</b>: it knows its pose from the sensors at the joints, not from vision</div>
-        <div class="d11-step b" data-step="6">Robots are expensive! <b>$25,000</b> <span class="d11-mute">(source to add)</span></div>
+        <div class="d11-step b" data-step="6">This only works because the body is built to match an exact model: rigid parts, precise sensors</div>
       </div>
     </div>
   </div>

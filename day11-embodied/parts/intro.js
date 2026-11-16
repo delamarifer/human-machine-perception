@@ -98,17 +98,24 @@ st(`
    O'Regan, J. K. & Noe, A. (2001). A sensorimotor account of vision and visual consciousness. Behavioral and Brain Sciences 24(5).
    Harnad, S. (1990). The symbol grounding problem. Physica D 42 (the Chinese/Chinese dictionary example is his).
    Jackson, F. (1982). Epiphenomenal qualia. The Philosophical Quarterly 32(127). */
+/* Small drawings for the four views (made for this deck; Shreya asked for a visual on this slide). */
+const D11_VIEW_IC = {
+  bat: `<svg viewBox="0 0 100 90" aria-hidden="true"><path d="M50 40 C44 30 30 24 12 30 C20 34 22 40 20 46 C28 42 34 44 38 50 C42 46 46 46 50 52 C54 46 58 46 62 50 C66 44 72 42 80 46 C78 40 80 34 88 30 C70 24 56 30 50 40 Z" fill="#0f172a"/><path d="M46 36 l-2 -6 l5 4 M54 36 l2 -6 l-5 4" stroke="#0f172a" stroke-width="2.5" fill="none"/><path d="M30 66 q20 10 40 0 M22 74 q28 14 56 0 M14 82 q36 16 72 0" stroke="#0f172a" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`,
+  broadcast: `<svg viewBox="0 0 100 90" aria-hidden="true"><circle cx="50" cy="45" r="13" fill="#0f172a"/>${[0,60,120,180,240,300].map(a => { const r = a * Math.PI / 180, x = 50 + 36 * Math.cos(r), y = 45 + 34 * Math.sin(r), x1 = 50 + 17 * Math.cos(r), y1 = 45 + 17 * Math.sin(r), x2 = 50 + 27 * Math.cos(r), y2 = 45 + 26 * Math.sin(r); return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#0f172a" stroke-width="3" stroke-linecap="round"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7" fill="#fff" stroke="#0f172a" stroke-width="3"/>`; }).join('')}</svg>`,
+  look: `<svg viewBox="0 0 100 90" aria-hidden="true"><rect x="8" y="10" width="44" height="34" rx="4" fill="none" stroke="#94a3b8" stroke-width="3"/><rect x="48" y="16" width="44" height="34" rx="4" fill="none" stroke="#0f172a" stroke-width="3"/><path d="M26 72 Q50 56 74 72 Q50 88 26 72 Z" fill="none" stroke="#0f172a" stroke-width="3"/><circle cx="54" cy="72" r="6" fill="#0f172a"/><path d="M30 56 Q50 46 68 54" fill="none" stroke="#0f172a" stroke-width="3" stroke-linecap="round"/><path d="M68 54 l-8 -4 M68 54 l-5 7" stroke="#0f172a" stroke-width="3" stroke-linecap="round"/></svg>`,
+  dict: `<svg viewBox="0 0 100 90" aria-hidden="true"><path d="M14 18 h30 q6 0 6 6 v52 q0 -5 -6 -5 h-30 Z M86 18 h-30 q-6 0 -6 6 v52 q0 -5 6 -5 h30 Z" fill="#fff" stroke="#0f172a" stroke-width="3"/><text x="31" y="52" text-anchor="middle" font-size="22">字</text><text x="69" y="52" text-anchor="middle" font-size="22">詞</text><path d="M30 12 Q50 -2 70 12" fill="none" stroke="#0f172a" stroke-width="2.5"/><path d="M70 12 l-8 -1 M70 12 l-3 -7" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/><path d="M70 82 Q50 94 30 82" fill="none" stroke="#0f172a" stroke-width="2.5"/><path d="M30 82 l8 0 M30 82 l3 7" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+};
 const D11_VIEWS = [
-  ['Philosophy', 'There is something it is like to be you',
+  ['bat', 'Philosophy', 'There is something it is like to be you',
    'A bat senses the world by echolocation. We could learn every fact about it and still not know what that is like for the bat.',
    'Thomas Nagel, 1974'],
-  ['Neuroscience', 'Information shared across the whole brain',
+  ['broadcast', 'Neuroscience', 'Information shared across the whole brain',
    'Most of what the brain does is unconscious. What we experience is what gets broadcast widely, so many brain systems can use it at once.',
    'Global workspace theory: Bernard Baars, 1988; Stanislas Dehaene'],
-  ['Cognitive science', 'Seeing is something you do',
+  ['look', 'Cognitive science', 'Seeing is something you do',
    'Experience is knowing how your senses change when you act: turn your head, and the view changes in a lawful way.',
    'Kevin O’Regan and Alva Noë, 2001'],
-  ['Computer science', 'Symbols need to touch the world',
+  ['dict', 'Computer science', 'Symbols need to touch the world',
    'Linking words only to other words is like learning Chinese from a Chinese-only dictionary. Meaning needs grounding in perception and action.',
    'The symbol grounding problem: Stevan Harnad, 1990'],
 ];
@@ -116,10 +123,14 @@ st(`
   <h1 class="t">What does it mean to experience?</h1>
   <div class="d11-col">
     <div class="d11-views">
-      ${D11_VIEWS.map(([field, idea, text, who]) => `
-        <div class="d11-view b"><small>${field}</small><b>${idea}</b><span>${text}</span><i class="d11-who">${who}</i></div>`).join('')}
+      ${D11_VIEWS.map(([ic, field, idea, text, who]) => `
+        <div class="d11-view d11-view-ic b"><div class="d11-ic">${D11_VIEW_IC[ic]}</div><small>${field}</small><b>${idea}</b><span>${text}</span><i class="d11-who">${who}</i></div>`).join('')}
     </div>
-    <div class="d11-know d11-all b"><b>To know vs to feel</b>
+    <div class="d11-know d11-all b"><div class="d11-mary"><svg viewBox="0 0 200 80" role="img" aria-label="A gray apple, an arrow, then the same apple in red: seeing red for the first time">
+        <path d="M40 22 C28 14 12 22 14 42 C16 62 30 74 40 68 C50 74 64 62 66 42 C68 22 52 14 40 22 Z" fill="#9ca3af" stroke="#0f172a" stroke-width="3"/><path d="M40 22 Q42 12 48 8" stroke="#0f172a" stroke-width="3" fill="none"/>
+        <path d="M84 44 H112" stroke="#0f172a" stroke-width="3"/><path d="M112 44 l-9 -6 M112 44 l-9 6" stroke="#0f172a" stroke-width="3" stroke-linecap="round"/>
+        <path d="M160 22 C148 14 132 22 134 42 C136 62 150 74 160 68 C170 74 184 62 186 42 C188 22 172 14 160 22 Z" fill="#dc2626" stroke="#0f172a" stroke-width="3"/><path d="M160 22 Q162 12 168 8" stroke="#0f172a" stroke-width="3" fill="none"/>
+      </svg><b>To know vs to feel</b></div>
       <span>Mary knows every fact about color but has only ever seen black and white. When she first sees red, does she learn something new? (Frank Jackson, 1982)</span></div>
   </div>
 `);
