@@ -82,7 +82,7 @@ const D11_VIEWS = [
    'Thomas Nagel, 1974'],
   ['broadcast', 'Neuroscience', 'Information shared across the whole brain',
    'Most of what the brain does is unconscious. What we experience is what gets broadcast widely, so many brain systems can use it at once.',
-   'Global workspace theory: Bernard Baars, 1988; Stanislas Dehaene'],
+   'Global workspace theory: Bernard Baars, 1988; Stanislas Dehaene · in AI: <a href="https://www.anthropic.com/research/global-workspace" target="_blank" rel="noopener">A global workspace in language models</a> (Anthropic, 2026)'],
   ['look', 'Cognitive science', 'Seeing is something you do',
    'Experience is knowing how your senses change when you act: turn your head, and the view changes in a lawful way.',
    'Kevin O’Regan and Alva Noë, 2001'],
