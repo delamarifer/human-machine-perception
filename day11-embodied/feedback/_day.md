@@ -163,3 +163,7 @@ Placed after the labs and the vacuum (the vacuum leads into navigation), before 
 - The divider is gone (Shreya: "just let it continue, we will get through as much as we do today"). After "Back to our
   question" the lecture continues straight into "Robots that know themselves" and "Jacobian fields", with their own names
   in the progress bar again.
+
+## Round 12 (2026-11-16): Mary's room dropped
+- Slide 6 now ends on your line "To know vs to feel" alone (Nagel's bat already makes the same point). The red-apple
+  question from Round 5 is closed.

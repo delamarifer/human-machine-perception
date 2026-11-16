@@ -458,8 +458,6 @@ D11_ARM.s = 0.7;
   .d11-ic svg{ width:100%; display:block; }
 `; document.head.appendChild(el); })();
 (() => { const el = document.createElement('style'); el.textContent = `
-  .d11-mary{ display:flex; align-items:center; justify-content:center; gap:1.6vw; }
-  .d11-mary svg{ height:clamp(2.6rem, 8vh, 6rem); width:auto; }
 `; document.head.appendChild(el); })();
 /* Labs slide: the four headers share one row (subgrid), so a header that wraps to two lines no longer pushes its
    underline below the others; logos row under the list. */

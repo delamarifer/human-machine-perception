@@ -91,13 +91,12 @@ st(`
   </div>
 `);
 
-/* Google slide 5: "What does it mean to experience". Four views (one per click), then her line "To know vs to feel",
-   told with Jackson's Mary's room. Sources:
+/* Google slide 5: "What does it mean to experience". Four views (one per click), then her line "To know vs to feel"
+   (Mary's room was dropped at Shreya's request, 2026-11-16: Nagel's bat already makes the same point). Sources:
    Nagel, T. (1974). What is it like to be a bat? The Philosophical Review 83(4).
    Baars, B. (1988). A Cognitive Theory of Consciousness. Cambridge Univ. Press; Dehaene, S. (2014). Consciousness and the Brain.
    O'Regan, J. K. & Noe, A. (2001). A sensorimotor account of vision and visual consciousness. Behavioral and Brain Sciences 24(5).
-   Harnad, S. (1990). The symbol grounding problem. Physica D 42 (the Chinese/Chinese dictionary example is his).
-   Jackson, F. (1982). Epiphenomenal qualia. The Philosophical Quarterly 32(127). */
+   Harnad, S. (1990). The symbol grounding problem. Physica D 42 (the Chinese/Chinese dictionary example is his). */
 /* Small drawings for the four views (made for this deck; Shreya asked for a visual on this slide). */
 const D11_VIEW_IC = {
   bat: `<svg viewBox="0 0 100 90" aria-hidden="true"><path d="M50 40 C44 30 30 24 12 30 C20 34 22 40 20 46 C28 42 34 44 38 50 C42 46 46 46 50 52 C54 46 58 46 62 50 C66 44 72 42 80 46 C78 40 80 34 88 30 C70 24 56 30 50 40 Z" fill="#0f172a"/><path d="M46 36 l-2 -6 l5 4 M54 36 l2 -6 l-5 4" stroke="#0f172a" stroke-width="2.5" fill="none"/><path d="M30 66 q20 10 40 0 M22 74 q28 14 56 0 M14 82 q36 16 72 0" stroke="#0f172a" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`,
@@ -126,12 +125,7 @@ st(`
       ${D11_VIEWS.map(([ic, field, idea, text, who]) => `
         <div class="d11-view d11-view-ic b"><div class="d11-ic">${D11_VIEW_IC[ic]}</div><small>${field}</small><b>${idea}</b><span>${text}</span><i class="d11-who">${who}</i></div>`).join('')}
     </div>
-    <div class="d11-know d11-all b"><div class="d11-mary"><svg viewBox="0 0 200 80" role="img" aria-label="A gray apple, an arrow, then the same apple in red: seeing red for the first time">
-        <path d="M40 22 C28 14 12 22 14 42 C16 62 30 74 40 68 C50 74 64 62 66 42 C68 22 52 14 40 22 Z" fill="#9ca3af" stroke="#0f172a" stroke-width="3"/><path d="M40 22 Q42 12 48 8" stroke="#0f172a" stroke-width="3" fill="none"/>
-        <path d="M84 44 H112" stroke="#0f172a" stroke-width="3"/><path d="M112 44 l-9 -6 M112 44 l-9 6" stroke="#0f172a" stroke-width="3" stroke-linecap="round"/>
-        <path d="M160 22 C148 14 132 22 134 42 C136 62 150 74 160 68 C170 74 184 62 186 42 C188 22 172 14 160 22 Z" fill="#dc2626" stroke="#0f172a" stroke-width="3"/><path d="M160 22 Q162 12 168 8" stroke="#0f172a" stroke-width="3" fill="none"/>
-      </svg><b>To know vs to feel</b></div>
-      <span>Mary knows every fact about color but has only ever seen black and white. When she first sees red, does she learn something new? (Frank Jackson, 1982)</span></div>
+    <div class="d11-know d11-all b"><b>To know vs to feel</b></div>
   </div>
 `);
 }
