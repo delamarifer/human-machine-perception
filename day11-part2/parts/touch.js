@@ -141,7 +141,7 @@ st(`
 
 /* 5. The conclusion (3 clicks). His sharpest claim; the quotation is spoken, not displayed. */
 st(`
-  <h1 class="t">Where he thinks the field is looking</h1>
+  <h1 class="t">Where the field is looking</h1>
   <div class="d11-body">
     <div class="d11-big b" data-step="1">“A distraction”</div>
     <div class="lead b" data-step="2" style="text-align:center">The recipe is solved. The egg is not.</div>

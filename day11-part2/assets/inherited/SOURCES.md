@@ -17,12 +17,12 @@ the papers the talk discusses, or as captures from the talk's own slides**. The 
 | File | What it shows | Used on | Most likely origin |
 |---|---|---|---|
 | `mk-goat.jpg` | GOAT: goals given as an image, a sentence or a category, and the path through a home to four goals | `three`, the Airbnb test | the GOAT paper (Chang, Gervet, Khanna, Yenamandra and colleagues, RSS 2024, arXiv 2311.06430) |
-| `mk-goat-map.jpg` | a floor plan with the robot's path to four goals | not used yet | as above |
+| `mk-goat-map.jpg` | a floor plan with the robot's path to four goals | **not used** &mdash; `mk-goat.jpg` already contains this map | as above |
 | `mk-walk-sf.jpg` | twelve photographs of a humanoid walking around San Francisco | `three`, Locomotion | the Berkeley humanoid locomotion work (Radosavovic and colleagues) |
-| `mk-walk-panel.jpg` | a panel of the humanoid walking outdoors | not used yet | as above |
+| `mk-walk-panel.jpg` | a panel of the humanoid walking outdoors | **not used** &mdash; `mk-walk-sf.jpg` is the fuller version of the same thing | as above |
 | `mk-droid.jpg` | the DROID rig: a robot arm on a portable desk with cameras, and the operator's headset | `data`, teleoperation | the DROID dataset (Khazatsky and colleagues, 2024) |
-| `mk-dexmv.jpg` | human hand video, the hand and object recovered in 3D, then a robot hand doing the same in simulation | not used yet | the retargeting work the talk shows around 26:26 |
-| `ex-sim.jpg` | robots learning in a physics simulator: a humanoid, an arm, a legged robot, a hand | not used yet | unclear |
+| `mk-dexmv.jpg` | human hand video, the hand and object recovered in 3D, then a robot hand doing the same in simulation | `child`, the video-to-policy pipeline | the retargeting work the talk shows around 26:26 |
+| `ex-sim.jpg` | robots learning in a physics simulator: a humanoid, an arm, a legged robot, a hand | `data`, the Simulation door | unclear |
 
 ## What this changed in the deck
 
@@ -38,6 +38,12 @@ thing, and those apologies are now gone:
 
 The replaced files are still in `assets/three/` and `assets/data/` with their licences intact, so any of the
 three swaps can be reverted in one line.
+
+## Two of the seven are deliberately unused
+
+`mk-goat-map.jpg` and `mk-walk-panel.jpg` are not wired in, and should not be: each duplicates something
+already on the slide. `mk-goat.jpg` already contains the floor plan and path, and `mk-walk-sf.jpg` is the
+fuller version of the walking panel. Adding them would repeat a picture rather than add one.
 
 ## The open question, stated plainly
 

@@ -247,7 +247,7 @@ st(`
       is now read aloud from the note rather than displayed; the slide keeps three words of it as a cue. */
 st(`
   <h1 class="t">Simulation</h1>
-  <div class="d11-data-head">the objection he refuses</div>
+  <div class="d11-data-head">the standard objection, refused</div>
   <div class="d11-body">
     <svg class="d11-svg" viewBox="0 0 1000 360" role="img"
       aria-label="Navigation and locomotion both arrive at one box, cracked in simulation; below, the sim-to-real objection struck through">
@@ -269,6 +269,10 @@ st(`
         <text x="500" y="348" style="font-size:27px;font-weight:700">just more engineering</text>
       </g>
     </svg>
+    <figure class="b" data-step="1" style="margin:1vh 0 0">
+      <img src="assets/inherited/ex-sim.jpg" style="max-height:20vh;width:auto;display:block;margin:0 auto;border-radius:10px"
+        alt="Robots learning in a physics simulator: a humanoid, an arm, a legged robot and a hand">
+    </figure>
   </div>
   ${cite(MALIK_CITE)}
 `, { notes: [

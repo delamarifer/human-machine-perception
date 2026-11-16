@@ -255,7 +255,7 @@ st(`
         <b>a power grasp</b>
       </div>
     </div>
-    <div class="lv-cue b" data-step="5">A belief, he says: you need hands</div>
+    <div class="lv-cue b" data-step="5">A belief, not a result: you need hands</div>
   </div>
   ${cite(LV_CITE + ' · 10:14 and 11:42 · receptor roles after ' + JF + ' · ' + CC.skin + ' · ' + CC.hands)}
 `, { notes: [

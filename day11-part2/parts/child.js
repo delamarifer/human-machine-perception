@@ -220,10 +220,14 @@ st(`
           </g>`; }).join('')}
       <text class="b" data-step="5" x="500" y="506" style="font-size:26px;font-weight:700">about 100 trajectories</text>
     </svg>
+    <figure class="child-photo b" data-step="5" style="margin:1vh 0 0">
+      <img src="assets/inherited/mk-dexmv.jpg" style="max-height:21vh;width:auto;display:block;margin:0 auto"
+        alt="Top row: video of a person's hand moving objects. Middle: the hand and object recovered in 3D. Bottom: a robot hand doing the same tasks in a simulator">
+    </figure>
   </div>
   ${cite('After ' + d11Link('Allshire, Choi, Zhang, McAllister and colleagues, "Visual Imitation Enables Contextual Humanoid Control", CoRL 2025 (Best Student Paper)', 'https://videomimic.net/')
     + ' · ' + d11Link('Malik, ETH Zurich, 2026, 22:24', MALIK_TALK)
-    + ' · drawn here; the 100 figure is Malik&rsquo;s own, spoken in the talk, not read off the paper')}
+    + ' · drawn here; the 100 figure is spoken in the talk, not read off the paper &middot; photograph by way of the talk')}
 `, { notes: [
   "(draft) The existence proof he offers is in locomotion, not manipulation, and it is worth a minute, because the recipe is the formula you just saw with the boxes filled in.",
   "(draft) Start with what blind locomotion means. A quadruped or a humanoid with no vision at all, walking by proprioception and reflex, feeling for the ground with its feet and correcting. That works astonishingly well on flat ground and even on broken ground, and it is most of what you have seen in robot videos.",
@@ -251,7 +255,7 @@ st(`
       <div class="child-cap b" data-step="2">a bit drunk</div>
       <div class="child-cap b" data-step="3">whisking &middot; pouring &middot; brushing</div>
     </div>
-    <div class="lead b" data-step="4" style="text-align:center;margin-top:2.2vh">Cherry-picked, he says so</div>
+    <div class="lead b" data-step="4" style="text-align:center;margin-top:2.2vh">Cherry-picked, and the talk says so</div>
     <div class="d11-big b" data-step="5">six years, not two</div>
   </div>
   ${cite('Authors&rsquo; own videos, played from ' + d11Link('videomimic.net', 'https://videomimic.net/')

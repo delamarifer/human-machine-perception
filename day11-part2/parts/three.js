@@ -237,7 +237,7 @@ st(`
 
 /* ============ SLIDE 3 (4 clicks): the verdict. One figure, so no stages. ============ */
 st(`
-  <h1 class="t">The verdict he says will offend people</h1>
+  <h1 class="t">The verdict, offered to offend</h1>
   <div class="d11-body">
     <svg class="d11-svg" viewBox="0 0 1000 300" role="img"
       aria-label="Three verdicts: navigation nearly done, locomotion good progress, manipulation a long way to go">
