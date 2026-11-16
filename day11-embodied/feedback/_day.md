@@ -158,3 +158,8 @@ Placed after the labs and the vacuum (the vacuum leads into navigation), before 
 - Tedrake's Diffusion Policy card now says "the way of learning from demonstrations we just saw" (it comes after it).
 - [ ] When Day 12 has an owner and a folder, slides 31-49 (parts selfmodel.js and njf.js) can move there as they are.
 - [ ] Today's section estimates now add up to about 70 minutes of slides, leaving room for discussion and a break.
+
+## Round 11 (2026-11-16): no "Next time"
+- The divider is gone (Shreya: "just let it continue, we will get through as much as we do today"). After "Back to our
+  question" the lecture continues straight into "Robots that know themselves" and "Jacobian fields", with their own names
+  in the progress bar again.

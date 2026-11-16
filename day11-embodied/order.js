@@ -13,4 +13,4 @@ const ORDER = [
 const PARTS = ORDER.map(r => r[0]);
 
 /* Minutes per section (sets the widths in the progress bar). Draft: change freely. */
-const SEC_MINUTES = { 'Start': 12, 'Embodied agents': 14, 'The big picture': 30, 'Academia and industry': 6, 'Closing': 8, 'Next time': 12 };
+const SEC_MINUTES = { 'Start': 12, 'Embodied agents': 14, 'The big picture': 30, 'Academia and industry': 6, 'Closing': 8, 'Robots that know themselves': 14, 'Jacobian fields': 18 };

@@ -8,7 +8,7 @@
    The math is standard; where the paper's exact loss or solver differs, the slide says "in words" or "in the paper".
    No speaker notes. */
 {
-section('Next time');
+section('Jacobian fields');
 
 const T = d11Tex;
 

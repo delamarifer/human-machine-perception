@@ -6,16 +6,9 @@
    Neural Jacobian Fields facts from MIT News, 2025-07-24, "Robot, know thyself" (the CSAIL page refuses automated reads).
    No speaker notes. */
 {
-section('Next time');
+section('Robots that know themselves');
 
-/* Moved after the close on 2026-11-16 (Shreya: "move the jacobian and math bits to the end / the next day"). This
-   divider marks where today's lecture ends; everything after it is next-day material. */
-st(`
-  <div class="center" style="margin:auto">
-    <div class="label">Next time</div>
-    <div class="statement" style="font-weight:700;font-size:clamp(2rem,3.8vw,3.4rem);margin-top:2vh">Robots that learn their own bodies, from vision alone</div>
-  </div>
-`);
+/* Comes after the close (Shreya, 2026-11-16): the lecture continues into this material and covers as much as time allows. */
 
 /* Google slide 11, her words, one per click */
 st(`
