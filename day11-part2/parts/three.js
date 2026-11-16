@@ -92,7 +92,7 @@ st(`
   ${stage(10, `
     <div class="d11-cols">
       <div class="d11-media b" data-step="10">
-        <img class="d11-three-shot" src="assets/three/spot.jpg" alt="A Boston Dynamics Spot quadruped standing on a forest track">
+        <img class="d11-three-shot" src="assets/inherited/mk-goat.jpg" alt="GOAT: goals given as an image, a sentence or a category, and the path the robot took through a home to four goals in turn">
       </div>
       <div class="d11-side">
         <div class="d11-three-find b" data-step="11">${threeMark('none')}<span>end to end</span></div>
@@ -103,7 +103,7 @@ st(`
         </div>
       </div>
     </div>`,
-    'Photograph: Jonte, Wikimedia Commons, CC BY-SA 4.0 — a Spot, not a photograph from these experiments · findings as stated in the talk · ' + GOAT_CITE)}
+    'Figure from the GOAT work, by way of the talk · findings as stated in the talk · ' + GOAT_CITE)}
 
   ${stage(5, `
     <svg class="d11-svg" viewBox="0 0 1000 420" role="img"
@@ -203,10 +203,10 @@ st(`
         </g>
       </svg>
       <div class="d11-media b" data-step="7">
-        <img class="d11-three-shot" src="assets/three/sf-steep-street.jpg" alt="A steep street in San Francisco, photographed with the camera level with the road">
+        <img class="d11-three-shot" src="assets/inherited/mk-walk-sf.jpg" alt="Twelve photographs of a humanoid robot walking in different places around San Francisco">
       </div>
     </div>`,
-    'Grades as stated in the talk; figure drawn to true angle · photograph: Hakan Dahlstrom, Wikimedia Commons, CC BY 2.0 — a steep San Francisco street, not the street in the talk · ' + MALIK_CITE)}
+    'Grades as stated in the talk; figure drawn to true angle · photographs of the robot by way of the talk · ' + MALIK_CITE)}
 
   ${stage(1, `
     <div class="d11-cols">

@@ -91,7 +91,7 @@ st(`
   <div class="d11-data-head">candidate one: teleoperation</div>
   <div class="d11-cols">
     <div class="d11-media b" data-step="1">
-      <img src="assets/data/teleop-robonaut2-iss.jpg" alt="An astronaut wearing a head-mounted display drives a humanoid robot whose white hands are raised in the foreground">
+      <img src="assets/inherited/mk-droid.jpg" alt="The DROID data-collection setup: a robot arm on a portable desk with cameras, and the headset the operator wears to drive it">
     </div>
     <div class="d11-side">
       <div class="d11-data-cue b" data-step="2">Leader and follower</div>
@@ -99,7 +99,7 @@ st(`
       <div class="d11-data-cue b" data-step="4">Vision only. No touch.</div>
     </div>
   </div>
-  ${cite('Photograph: NASA, ISS035-E-030791, public domain — an astronaut on the ISS, not a data-collection rig · ' + MALIK_CITE)}
+  ${cite('The DROID data-collection rig, by way of the talk · ' + MALIK_CITE)}
 `, { sub: true, notes: [
   "(draft) Start with the one that is actually working, in the sense that it is what the field is doing. Teleoperation.",
   "(draft) This photograph is not one of those rigs. It is an astronaut on the space station driving Robonaut 2, and I am using it because it is public domain and because it has exactly the right shape: a person with a display strapped to their face, hands inside controllers, and the robot's hands moving in front of them. Hold that picture.",
