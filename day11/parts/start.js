@@ -22,6 +22,44 @@ st(`
   </div>
 `);
 
+/* Opening poll (Shreya, 2026-11-16): a quick Google Form, a 1-5 agree scale then one open question. Form:
+   https://forms.gle/TPYtFArkZh8B6rgH8 (QR code made with segno). Results are shown live from the form's Responses tab. */
+st(`
+  <h1 class="t">Can AI be creative?</h1>
+  <div class="d10-col">
+    <div class="d10-poll">
+      <div class="d10-poll-qs">
+        <div class="d10-poll-claim b" data-step="1">“AI can be creative.”</div>
+        <div class="d10-scale b" data-step="1">
+          <div><b>1</b><span>Strongly disagree</span></div><div><b>2</b></div><div><b>3</b></div><div><b>4</b></div><div><b>5</b><span>Strongly agree</span></div>
+        </div>
+        <div class="d10-poll-why b" data-step="2">Why did you choose that number?</div>
+      </div>
+      <div class="d10-qr b" data-step="1"><img src="assets/creative-poll-qr.svg" alt="QR code for the poll form"><span>forms.gle/TPYtFArkZh8B6rgH8</span></div>
+    </div>
+  </div>
+`);
+
+/* After the poll results: the theory, to settle what the class just disagreed on. Standard definition: Runco and Jaeger,
+   "The Standard Definition of Creativity", Creativity Research Journal 24(1), 2012 (tracing it to Stein 1953). Three kinds:
+   Margaret Boden, The Creative Mind (1990). */
+st(`
+  <h1 class="t">What do we mean by creative?</h1>
+  <div class="d10-col">
+    <div class="d10-crea">
+      <div class="d10-crea-def b" data-step="1"><small>A common definition</small><b>creative = <u>new</u> + <u>useful</u></b></div>
+      <div class="d10-crea-kinds b" data-step="2">
+        <small>Three kinds of creativity</small>
+        <div><b>Combining</b><span>familiar ideas in a new way</span></div>
+        <div><b>Exploring</b><span>a space of possibilities</span></div>
+        <div><b>Transforming</b><span>the space itself, so new things become possible</span></div>
+      </div>
+      <div class="d10-gnote b" data-step="3">Which of these can AI do?</div>
+    </div>
+  </div>
+  ${cite('Runco and Jaeger, "The Standard Definition of Creativity" (2012) · Margaret Boden, <i>The Creative Mind</i> (1990)')}
+`);
+
 /* A short intro to generative art (Shreya, 2026-11-15: "just the 2"). Definition after Galanter (2003): art made with a
    system that runs with some autonomy (rules, a program, a machine). Timeline examples checked 2026-11-15: Frieder Nake
    exhibited computer drawings in 1965; Harold Cohen's AARON first shown 1972-73; Anna Ridler, Myriad (Tulips), 2018,
@@ -72,7 +110,11 @@ st(`
     </div>
   </div>
   ${cite('Photos: Zarateman (CC0) · Vera Molnar (CC0) · Jean-no (CC0) · art_inthecity (CC BY 2.0), via Wikimedia Commons')}
-`);
+`, {notes: `(draft) Generative art is much older than AI, and even older than computers. The question for this slide is simple: what is the system made of? We will see four answers, from the 1960s to today. Each time, the artist still designs the system, but the system changes. As we go, ask yourself: where is the art? In the idea, in the system, or in the final object?
+[click] (draft) We start in the 1960s with Sol LeWitt. This is Wall Drawing 831, Geometric Forms, at the Guggenheim in Bilbao. LeWitt did not paint this himself. He wrote instructions, and other people, often a team of assistants, drew it on the wall. The instructions can be carried out again in another museum, by other people, and the result will be a little different each time. LeWitt wrote that the idea becomes a machine that makes the art. So here the system is just written rules, and the people who follow them are the machine. No computer at all.
+[click] (draft) In the 1960s and 70s, artists start to use real computers. This is Vera Molnar, Interruptions à recouvrements, from 1969. She wrote programs that place many short lines, then add small random changes and gaps, and a plotter, a machine that holds a pen, draws the result. At the same time, Frieder Nake showed computer drawings in Stuttgart in 1965. Harold Cohen, a painter, built a program called AARON in the early 1970s, which made drawings on its own, and he kept working on it for decades. Now the system is code: the artist writes the rules in a language the computer understands, and the computer carries them out. Randomness is part of the design.
+[click] (draft) In the 2000s, Processing, made by Casey Reas and Ben Fry, made code much easier for artists and designers. It is free, and it is made for drawing. On the left you see six lines of Processing code: they draw two sets of circles, one around each of two centers. On the right is the result. Where the circles overlap, a new pattern appears that nobody drew directly. This is called creative coding: a very small rule can give a rich image. The pattern on our previous slide works the same way, with some randomness added, so it is new every time.[click] (draft) Today, the system can be a model that learns from data. This is Anna Ridler, Mosaic Virus, from 2019. She took about 10,000 photos of tulips herself and labeled each one by hand. Then she trained a GAN, a kind of generative model, on those photos, and it makes new tulips that never existed. Notice where her work went: not into drawing tulips, and not into writing rules for tulips, but into making and labeling the dataset. After GANs came diffusion models, which power most of today's image generators. This is the world Refik Anadol works in.
+[click] (draft) So the artist's work keeps shifting: from drawing, to writing rules, to choosing data. In all four cases, the artist designs a system and gives up some control. What changes is what they design. Keep this in mind when we look at Anadol: a lot of his art is in the data he chooses, how he cleans it, and how he shows the result. That is exactly the pipeline we will reverse-engineer today.`});
 
 st(`
   <h1 class="t">Who is Refik Anadol?</h1>

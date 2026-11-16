@@ -95,6 +95,28 @@
   .d10-gwork{ background:#f8fafc; }
   .d10-gen-canvas{ width:100%; height:auto; aspect-ratio:8 / 5; display:block; background:#fff; border-radius:8px; }
   .d10-gnote{ margin-top:4vh; text-align:center; font-size:clamp(1.25rem, 2.2vw, 2rem); }
+  /* opening poll and the creativity slide (Day 11) */
+  .d10-poll{ display:grid; grid-template-columns:minmax(0, 1fr) auto; gap:4vw; align-items:center; }
+  .d10-poll-qs{ display:flex; flex-direction:column; gap:4vh; }
+  .d10-poll-claim{ font-size:clamp(2rem, 4vw, 3.6rem); font-weight:700; }
+  .d10-scale{ display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:1vw; }
+  .d10-scale > div{ border:2px solid var(--ink); border-radius:14px; padding:1.6vh .6vw; text-align:center; display:flex; flex-direction:column; gap:.6vh; }
+  .d10-scale b{ font-size:clamp(1.6rem, 3vw, 2.7rem); }
+  .d10-scale span{ font-size:clamp(.85rem, 1.25vw, 1.15rem); color:var(--mute); }
+  .d10-poll-why{ font-size:clamp(1.4rem, 2.6vw, 2.3rem); }
+  .d10-qr{ display:flex; flex-direction:column; align-items:center; gap:1.4vh; }
+  .d10-qr-box{ width:min(26vw, 44vh); aspect-ratio:1; border:2px dashed var(--mute); border-radius:12px; display:flex; align-items:center; justify-content:center; color:var(--mute); font-size:clamp(1rem, 1.6vw, 1.4rem); }
+  .d10-qr img{ width:min(26vw, 44vh); aspect-ratio:1; }
+  .d10-qr span{ font-size:clamp(.95rem, 1.4vw, 1.3rem); color:var(--mute); }
+  .d10-crea{ display:flex; flex-direction:column; gap:4vh; }
+  .d10-crea small{ display:block; font-size:clamp(.95rem, 1.4vw, 1.3rem); text-transform:uppercase; letter-spacing:.08em; color:var(--mute); margin-bottom:1.2vh; }
+  .d10-crea-def b{ font-size:clamp(2rem, 3.8vw, 3.4rem); }
+  .d10-crea-kinds{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:1.6vw; }
+  .d10-crea-kinds small{ grid-column:1 / -1; margin-bottom:0; }
+  .d10-crea-kinds > div{ border:2px solid var(--ink); border-radius:16px; padding:2.2vh 1.4vw; display:flex; flex-direction:column; gap:.8vh; }
+  .d10-crea-kinds b{ font-size:clamp(1.5rem, 2.6vw, 2.4rem); }
+  .d10-crea-kinds span{ font-size:clamp(1.05rem, 1.7vw, 1.55rem); color:var(--mute); }
+  @media (max-width: 760px){ .d10-poll, .d10-crea-kinds{ grid-template-columns:1fr; } }
   /* A short history: a large spotlight on the newest example, a row of steps underneath */
   .d10-hist{ justify-content:flex-start; gap:2.4vh; }
   .d10-spot{ height:44vh; flex:none; }
