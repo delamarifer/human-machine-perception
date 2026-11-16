@@ -142,3 +142,12 @@ Placed after the labs and the vacuum (the vacuum leads into navigation), before 
 - [ ] The deck now ends on "Given a motion trajectory" (the Jacobian section). It needs a close: Malik's answer (Turing's
   child machine, the child watching her father) back to your opening question?
 - [ ] The three clips need internet in class.
+
+## Round 9 (2026-11-16): closing section (slides 46-48)
+- 46 Learn like a child: Turing 1950 (short quote), then Malik's child-watching-her-father example, then his clip
+  (20:24-22:13). 47 It already works for walking: a drawn 4-step pipeline (watch, rebuild in 3D, move to a robot body,
+  practice), about 100 example motions (his figure), "the same recipe for hands: close, but not fully solved", then his
+  clip (22:24-25:06). VideoMimic's figures are not CC licensed, so none are used. 48 Back to our question: the Day 10
+  statement, 17 of 25 disagreed, Malik's answer, and a final discussion question.
+- [ ] Titles and the final question ("If a robot learns that way, is it experiencing the world?") are drafts.
+- [ ] The closed "Learning to act" open question about whether the deck ended well: now it ends on 48.
