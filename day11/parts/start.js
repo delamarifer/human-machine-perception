@@ -9,7 +9,8 @@ section('Start');
 
 st(`
   <div class="center" style="margin:auto">
-    <div class="statement" style="font-weight:700;font-size:clamp(2rem,3.7vw,3.3rem)">What if a machine could dream?</div>
+    <div class="statement" style="font-weight:700;font-size:clamp(2.4rem,4.6vw,4.2rem)">Generative art</div>
+    <div class="statement" style="font-size:clamp(1.5rem,2.6vw,2.4rem);margin-top:1.4vh">What if a machine could dream?</div>
     <div class="label" style="margin-top:2.2vh">Day 11 · Exploring the intersection of artificial intelligence, creativity and human perception</div>
   </div>
 `);
