@@ -41,7 +41,7 @@ st(`
 /* How the two sides feed each other: three real examples, one per click. */
 const D11_TED = [
   ['Software', 'Drake', 'A robot simulator started in his MIT group in 2005. Toyota Research Institute now leads its development, and it is free and open source.'],
-  ['Research', 'Diffusion Policy', 'A way for robots to learn from demonstrations, coming later today: written by researchers at Columbia, Toyota Research Institute and MIT, Tedrake among them.'],
+  ['Research', 'Diffusion Policy', 'The way of learning from demonstrations we just saw: written by researchers at Columbia, Toyota Research Institute and MIT, Tedrake among them.'],
   ['Robots', 'Atlas learns from demonstrations', 'Boston Dynamics and Toyota Research Institute, partners since 2024: one Large Behavior Model controls the whole humanoid, and new skills come from human demonstrations.'],
 ];
 st(`

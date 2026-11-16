@@ -151,3 +151,10 @@ Placed after the labs and the vacuum (the vacuum leads into navigation), before 
   statement, 17 of 25 disagreed, Malik's answer, and a final discussion question.
 - [ ] Titles and the final question ("If a robot learns that way, is it experiencing the world?") are drafts.
 - [ ] The closed "Learning to act" open question about whether the deck ended well: now it ends on 48.
+
+## Round 10 (2026-11-16): math moved to "Next time"
+- Today's lecture is now slides 1-30 and ends on "Back to our question". Slide 31 is a "Next time" divider; after it come
+  "Robots that know themselves" and the Jacobian section (slides 32-49), both now under the section "Next time".
+- Tedrake's Diffusion Policy card now says "the way of learning from demonstrations we just saw" (it comes after it).
+- [ ] When Day 12 has an owner and a folder, slides 31-49 (parts selfmodel.js and njf.js) can move there as they are.
+- [ ] Today's section estimates now add up to about 70 minutes of slides, leaving room for discussion and a break.
