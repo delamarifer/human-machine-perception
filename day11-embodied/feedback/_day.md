@@ -111,7 +111,7 @@ Li et al., Nature 2025 (CC BY 4.0). Her comments applied on 17, 18, 24, 25.
 - [ ] Slide 14: "$25,000" removed; draft point: "This only works because the body is built to match an exact model:
   rigid parts, precise sensors" (leads into the soft-robot slide).
 
-## Round 6 (2026-11-16): Tedrake segment (new section "Academia and industry", slides 33-35)
+## Round 6 (2026-11-16): Tedrake segment (new section "Academia and industry"; moved to slides 12-14, right after the MIT labs and the vacuum, at Shreya's request)
 - [ ] Draft titles and the closing lines on 33 and 34 are mine; the facts are from his MIT page, drake.mit.edu, the
   Diffusion Policy author list and TRI's 20 Aug 2025 press release.
 - [ ] His MIT page (read 2026-11-16) says he "spent 10 years" at TRI and now leads a stealth physical-AI startup, so the

@@ -4,10 +4,10 @@ const ORDER = [
   ['intro',  'Title, what an embodied agent is, last week\'s discussion question and your answers, what it means to experience'],
   ['agents', 'Examples of embodied agents, the video, the common problems'],
   ['labs',   'Embodied intelligence labs at MIT, the robot vacuum pipeline'],
+  ['tedrake', 'Russ Tedrake: academia and industry at once, how they feed each other, his path'],
   ['selfmodel', 'Vision for self-state, what 3D scenes miss, how robots work today, soft printed robots, control from vision, Neural Jacobian Fields'],
   ['njf',    'Body Jacobian, Jacobian fields, scene flow and optical flow, training data, self-supervised training, control along a trajectory'],
   ['learning', 'Reinforcement learning, diffusion policy, the data problem'],
-  ['tedrake', 'Russ Tedrake: academia and industry at once, how they feed each other, his path'],
 ];
 const PARTS = ORDER.map(r => r[0]);
 
