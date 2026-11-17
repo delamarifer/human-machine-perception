@@ -42,14 +42,15 @@ st(`
       ${d12Step(d12Img('walden', 'Walden Robotics'), 'January 2026', 'Walden Robotics', 'Spins out of Toyota Research Institute with his team; robots now at work in a Toyota factory')}
     </div>
     </div>
-    <div class="d12-callout b">Still an MIT professor: the lab asks the questions, the company runs them at scale</div>
   </div>
-  ${cite('Photo: source to add · Tedrake’s MIT page · Tedrake, “Why Walden?” (waldenrobotics.com, Jul 2026)')}
+  ${cite('Photo: MIT News (news.mit.edu, Apr 2022) · Tedrake’s MIT page · Tedrake, “Why Walden?” (waldenrobotics.com, Jul 2026)')}
 `);
 
 st(`
   <h1 class="t">Chelsea Finn: academia and big tech, then a startup</h1>
   <div class="d12-col">
+    <div class="d12-person">
+    <figure class="d12-photo b"><img src="assets/finn-lab.png" alt="Chelsea Finn, left, working with a PR2 robot" style="object-position:22% 40%"></figure>
     <div class="d12-route">
       ${d12Step(d12Img('berkeley', 'UC Berkeley') + d12Img('google', 'Google', true), 'PhD, 2018', 'UC Berkeley, with internships at Google Brain', 'Advised by Sergey Levine and Pieter Abbeel')}
       <div class="d12-arrow">→</div>
@@ -57,9 +58,9 @@ st(`
       <div class="d12-arrow">→</div>
       ${d12Step('<div class="d12-word">Physical Intelligence (π)</div>', 'Co-founder', 'Physical Intelligence', 'A startup building foundation models for robots: the π models')}
     </div>
-    <div class="d12-callout b">Academia and industry from the start, then her own company</div>
+    </div>
   </div>
-  ${cite('Chelsea Finn, Wikipedia (read Nov 2026) · pi.website')}
+  ${cite('Photo: ORF (orfonline.org) · Chelsea Finn, Wikipedia (read Nov 2026) · pi.website')}
 `);
 
 st(`

@@ -33,4 +33,5 @@ Wikimedia Commons; all shown in gray, so no colors enter the deck.
 - [ ] Want an actual Physical Intelligence logo? Send one, or keep the name as text.
 - [ ] Slide 3: Wikipedia says she "previously worked for Google" without dates, so the slide does not claim the
       Stanford and Google years overlapped.
-- [ ] Slide 2: photo of Russ Tedrake (Shreya sent it, 2026-11-17): where is it from? The credit line says "source to add".
+- [x] Slide 2 photo: MIT News, 2022-04-11 (news.mit.edu/2022/robotic-manipulation-mit-course-0411). Slide 3 photo: ORF
+      (orfonline.org/expert-speak/chelsea-finn-teaching-brett-robot-how-world-works-45635). Callouts on both path slides removed.
