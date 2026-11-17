@@ -44,3 +44,9 @@ PI pi*0.6, then the reading slide last. Parts: start, tedrake, walden, finn, pi,
 
 ## Round 4 (2026-11-17)
 Reading slide removed (Shreya: the posts are now covered in the slides). 7 slides.
+
+## Round 5 (2026-11-17)
+Videos from the posts on both post slides, streamed from the companies sites (not copied into the public repo):
+Walden: hero clip (Sage at work) and Figure 6 (Sage-1k vs Sage, gearbox); PI: pretraining-data clip (box building),
+intervention example (coaching), making coffee (after practice). They play muted while shown and pause when you leave.
+- [ ] Streaming needs the internet in class. Say if you want them downloaded into assets/ for offline use.

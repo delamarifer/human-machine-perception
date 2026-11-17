@@ -1,5 +1,6 @@
 /* PART: pi (Day 12, owner: Shreya). Why copying demonstrations is not enough (an illustration), then the pi*0.6 post
-   in one slide. Source: Physical Intelligence, "pi*0.6: a VLA that Learns from Experience", pi.website/blog/pistar06
+   in one slide. Videos stream from the post (website.pi-asset.com/pi06star/: box_building = pretraining data,
+   intervention_example = an expert takes over, making_coffee = after RECAP). Source: Physical Intelligence, "pi*0.6: a VLA that Learns from Experience", pi.website/blog/pistar06
    (17 Nov 2025): compounding errors; RECAP = demonstrations, corrections (expert takes over), and RL from autonomous
    experience; a value function predicts progress; the policy is trained on all data conditioned on the advantage, then
    asked for high-advantage actions; more than doubles throughput on some of the hardest tasks; failure rates down 2x
@@ -35,9 +36,9 @@ st(`
   <h1 class="t">Physical Intelligence’s π*0.6: instruction, coaching, practice</h1>
   <div class="d12-col">
     <div class="d12-loop" style="--n:3">
-      <div class="b"><small>1 · Instruction</small><b>Demonstrations</b><span>People drive the robot through the task</span></div>
-      <div class="b"><small>2 · Coaching</small><b>Corrections</b><span>An expert takes over when the robot makes a mistake</span></div>
-      <div class="b"><small>3 · Practice</small><b>Reinforcement learning</b><span>The robot learns from its own attempts</span></div>
+      <div class="b">${d12Vid("https://website.pi-asset.com/pi06star/box_building.mp4")}<small>1 · Instruction</small><b>Demonstrations</b><span>People drive the robot through the task</span></div>
+      <div class="b">${d12Vid("https://website.pi-asset.com/pi06star/intervention_example.mp4")}<small>2 · Coaching</small><b>Corrections</b><span>An expert takes over when the robot makes a mistake</span></div>
+      <div class="b">${d12Vid("https://website.pi-asset.com/pi06star/making_coffee.mp4")}<small>3 · Practice</small><b>Reinforcement learning</b><span>The robot learns from its own attempts (after practice: espresso)</span></div>
     </div>
     <div class="d12-callout b">How practice works: a value function predicts progress toward the goal. Actions that raise it are good. Train on everything, labeled good or bad, then ask for the good actions.</div>
     <div class="d12-nums" style="--n:3">
@@ -46,6 +47,6 @@ st(`
       <div class="d12-num b"><b>5:30am – 11:30pm</b><span>making espresso drinks, without interruption</span></div>
     </div>
   </div>
-  ${cite('Physical Intelligence, “π*0.6: a VLA that learns from experience” (Nov 2025). Numbers reported by the company.')}
+  ${cite('Videos and numbers: Physical Intelligence, “π*0.6: a VLA that learns from experience” (Nov 2025), reported by the company')}
 `);
 }

@@ -96,3 +96,27 @@ const d12Img = (n, alt, wide) => `<img src="assets/logo-${n}.svg" alt="${alt}"${
   .d12-photo2{ margin:0; } .d12-photo2 img{ width:100%; aspect-ratio:4 / 3; object-fit:cover; object-position:50% 40%; border-radius:12px; display:block; }
   @media (max-width: 820px), (max-aspect-ratio: 1/1){ .d12-why{ grid-template-columns:1fr; } }
 `; document.head.appendChild(el); })();
+
+/* Videos from the blog posts, streamed from the companies' sites (not copied into the repo). Muted and looping; they
+   play only while shown on the active slide, and restart from the beginning each time. */
+const d12Vid = (src, poster) => `<video class="d12-vid" src="${src}"${poster ? ` poster="${poster}"` : ''} muted loop playsinline preload="metadata"></video>`;
+(function(){
+  const sync = () => document.querySelectorAll('video.d12-vid').forEach(v => {
+    const slide = v.closest('.slide'), b = v.closest('.b');
+    const on = slide && slide.classList.contains('active') && (!b || b.classList.contains('shown'));
+    if (on && v.paused && !v._d12on) { v._d12on = true; v.currentTime = 0; v.play().catch(() => {}); }
+    else if (!on && v._d12on) { v._d12on = false; v.pause(); }
+  });
+  new MutationObserver(sync).observe(document.documentElement, { subtree:true, attributes:true, attributeFilter:['class'] });
+})();
+(() => { const el = document.createElement('style'); el.textContent = `
+  .d12-vid{ width:100%; aspect-ratio:16 / 9; object-fit:cover; border-radius:10px; background:#0f172a; display:block; }
+  .d12-loop .d12-vid{ height:20vh; aspect-ratio:auto; margin-bottom:.4vh; }
+  .d12-media{ display:grid; grid-template-columns:1fr 1fr; gap:2.4vw; }
+  .d12-mpair{ display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr); gap:1.2vw; align-items:center; }
+  .d12-mpair .d12-vid{ height:22vh; aspect-ratio:auto; }
+  .d12-vid.d12-contain{ object-fit:contain; }
+  .d12-mpair .d12-num b{ font-size:clamp(1.2rem, 2.1vw, 2rem); white-space:nowrap; }
+  .d12-mpair .d12-num span{ font-size:clamp(.9rem, 1.35vw, 1.25rem); }
+  @media (max-width: 820px), (max-aspect-ratio: 1/1){ .d12-media, .d12-mpair{ grid-template-columns:1fr; } }
+`; document.head.appendChild(el); })();

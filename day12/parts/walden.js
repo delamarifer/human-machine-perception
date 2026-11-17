@@ -5,7 +5,8 @@
      6.2 h of demonstrations per task; deployed for three eight-hour shifts per task with remote assistance; corrective
      data added to training. Camshaft job MTBI 22.6 s and 78.5 s (first two generations), 340.3 s (Sage). Sage MTBI
      about 41 s after adaptation, 80 s after deployment learning; Sage-1k (1,000 h) 27 to 28 s.
-   No speaker notes. */
+   Videos stream from the post: the hero clip (Sage at work) and Figure 6 (Sage-1k and Sage side by side on gearbox
+   chain placement, 4x speed). No speaker notes. */
 {
 st(`
   <h1 class="t">Walden’s LBM 2.0: learning on the job</h1>
@@ -17,12 +18,14 @@ st(`
       <div class="b"><small>4 · Learn</small><b>Corrections → training</b><span>The next model learns from the help it needed</span></div>
     </div>
     <div class="d12-back b">↺ and again</div>
-    <div class="d12-nums">
-      <div class="d12-num b"><b>22.6 s → 340.3 s</b><span>Average time between human interventions on a camshaft job, from their first model to Sage</span></div>
-      <div class="d12-num b"><b>41 → 80 s, vs 27 → 28 s</b><span>Gain from deployment: Sage, pretrained on 100,000 hours, vs the same model pretrained on 1,000 hours</span></div>
+    <div class="d12-media">
+      <div class="d12-mpair b">${d12Vid("https://walden-robotics.cdn.prismic.io/walden-robotics/_rc6vfea9ZGxZmJZ_lbm2v2-hero-sage-at-work.mp4", "https://images.prismic.io/walden-robotics/7BBvdAcXwaMIGbvp_lbm2v2-hero-poster.jpg")}
+        <div class="d12-num"><b>22.6 s → 340.3 s</b><span>Average time between human interventions on a camshaft job, from their first model to Sage</span></div></div>
+      <div class="d12-mpair b">${d12Vid("https://walden-robotics.cdn.prismic.io/walden-robotics/2-EOf6WtYt7VHiaI_lbm2v2-fig6-gearbox-4x.mp4").replace('class="d12-vid"', 'class="d12-vid d12-contain"')}
+        <div class="d12-num"><b>41 → 80 s<br>vs 27 → 28 s</b><span>Gain on the job: pretrained on 100,000 hours vs 1,000 hours (video: both, side by side)</span></div></div>
     </div>
     <div class="d12-callout b">More pretraining, more learned on the job</div>
   </div>
-  ${cite('Walden Robotics, “LBM 2.0: Accelerating learning in deployment” (Nov 2026). Numbers reported by the company.')}
+  ${cite('Videos and numbers: Walden Robotics, “LBM 2.0: Accelerating learning in deployment” (Nov 2026), reported by the company')}
 `);
 }
