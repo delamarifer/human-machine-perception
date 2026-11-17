@@ -35,3 +35,9 @@ Wikimedia Commons; all shown in gray, so no colors enter the deck.
       Stanford and Google years overlapped.
 - [x] Slide 2 photo: MIT News, 2022-04-11 (news.mit.edu/2022/robotic-manipulation-mit-course-0411). Slide 3 photo: ORF
       (orfonline.org/expert-speak/chelsea-finn-teaching-brett-robot-how-world-works-45635). Callouts on both path slides removed.
+
+## Round 3 (2026-11-17): new order
+Shreya: "introduce the russ, then why, then lbm, then chelsea, and so on". Now: title, Russ, why leave the lab (with
+Walden's robot photo from the Why Walden post), Walden LBM 2.0, Chelsea, why copying demonstrations is not enough,
+PI pi*0.6, then the reading slide last. Parts: start, tedrake, walden, finn, pi, read (debrief.js removed).
+- [ ] Reading slide is now last, after both posts are introduced. Move it earlier if students should read first.

@@ -81,3 +81,18 @@
 `;
   document.head.appendChild(el);
 })();
+
+/* path steps for the two people slides */
+const d12Step = (logos, when, what, more) => `
+  <div class="d12-step b">
+    <div class="d12-logos">${logos}</div>
+    <i>${when}</i><b>${what}</b><span>${more}</span>
+  </div>`;
+const d12Img = (n, alt, wide) => `<img src="assets/logo-${n}.svg" alt="${alt}"${wide ? ' class="d12-wide"' : ''}>`;
+(() => { const el = document.createElement('style'); el.textContent = `
+  .d12-why{ display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:2.6vw; align-items:center; }
+  .d12-why .d12-list{ margin:0; gap:2vh; }
+  .d12-why .d12-list > li{ font-size:clamp(1.1rem, 1.9vw, 1.75rem); }
+  .d12-photo2{ margin:0; } .d12-photo2 img{ width:100%; aspect-ratio:4 / 3; object-fit:cover; object-position:50% 40%; border-radius:12px; display:block; }
+  @media (max-width: 820px), (max-aspect-ratio: 1/1){ .d12-why{ grid-template-columns:1fr; } }
+`; document.head.appendChild(el); })();

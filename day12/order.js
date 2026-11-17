@@ -3,11 +3,14 @@
    (Walden LBM 2.0, Physical Intelligence pi*0.6) and the class compares them. Not linked from the home page yet.
    No speaker notes (Shreya's preference). Avoid apostrophes inside the strings. */
 const ORDER = [
-  ['start',   'Title, two paths from the lab to industry (Russ Tedrake, Chelsea Finn), why leave the lab'],
-  ['read',    'Why copying demonstrations is not enough, then reading the two posts in class'],
-  ['debrief', 'The two posts, one slide each: Walden LBM 2.0, Physical Intelligence pi*0.6'],
+  ['start',   'Title'],
+  ['tedrake', 'Russ Tedrake: MIT, Toyota Research Institute, Walden; why leave the lab'],
+  ['walden',  'Walden LBM 2.0 in one slide'],
+  ['finn',    'Chelsea Finn: Berkeley, Google, Stanford, Physical Intelligence'],
+  ['pi',      'Why copying demonstrations is not enough, then Physical Intelligence pi*0.6 in one slide'],
+  ['read',    'Students read the two posts in class'],
 ];
 const PARTS = ORDER.map(r => r[0]);
 
 /* Minutes per section (sets the widths in the progress bar). Draft: change freely. */
-const SEC_MINUTES = { 'Lab to industry': 8, 'Reading': 18, 'The two posts': 8 };
+const SEC_MINUTES = { 'Russ Tedrake and Walden': 7, 'Chelsea Finn and Physical Intelligence': 7, 'Reading': 18 };
