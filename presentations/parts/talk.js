@@ -13,8 +13,9 @@ const PR_TALK = [
 ];
 
 st(`
-  <h1 class="t">Your talk in five slides</h1>
+  <h1 class="t">Cover these ideas</h1>
   <div class="pr-col">
+    <p style="margin:0;text-align:center;color:var(--mute);font-size:clamp(1.05rem,1.7vw,1.5rem)">In this order. As many slides as you need.</p>
     <ol class="pr-steps">${PR_TALK.map(([t, w, cue], k) =>
       `<li class="b"><b><em>${k + 1}</em>${t}${w ? `<span class="pr-w">${w}</span>` : ''}</b><span>${cue}</span></li>`).join('')}</ol>
   </div>

@@ -3,7 +3,7 @@
    No speaker notes (Shreya's preference). Avoid apostrophes inside the strings. */
 const ORDER = [
   ['setup',    'Title, when you present (Thu and Fri, 2-4 pm, 20-minute slots, sign-up doc), what you hand in'],
-  ['talk',     'The talk: one five-slide outline for everyone, how it is graded'],
+  ['talk',     'The talk: the ideas to cover, in order, and how it is graded'],
   ['writeup',  'The write-up: five parts and weights'],
   ['examples', 'Three formats (paper, interactive article, blog post), one real example of each, then the checklist for before Thursday and Friday'],
 ];

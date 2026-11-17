@@ -29,7 +29,7 @@ st(`
   <h1 class="t">What do you hand in?</h1>
   <div class="pr-col">
     <div class="pr-cards">
-      <div class="pr-card b"><small>Last day</small><div class="pr-big">15%</div><b>Presentation</b><span>One slide per idea, in the order of the outline</span></div>
+      <div class="pr-card b"><small>Last day</small><div class="pr-big">15%</div><b>Presentation</b><span>These ideas, in this order. As many slides as you need</span></div>
       <div class="pr-card b"><small>Last day</small><div class="pr-big">20%</div><b>Write-up</b><span>A paper, interactive article or blog post, with a link to your code or demo</span></div>
       <div class="pr-card b"><small>After the talks</small><div class="pr-big">A2</div><b>Assignment 2</b><span>Write about two projects by other teams</span></div>
     </div>

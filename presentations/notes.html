@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Notes · Final presentations and write-ups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#0a0d16; --line:#25304a; --text:#e9edf6; --mute:#9aa5bd; --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa; }
+  *{ box-sizing:border-box; } html{ scroll-behavior:smooth; }
+  body{ margin:0; background:var(--bg); color:var(--text); font:16.5px/1.65 Inter, system-ui, sans-serif; }
+  a{ color:var(--cyan); }
+  .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line); display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
+  .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap; font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
+  .spine b{ color:var(--text); font-weight:500; }
+  .page{ margin-left:44px; }
+  .hero{ border-bottom:1px solid var(--line); background:radial-gradient(120% 90% at 78% 40%, #121a33 0%, var(--bg) 60%); }
+  .hero-in{ max-width:46rem; margin:0 auto; padding:8vh 24px 4vh; }
+  .back{ margin:0 0 2.2em; display:flex; align-items:center; gap:1.2em; flex-wrap:wrap; font-size:.95rem; }
+  .back a{ color:var(--mute); text-decoration:none; } .back a:hover{ color:var(--text); }
+  .back button{ margin-left:auto; font:600 .85rem/1 'Space Grotesk', sans-serif; color:var(--bg); background:var(--cyan); border:0; border-radius:999px; padding:.45em .9em; cursor:pointer; }
+  .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--pink); }
+  h1{ margin:0 0 .35em; font:700 clamp(2.1rem, 6vw, 3.4rem)/.95 'Space Grotesk', sans-serif; text-transform:uppercase; background:linear-gradient(90deg,#fff,#c7fff4 55%,#e4d8ff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lead{ max-width:42rem; color:#d3d9e6; margin:0 0 1.2em; }
+  .toc{ display:flex; flex-wrap:wrap; gap:8px; margin:0; padding:0; list-style:none; }
+  .toc a{ color:var(--mute); text-decoration:none; font:500 .88rem/1 'Space Grotesk', sans-serif; border:1px solid var(--line); border-radius:999px; padding:.35em .75em; }
+  main{ max-width:46rem; margin:28px auto 72px; padding:36px 40px 56px; background:#fff; color:#1c1917; border-radius:18px; box-shadow:0 18px 50px rgba(0,0,0,.35); }
+  main a{ color:#0f766e; } main h2, main h3, main strong{ color:#1c1917; }
+  section{ padding-top:2.2em; scroll-margin-top:1.25rem; }
+  table.recap{ width:100%; border-collapse:collapse; font-size:.92rem; margin:1em 0; }
+  table.recap th, table.recap td{ text-align:left; padding:.5em .6em; border-top:1px solid #e7e5e4; vertical-align:top; }
+  table.recap th{ background:#1c1917; color:#fafaf9; border-top:none; }
+  table.recap td:first-child{ font-weight:700; }
+  table.recap td.w{ white-space:nowrap; font-weight:700; text-align:right; }
+  h2{ margin:0 0 .7em; font:700 1.4rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
+  h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
+  h3{ margin:1.2em 0 .3em; font:700 1.05rem/1.3 'Space Grotesk', sans-serif; }
+  p{ margin:0 0 .75em; } ul,ol{ margin:0 0 .9em; padding-left:1.2em; } li{ margin:.25em 0; }
+  .callout{ margin:1em 0; padding:14px 16px; border-radius:14px; border-left:4px solid var(--c,var(--cyan)); background:#f5f5f4; }
+  .callout p{ margin:0; }
+  @media (max-width:700px){ .spine{ display:none; } .page{ margin-left:0; } main{ margin:16px; padding:24px 18px; } .back button{ margin-left:0; } }
+  @media print{ body,.page,.hero,main{ background:#fff; color:#111; box-shadow:none; } .spine,.back{ display:none; } .page,main{ margin:0; } h1{ color:#111; background:none; -webkit-text-fill-color:#111; } a{ color:#111; } }
+  #when{ --c:var(--pink); } #handin{ --c:var(--cyan); } #talk{ --c:var(--violet); } #writeup{ --c:var(--amber); } #examples{ --c:var(--sky); } #before{ --c:var(--pink); }
+</style>
+</head>
+<body>
+<div class="spine" aria-hidden="true"><span><b>Computer Vision</b> &nbsp;/&nbsp; Presentations</span></div>
+<div class="page">
+<header class="hero"><div class="hero-in">
+  <div class="back"><a href="../index.html">← Home</a><a href="deck.html">Slides</a><a href="../templates.html">Templates</a>
+    <button type="button" onclick="window.print()">Download PDF</button></div>
+  <p class="kicker">Final project</p>
+  <h1>Presentations and write-ups</h1>
+  <p class="lead">These notes follow the slides. They cover when you present, what you hand in, the ideas in the talk, the write-up, and one example of each format.</p>
+  <nav class="toc">
+    <a href="#when">When</a><a href="#handin">What you hand in</a><a href="#talk">The talk</a><a href="#writeup">The write-up</a><a href="#examples">Examples</a><a href="#before">Before you present</a>
+  </nav>
+</div></header>
+<main>
+
+  <section id="when">
+    <h2>When do you present?</h2>
+    <p>Presentations are <strong>Thursday and Friday, 2 to 4 pm</strong>. There are six 20-minute slots each day, and each team takes one slot.</p>
+    <ul>
+      <li><strong>12 minutes</strong> to talk.</li>
+      <li><strong>5 minutes</strong> for questions.</li>
+      <li>The last <strong>3 minutes</strong> are for the next team to set up.</li>
+    </ul>
+    <p>Sign up in the <a href="https://docs.google.com/document/d/1uivAlhELC4kQgEJz5DlX36Vvx4gCwKj4pAYVWrP9Of4/edit">project presentations document</a>. Write your title and names in an empty row.</p>
+  </section>
+
+  <section id="handin">
+    <h2>What do you hand in?</h2>
+    <table class="recap">
+      <tr><th>Piece</th><th>When</th><th>Weight</th><th>What it is</th></tr>
+      <tr><td>Presentation</td><td>Last day</td><td class="w">15%</td><td>The ideas below, in this order. As many slides as you need.</td></tr>
+      <tr><td>Write-up</td><td>Last day</td><td class="w">20%</td><td>A paper, an interactive article, or a blog post, with a link to your code or demo.</td></tr>
+      <tr><td>Assignment 2</td><td>After the talks</td><td class="w">—</td><td>Write about two projects by other teams.</td></tr>
+    </table>
+  </section>
+
+  <section id="talk">
+    <h2>Cover these ideas</h2>
+    <p>Everyone uses the same ideas, in this order. It does not have to be five slides. Use as many as you need.</p>
+    <table class="recap">
+      <tr><th></th><th>Idea</th><th>What to cover</th><th>Weight</th></tr>
+      <tr><td>1</td><td>The idea</td><td>Your question or problem, and why the room should care, in the first minute. One example image.</td><td class="w">20%</td></tr>
+      <tr><td>2</td><td>Setup</td><td>Your data, the models, and what you measured. The pipeline or the conditions as boxes.</td><td class="w"></td></tr>
+      <tr><td>3</td><td>Results</td><td>Your main number or figure, said in one sentence. A live demo if you have one. Two or three examples.</td><td class="w">35%</td></tr>
+      <tr><td>4</td><td>Where it fails</td><td>Two or three failures, and what your setup cannot tell you.</td><td class="w">20%</td></tr>
+      <tr><td>5</td><td>What it means</td><td>For how models see, for how people see, and what you would do with another week.</td><td class="w"></td></tr>
+    </table>
+    <h3>How the talk is graded</h3>
+    <table class="recap">
+      <tr><th>Part</th><th>What we look for</th><th>Weight</th></tr>
+      <tr><td>The idea</td><td>Clear in the first minute</td><td class="w">20%</td></tr>
+      <tr><td>Results</td><td>The main finding, shown well</td><td class="w">35%</td></tr>
+      <tr><td>Where it fails</td><td>Honest about what does not work</td><td class="w">20%</td></tr>
+      <tr><td>Delivery</td><td>Clear slides, within time</td><td class="w">15%</td></tr>
+      <tr><td>Questions</td><td>Your answers to the class</td><td class="w">10%</td></tr>
+    </table>
+    <div class="callout" style="--c:var(--violet)"><p>If you are showing a demo, record the screen as well. The recording is there in case the live demo fails.</p></div>
+  </section>
+
+  <section id="writeup">
+    <h2>The write-up has five parts</h2>
+    <p>One write-up for everyone. A paper, an interactive article, and a blog post are all fine. Any format still has these five parts.</p>
+    <table class="recap">
+      <tr><th>Part</th><th>In one line</th><th>Weight</th></tr>
+      <tr><td>Problem and motivation</td><td>Your question or problem, what was known, and what you expected.</td><td class="w">15%</td></tr>
+      <tr><td>Method</td><td>Your setup: data, models, what you measured. Enough that a classmate could redo it.</td><td class="w">25%</td></tr>
+      <tr><td>Results and evaluation</td><td>The main figure with numbers, examples, and one comparison that rules out a boring explanation.</td><td class="w">25%</td></tr>
+      <tr><td>Limitations and failure cases</td><td>Failures with your explanation. What it is meant for, what it is not for, and who it may work worse for.</td><td class="w">20%</td></tr>
+      <tr><td>Clarity</td><td>Readable writing, labeled figures, and credit for everything you did not make.</td><td class="w">15%</td></tr>
+    </table>
+    <p>The templates, with a version for a demo and a version for an experiment, are on the <a href="../templates.html#writeup">project templates</a> page.</p>
+  </section>
+
+  <section id="examples">
+    <h2>Three ways to write it up</h2>
+    <h3>A short paper</h3>
+    <p><a href="assets/geirhos2019-texture-bias.pdf">Geirhos, Rubisch, Michaelis, Bethge, Wichmann and Brendel (2019)</a>. ImageNet-trained CNNs are biased towards texture. ICLR.</p>
+    <ul>
+      <li><strong>Problem.</strong> Do networks trained on ImageNet recognise objects by shape, as people do, or by texture?</li>
+      <li><strong>Method.</strong> Cue-conflict images: the shape of one object with the texture of another, like a cat covered in elephant skin. People and networks label the same images.</li>
+      <li><strong>Results.</strong> People mostly chose the shape. The networks mostly chose the texture.</li>
+      <li><strong>A fix.</strong> Training on Stylized-ImageNet, where textures are swapped, made the network rely more on shape.</li>
+      <li><strong>Limits.</strong> What can this experiment not tell us?</li>
+    </ul>
+    <h3>An interactive article</h3>
+    <p><a href="https://distill.pub/2017/feature-visualization/">Olah, Mordvintsev and Schubert (2017)</a>. Feature Visualization. Distill.</p>
+    <ul>
+      <li><strong>Problem.</strong> What does a single neuron in a network respond to?</li>
+      <li><strong>Method.</strong> Start from noise and change the image until the neuron fires as strongly as it can.</li>
+      <li><strong>Results.</strong> Figures the reader explores: pick a neuron, see the images that drive it.</li>
+      <li><strong>Failure cases.</strong> Left alone, the images fill with high-frequency noise. The article shows the fixes side by side.</li>
+    </ul>
+    <h3>A blog post</h3>
+    <p><a href="https://karpathy.github.io/2014/09/02/what-i-learned-from-competing-against-a-convnet-on-imagenet/">Karpathy (2014)</a>. What I learned from competing against a ConvNet on ImageNet.</p>
+    <ul>
+      <li><strong>Problem.</strong> How well does a person do on ImageNet, next to the best network?</li>
+      <li><strong>Method.</strong> He built a labeling interface, trained himself, then labeled 1,500 test images.</li>
+      <li><strong>Results.</strong> His error was 5.1%. The network’s was 6.8% on the same images.</li>
+      <li><strong>Failure cases.</strong> The network missed small or thin objects. He struggled with dog breeds.</li>
+    </ul>
+  </section>
+
+  <section id="before">
+    <h2>Before Thursday and Friday</h2>
+    <ul>
+      <li>Sign up for one slot in the sign-up document.</li>
+      <li>If you are showing a demo, record it.</li>
+      <li>Rehearse once with a timer.</li>
+      <li>Listen closely to the other talks. Assignment 2 is about two of them.</li>
+      <li>Put your slides, write-up, and code in your project folder on Google Drive. What is there on the last day is what we grade.</li>
+      <li>Then tick the <a href="https://forms.gle/cNFBCB6xVkyc3eRG8">hand-in form</a>: your project number and one checkbox.</li>
+    </ul>
+  </section>
+
+</main>
+</div>
+</div>
+</body>
+</html>
