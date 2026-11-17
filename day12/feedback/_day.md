@@ -18,5 +18,18 @@ Preview: the `day12` entry in `.claude/launch.json` (port 8151), then `day12/dec
 - [ ] How long is the reading? Minutes per section in order.js are a guess (6 / 18 / 8).
 - [ ] Split the room (half read each post) or everyone reads both?
 - [ ] Chelsea Finn facts come from Wikipedia; her Stanford page did not load. Check before class.
-- [ ] Add figures from the posts (Walden's MTBI chart, PI's RECAP diagram)? Right now there are none.
 - [ ] Day 11's tedrake part still says "a startup in physical AI"; Walden is now public, if you want that updated.
+
+## Round 2 (2026-11-17): 8 slides
+Shreya: remove the last slide; two paths, not three, with logos; break each blog post down in a slide.
+1. Title. 2. Russ Tedrake: MIT -> Toyota Research Institute -> Walden (logos). 3. Chelsea Finn: Berkeley + Google ->
+Stanford + Google -> Physical Intelligence (logos; PI has no logo file on its site, so its name is set as text).
+4. Why leave the lab? 5. Why copying demonstrations is not enough. 6. Read: the two posts.
+7. Walden's LBM 2.0: the learn-on-the-job loop, then two results. 8. PI's pi*0.6: instruction, coaching, practice,
+how practice works, then three results. The side-by-side table and the discussion slide are gone.
+Logos: MIT (copied from day11-embodied), TRI and Walden from their own sites, Berkeley, Google, Stanford from
+Wikimedia Commons; all shown in gray, so no colors enter the deck.
+
+- [ ] Want an actual Physical Intelligence logo? Send one, or keep the name as text.
+- [ ] Slide 3: Wikipedia says she "previously worked for Google" without dates, so the slide does not claim the
+      Stanford and Google years overlapped.

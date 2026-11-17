@@ -20,21 +20,43 @@ st(`
   </div>
 `);
 
-const D12_PATHS = [
-  ['Both at once', 'Russ Tedrake', 'MIT professor, and for nearly 10 years the head of a robotics research team at Toyota Research Institute'],
-  ['Professor, big tech, then a startup', 'Chelsea Finn', 'Stanford professor, previously at Google, now a co-founder of Physical Intelligence'],
-  ['Spin-out', 'Walden Robotics', 'Tedrake’s team leaves Toyota Research Institute in January 2026; its robots now work on a Toyota engine line'],
-];
+/* Two people, two paths. Logos from each organization's site (MIT, TRI, Walden) or Wikimedia Commons (Berkeley,
+   Google, Stanford), shown in gray. Physical Intelligence has no logo file on its site, so its name is set as text. */
+const d12Step = (logos, when, what, more) => `
+  <div class="d12-step b">
+    <div class="d12-logos">${logos}</div>
+    <i>${when}</i><b>${what}</b><span>${more}</span>
+  </div>`;
+const d12Img = (n, alt, wide) => `<img src="assets/logo-${n}.svg" alt="${alt}"${wide ? ' class="d12-wide"' : ''}>`;
+
 st(`
-  <h1 class="t">Three paths from the lab to industry</h1>
+  <h1 class="t">Russ Tedrake: a university and an industry lab, then a company</h1>
   <div class="d12-col">
-    <div class="d12-cards">
-      ${D12_PATHS.map(([kind, who, what]) => `
-        <div class="d12-card b"><small>${kind}</small><b>${who}</b><span>${what}</span></div>`).join('')}
+    <div class="d12-route">
+      ${d12Step(d12Img('mit', 'MIT'), 'PhD 2004, then faculty', 'MIT professor', 'Robot Locomotion Group; started the Drake robot simulator')}
+      <div class="d12-arrow">→</div>
+      ${d12Step(d12Img('tri', 'Toyota Research Institute'), 'Nearly 10 years, at the same time', 'Toyota Research Institute', 'Led its robotics research team: Diffusion Policy, Large Behavior Models')}
+      <div class="d12-arrow">→</div>
+      ${d12Step(d12Img('walden', 'Walden Robotics'), 'January 2026', 'Walden Robotics', 'Spins out of Toyota Research Institute with his team; robots now at work in a Toyota factory')}
     </div>
-    <div class="d12-callout b">Each step adds what a university lab lacks: robots at work, data and customers</div>
+    <div class="d12-callout b">Still an MIT professor: the lab asks the questions, the company runs them at scale</div>
   </div>
-  ${cite('Tedrake, “Why Walden?” (waldenrobotics.com, Jul 2026) · Tedrake’s MIT page · Chelsea Finn, Wikipedia')}
+  ${cite('Tedrake’s MIT page · Tedrake, “Why Walden?” (waldenrobotics.com, Jul 2026)')}
+`);
+
+st(`
+  <h1 class="t">Chelsea Finn: academia and big tech, then a startup</h1>
+  <div class="d12-col">
+    <div class="d12-route">
+      ${d12Step(d12Img('berkeley', 'UC Berkeley') + d12Img('google', 'Google', true), 'PhD, 2018', 'UC Berkeley, with internships at Google Brain', 'Advised by Sergey Levine and Pieter Abbeel')}
+      <div class="d12-arrow">→</div>
+      ${d12Step(d12Img('stanford', 'Stanford', true) + d12Img('google', 'Google', true), 'Then', 'Stanford professor; also worked at Google', 'Her lab studies how robots learn through interaction')}
+      <div class="d12-arrow">→</div>
+      ${d12Step('<div class="d12-word">Physical Intelligence (π)</div>', 'Co-founder', 'Physical Intelligence', 'A startup building foundation models for robots: the π models')}
+    </div>
+    <div class="d12-callout b">Academia and industry from the start, then her own company</div>
+  </div>
+  ${cite('Chelsea Finn, Wikipedia (read Nov 2026) · pi.website')}
 `);
 
 st(`

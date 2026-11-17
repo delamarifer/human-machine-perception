@@ -1,44 +1,53 @@
-/* PART: debrief (Day 12, owner: Shreya). Built 2026-11-17. The two posts side by side, one row per click, then the
-   discussion. Every figure is stated in the posts' text (none read off their charts). Sources (read 2026-11-17):
-   - Walden, LBM 2.0 post (11 Nov 2026): Sage, 4.7-billion-parameter multimodal model; 100,000 hours of data (other
-     robots, egocentric human recordings, UMI, simulation, intervention traces); about 6.2 h of demonstrations per task,
-     then deployment with remote assistance, corrections added to training; metrics: fraction of time in autonomy and
-     mean time between interventions (MTBI); Sage MTBI about 41 s after adaptation to 80 s after deployment learning,
-     Sage-1k (1,000 h pretraining) 27 to 28 s.
-   - Physical Intelligence, pi*0.6 post (17 Nov 2025): based on pi0.6, a 5B-parameter vision-language model plus an
-     action expert; RECAP = demonstrations, expert corrections, and RL from autonomous experience (a value function,
-     advantage-conditioned policy); metrics: throughput (successes per hour) and success rate; more than doubles
-     throughput on some of the hardest tasks, failure rates down 2x or more.
+/* PART: debrief (Day 12, owner: Shreya). Rebuilt 2026-11-17 at Shreya's request: "for the blog posts we can break
+   each one down in a slide" (the side-by-side table and the discussion slide were removed). One slide per post.
+   Every number is stated in the posts' text (none read off their charts). Sources (read 2026-11-17):
+   - Walden, "LBM 2.0: Accelerating learning in deployment" (11 Nov 2026): Sage pretrained on 100,000 hours (cross-
+     embodiment robot behavior, egocentric human recordings, UMI trajectories, simulation, intervention traces); about
+     6.2 h of demonstrations per task; deployed for three eight-hour shifts per task with remote assistance; corrective
+     data added to training. Camshaft job MTBI 22.6 s and 78.5 s (first two generations), 340.3 s (Sage). Sage MTBI
+     about 41 s after adaptation, 80 s after deployment learning; Sage-1k (1,000 h) 27 to 28 s.
+   - Physical Intelligence, "pi*0.6: a VLA that Learns from Experience" (17 Nov 2025): RECAP = demonstrations,
+     corrections (expert takes over), and RL from autonomous experience; a value function predicts progress; the policy
+     is trained on all data conditioned on the advantage, then asked for high-advantage actions; more than doubles
+     throughput on some of the hardest tasks; failure rates down 2x or more; espresso drinks from 5:30am to 11:30pm.
    No speaker notes. */
 {
-section('Debrief');
+section('The two posts');
 
-const D12_ROWS = [
-  ['The model', 'Sage: a 4.7-billion-parameter multimodal model', 'π*0.6: a 5-billion-parameter vision-language model plus an action expert'],
-  ['Learns from', '100,000 hours of mixed data, then corrections from remote helpers on the job', 'Demonstrations, then expert corrections, then practice: reinforcement learning on its own attempts'],
-  ['Measured by', 'Time running alone, and time between human interventions', 'Successes per hour, and success rate'],
-  ['Main result', 'More pretraining, more gain on the job: about 41 → 80 s between interventions, vs 27 → 28 s for a model pretrained on 1% of the data', 'Practice more than doubles successes per hour on the hardest tasks, and cuts failures by 2× or more'],
-];
 st(`
-  <h1 class="t">What did you find?</h1>
+  <h1 class="t">Walden’s LBM 2.0: learning on the job</h1>
   <div class="d12-col">
-    <div class="d12-table">
-      <div class="d12-cell d12-head"></div><div class="d12-cell d12-head">Walden: LBM 2.0</div><div class="d12-cell d12-head">Physical Intelligence: π*0.6</div>
-      ${D12_ROWS.map(([k, a, b]) => `
-        <div class="d12-row b"><div class="d12-cell d12-key">${k}</div><div class="d12-cell">${a}</div><div class="d12-cell">${b}</div></div>`).join('')}
+    <div class="d12-loop">
+      <div class="b"><small>1 · Pretrain</small><b>100,000 hours</b><span>Other robots, first-person human video, handheld-gripper demos, simulation, past corrections</span></div>
+      <div class="b"><small>2 · Adapt</small><b>About 6 hours per task</b><span>Demonstrations of the new job</span></div>
+      <div class="b"><small>3 · Deploy</small><b>Eight-hour shifts</b><span>A remote person helps when the robot needs it</span></div>
+      <div class="b"><small>4 · Learn</small><b>Corrections → training</b><span>The next model learns from the help it needed</span></div>
     </div>
-    <div class="d12-callout b">Same idea, two routes: robots at work make the data that makes robots better</div>
+    <div class="d12-back b">↺ and again</div>
+    <div class="d12-nums">
+      <div class="d12-num b"><b>22.6 s → 340.3 s</b><span>Average time between human interventions on a camshaft job, from their first model to Sage</span></div>
+      <div class="d12-num b"><b>41 → 80 s, vs 27 → 28 s</b><span>Gain from deployment: Sage, pretrained on 100,000 hours, vs the same model pretrained on 1,000 hours</span></div>
+    </div>
+    <div class="d12-callout b">More pretraining, more learned on the job</div>
   </div>
-  ${cite('Walden, “LBM 2.0” (Nov 2026) · Physical Intelligence, “π*0.6” (Nov 2025). All numbers are reported by the companies.')}
+  ${cite('Walden Robotics, “LBM 2.0: Accelerating learning in deployment” (Nov 2026). Numbers reported by the company.')}
 `);
 
 st(`
-  <h1 class="t">Discussion</h1>
+  <h1 class="t">Physical Intelligence’s π*0.6: instruction, coaching, practice</h1>
   <div class="d12-col">
-    <ul class="d12-list">
-      <li class="b">These numbers come from the companies themselves. What would you need to see to trust them?</li>
-      <li class="b">Demonstrations, coaching, practice: what does a person learning a new skill have that these robots still lack?</li>
-    </ul>
+    <div class="d12-loop" style="--n:3">
+      <div class="b"><small>1 · Instruction</small><b>Demonstrations</b><span>People drive the robot through the task</span></div>
+      <div class="b"><small>2 · Coaching</small><b>Corrections</b><span>An expert takes over when the robot makes a mistake</span></div>
+      <div class="b"><small>3 · Practice</small><b>Reinforcement learning</b><span>The robot learns from its own attempts</span></div>
+    </div>
+    <div class="d12-callout b">How practice works: a value function predicts progress toward the goal. Actions that raise it are good. Train on everything, labeled good or bad, then ask for the good actions.</div>
+    <div class="d12-nums" style="--n:3">
+      <div class="d12-num b"><b>More than 2×</b><span>successes per hour on the hardest tasks, like making espresso</span></div>
+      <div class="d12-num b"><b>2× fewer</b><span>failures, or better</span></div>
+      <div class="d12-num b"><b>5:30am – 11:30pm</b><span>making espresso drinks, without interruption</span></div>
+    </div>
   </div>
+  ${cite('Physical Intelligence, “π*0.6: a VLA that learns from experience” (Nov 2025). Numbers reported by the company.')}
 `);
 }
