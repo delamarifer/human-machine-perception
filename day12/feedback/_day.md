@@ -50,3 +50,10 @@ Videos from the posts on both post slides, streamed from the companies sites (no
 Walden: hero clip (Sage at work) and Figure 6 (Sage-1k vs Sage, gearbox); PI: pretraining-data clip (box building),
 intervention example (coaching), making coffee (after practice). They play muted while shown and pause when you leave.
 - [ ] Streaming needs the internet in class. Say if you want them downloaded into assets/ for offline use.
+
+## Round 6 (2026-11-17): architecture diagrams, 9 slides
+Slide 5: Walden's own Figure 3 (the post has no model-architecture figure; this is its training and deployment
+diagram). Saved as a still: the original loops every 15 s and fades out between loops.
+Slide 9: RECAP, redrawn from the pi*0.6 post diagram (it is built from live page elements, so it cannot be saved as an
+image). Same boxes and arrows, in the deck style, one part per click.
+- [ ] Slide 9 is a redraw: check it matches what you want from the post.

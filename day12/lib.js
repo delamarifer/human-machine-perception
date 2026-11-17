@@ -120,3 +120,26 @@ const d12Vid = (src, poster) => `<video class="d12-vid" src="${src}"${poster ? `
   .d12-mpair .d12-num span{ font-size:clamp(.9rem, 1.35vw, 1.25rem); }
   @media (max-width: 820px), (max-aspect-ratio: 1/1){ .d12-media, .d12-mpair{ grid-template-columns:1fr; } }
 `; document.head.appendChild(el); })();
+
+/* Architecture slides: Walden's animated figure restarts each time it is shown; the redrawn RECAP diagram. */
+(function(){
+  let n = 0;
+  const sync = () => document.querySelectorAll('img.d12-anim').forEach(img => {
+    const slide = img.closest('.slide'), b = img.closest('.b');
+    const on = slide && slide.classList.contains('active') && (!b || b.classList.contains('shown'));
+    if (on && !img._d12on) { img._d12on = true; img.src = img.src.split('?')[0] + '?r=' + (++n); }
+    else if (!on) img._d12on = false;
+  });
+  new MutationObserver(sync).observe(document.documentElement, { subtree:true, attributes:true, attributeFilter:['class'] });
+})();
+(() => { const el = document.createElement('style'); el.textContent = `
+  .d12-arch{ margin:0 auto; width:100%; display:flex; justify-content:center; }
+  .d12-arch img{ width:100%; max-height:64vh; object-fit:contain; display:block; }
+  .d12-recap{ width:100%; max-height:64vh; display:block; }
+  .d12-abox{ fill:#fff; stroke:#0f172a; stroke-width:2.5; }
+  .d12-abox.d12-adark{ fill:#0f172a; }
+  .d12-adark + text, .d12-adark + text + text{ fill:#fff; }
+  .d12-at{ font:700 24px system-ui, sans-serif; fill:#0f172a; }
+  .d12-as{ font:400 18px system-ui, sans-serif; fill:#64748b; }
+  .d12-aline{ fill:none; stroke:#0f172a; stroke-width:3; }
+`; document.head.appendChild(el); })();

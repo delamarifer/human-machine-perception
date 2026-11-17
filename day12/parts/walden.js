@@ -29,3 +29,17 @@ st(`
   ${cite('Videos and numbers: Walden Robotics, “LBM 2.0: Accelerating learning in deployment” (Nov 2026), reported by the company')}
 `);
 }
+
+/* Walden's own Figure 3 from the post (downloaded 2026-11-17). The original is an animation that loops every 15 s and
+   fades out between loops; assets/walden-fig3.svg is a still copy with every element shown (each animation replaced
+   by its fully visible value). Added at Shreya's request: "the architecture
+   diagram for each". The post has no model-architecture figure; this is its system diagram. */
+{
+st(`
+  <h1 class="t">How Sage learns: Walden’s diagram</h1>
+  <div class="d12-col">
+    <figure class="d12-arch b"><img src="assets/walden-fig3.svg" alt="Walden's diagram: a pretraining data mixture and task demonstrations train LBM 2.0 Sage; Sage executes the task, remote interventions produce corrective data, and the corrective data trains Sage again"></figure>
+  </div>
+  ${cite('Figure 3, Walden Robotics, “LBM 2.0: Accelerating learning in deployment” (Nov 2026)')}
+`);
+}

@@ -50,3 +50,53 @@ st(`
   ${cite('Videos and numbers: Physical Intelligence, “π*0.6: a VLA that learns from experience” (Nov 2025), reported by the company')}
 `);
 }
+
+/* RECAP, redrawn from the diagram in the pi*0.6 post (the post builds it from live page elements and videos, so it
+   cannot be saved as an image). Same boxes and arrows: pretraining data -> pi0.6 VLA with an action expert -> actions
+   -> autonomous episodes; episodes get reward labels and expert interventions -> RL training -> value function ->
+   advantage -> back into the VLA. Added at Shreya's request: "the architecture diagram for each". One part per click. */
+{
+const bx = (x, y, w, h, title, sub, cls = '') => `
+  <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="14" class="d12-abox ${cls}"/>
+  <text x="${x + w / 2}" y="${y + (sub ? h / 2 - 6 : h / 2 + 9)}" text-anchor="middle" class="d12-at">${title}</text>
+  ${sub ? `<text x="${x + w / 2}" y="${y + h / 2 + 24}" text-anchor="middle" class="d12-as">${sub}</text>` : ''}`;
+const ar = d => `<path d="${d}" class="d12-aline" marker-end="url(#d12-head)"/>`;
+st(`
+  <h1 class="t">How π*0.6 learns: RECAP</h1>
+  <div class="d12-col">
+    <svg class="d12-recap" viewBox="0 0 1200 520" aria-label="RECAP diagram, redrawn: pretraining data trains the pi 0.6 VLA with an action expert; its actions produce autonomous episodes; reward labels and expert interventions feed RL training; RL training trains a value function, whose advantage is fed back into the VLA">
+      <defs><marker id="d12-head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#0f172a"/></marker></defs>
+      <g class="b">
+        ${bx(30, 70, 210, 130, 'Pretraining data', 'demos of many tasks')}
+        ${ar('M245 135 L 300 135')}
+        <rect x="305" y="70" width="300" height="130" rx="14" class="d12-abox"/>
+        <text x="390" y="142" text-anchor="middle" class="d12-at">π0.6 VLA</text>
+        ${bx(480, 95, 105, 80, 'Action', 'expert', 'd12-adark')}
+      </g>
+      <g class="b">
+        ${ar('M605 135 L 690 135')}
+        <text x="647" y="122" text-anchor="middle" class="d12-as">actions</text>
+        ${bx(695, 70, 470, 130, 'Autonomous episodes', 'laundry · espresso · boxes')}
+      </g>
+      <g class="b">
+        ${ar('M820 205 L 820 265')}
+        ${bx(700, 270, 240, 80, 'Reward label', 'did it succeed?')}
+        ${ar('M1045 205 L 1045 265')}
+        ${bx(955, 270, 210, 80, 'Intervention', 'an expert takes over')}
+      </g>
+      <g class="b">
+        ${ar('M820 355 L 820 405')}
+        ${ar('M1060 355 L 1060 405')}
+        ${bx(700, 410, 465, 80, 'RL training', '')}
+        ${ar('M695 450 L 610 450')}
+        ${bx(305, 410, 300, 80, 'Value function', 'predicts progress')}
+        ${ar('M455 405 L 455 350')}
+        ${bx(330, 270, 250, 75, 'Advantage', 'better than expected?')}
+        ${ar('M455 265 L 455 205')}
+      </g>
+    </svg>
+  </div>
+  ${cite('Redrawn from the diagram in Physical Intelligence, “π*0.6: a VLA that learns from experience” (Nov 2025)')}
+`);
+}
+
