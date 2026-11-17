@@ -41,3 +41,6 @@ Shreya: "introduce the russ, then why, then lbm, then chelsea, and so on". Now: 
 Walden's robot photo from the Why Walden post), Walden LBM 2.0, Chelsea, why copying demonstrations is not enough,
 PI pi*0.6, then the reading slide last. Parts: start, tedrake, walden, finn, pi, read (debrief.js removed).
 - [ ] Reading slide is now last, after both posts are introduced. Move it earlier if students should read first.
+
+## Round 4 (2026-11-17)
+Reading slide removed (Shreya: the posts are now covered in the slides). 7 slides.
