@@ -56,6 +56,11 @@
   .d12-step span{ font-size:clamp(1rem, 1.6vw, 1.5rem); line-height:1.35; }
   .d12-arrow{ align-self:center; font-size:clamp(1.8rem, 3vw, 2.8rem); color:var(--mute); }
 
+  /* photo on the left, the path on the right */
+  .d12-person{ display:grid; grid-template-columns:minmax(0,.85fr) minmax(0,2.2fr); gap:2.4vw; align-items:center; }
+  .d12-photo{ margin:0; } .d12-photo img{ width:100%; aspect-ratio:3 / 4; object-fit:cover; object-position:62% 30%; border-radius:12px; display:block; }
+  @media (max-width: 820px), (max-aspect-ratio: 1/1){ .d12-person{ grid-template-columns:1fr; } .d12-photo img{ aspect-ratio:3 / 2; } }
+
   /* blog breakdown: a loop of steps, then result cards */
   .d12-loop{ display:grid; grid-template-columns:repeat(var(--n, 4), minmax(0,1fr)); gap:1.2vw; }
   .d12-loop > div{ border:2px solid var(--ink); border-radius:12px; padding:1.4vh 1vw; display:flex; flex-direction:column; gap:.6vh; position:relative; }

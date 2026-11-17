@@ -32,6 +32,8 @@ const d12Img = (n, alt, wide) => `<img src="assets/logo-${n}.svg" alt="${alt}"${
 st(`
   <h1 class="t">Russ Tedrake: a university and an industry lab, then a company</h1>
   <div class="d12-col">
+    <div class="d12-person">
+    <figure class="d12-photo b"><img src="assets/tedrake-lab.webp" alt="Russ Tedrake, center, with students and a robot arm"></figure>
     <div class="d12-route">
       ${d12Step(d12Img('mit', 'MIT'), 'PhD 2004, then faculty', 'MIT professor', 'Robot Locomotion Group; started the Drake robot simulator')}
       <div class="d12-arrow">→</div>
@@ -39,9 +41,10 @@ st(`
       <div class="d12-arrow">→</div>
       ${d12Step(d12Img('walden', 'Walden Robotics'), 'January 2026', 'Walden Robotics', 'Spins out of Toyota Research Institute with his team; robots now at work in a Toyota factory')}
     </div>
+    </div>
     <div class="d12-callout b">Still an MIT professor: the lab asks the questions, the company runs them at scale</div>
   </div>
-  ${cite('Tedrake’s MIT page · Tedrake, “Why Walden?” (waldenrobotics.com, Jul 2026)')}
+  ${cite('Photo: source to add · Tedrake’s MIT page · Tedrake, “Why Walden?” (waldenrobotics.com, Jul 2026)')}
 `);
 
 st(`

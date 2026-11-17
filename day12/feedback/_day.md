@@ -33,3 +33,4 @@ Wikimedia Commons; all shown in gray, so no colors enter the deck.
 - [ ] Want an actual Physical Intelligence logo? Send one, or keep the name as text.
 - [ ] Slide 3: Wikipedia says she "previously worked for Google" without dates, so the slide does not claim the
       Stanford and Google years overlapped.
+- [ ] Slide 2: photo of Russ Tedrake (Shreya sent it, 2026-11-17): where is it from? The credit line says "source to add".
