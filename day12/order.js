@@ -5,7 +5,7 @@ const ORDER = [
   ['start',     'Title, the opening question: what does research mean to you?'],
   ['why',       'Why do research'],
   ['where',     'Five places research happens, research happening near you'],
-  ['case',      'Physical AI: a research question vs a deployment problem'],
+  ['case',      'Physical AI: three kinds of questions about one robot'],
   ['tedrake',   'Russ Tedrake: MIT, Toyota Research Institute, Walden; why leave the lab'],
   ['walden',    'Walden LBM 2.0, and how Sage learns'],
   ['finn',      'Chelsea Finn: Berkeley, Google, Stanford, Physical Intelligence'],
