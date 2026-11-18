@@ -20,7 +20,6 @@ st(`
         <li>Is it safe next to people? Will it still work next month?</li>
       </ul></div>
     </div>
-    <div class="d12-callout b">Same robot, different questions. Two companies show how that works</div>
   </div>
 `);
 }

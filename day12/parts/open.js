@@ -21,7 +21,7 @@ d12Bul('Where the opportunities are', [
   '<b>Climate and weather:</b> ML weather forecasts; flood warnings where river gauges are scarce',
   '<b>Manufacturing and logistics:</b> robots that learn on the job',
   '<b>Language:</b> technology for African languages',
-], 'The hardest unsolved problems are often where the data is scarcest',
+], null,
 'Beede et al., CHI 2020 · Lam et al., Science 2023 · Nearing et al., Nature 2024 · Walden, LBM 2.0 · masakhane.io');
 
 d12Bul('Discussion', [

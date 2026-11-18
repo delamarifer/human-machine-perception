@@ -42,7 +42,6 @@ st(`
       <li class="b">Shipping into real production changed how they build robot AI</li>
     </ul>
     </div>
-    <div class="d12-callout b">Every robot at work produces data that a lab never sees</div>
   </div>
   ${cite('Photo and text: Tedrake, “Why Walden?” (waldenrobotics.com/news/why-walden, Jul 2026)')}
 `);

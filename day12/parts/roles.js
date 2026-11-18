@@ -20,7 +20,6 @@ st(`
       ${D12_ROLES.map(([t, out, sk]) => `
         <div class="d12-role b"><b>${t}</b><small>Makes</small><span>${out}</span><small>Needs</small><span>${sk}</span></div>`).join('')}
     </div>
-    <div class="d12-callout b">Titles vary by company: ask what the person ships each week</div>
   </div>
 `);
 
@@ -29,5 +28,5 @@ d12Bul('How to start from here', [
   '<b>Contribute to open source:</b> PyTorch, Hugging Face, Drake',
   '<b>Do an internship:</b> the fastest way to see industry from the inside',
   '<b>Show your work:</b> GitHub, a short write-up, a poster at Deep Learning Indaba',
-], 'Closer to research: go deep. Closer to product: learn software and systems');
+]);
 }

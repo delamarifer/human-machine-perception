@@ -52,7 +52,7 @@ d12Bul('Start with the problem, then the data', [
   '<b>The decision:</b> send this patient to a specialist, or not?',
   '<b>The cost of errors:</b> a missed case can mean lost sight; a false alarm costs a trip to the hospital',
   '<b>The data:</b> retinal photos, each graded by several ophthalmologists, because experts disagree',
-], 'Define who uses the output, and what a mistake costs, before choosing a model',
+], null,
 'Gulshan et al., JAMA 2016 · Beede et al., CHI 2020');
 
 d12Bul('Evaluation: the metric is not the goal', [
@@ -60,7 +60,7 @@ d12Bul('Evaluation: the metric is not the goal', [
   '<b>In eleven clinics in Thailand:</b> 393 of 1,838 photos (21%) were rejected as too poor to grade',
   '<b>Report by group:</b> clinic, camera, patient age, not one average',
   '<b>With few test cases,</b> report a confidence interval: 40/50 vs 35/50 may be no difference at all',
-], 'Measure what the user needs, where the user is',
+], null,
 'Gulshan et al., JAMA 2016 · Beede et al., CHI 2020 (first six months of use)');
 
 d12Bul('Deployment, monitoring, maintenance', [
@@ -68,6 +68,6 @@ d12Bul('Deployment, monitoring, maintenance', [
   '<b>The network:</b> on slow connections, one upload took 60–90 seconds while patients waited',
   '<b>The world drifts:</b> new cameras, new patients, new procedures; small errors compound',
   '<b>Close the loop:</b> log failures, collect them, retrain, as Walden does with interventions',
-], 'Shipping is the start of the work, not the end',
+], null,
 'Beede et al., CHI 2020 · Physical Intelligence, π*0.6 (Nov 2025) · Walden, LBM 2.0 (Nov 2026)');
 }

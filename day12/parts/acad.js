@@ -37,5 +37,5 @@ d12Bul('Not either/or', [
   '<b>Internships and industry PhDs</b> move people both ways',
   '<b>Open releases</b> flow back to universities: Drake, Segment Anything, the AlphaFold database',
   '<b>Industry labs publish,</b> and university labs start companies',
-], 'Most careers mix the two');
+]);
 }

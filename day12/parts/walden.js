@@ -24,7 +24,6 @@ st(`
       <div class="d12-mpair b">${d12Vid("https://walden-robotics.cdn.prismic.io/walden-robotics/2-EOf6WtYt7VHiaI_lbm2v2-fig6-gearbox-4x.mp4").replace('class="d12-vid"', 'class="d12-vid d12-contain"')}
         <div class="d12-num"><b>41 → 80 s<br>vs 27 → 28 s</b><span>Gain on the job: pretrained on 100,000 hours vs 1,000 hours (video: both, side by side)</span></div></div>
     </div>
-    <div class="d12-callout b">More pretraining, more learned on the job</div>
   </div>
   ${cite('Videos and numbers: Walden Robotics, “LBM 2.0: Accelerating learning in deployment” (Nov 2026), reported by the company')}
 `);
