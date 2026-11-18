@@ -1,5 +1,6 @@
-/* PART: lifecycle (Day 12, owner: Shreya). Built 2026-11-18. The ML / computer vision lifecycle, with one running
-   example: deep learning for diabetic retinopathy screening.
+/* PART: lifecycle (Day 12, owner: Shreya). Built 2026-11-18. The ML / computer vision lifecycle as one loop diagram.
+   The three retinopathy slides (problem and data, evaluation, deployment) were removed on 2026-11-18 at Shreya's
+   request; they are in git history (commit 256046d). Their sources are kept below for reference.
    Sources:
    - Gulshan et al., "Development and validation of a deep learning algorithm for detection of diabetic retinopathy
      in retinal fundus photographs", JAMA 2016: images graded several times by ophthalmologists; high sensitivity and
@@ -46,27 +47,4 @@ st(`
   <h1 class="t">The lifecycle is a loop, not a line</h1>
   <div class="d12-col">${d12Cycle}</div>
 `);
-
-d12Bul('Start with the problem, then the data', [
-  '<b>The task:</b> a nurse photographs the back of the eye; the model says <i>refer to a specialist</i> or <i>not yet</i>',
-  '<b>The cost of errors:</b> a missed case can mean lost sight; a false alarm costs a trip to the hospital',
-  '<b>The data:</b> retinal photos, each graded by several ophthalmologists, because experts disagree',
-], null,
-'Gulshan et al., JAMA 2016 · Beede et al., CHI 2020');
-
-d12Bul('Evaluation: the metric is not the goal', [
-  '<b>In the paper:</b> high sensitivity and specificity on held-out test photos',
-  '<b>In eleven clinics in Thailand:</b> 393 of 1,838 photos (21%) were rejected as too poor to grade',
-  '<b>Report by group:</b> clinic, camera, patient age, not one average',
-  '<b>With few test cases,</b> report a confidence interval: 40/50 vs 35/50 may be no difference at all',
-], null,
-'Gulshan et al., JAMA 2016 · Beede et al., CHI 2020 (first six months of use)');
-
-d12Bul('Deployment, monitoring, maintenance', [
-  '<b>The room:</b> clinics were not dark, so many photos came out too poor to grade',
-  '<b>The network:</b> on slow connections, one upload took 60–90 seconds while patients waited',
-  '<b>The world drifts:</b> new cameras, new patients, new procedures; small errors compound',
-  '<b>Close the loop:</b> log failures, collect them, retrain, as Walden does with interventions',
-], null,
-'Beede et al., CHI 2020 · Physical Intelligence, π*0.6 (Nov 2025) · Walden, LBM 2.0 (Nov 2026)');
 }

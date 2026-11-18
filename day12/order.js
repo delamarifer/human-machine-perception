@@ -10,7 +10,7 @@ const ORDER = [
   ['walden',    'Walden LBM 2.0, and how Sage learns'],
   ['finn',      'Chelsea Finn: Berkeley, Google, Stanford, Physical Intelligence'],
   ['pi',        'Physical Intelligence pi*0.6, and RECAP'],
-  ['lifecycle', 'The lifecycle loop, with diabetic retinopathy screening as the running example'],
+  ['lifecycle', 'The lifecycle loop'],
   ['acad',      'Academia and industry: goals, everyday reliability, not either/or'],
   ['roles',     'Six roles from research to product, how to start'],
   ['open',      'Open questions, opportunities, discussion'],
@@ -18,4 +18,4 @@ const ORDER = [
 const PARTS = ORDER.map(r => r[0]);
 
 /* Minutes per section (sets the widths in the progress bar). Draft: change freely. */
-const SEC_MINUTES = { 'Opening': 3, 'Why research': 6, 'Where research happens': 6, 'Physical AI': 14, 'The ML lifecycle': 10, 'Academia and industry': 7, 'Roles': 6, 'Open questions': 8 };
+const SEC_MINUTES = { 'Opening': 3, 'Why research': 6, 'Where research happens': 6, 'Physical AI': 14, 'The ML lifecycle': 4, 'Academia and industry': 7, 'Roles': 6, 'Open questions': 8 };
