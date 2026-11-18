@@ -4,8 +4,6 @@
    Intelligence. Her Stanford page did not load; check before class. Photo: ORF,
    orfonline.org/expert-speak/chelsea-finn-teaching-brett-robot-how-world-works-45635 (sent by Shreya). No speaker notes. */
 {
-section('Chelsea Finn and Physical Intelligence');
-
 st(`
   <h1 class="t">Chelsea Finn: academia and big tech, then a startup</h1>
   <div class="d12-col">

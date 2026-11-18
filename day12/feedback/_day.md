@@ -57,3 +57,16 @@ diagram). Saved as a still: the original loops every 15 s and fades out between 
 Slide 9: RECAP, redrawn from the pi*0.6 post diagram (it is built from live page elements, so it cannot be saved as an
 image). Same boxes and arrows, in the deck style, one part per click.
 - [ ] Slide 9 is a redraw: check it matches what you want from the post.
+
+## Round 7 (2026-11-18): ML in Industry, a 60-minute lecture, 26 slides
+Shreya's brief: why research, where it happens, Physical AI as a case study, the ML lifecycle, academia vs industry,
+roles, open questions. The 2026-11-17 deck is now the Physical AI section (slides 7-14). Title: "ML in Industry".
+1 title · 2 "What does research mean to you?" · 3-4 why research, who benefits · 5-6 five places, research near you ·
+7 research question vs deployment problem · 8-14 Tedrake, why leave, LBM 2.0, Sage diagram, Finn, pi*0.6, RECAP ·
+15-18 lifecycle loop, then retinopathy screening (problem and data, evaluation, deployment) · 19-21 academia vs
+industry · 22-23 roles, how to start · 24-26 open questions, opportunities, discussion (back to the opening question).
+The drift slide was removed; its point is a bullet on slide 18.
+Facts checked 2026-11-18: Beede et al. CHI 2020 (eleven clinics, 393 of 1838 images, 60-90 s uploads), DeVries et al.
+2019 abstract, InstaDeep (Wikipedia).
+- [ ] Check before class: Google Research Africa (Accra) and Deep Learning Indaba wording on slide 6.
+- [ ] Minutes per section in order.js follow the outline (3/6/6/14/10/7/6/8).

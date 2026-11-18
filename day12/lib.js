@@ -143,3 +143,49 @@ const d12Vid = (src, poster) => `<video class="d12-vid" src="${src}"${poster ? `
   .d12-as{ font:400 18px system-ui, sans-serif; fill:#64748b; }
   .d12-aline{ fill:none; stroke:#0f172a; stroke-width:3; }
 `; document.head.appendChild(el); })();
+
+/* ---------- ML in Industry (2026-11-18): helpers for the bullet and table slides ---------- */
+/* A titled list, one bullet per click, an optional takeaway line, an optional credit. */
+const d12Bul = (title, items, take, src) => st(`
+  <h1 class="t">${title}</h1>
+  <div class="d12-col">
+    <ul class="d12-list">${items.map(t => `<li class="b">${t}</li>`).join('')}</ul>
+    ${take ? `<div class="d12-callout b">${take}</div>` : ''}
+  </div>
+  ${src ? cite(src) : ''}
+`);
+/* A comparison table, one row per click. head = column titles (first may be ''), rows = arrays of cells. */
+const d12Tab = (head, rows, cls = '') => `
+  <div class="d12-table ${cls}" style="grid-template-columns:minmax(8em,.75fr) repeat(${head.length - 1}, minmax(0,1fr))">
+    ${head.map(h => `<div class="d12-cell d12-head">${h}</div>`).join('')}
+    ${rows.map(r => `<div class="d12-row b">${r.map((c, i) => `<div class="d12-cell${i ? '' : ' d12-key'}">${c}</div>`).join('')}</div>`).join('')}
+  </div>`;
+(() => { const el = document.createElement('style'); el.textContent = `
+  .d12-table.d12-dense .d12-cell{ font-size:clamp(.9rem, 1.35vw, 1.3rem); padding:1vh 0; }
+  .d12-table.d12-dense .d12-head{ font-size:clamp(1rem, 1.55vw, 1.45rem); }
+  .d12-q{ font-weight:700; font-size:clamp(2rem, 4vw, 3.6rem); line-height:1.2; text-align:center; max-width:22em; }
+  .d12-two{ display:grid; grid-template-columns:1fr 1fr; gap:3vw; }
+  .d12-two > div{ border-top:5px solid var(--ink); padding-top:1.4vh; display:flex; flex-direction:column; gap:1.2vh; }
+  .d12-two h2{ margin:0; font-size:clamp(1.3rem, 2.2vw, 2rem); }
+  .d12-two ul{ margin:0; padding-left:1.2em; display:flex; flex-direction:column; gap:1.2vh; }
+  .d12-two li{ font-size:clamp(1.1rem, 1.9vw, 1.75rem); line-height:1.3; }
+  /* the lifecycle loop */
+  .d12-cycle{ width:100%; max-height:64vh; display:block; }
+  .d12-cycle .d12-cnode{ fill:#fff; stroke:#0f172a; stroke-width:2.5; }
+  .d12-cycle .d12-ct{ font:700 22px system-ui, sans-serif; fill:#0f172a; }
+  .d12-cycle .d12-cs{ font:400 16px system-ui, sans-serif; fill:#64748b; }
+  .d12-cycle .d12-carrow{ fill:none; stroke:#0f172a; stroke-width:2.5; }
+  .d12-cycle .d12-center{ font:700 26px system-ui, sans-serif; fill:#0f172a; }
+  /* roles along an axis */
+  .d12-axis{ display:flex; justify-content:space-between; align-items:center; gap:1vw; font-size:clamp(.95rem, 1.45vw, 1.35rem); color:var(--mute); font-weight:700; }
+  .d12-axis i{ flex:1; height:3px; background:var(--mute); position:relative; }
+  .d12-axis i::before, .d12-axis i::after{ content:''; position:absolute; top:-6px; border:7px solid transparent; }
+  .d12-axis i::before{ left:-7px; border-right-color:var(--mute); border-left:none; }
+  .d12-axis i::after{ right:-7px; border-left-color:var(--mute); border-right:none; }
+  .d12-roles{ display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:1vw; }
+  .d12-role{ border:2px solid var(--ink); border-radius:12px; padding:1.4vh .8vw; display:flex; flex-direction:column; gap:.8vh; }
+  .d12-role b{ font-size:clamp(1.05rem, 1.7vw, 1.6rem); line-height:1.15; }
+  .d12-role small{ font-size:clamp(.75rem, 1.05vw, 1rem); text-transform:uppercase; letter-spacing:.06em; color:var(--mute); margin-top:.4vh; }
+  .d12-role span{ font-size:clamp(.88rem, 1.3vw, 1.22rem); line-height:1.3; }
+  @media (max-width: 820px), (max-aspect-ratio: 1/1){ .d12-two, .d12-roles{ grid-template-columns:1fr; } }
+`; document.head.appendChild(el); })();
