@@ -3,7 +3,7 @@
    No speaker notes (Shreya's preference). Avoid apostrophes inside the strings. */
 const ORDER = [
   ['start',     'Title, the opening question: what does research mean to you?'],
-  ['why',       'Why do research, and who benefits'],
+  ['why',       'Why do research'],
   ['where',     'Five places research happens, research happening near you'],
   ['case',      'Physical AI: a research question vs a deployment problem'],
   ['tedrake',   'Russ Tedrake: MIT, Toyota Research Institute, Walden; why leave the lab'],
