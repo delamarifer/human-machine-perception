@@ -12,7 +12,7 @@ st(`
   <div class="d12-col">
     ${d12Tab(['', 'Main goal', 'Paid for by', 'Time horizon', 'Example'], [
       ['University', 'New knowledge, trained people', 'Grants, governments', 'Long', 'MIT Robot Locomotion Group'],
-      ['Industrial lab', 'Breakthroughs for the company', 'The company', 'Medium', 'Toyota Research Institute, Google DeepMind'],
+      ['Company research lab', 'Breakthroughs for the company', 'The company', 'Medium', 'Toyota Research Institute, Google DeepMind'],
       ['Startup', 'A product people pay for', 'Investors, then customers', 'Short', 'Walden, Physical Intelligence'],
       ['Government lab', 'National needs', 'Public money', 'Long', 'CSIR (South Africa), NASA JPL'],
       ['Nonprofit', 'A public mission', 'Donors, foundations', 'Varies', 'Allen Institute for AI'],
