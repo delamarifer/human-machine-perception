@@ -49,7 +49,6 @@ st(`
 
 d12Bul('Start with the problem, then the data', [
   '<b>The task:</b> a nurse photographs the back of the eye; the model says <i>refer to a specialist</i> or <i>not yet</i>',
-  '<b>The decision:</b> send this patient to a specialist, or not?',
   '<b>The cost of errors:</b> a missed case can mean lost sight; a false alarm costs a trip to the hospital',
   '<b>The data:</b> retinal photos, each graded by several ophthalmologists, because experts disagree',
 ], null,
