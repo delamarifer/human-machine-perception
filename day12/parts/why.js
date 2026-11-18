@@ -10,7 +10,7 @@ section('Why research');
 
 d12Bul('Why do research?', [
   '<b>Curiosity:</b> how do we see? How does a robot learn to grasp?',
-  '<b>To solve a problem</b> someone has: screening eyes where specialists are scarce',
+  '<b>To solve a problem</b> someone has: a robot that takes over factory work that is hard on human bodies',
   '<b>To build tools</b> others use: datasets, code, simulators',
   '<b>To train people:</b> every PhD becomes a researcher or engineer somewhere',
 ]);
