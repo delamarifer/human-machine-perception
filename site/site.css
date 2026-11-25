@@ -669,3 +669,45 @@ details[open] > .sub-head .lesson-chev{ transform:rotate(-135deg); margin-top:.3
   .sub-body, .steps-list .sub-body{ padding:2px 16px 16px; }
 }
 .kind-assignment::before{ background:var(--c-gold); border-radius:50%; }
+
+/* ==========================================================================
+   Personality: the course's own subject, how eyes and cameras sample a scene
+   ========================================================================== */
+@property --fx{ syntax:'<percentage>'; inherits:true; initial-value:50%; }
+@property --fy{ syntax:'<percentage>'; inherits:true; initial-value:50%; }
+
+/* Hero motif: the fovea follows the cursor (rings and gold point), the pixel lattice stays put. */
+.hub-hero .iris{ --fx:50%; --fy:50%; transition:--fx .35s ease-out, --fy .35s ease-out;
+  background:
+    radial-gradient(circle at var(--fx) var(--fy), var(--c-gold) 0 5px, rgba(213,166,90,.25) 5.5px 9px, transparent 9.5px),
+    linear-gradient(90deg, transparent calc(50% - .5px), rgba(24,38,56,.28) calc(50% - .5px) calc(50% + .5px), transparent calc(50% + .5px)) !important; }
+.hub-hero .iris::before{ background:repeating-radial-gradient(circle at var(--fx) var(--fy), transparent 0 7px, rgba(24,38,56,.2) 7px 8px, transparent 8px 13px, rgba(24,38,56,.11) 13px 14px) !important; }
+.iris-caption{ position:absolute; right:2%; bottom:clamp(14px, 3vh, 28px); width:420px; margin:0; text-align:center;
+  font:500 .68rem/1.5 var(--font-mono); letter-spacing:.04em; color:var(--ink-mute); }
+@media (max-width:1100px){ .iris-caption{ display:none; } }
+@media (prefers-reduced-motion:reduce){ .iris-caption{ display:none; } }
+
+/* A faint pixel lattice behind page headers: the camera's half of the motif. */
+.hero, .pagehead{ background-image:radial-gradient(rgba(24,38,56,.075) 1px, transparent 1.4px) !important; background-size:18px 18px !important; }
+
+/* Pull quote on the home page. */
+.pullquote{ margin:var(--space-8) 0 0; padding:8px 0 8px 28px; border-left:3px solid var(--c-gold); max-width:46rem; }
+.pullquote blockquote{ margin:0; font:italic 400 clamp(1.6rem, 3.4vw, 2.4rem)/1.25 var(--font-serif); color:var(--ink); letter-spacing:-.01em; }
+.pullquote figcaption{ margin-top:.8em; font:500 .74rem/1.4 var(--font-mono); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-mute); }
+.pullquote figcaption a{ color:var(--ink-mute); }
+.pullquote figcaption a:hover{ color:var(--link); }
+
+/* Schedule: three weeks, each its own panel. */
+.lessons{ background:none !important; border:0 !important; }
+.week-group + .week-group{ margin-top:28px; }
+.week-h{ display:flex; align-items:baseline; gap:12px; margin:0 0 10px; font:500 1.25rem/1.2 var(--font-serif) !important; color:var(--ink); }
+.week-h small{ font:500 .7rem/1 var(--font-mono); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-mute); }
+.week-days{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-l); }
+.week-days > .lesson{ border-top:1px solid var(--line); }
+.week-days > .lesson:first-child{ border-top:0; }
+.week-days > .lesson:first-child .lesson-head{ border-radius:var(--radius-l) var(--radius-l) 0 0; }
+
+/* Home course sequence: a small week label before each week's days. */
+.preview li.pv-week{ padding:10px 24px 6px; font:500 .68rem/1 var(--font-mono); letter-spacing:.12em; text-transform:uppercase; color:var(--ink-mute); background:var(--surface-sunk); }
+.preview li.pv-week:first-child{ border-radius:var(--radius-l) var(--radius-l) 0 0; }
+@media (max-width:640px){ .preview li.pv-week{ padding:10px 16px 6px; } }

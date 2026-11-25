@@ -31,6 +31,7 @@
 <header class="hero hub-hero">
   <div class="wrap">
     <div class="iris" aria-hidden="true"></div>
+    <p class="iris-caption" aria-hidden="true">Move your cursor. An eye samples finely where it looks; a camera samples everywhere the same.</p>
     <div class="hub-intro">
       <h1>Visual Perception</h1>
       <p class="lead">Computer vision has long taken its questions from human vision, and this course teaches the two together: from filters and receptive fields to CNNs, Vision Transformers, self-supervised learning and generative models, with models tested against perceptual phenomena such as metamers and the Thatcher illusion. It ends with an original project: a working demo, or an experiment on the limits of today's vision systems.</p>
@@ -60,6 +61,11 @@
   </section>
 
 
+  <figure class="pullquote">
+    <blockquote>Seeing feels instant. That is why the difficulty is easy to miss.</blockquote>
+    <figcaption>From the <a href="lecture-notes.html#question">Day 1 lecture notes</a></figcaption>
+  </figure>
+
   <!-- 5. Schedule preview -->
   <section class="section" id="days" aria-labelledby="sched-h">
     <div class="section-head"><h2 id="sched-h">Course Sequence</h2><a class="more" href="schedule.html">Full schedule with all materials →</a></div>
@@ -74,5 +80,20 @@
 </div></footer>
 <noscript><p class="wrap">This page needs JavaScript to list the course materials. The <a href="syllabus.html">syllabus</a> and <a href="readings.html">readings</a> work without it.</p></noscript>
 <script>document.addEventListener('DOMContentLoaded', () => Site.render());</script>
+<script>
+  /* The eye's fovea (the gold point and its rings) follows the cursor; the camera's pixel grid never moves. */
+  (function () {
+    var hero = document.querySelector('.hub-hero'), iris = document.querySelector('.hub-hero .iris');
+    if (!hero || !iris || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    hero.addEventListener('pointermove', function (e) {
+      var r = iris.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      var dx = e.clientX - cx, dy = e.clientY - cy, d = Math.hypot(dx, dy), max = r.width * 0.3;
+      if (d > max) { dx *= max / d; dy *= max / d; }
+      iris.style.setProperty('--fx', (50 + 100 * dx / r.width) + '%');
+      iris.style.setProperty('--fy', (50 + 100 * dy / r.height) + '%');
+    });
+    hero.addEventListener('pointerleave', function () { iris.style.setProperty('--fx', '50%'); iris.style.setProperty('--fy', '50%'); });
+  })();
+</script>
 </body>
 </html>
