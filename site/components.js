@@ -40,7 +40,6 @@
 
   /* A day whose title is the placeholder reads as one, in grey italic. */
   const isMissing = day => day.title === 'Slides Not Posted Yet';
-  const WEEKS = [[1, 1, 5], [2, 6, 10], [3, 11, 15]];
   const latestDay = () => C.days.reduce((a, d) => (d.n > a.n ? d : a), C.days[0]);
   const findAssignment = id => C.assignments.find(a => a.id === id) || C.project.steps.find(a => a.id === id);
 
@@ -163,12 +162,7 @@
     schedule() {
       const cur = latestDay();
       const target = (location.hash.match(/^#day-(\d+)$/) || [])[1];
-      /* Three weeks of five days; each week is its own panel with a small heading. */
-      return WEEKS.map(([w, a, b]) => {
-        const days = C.days.filter(d => d.n >= a && d.n <= b);
-        return days.length ? `<div class="week-group"><h3 class="week-h">Week ${w}<small>Days ${a}–${b}</small></h3>
-          <div class="week-days" data-sort-inner>${days.map(d => DailyLesson(d, { current: d === cur, open: target ? +target === d.n : d === cur })).join('')}</div></div>` : '';
-      }).join('');
+      return C.days.map(d => DailyLesson(d, { current: d === cur, open: target ? +target === d.n : d === cur })).join('');
     },
 
     /* assignments.html: three sections, each in date order */
@@ -214,8 +208,7 @@
     },
     preview() {
       const cur = latestDay();
-      const weekOf = n => WEEKS.find(([, a, b]) => n >= a && n <= b);
-      return C.days.map(d => (weekOf(d.n)[1] === d.n || d === C.days.find(x => weekOf(x.n) === weekOf(d.n)) ? `<li class="pv-week" aria-hidden="true">Week ${weekOf(d.n)[0]}</li>` : '') + `<li${d === cur ? ' class="is-current"' : ''}><a href="schedule.html#day-${d.n}">
+      return C.days.map(d => `<li${d === cur ? ' class="is-current"' : ''}><a href="schedule.html#day-${d.n}">
         <span class="pv-num">${String(d.n).padStart(2, '0')}</span>
         <span class="pv-title${isMissing(d) ? ' is-missing' : ''}">${d.title}${d === cur ? '<span class="badge-current">Most recent</span>' : ''}</span></a></li>`).join('');
     },
@@ -238,8 +231,7 @@
       const show = flipped => { b.innerHTML = `<span class="sort-arrow" aria-hidden="true">${flipped ? '↑' : '↓'}</span>${flipped ? second : first}`;
         b.setAttribute('aria-label', `Sorted ${flipped ? second : first}. Change the order.`); b.setAttribute('aria-pressed', flipped); };
       let flipped = false; show(flipped);
-      const flip = el => [...el.children].reverse().forEach(c => el.appendChild(c));
-      b.addEventListener('click', () => { flip(list); list.querySelectorAll('[data-sort-inner]').forEach(flip); flipped = !flipped; show(flipped); });
+      b.addEventListener('click', () => { [...list.children].reverse().forEach(c => list.appendChild(c)); flipped = !flipped; show(flipped); });
     });
     /* Opening a #day-N link opens that day. */
     const openHash = () => {
