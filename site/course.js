@@ -21,7 +21,7 @@ const COLAB = 'https://colab.research.google.com/github/delamarifer/human-machin
 window.COURSE = {
   title: 'Visual Perception',
   description: [
-    'Computer vision has long taken its questions from the study of human vision, and this course teaches the two together. It starts with images as arrays and linear filtering, relating a bank of filters to the receptive fields of early visual cortex, then covers convolutional networks for recognition, Vision Transformers and attention, and learning visual representations without labels through contrastive methods and CLIP. Later sessions cover dataset quality and model evaluation, adapting pretrained models through fine-tuning and distillation, and generative models. Throughout, models are tested against perceptual phenomena such as metamers, the shape–texture bias and the Thatcher illusion. Students finish with an original project: either a working demo of a new application that combines ideas from the course, or an experiment that measures the limitations of current artificial vision systems.',
+    'This course explores the relationship between human and computer vision, bringing together ideas from visual perception, neuroscience, and modern artificial intelligence. We examine how the human visual system processes and interprets the world, how these insights have influenced computer vision, and where artificial systems differ from human perception. Topics range from image processing and neural networks to transformers, self-supervised learning, model evaluation, and generative AI.',
   ],
   instructors: [
     { name: 'Shreya Pandit', short: 'Shreya', email: 'shreyalpandit@gmail.com',
