@@ -669,3 +669,90 @@ details[open] > .sub-head .lesson-chev{ transform:rotate(-135deg); margin-top:.3
   .sub-body, .steps-list .sub-body{ padding:2px 16px 16px; }
 }
 .kind-assignment::before{ background:var(--c-gold); border-radius:50%; }
+
+/* ==========================================================================
+   Theme: navy structure. The nav bar, page headers and footer are navy, the
+   content stays on light panels. On navy: white headings, soft grey text
+   (10:1), light-blue links (8.6:1), gold for the one key action (6.9:1).
+   ========================================================================== */
+:root{
+  --on-navy:       #FFFFFF;
+  --on-navy-soft:  #CDD5E0;
+  --on-navy-mute:  #A9B6C7;
+  --on-navy-link:  #A9C4F0;
+  --on-navy-line:  rgba(255,255,255,.16);
+  --navy-2:        #1E2E44;
+}
+
+/* Nav bar */
+.sitenav{ background:rgba(24,38,56,.97) !important; border-bottom:1px solid rgba(0,0,0,.25) !important; }
+.sitenav-brand, .sitenav-brand b{ color:var(--on-navy) !important; }
+.sitenav-brand span{ color:var(--on-navy-mute) !important; }
+.sitenav li a{ color:var(--on-navy-soft) !important; }
+.sitenav li a:hover{ color:var(--on-navy) !important; }
+.sitenav li a[aria-current="page"]{ color:var(--on-navy) !important; border-bottom-color:var(--c-gold) !important; }
+.sitenav :focus-visible{ outline-color:var(--c-gold); }
+
+/* Page headers: navy, with a faint lighter glow on the right and a fine pixel lattice. */
+.hero, .pagehead{
+  background-color:var(--c-navy) !important;
+  background-image:
+    radial-gradient(70% 120% at 100% 0%, rgba(83,120,181,.22), transparent 60%),
+    radial-gradient(rgba(255,255,255,.06) 1px, transparent 1.4px) !important;
+  background-size:auto, 18px 18px !important;
+  border-bottom:0 !important; color:var(--on-navy-soft); }
+.hero h1, .pagehead h1{ color:var(--on-navy) !important; }
+.hero .lead, .pagehead .lead, .hero .tagline, .hero .who, .hero .mails, .hero .meta, .hero > .hero-in > p, .hub-intro .lead{ color:var(--on-navy-soft) !important; }
+.hero .kicker, .pagehead .kicker{ color:var(--on-navy-mute) !important; }
+.hero a, .pagehead a:not(.rlink){ color:var(--on-navy-link); }
+.hero a:hover, .pagehead a:not(.rlink):hover{ color:var(--on-navy); }
+.hero :focus-visible, .pagehead :focus-visible{ outline-color:var(--c-gold); }
+
+/* Breadcrumb row on older pages */
+.hero .back a{ color:var(--on-navy-soft) !important; }
+.hero .back a:first-child{ color:var(--on-navy) !important; }
+.hero .back a:hover{ color:var(--on-navy) !important; }
+
+/* Buttons and link chips on navy: gold for the main action, outlined for the rest. */
+.hero .rlink.btn-primary, .hero .back button, .hero a.btn, .hero .submit{
+  background:var(--c-gold) !important; border-color:var(--c-gold) !important; color:var(--c-navy) !important; }
+.hero .rlink.btn-primary:hover, .hero .back button:hover, .hero a.btn:hover, .hero .submit:hover{
+  background:#E2BC7C !important; border-color:#E2BC7C !important; color:var(--c-navy) !important; }
+.hero .rlink:not(.btn-primary), .pagehead .rlink, .hero .toc a, .hero .nav a, .hero .steps a, .pagehead button.tool{
+  background:rgba(255,255,255,.06) !important; border-color:var(--on-navy-line) !important; color:var(--on-navy) !important; }
+.hero .rlink:not(.btn-primary):hover, .pagehead .rlink:hover, .hero .toc a:hover, .hero .nav a:hover, .hero .steps a:hover{
+  background:rgba(255,255,255,.12) !important; border-color:var(--on-navy-link) !important; color:var(--on-navy) !important; }
+.hero .steps small, .hero .steps span{ color:var(--on-navy-mute) !important; }
+.hero .steps b{ color:var(--on-navy) !important; }
+.hero .rlink .ext{ opacity:.7; }
+
+/* Home: instructors and the motif in light lines on navy */
+.hub-hero .people{ border-top-color:var(--on-navy-line) !important; }
+.hub-hero .person{ color:var(--on-navy-soft) !important; }
+.hub-hero .person b{ color:var(--on-navy) !important; }
+.hub-hero .person a[href^="mailto"]{ color:var(--on-navy-mute) !important; }
+.hub-hero .person a[href^="mailto"]:hover{ color:var(--on-navy) !important; }
+.hub-hero .iris{
+  background:
+    radial-gradient(circle, var(--c-gold) 0 5px, rgba(213,166,90,.3) 5.5px 9px, transparent 9.5px),
+    linear-gradient(90deg, transparent calc(50% - .5px), rgba(255,255,255,.3) calc(50% - .5px) calc(50% + .5px), transparent calc(50% + .5px)) !important; }
+.hub-hero .iris::before{ background:repeating-radial-gradient(circle, transparent 0 9px, rgba(255,255,255,.2) 9px 10px, transparent 10px 15px, rgba(255,255,255,.1) 15px 16px) !important; }
+.hub-hero .iris::after{ background:radial-gradient(circle, rgba(169,196,240,.7) 1.3px, transparent 1.8px) 3px 3px / 14px 14px !important; }
+
+/* Facts boxes that sit inside an older page header stay light panels. */
+.hero .facts div, .hero .fact{ background:rgba(255,255,255,.06) !important; border-color:var(--on-navy-line) !important; color:var(--on-navy) !important; }
+.hero .facts small, .hero .fact small{ color:var(--on-navy-mute) !important; }
+.hero .facts b{ color:var(--on-navy) !important; }
+
+/* Footer */
+.site-foot{ background:var(--c-navy) !important; border-top:0 !important; }
+.site-foot .wrap, .site-foot p{ color:var(--on-navy-soft) !important; }
+.site-foot a{ color:var(--on-navy-link) !important; }
+.site-foot a:hover{ color:var(--on-navy) !important; }
+
+/* Gold rule under the page title: a small signature on every page. */
+.pagehead h1::after, .hero h1::after{ content:''; display:block; width:56px; height:2px; margin-top:.28em; background:var(--c-gold); }
+
+@media print{ .hero, .pagehead, .sitenav, .site-foot{ background:#fff !important; color:#111 !important; } .hero h1, .pagehead h1{ color:#111 !important; } }
+.hero .steps > li{ background:transparent !important; border:0 !important; padding:0 !important; }
+.hero .lead b, .hero .lead strong, .hero .lead i, .hero .lead em, .pagehead .lead b, .pagehead .lead strong{ color:var(--on-navy) !important; }
