@@ -168,8 +168,7 @@ window.COURSE = {
       ] },
     { n: 10, title: 'Slides Not Posted Yet', description: 'The opening question for the day is below.',
       items: [
-        { kind: 'response', note: 'Start of class', title: 'Opening Question: Can a Machine Dream?', text: 'Answer at the start of class. You get the point for answering, not for a right answer, and it counts toward your daily response grade.', links: [
-          { label: 'Answer the question', href: 'https://forms.gle/EP9wFUVDqFJkkbdx8', type: 'form' }] },
+        { kind: 'response', note: 'Start of class', title: 'Opening Question: Can a Machine Dream?', text: 'Answer at the start of class. You get the point for answering, not for a right answer, and it counts toward your daily response grade.', assignment: 'day10-q' },
       ] },
     { n: 11, title: 'Generative Art', description: "What if a machine could dream? Generative art, Refik Anadol's AI artworks, and how a generative system goes from archive to artwork.",
       items: [
@@ -211,10 +210,14 @@ window.COURSE = {
       due: '2026-11-21', dueText: 'Due Sat, Nov 21, midnight',
       submit: { label: 'Submit Assignment 2', href: 'https://docs.google.com/forms/d/e/1FAIpQLSdxf8CBPdRtlhMLtgEj30jcM8wq0rj4I6iI-Tb5_eRZkK_LZg/viewform' },
       submitNote: 'Pick two projects by other teams from the final presentations. For each one: the main problem, their solution, where it could go next, something new you learned, and a question for the team.' },
+    { id: 'day10-q', kind: 'response', day: 10, title: 'Day 10 Opening Question',
+      description: 'Can a Machine Dream?',
+      due: '2026-11-14', dueText: 'Due Sat, Nov 14',
+      submit: { label: 'Answer the question', href: 'https://forms.gle/EP9wFUVDqFJkkbdx8' } },
     { id: 'day11-lab', kind: 'lab', day: 11, title: 'Day 11 Lab: Generative System Lab',
       description: 'Submit your Colab link for the generative art lab',
       starter: { label: 'Open in Colab', href: COLAB + 'day11/workbook/generative-system-lab.ipynb' },
-      due: '2026-11-17', dueText: 'Due the next day, Tue, Nov 17',
+      due: '2026-11-17', dueText: 'Due Tue, Nov 17',
       submit: { label: 'Submit', href: 'https://forms.gle/RksDxmwqRrxhoKpf9' } },
     { id: 'a1', kind: 'assignment', weight: '15%', title: 'Assignment 1', label: 'Assignment',
       description: 'Are vision models still blind? Test newer models on BlindTest. Submit your Colab link and one-page PDF',
