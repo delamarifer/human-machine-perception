@@ -17,7 +17,7 @@
   const C = window.COURSE;
 
   const KINDS = { lecture: 'Lecture', lab: 'Hands-on lab', reading: 'Reading', homework: 'Homework',
-                  project: 'Project', response: 'In-class response' };
+                  project: 'Project', response: 'In-class response', assignment: 'Assignment' };
   const isExternal = href => /^https?:\/\//.test(href);
   const attr = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 
@@ -117,6 +117,28 @@
     </article>`;
   }
 
+  /* ------------------------------------------------ SubmissionRow --- */
+  /* One compact row: what it is, when it was due, and its links (submit last). */
+  function SubmissionRow(a, { step = false } = {}) {
+    const s = status(a);
+    const links = [];
+    if (a.instructions) links.push(ResourceLink({ ...a.instructions, type: 'page' }));
+    if (a.instructions2) links.push(ResourceLink({ ...a.instructions2, type: 'notes' }));
+    if (a.starter) links.push(ResourceLink({ ...a.starter, type: /colab/.test(a.starter.href) ? 'colab' : 'doc' }));
+    if (a.starter2) links.push(ResourceLink({ ...a.starter2, type: 'colab' }));
+    (a.readings || []).forEach(r => links.push(ResourceLink({ ...r, type: 'paper' })));
+    if (a.day) links.push(ResourceLink({ label: `Day ${a.day} materials`, href: `schedule.html#day-${a.day}`, type: 'page' }));
+    if (a.submit) links.push(ResourceLink({ ...a.submit, type: 'form' }, s.key === 'past' ? '' : 'rlink-submit'));
+    return `<li class="sub-row st-${s.key}"${a.id ? ` id="${a.id}"` : ''}>
+      <div class="sub-main">
+        <h3>${a.title}${a.weight ? `<span class="weight">${a.weight}</span>` : ''}</h3>
+        ${a.description ? `<p>${a.description}</p>` : ''}
+        ${links.length ? `<p class="links">${links.join('')}</p>` : ''}
+      </div>
+      <div class="sub-due"><small>Due</small><span>${a.dueText || 'No date posted'}</span>${s.key === 'past' ? '<em>Deadline passed</em>' : ''}</div>
+    </li>`;
+  }
+
   /* -------------------------------------------------- ProjectBrief --- */
   function ProjectBrief(p) {
     return `<div class="brief">
@@ -137,15 +159,25 @@
       return C.days.map(d => DailyLesson(d, { current: d === cur, open: target ? +target === d.n : d === cur })).join('');
     },
 
-    /* assignments.html */
-    upcoming() {
-      const open = C.assignments.filter(a => status(a).key !== 'past');
-      return open.map(a => AssignmentItem(a)).join('') ||
-        '<p class="empty-note">Nothing open right now.</p>';
-    },
-    past() { return C.assignments.filter(a => status(a).key === 'past').map(a => AssignmentItem(a)).join(''); },
+    /* assignments.html: three sections, each in date order */
+    gradedAssignments: () => ['a1', 'a2'].map(id => AssignmentItem(C.assignments.find(a => a.id === id))).join(''),
     projectBrief: () => ProjectBrief(C.project),
-    projectSteps: () => C.project.steps.map(a => AssignmentItem(a, { kind: 'project' })).join(''),
+    projectSteps() {
+      const order = ['p-idea', 'p-proposal', 'p-talk', 'p-writeup', 'p-submit'];
+      return order.map(id => SubmissionRow(C.project.steps.find(x => x.id === id), { step: true })).join('');
+    },
+    homework() {
+      /* Every homework, lab and in-class form, by day: an assignment when the day has one, else the form itself. */
+      const rows = [];
+      C.days.forEach(d => d.items.forEach(i => {
+        const a = i.assignment && C.assignments.find(x => x.id === i.assignment);
+        if (a) rows.push(SubmissionRow(a));
+        else (i.links || []).filter(l => l.type === 'form').forEach(l =>
+          rows.push(SubmissionRow({ title: `Day ${d.n} ${i.kind === 'response' ? 'Opening Question' : i.title}`, day: d.n,
+            description: i.kind === 'response' ? i.title.replace(/^Opening Question: /, '') : (i.text || ''), submit: { label: l.label, href: l.href } })));
+      }));
+      return rows.join('');
+    },
 
     /* index.html */
     now() {
@@ -178,17 +210,6 @@
       return C.instructors.map(p => `<div class="person"><p><b>${p.name}</b> <a href="mailto:${p.email}">${p.email}</a></p>${p.lines.map(l => `<p>${l}</p>`).join('')}</div>`).join('');
     },
 
-    /* assignments.html: every form in one list */
-    forms() {
-      const rows = [];
-      const add = (title, l, note = '') => rows.push(`<li><span class="res-title">${title}${note ? `<small>${note}</small>` : ''}</span><span class="links">${ResourceLink({ ...l, type: 'form' })}</span></li>`);
-      C.project.steps.filter(s => s.submit && /forms/.test(s.submit.href)).forEach(s => add(s.title, s.submit, s.dueText || ''));
-      C.assignments.forEach(a => a.submit && add(a.title, a.submit, a.dueText || ''));
-      C.days.forEach(d => d.items.forEach(i => (i.links || []).filter(l => l.type === 'form').forEach(l => add(`Day ${d.n} · ${i.title}`, l))));
-      add('Final Project Hand-In Form', { label: 'Hand-in form', href: 'https://forms.gle/cNFBCB6xVkyc3eRG8' }, 'From the presentation notes: your project number and one checkbox.');
-      add(C.feedback.title, { label: 'Anonymous feedback', href: C.feedback.href }, C.feedback.text);
-      return rows.join('');
-    },
   };
 
   function render(root = document) {
@@ -215,5 +236,5 @@
     if (location.hash) requestAnimationFrame(openHash);
   }
 
-  window.Site = { render, status, components: { SiteNav, ResourceLink, KindLabel, DailyLesson, AssignmentItem, ProjectBrief } };
+  window.Site = { render, status, components: { SiteNav, ResourceLink, KindLabel, DailyLesson, AssignmentItem, SubmissionRow, ProjectBrief } };
 })();

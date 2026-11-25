@@ -633,3 +633,27 @@ section[id], h2[id], h3[id], .lesson, .assignment{ scroll-margin-top:72px !impor
 .everyday dd{ margin:0; color:var(--ink-2); max-width:44rem; }
 .kind-human::before{ background:transparent; border:1.5px solid var(--c-blue); width:5px; height:5px; border-radius:50%; }
 @media (max-width:640px){ .everyday > div{ grid-template-columns:1fr; padding:14px 16px; } }
+
+/* ------------------------------------------- SubmissionRow lists --- */
+.sub-list{ list-style:none; margin:0; padding:0; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-l); counter-reset:step; }
+.sub-row{ display:grid; grid-template-columns:minmax(0,1fr) 200px; gap:8px 28px; padding:18px 24px; scroll-margin-top:72px; }
+.sub-row + .sub-row{ border-top:1px solid var(--line); }
+.sub-main h3{ margin:0; font:600 1.04rem/1.35 var(--font-sans) !important; color:var(--ink); display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 12px; }
+.sub-main h3 .weight{ font:500 .78rem/1.3 var(--font-mono); color:var(--ink-mute); }
+.sub-main p{ margin:.3em 0 0; color:var(--ink-2); font-size:.95rem; }
+.sub-main .links{ margin-top:.7em; }
+.sub-due{ display:flex; flex-direction:column; gap:.15em; padding-top:.1em; }
+.sub-due small{ font:600 .68rem/1.3 var(--font-sans); letter-spacing:.13em; text-transform:uppercase; color:var(--ink-mute); }
+.sub-due span{ font:600 1.02rem/1.35 var(--font-sans); color:var(--ink); }
+.sub-row.st-open .sub-due span{ font-weight:500; color:var(--ink-mute); }
+.sub-row.st-upcoming .sub-due span{ color:var(--gold-ink); }
+.sub-due em{ font-style:normal; font-size:.8rem; color:var(--ink-mute); }
+.steps-list .sub-row{ counter-increment:step; grid-template-columns:36px minmax(0,1fr) 200px; }
+.steps-list .sub-row::before{ content:counter(step); font:400 1.5rem/1.1 var(--font-serif); color:var(--ink-mute); }
+#project-steps{ margin:2em 0 .8em; }
+@media (max-width:700px){
+  .sub-row, .steps-list .sub-row{ grid-template-columns:1fr; padding:16px; }
+  .steps-list .sub-row::before{ font-size:1.1rem; }
+  .sub-due{ flex-direction:row; flex-wrap:wrap; align-items:baseline; gap:.5em; order:-1; }
+}
+.kind-assignment::before{ background:var(--c-gold); border-radius:50%; }
