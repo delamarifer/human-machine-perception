@@ -119,7 +119,8 @@
 
   /* ------------------------------------------------ SubmissionRow --- */
   /* One compact row: what it is, when it was due, and its links (submit last). */
-  function SubmissionRow(a, { step = false } = {}) {
+  function SubmissionRow(a, { n } = {}) {
+    /* Collapsed: title, weight and due date. Open: what to do and every link (submit last). */
     const s = status(a);
     const links = [];
     if (a.instructions) links.push(ResourceLink({ ...a.instructions, type: 'page' }));
@@ -129,14 +130,19 @@
     (a.readings || []).forEach(r => links.push(ResourceLink({ ...r, type: 'paper' })));
     if (a.day) links.push(ResourceLink({ label: `Day ${a.day} materials`, href: `schedule.html#day-${a.day}`, type: 'page' }));
     if (a.submit) links.push(ResourceLink({ ...a.submit, type: 'form' }, s.key === 'past' ? '' : 'rlink-submit'));
-    return `<li class="sub-row st-${s.key}"${a.id ? ` id="${a.id}"` : ''}>
-      <div class="sub-main">
-        <h3>${a.title}${a.weight ? `<span class="weight">${a.weight}</span>` : ''}</h3>
+    return `<li class="sub-row st-${s.key}"><details${a.id ? ` id="${a.id}"` : ''}>
+      <summary class="sub-head">
+        ${n ? `<span class="sub-num" aria-hidden="true">${n}</span>` : ''}
+        <span class="sub-title"><h3>${a.title}${a.weight ? `<span class="weight">${a.weight}</span>` : ''}</h3></span>
+        <span class="sub-due"><small>Due</small><span>${a.dueText || 'No date posted'}</span>${s.key === 'past' ? '<em>Deadline passed</em>' : ''}</span>
+        <span class="lesson-chev" aria-hidden="true"></span>
+      </summary>
+      <div class="sub-body">
         ${a.description ? `<p>${a.description}</p>` : ''}
+        ${a.submitNote ? `<p class="assignment-note">${a.submitNote}</p>` : ''}
         ${links.length ? `<p class="links">${links.join('')}</p>` : ''}
       </div>
-      <div class="sub-due"><small>Due</small><span>${a.dueText || 'No date posted'}</span>${s.key === 'past' ? '<em>Deadline passed</em>' : ''}</div>
-    </li>`;
+    </details></li>`;
   }
 
   /* -------------------------------------------------- ProjectBrief --- */
@@ -160,11 +166,11 @@
     },
 
     /* assignments.html: three sections, each in date order */
-    gradedAssignments: () => ['a1', 'a2'].map(id => AssignmentItem(C.assignments.find(a => a.id === id))).join(''),
+    gradedAssignments: () => ['a1', 'a2'].map(id => SubmissionRow(C.assignments.find(a => a.id === id))).join(''),
     projectBrief: () => ProjectBrief(C.project),
     projectSteps() {
       const order = ['p-idea', 'p-proposal', 'p-talk', 'p-writeup', 'p-submit'];
-      return order.map(id => SubmissionRow(C.project.steps.find(x => x.id === id), { step: true })).join('');
+      return order.map((id, i) => SubmissionRow(C.project.steps.find(x => x.id === id), { n: i + 1 })).join('');
     },
     homework() {
       /* Every homework, lab and in-class form, by day: an assignment when the day has one, else the form itself. */

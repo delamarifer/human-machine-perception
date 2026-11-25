@@ -635,25 +635,37 @@ section[id], h2[id], h3[id], .lesson, .assignment{ scroll-margin-top:72px !impor
 @media (max-width:640px){ .everyday > div{ grid-template-columns:1fr; padding:14px 16px; } }
 
 /* ------------------------------------------- SubmissionRow lists --- */
-.sub-list{ list-style:none; margin:0; padding:0; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-l); counter-reset:step; }
-.sub-row{ display:grid; grid-template-columns:minmax(0,1fr) 200px; gap:8px 28px; padding:18px 24px; scroll-margin-top:72px; }
+/* Collapsible rows, like days on the Schedule. */
+.sub-list{ list-style:none; margin:0; padding:0; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-l); }
 .sub-row + .sub-row{ border-top:1px solid var(--line); }
-.sub-main h3{ margin:0; font:600 1.04rem/1.35 var(--font-sans) !important; color:var(--ink); display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 12px; }
-.sub-main h3 .weight{ font:500 .78rem/1.3 var(--font-mono); color:var(--ink-mute); }
-.sub-main p{ margin:.3em 0 0; color:var(--ink-2); font-size:.95rem; }
-.sub-main .links{ margin-top:.7em; }
-.sub-due{ display:flex; flex-direction:column; gap:.15em; padding-top:.1em; }
-.sub-due small{ font:600 .68rem/1.3 var(--font-sans); letter-spacing:.13em; text-transform:uppercase; color:var(--ink-mute); }
-.sub-due span{ font:600 1.02rem/1.35 var(--font-sans); color:var(--ink); }
-.sub-row.st-open .sub-due span{ font-weight:500; color:var(--ink-mute); }
-.sub-row.st-upcoming .sub-due span{ color:var(--gold-ink); }
+.sub-row details{ scroll-margin-top:72px; }
+.sub-head{ display:grid; grid-template-columns:minmax(0,1fr) 220px 18px; gap:6px 24px; align-items:center; padding:16px 24px; cursor:pointer; list-style:none; }
+.sub-head::-webkit-details-marker{ display:none; }
+.sub-head:hover{ background:var(--surface-sunk); }
+.sub-row:first-child .sub-head{ border-radius:var(--radius-l) var(--radius-l) 0 0; }
+.sub-row:last-child details:not([open]) .sub-head{ border-radius:0 0 var(--radius-l) var(--radius-l); }
+details[open] > .sub-head .lesson-chev{ transform:rotate(-135deg); margin-top:.3em; }
+.sub-head .lesson-chev{ margin-top:0; }
+.steps-list .sub-head{ grid-template-columns:30px minmax(0,1fr) 220px 18px; }
+.sub-num{ font:400 1.45rem/1 var(--font-serif); color:var(--ink-mute); }
+.sub-title h3{ margin:0; font:600 1.04rem/1.35 var(--font-sans) !important; color:var(--ink); display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 12px; }
+.sub-title .weight{ font:500 .78rem/1.3 var(--font-mono); color:var(--ink-mute); }
+.sub-due{ display:flex; flex-wrap:wrap; align-items:baseline; gap:.2em .6em; }
+.sub-due small{ flex-basis:100%; font:600 .66rem/1.3 var(--font-sans); letter-spacing:.13em; text-transform:uppercase; color:var(--ink-mute); }
+.sub-due > span{ font:600 .98rem/1.35 var(--font-sans); color:var(--ink); }
+.sub-row.st-open .sub-due > span{ font-weight:500; color:var(--ink-mute); }
+.sub-row.st-upcoming .sub-due > span{ color:var(--gold-ink); }
 .sub-due em{ font-style:normal; font-size:.8rem; color:var(--ink-mute); }
-.steps-list .sub-row{ counter-increment:step; grid-template-columns:36px minmax(0,1fr) 200px; }
-.steps-list .sub-row::before{ content:counter(step); font:400 1.5rem/1.1 var(--font-serif); color:var(--ink-mute); }
+.sub-body{ padding:2px 24px 18px 24px; border-top:1px dashed var(--line); }
+.steps-list .sub-body{ padding-left:78px; }
+.sub-body p{ margin:.7em 0 0; color:var(--ink-2); font-size:.95rem; max-width:46rem; }
+.sub-body .links{ margin-top:.8em; }
 #project-steps{ margin:2em 0 .8em; }
 @media (max-width:700px){
-  .sub-row, .steps-list .sub-row{ grid-template-columns:1fr; padding:16px; }
-  .steps-list .sub-row::before{ font-size:1.1rem; }
-  .sub-due{ flex-direction:row; flex-wrap:wrap; align-items:baseline; gap:.5em; order:-1; }
+  .sub-head, .steps-list .sub-head{ grid-template-columns:minmax(0,1fr) 14px; padding:14px 16px; }
+  .sub-num{ display:none; }
+  .sub-due{ grid-column:1; }
+  .sub-head .lesson-chev{ grid-column:2; grid-row:1; }
+  .sub-body, .steps-list .sub-body{ padding:2px 16px 16px; }
 }
 .kind-assignment::before{ background:var(--c-gold); border-radius:50%; }

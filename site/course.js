@@ -205,7 +205,7 @@ window.COURSE = {
 
   /* --------------------------------------------------------- assignments --- */
   assignments: [
-    { id: 'a2', kind: 'assignment', title: 'Assignment 2', label: 'After the talks',
+    { id: 'a2', kind: 'assignment', weight: '15%', title: 'Assignment 2', label: 'After the talks',
       description: 'Five questions on each of two projects by other teams, then one question about both.',
       instructions: { label: 'Instructions', href: 'assignment2.html' },
       due: '2026-11-21', dueText: 'Due Sat, Nov 21, midnight',
@@ -216,7 +216,7 @@ window.COURSE = {
       starter: { label: 'Open in Colab', href: COLAB + 'day11/workbook/generative-system-lab.ipynb' },
       due: '2026-11-17', dueText: 'Due the next day, Tue, Nov 17',
       submit: { label: 'Submit', href: 'https://forms.gle/RksDxmwqRrxhoKpf9' } },
-    { id: 'a1', kind: 'assignment', title: 'Assignment 1', label: 'Assignment',
+    { id: 'a1', kind: 'assignment', weight: '15%', title: 'Assignment 1', label: 'Assignment',
       description: 'Are vision models still blind? Test newer models on BlindTest. Submit your Colab link and one-page PDF',
       instructions: { label: 'Instructions', href: 'assignment1.html' },
       starter: { label: 'Starter notebook', href: COLAB + 'notebooks/assignment1-starter.ipynb' },
