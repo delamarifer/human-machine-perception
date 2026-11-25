@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Assignment 2 · Visual Perception</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;family=Inter:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+    *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--text);
+    font:16.5px/1.6 Inter, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif; }
+  a{ color:var(--cyan); }
+  .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
+  .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;
+    font:500 .85rem/1 var(--font-sans); letter-spacing:.08em; color:var(--mute); }
+  .spine b{ color:var(--text); font-weight:500; }
+  .page{ margin-left:44px; }
+  .hero{ position:relative; overflow:hidden; border-bottom:1px solid var(--line);
+    background:radial-gradient(120% 90% at 78% 40%, #0f1a33 0%, var(--bg) 60%); }
+  .hero-in{ position:relative; max-width:64rem; margin:0 auto; padding:8vh 24px 5vh; }
+  .back{ margin:0 0 2.2em; font-size:.95rem; }
+  .back a{ color:var(--mute); text-decoration:none; margin-right:1.2em; }
+  .back a:hover{ color:var(--text); }
+  .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--sky); }
+  h1{ margin:0 0 .35em; font:700 clamp(2.4rem, 7vw, 4.4rem)/.95 var(--font-sans); text-transform:uppercase;
+    background:linear-gradient(90deg, #fff 0%, #bfdbfe 50%, #c7fff4 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lead{ max-width:44rem; color:var(--ink-2); font-size:1.05rem; margin:0 0 .7em; }
+  .facts{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-top:1.6em; max-width:52rem; }
+  .facts div{ padding:12px 14px; border:1px solid var(--line); border-radius:14px; background:var(--surface); }
+  .facts small{ display:block; font-size:.68rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); }
+  .facts b{ font:700 1.05rem/1.3 var(--font-sans); }
+  main{ max-width:64rem; margin:0 auto; padding:0 24px 12vh; }
+  section{ padding-top:3em; }
+  h2{ margin:0 0 .8em; font:700 1.5rem/1.2 var(--font-sans); display:flex; align-items:center; gap:.55em; }
+  h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
+  p{ margin:0 0 .6em; }
+  .box{ padding:16px 18px; border:1px solid var(--line); border-radius:14px; background:var(--surface); }
+  .steps{ counter-reset:s; list-style:none; padding:0; margin:0; display:grid; gap:10px; }
+  .steps > li{ counter-increment:s; position:relative; padding:14px 16px 14px 66px; border:1px solid var(--line); border-radius:14px; background:var(--surface); }
+  .steps > li::before{ content:counter(s); position:absolute; left:14px; top:14px; width:32px; height:26px; border-radius:8px;
+    display:grid; place-items:center; font:700 .8rem/1 var(--font-sans); color:var(--bg); background:var(--c); }
+  .steps h3{ margin:0 0 .25em; font:700 1.05rem/1.3 var(--font-sans); }
+  .steps p{ margin:.2em 0; color:var(--ink-2); }
+  @media (max-width:640px){
+    .spine{ display:none; } .page{ margin-left:0; }
+    .hero-in{ padding:5vh 16px 3vh; }
+    main{ padding:0 16px 10vh; }
+    .steps > li{ padding-left:16px; padding-top:48px; }
+  }
+</style>
+<link rel="stylesheet" href="site/site.css">
+<script src="site/course.js" defer></script>
+<script src="site/components.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div data-render="nav" data-active="assignments" data-base=""></div>
+<div class="page">
+
+<header class="hero">
+  <div class="hero-in">
+    <p class="back"><a href="syllabus.html#grading">Syllabus</a><a href="presentations/notes.html">Presentation notes</a></p>
+    <p class="kicker">Assignment 2 · 15%</p>
+    <h1>Two other projects</h1>
+    <p class="lead">After the talks, pick two projects by other teams. Answer the same questions about each one. A few sentences is enough. Use something specific from the talk: a number, a figure, an example, or a failure.</p>
+    <div class="facts">
+      <div><small>Weight</small><b>15% of the grade</b></div>
+      <div><small>When</small><b>After the talks</b></div>
+      <div><small>Choose</small><b>Two projects, not yours</b></div>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <section style="--c:var(--sky)">
+    <h2>How it works</h2>
+    <div class="box">
+      <p>Listen during the talks. You cannot answer these from the title alone.</p>
+      <p>The two projects must be by other teams, not your own and not a teammate's. Name each project so we know which talk you mean.</p>
+      <p>Answer questions 1 to 5 once for the first project, then again for the second. Then answer question 6 once, about both.</p>
+    </div>
+  </section>
+
+  <section style="--c:var(--cyan)">
+    <h2>Questions</h2>
+    <p>Same five questions for each project.</p>
+    <ol class="steps">
+      <li>
+        <h3>The idea</h3>
+        <p>In one sentence, what were they trying to find out or build, and why should someone care?</p>
+      </li>
+      <li>
+        <h3>Setup</h3>
+        <p>What data did they use, which models, and what did they measure?</p>
+      </li>
+      <li>
+        <h3>Results</h3>
+        <p>What was the main finding, in one sentence? What evidence did they show?</p>
+      </li>
+      <li>
+        <h3>Where it fails</h3>
+        <p>What does not work, and what can their setup not tell you?</p>
+      </li>
+      <li>
+        <h3>What it means</h3>
+        <p>What does this say about how models see, or about how people see?</p>
+      </li>
+      <li>
+        <h3>The two together</h3>
+        <p>Where do the two projects agree, and where do they not? Name one thing you would test next.</p>
+      </li>
+    </ol>
+  </section>
+
+  <section style="--c:var(--amber)">
+    <h2>What we look for</h2>
+    <div class="box">
+      <p>Each answer should be specific to that talk. Restating the project title in new words is not enough.</p>
+      <p>Questions 1 to 5 are about what the team said and showed. Question 6 is your comparison, and it has to use both projects.</p>
+    </div>
+  </section>
+
+</main>
+</div>
+<script>document.addEventListener('DOMContentLoaded', () => Site.render());</script>
+</body>
+</html>

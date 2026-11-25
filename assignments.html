@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Assignments &amp; Projects · Visual Perception</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="description" content="What to do, where to find the materials, and how to submit: assignments, homework and the final project.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;family=Inter:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site/site.css">
+<script src="site/course.js" defer></script>
+<script src="site/components.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div data-render="nav" data-active="assignments"></div>
+
+<header class="pagehead"><div class="wrap">
+  <h1>Assignments &amp; Projects</h1>
+  <p class="lead">Each item says what to do, where its materials are, and how to submit it. Deadlines are only shown where one was posted. "Deadline passed" means the posted deadline is over; it does not track what you have handed in.</p>
+  <div class="tools"><a class="rlink" href="#upcoming">Open Now</a><a class="rlink" href="#projects">Final Project</a><a class="rlink" href="#past">Past Deadlines</a><a class="rlink" href="#forms">All Submission Forms</a></div>
+</div></header>
+<main id="main" class="wrap">
+  <section class="section" id="upcoming" aria-labelledby="up-h">
+    <div class="section-head"><h2 id="up-h">Open Now</h2><p>Assignments whose posted deadline has not passed, or that have no deadline posted.</p></div>
+    <div class="assignment-list" data-render="upcoming"></div>
+  </section>
+  <section class="section" id="projects" aria-labelledby="pr-h">
+    <div class="section-head"><h2 id="pr-h">Final Project</h2><a class="more" href="templates.html">Project templates →</a></div>
+    <div data-render="projectBrief"></div>
+    <h3 class="label" style="margin-top:2em">Project Steps, Newest First</h3>
+    <div class="assignment-list" data-render="projectSteps"></div>
+    <h3 class="label" id="project-docs" style="margin-top:2em">Project Documents</h3>
+    <ul class="res-table">
+      <li><span class="res-day">Templates</span><span class="res-title">Project Templates<small>Idea, proposal, presentation and write-up, for a built demo or an experiment.</small></span><span class="links"><a class="rlink" href="templates.html">Templates</a></span></li>
+      <li><span class="res-day">Talks</span><span class="res-title">Presentations and Write-Ups<small>When you present, the ideas to cover, how the talk is graded, and the write-up.</small></span><span class="links"><a class="rlink" href="presentations/deck.html">Slides</a><a class="rlink" href="presentations/notes.html">Notes</a></span></li>
+      <li><span class="res-day">Proposal</span><span class="res-title">Proposal Template and Grading Rubric</span><span class="links"><a class="rlink" href="https://docs.google.com/document/d/12sPqbfitV3cYsndd5KX4C2FHXcTZOh4MR-vegbdWSEQ/edit?usp=sharing">Proposal template<span class="ext" aria-hidden="true">↗</span></a><a class="rlink" href="https://docs.google.com/document/d/1snJ5o0smRKS6KVBizKk2YTd0CbG-Fv97Zivw6_bE2ss/edit?usp=sharing">Rubric<span class="ext" aria-hidden="true">↗</span></a></span></li>
+      <li><span class="res-day">Slots</span><span class="res-title">Presentation Sign-Up</span><span class="links"><a class="rlink" href="https://docs.google.com/document/d/1uivAlhELC4kQgEJz5DlX36Vvx4gCwKj4pAYVWrP9Of4/edit">Sign-up document<span class="ext" aria-hidden="true">↗</span></a></span></li>
+    </ul>
+  </section>
+  <section class="section" id="past" aria-labelledby="past-h">
+    <div class="section-head"><h2 id="past-h">Past Deadlines</h2><p>The instructions and links stay here for reference.</p></div>
+    <div class="assignment-list" data-render="past"></div>
+  </section>
+  <section class="section" id="forms" aria-labelledby="f-h">
+    <div class="section-head"><h2 id="f-h">All Submission Forms</h2><p>Every form from the course in one list, with its posted deadline where there is one.</p></div>
+    <ul class="res-table res-forms" data-render="forms"></ul>
+  </section>
+</main>
+<footer class="site-foot"><div class="wrap">
+  <p>Visual Perception · Fernanda de la Torre · Shreya Pandit</p>
+  <p><a href="https://discord.gg/2kN726ZZ6">Class Discord</a> · <a href="https://forms.gle/Js3vcF7hgkhXQELt5">Anonymous feedback</a></p>
+</div></footer>
+<noscript><p class="wrap">This page needs JavaScript to list the course materials. The <a href="syllabus.html">syllabus</a> and <a href="readings.html">readings</a> work without it.</p></noscript>
+<script>document.addEventListener('DOMContentLoaded', () => Site.render());</script>
+</body>
+</html>

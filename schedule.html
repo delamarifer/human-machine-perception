@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Schedule · Visual Perception</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="description" content="Every day of the course: lecture slides and notes, Colab labs, readings and homework.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;family=Inter:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site/site.css">
+<script src="site/course.js" defer></script>
+<script src="site/components.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div data-render="nav" data-active="schedule"></div>
+
+<header class="pagehead"><div class="wrap">
+  <h1>Schedule</h1>
+  <p class="lead">Open a day for its slides, notes, labs, readings and homework.</p>
+</div></header>
+<main id="main" class="wrap">
+  <section class="section" aria-label="Days">
+    <div class="schedule-bar">
+      <button class="tool sort" type="button" data-sort="#lessons" data-labels="Day 1 first|Latest day first"></button>
+      <button class="tool" type="button" data-toggle-all aria-pressed="false">Expand all</button>
+    </div>
+    <div class="lessons" id="lessons" data-render="schedule"></div>
+  </section>
+</main>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const b = document.querySelector('[data-toggle-all]');
+  b.addEventListener('click', () => {
+    const open = b.getAttribute('aria-pressed') !== 'true';
+    document.querySelectorAll('details.lesson').forEach(d => d.open = open);
+    b.setAttribute('aria-pressed', open); b.textContent = open ? 'Collapse all' : 'Expand all';
+  });
+});
+</script>
+<footer class="site-foot"><div class="wrap">
+  <p>Visual Perception · Fernanda de la Torre · Shreya Pandit</p>
+  <p><a href="https://discord.gg/2kN726ZZ6">Class Discord</a> · <a href="https://forms.gle/Js3vcF7hgkhXQELt5">Anonymous feedback</a></p>
+</div></footer>
+<noscript><p class="wrap">This page needs JavaScript to list the course materials. The <a href="syllabus.html">syllabus</a> and <a href="readings.html">readings</a> work without it.</p></noscript>
+<script>document.addEventListener('DOMContentLoaded', () => Site.render());</script>
+</body>
+</html>

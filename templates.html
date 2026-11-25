@@ -2,20 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Project Templates · Computer Vision</title>
+<title>Project Templates · Visual Perception</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="light">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;family=Inter:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <style>
   /* Same look as syllabus.html. */
-  :root{
-    --bg:#0a0d16; --surface:#121827; --surface2:#171f33; --line:#25304a;
-    --text:#e9edf6; --mute:#9aa5bd;
-    --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa;
-  }
-  *{ box-sizing:border-box; }
+    *{ box-sizing:border-box; }
   html{ scroll-behavior:smooth; }
   body{ margin:0; background:var(--bg); color:var(--text);
     font:16.5px/1.6 Inter, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif; }
@@ -25,7 +20,7 @@
   .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line);
     display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
   .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;
-    font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
+    font:500 .85rem/1 var(--font-sans); letter-spacing:.08em; color:var(--mute); }
   .spine b{ color:var(--text); font-weight:500; }
   .page{ margin-left:44px; }
 
@@ -36,21 +31,21 @@
   .back a{ color:var(--mute); text-decoration:none; margin-right:1.2em; }
   .back a:hover{ color:var(--text); }
   .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--violet); }
-  h1{ margin:0 0 .35em; font:700 clamp(2.3rem, 7vw, 4.2rem)/.95 'Space Grotesk', sans-serif; text-transform:uppercase;
+  h1{ margin:0 0 .35em; font:700 clamp(2.3rem, 7vw, 4.2rem)/.95 var(--font-sans); text-transform:uppercase;
     background:linear-gradient(90deg, #fff 0%, #e4d8ff 50%, #c7fff4 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  .lead{ max-width:44rem; color:#d3d9e6; font-size:1.05rem; margin:0 0 .7em; }
+  .lead{ max-width:44rem; color:var(--ink-2); font-size:1.05rem; margin:0 0 .7em; }
 
   /* the four steps */
   .steps{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin:2em 0 0; padding:0; list-style:none; }
-  .steps a{ display:block; height:100%; padding:12px 14px; border:1px solid var(--line); border-radius:14px; background:rgba(18,24,39,.85);
+  .steps a{ display:block; height:100%; padding:12px 14px; border:1px solid var(--line); border-radius:14px; background:var(--surface);
     color:var(--text); text-decoration:none; transition:all .2s; }
   .steps a:hover{ border-color:var(--c); box-shadow:0 0 18px color-mix(in srgb, var(--c) 40%, transparent); }
   .steps small{ display:block; font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--c); font-weight:700; }
-  .steps b{ display:block; font-family:'Space Grotesk', sans-serif; font-size:1.05rem; margin:.15em 0; }
+  .steps b{ display:block; font-family:var(--font-sans); font-size:1.05rem; margin:.15em 0; }
   .steps span{ color:var(--mute); font-size:.85rem; }
 
   /* track switch */
-  .switch{ position:sticky; top:0; z-index:3; background:rgba(10,13,22,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  .switch{ position:sticky; top:0; z-index:3; background:rgba(242,243,245,.94); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
   .switch-in{ max-width:64rem; margin:0 auto; padding:10px 24px; display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; }
   .switch-in > span{ color:var(--mute); font-size:.85rem; }
   .seg{ display:inline-flex; padding:3px; border:1px solid var(--line); border-radius:999px; background:var(--surface); }
@@ -62,12 +57,12 @@
 
   main{ max-width:64rem; margin:0 auto; padding:0 24px 12vh; }
   section{ padding-top:3.2em; scroll-margin-top:3.5em; }
-  h2{ margin:0 0 .3em; font:700 1.6rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; flex-wrap:wrap; }
+  h2{ margin:0 0 .3em; font:700 1.6rem/1.2 var(--font-sans); display:flex; align-items:center; gap:.55em; flex-wrap:wrap; }
   h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
   .meta{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 1.2em; padding:0; list-style:none; }
-  .meta li{ margin:0; padding:.2em .7em; border-radius:6px; font-size:.82rem; font-weight:600; border:1px solid var(--line); background:var(--surface); color:#d3d9e6; }
+  .meta li{ margin:0; padding:.2em .7em; border-radius:6px; font-size:.82rem; font-weight:600; border:1px solid var(--line); background:var(--surface); color:var(--ink-2); }
   .meta li.due{ color:var(--amber); background:rgba(251,191,36,.12); border-color:rgba(251,191,36,.35); }
-  h3{ margin:1.6em 0 .5em; font:700 1.1rem/1.3 'Space Grotesk', sans-serif; }
+  h3{ margin:1.6em 0 .5em; font:700 1.1rem/1.3 var(--font-sans); }
   p, li{ margin:0 0 .55em; }
   ul, ol{ padding-left:1.25em; }
   li::marker{ color:var(--c); }
@@ -76,18 +71,18 @@
   .tpl{ position:relative; border:1px solid var(--line); border-radius:16px; background:var(--surface); padding:18px 20px 8px; margin:0 0 1em; }
   .tpl::before{ content:''; position:absolute; left:0; top:16px; bottom:16px; width:3px; border-radius:3px; background:var(--k, var(--c)); box-shadow:0 0 12px var(--k, var(--c)); }
   .tpl-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin:0 0 .8em; }
-  .tpl-head b{ font-family:'Space Grotesk', sans-serif; font-size:1.05rem; }
+  .tpl-head b{ font-family:var(--font-sans); font-size:1.05rem; }
   .tag{ display:inline-block; padding:.1em .55em; margin-left:.4em; border-radius:999px; font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--bg); background:var(--k); vertical-align:2px; }
   .copy{ flex:none; border:1px solid var(--line); background:var(--surface2); color:var(--text); font:600 .82rem/1 Inter, sans-serif;
     padding:.55em .9em; border-radius:999px; cursor:pointer; }
   .copy:hover{ border-color:var(--k, var(--c)); }
   .tpl ol > li{ margin-bottom:.9em; }
   .tpl ol > li > b{ display:block; }
-  .w{ font:700 .85rem/1 'Space Grotesk', sans-serif; color:var(--k, var(--c)); margin-left:.35em; }
+  .w{ font:700 .85rem/1 var(--font-sans); color:var(--k, var(--c)); margin-left:.35em; }
   .hint{ display:block; color:var(--mute); font-size:.93rem; }
   .k-build{ --k:var(--cyan); } .k-experiment{ --k:var(--amber); }
 
-  .note{ border:1px dashed var(--line); border-radius:12px; padding:12px 16px; color:#d3d9e6; font-size:.95rem; margin:0 0 1em; }
+  .note{ border:1px dashed var(--line); border-radius:12px; padding:12px 16px; color:var(--ink-2); font-size:.95rem; margin:0 0 1em; }
   .credits li{ font-size:.95rem; }
   .credits span{ color:var(--mute); }
 
@@ -103,14 +98,18 @@
     body{ background:#fff; color:#000; }
   }
 </style>
+<link rel="stylesheet" href="site/site.css">
+<script src="site/course.js" defer></script>
+<script src="site/components.js" defer></script>
 </head>
 <body class="t-build">
-<div class="spine" aria-hidden="true"><span><b>Computer Vision</b> &nbsp;/&nbsp; Project templates</span></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<div data-render="nav" data-active="assignments" data-base=""></div>
 <div class="page">
 
 <header class="hero">
   <div class="hero-in">
-    <p class="back"><a href="index.html">← Home</a><a href="syllabus.html#grading">Syllabus: grading</a></p>
+    <p class="back"><a href="syllabus.html#grading">Syllabus: grading</a></p>
     <p class="kicker">Final project</p>
     <h1>Project<br>templates</h1>
     <p class="lead">One template for each step of the final project. Each step comes in two versions. Pick the one that fits your project.</p>
@@ -136,7 +135,7 @@
   </div>
 </div>
 
-<main>
+<main id="main">
 
   <!-- STEP 1 -->
   <section id="idea" style="--c:var(--cyan)">
@@ -307,5 +306,6 @@
     });
   });
 </script>
+<script>document.addEventListener('DOMContentLoaded', () => Site.render());</script>
 </body>
 </html>

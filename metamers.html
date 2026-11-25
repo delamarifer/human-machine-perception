@@ -2,18 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Metamers · Computer Vision</title>
+<title>Metamers · Visual Perception</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="light">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;family=Inter:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <style>
   /* Same look as syllabus.html. A primer page: one column of reading, with figures. */
   :root{
-    --bg:#0a0d16; --surface:#121827; --surface2:#171f33; --line:#25304a;
-    --text:#e9edf6; --mute:#9aa5bd;
-    --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa;
     --L:#f87171; --M:#4ade80; --S:#60a5fa;
   }
   *{ box-sizing:border-box; }
@@ -25,7 +22,7 @@
   .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line);
     display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
   .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;
-    font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
+    font:500 .85rem/1 var(--font-sans); letter-spacing:.08em; color:var(--mute); }
   .spine b{ color:var(--text); font-weight:500; }
   .page{ margin-left:44px; }
 
@@ -36,16 +33,16 @@
   .back a{ color:var(--mute); text-decoration:none; margin-right:1.2em; }
   .back a:hover{ color:var(--text); }
   .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--amber); }
-  h1{ margin:0 0 .3em; font:700 clamp(2.6rem, 8vw, 4.6rem)/.95 'Space Grotesk', sans-serif; text-transform:uppercase;
-    background:linear-gradient(90deg, #fff 0%, #fde68a 50%, #fbcfe8 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  .lead{ color:#d3d9e6; font-size:1.12rem; margin:0 0 .6em; }
+  h1{ margin:0 0 .3em; font:700 clamp(2.6rem, 8vw, 4.6rem)/.95 var(--font-sans); text-transform:uppercase;
+    background:linear-gradient(90deg, #fff 0%, var(--gold-ink) 50%, #fbcfe8 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lead{ color:var(--ink-2); font-size:1.12rem; margin:0 0 .6em; }
   .meta{ color:var(--mute); font-size:.92rem; margin:1em 0 0; }
 
   main{ max-width:46rem; margin:0 auto; padding:0 24px 12vh; }
   section{ padding-top:2.8em; }
-  h2{ margin:0 0 .6em; font:700 1.55rem/1.25 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
+  h2{ margin:0 0 .6em; font:700 1.55rem/1.25 var(--font-sans); display:flex; align-items:center; gap:.55em; }
   h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c, var(--amber)); box-shadow:0 0 12px 2px var(--c, var(--amber)); flex:none; }
-  h3{ margin:1.6em 0 .4em; font:700 1.15rem/1.3 'Space Grotesk', sans-serif; }
+  h3{ margin:1.6em 0 .4em; font:700 1.15rem/1.3 var(--font-sans); }
   p{ margin:0 0 1em; }
   ul, ol{ padding-left:1.3em; margin:0 0 1em; }
   li{ margin:0 0 .5em; }
@@ -54,13 +51,13 @@
   .def{ border:1px solid color-mix(in srgb, var(--amber) 45%, var(--line)); border-radius:16px; padding:18px 20px; margin:0 0 1.2em;
     background:radial-gradient(120% 140% at 0% 0%, rgba(251,191,36,.12), transparent 55%), var(--surface); }
   .def p:last-child{ margin:0; }
-  .math{ display:block; text-align:center; margin:.6em 0; font:600 1.2rem/1.5 'Space Grotesk', sans-serif; color:#fde68a; letter-spacing:.02em; }
+  .math{ display:block; text-align:center; margin:.6em 0; font:600 1.2rem/1.5 var(--font-sans); color:var(--gold-ink); letter-spacing:.02em; }
 
   figure{ margin:1.4em 0 1.6em; border:1px solid var(--line); border-radius:16px; background:var(--surface); padding:16px; }
   figcaption{ color:var(--mute); font-size:.9rem; line-height:1.55; margin-top:.8em; }
-  figcaption b{ color:#d3d9e6; }
+  figcaption b{ color:var(--ink-2); }
   .trio{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
-  .trio div{ text-align:center; font-size:.85rem; color:#d3d9e6; }
+  .trio div{ text-align:center; font-size:.85rem; color:var(--ink-2); }
   .trio img{ display:block; width:100%; aspect-ratio:1; object-fit:cover; border-radius:10px; margin-bottom:.4em; }
 
   /* the light mixer */
@@ -72,22 +69,22 @@
   .controls input{ width:100%; accent-color:var(--amber); }
   .controls output{ font-variant-numeric:tabular-nums; color:var(--mute); min-width:3.2em; text-align:right; }
   .bars{ display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-top:10px; }
-  .bar{ font-size:.85rem; color:#d3d9e6; }
+  .bar{ font-size:.85rem; color:var(--ink-2); }
   .bar .track{ position:relative; height:52px; display:flex; align-items:flex-end; gap:6px; border-bottom:1px solid var(--line); padding:0 18%; }
   .bar .track i{ flex:1; border-radius:4px 4px 0 0; transition:height .15s; }
   .bar small{ display:flex; justify-content:space-between; color:var(--mute); margin-top:.2em; }
   .status{ margin:12px 0 0; padding:10px 14px; border-radius:10px; font-weight:600; font-size:.95rem; border:1px solid var(--line); background:var(--surface2); }
-  .status.ok{ color:#bbf7d0; border-color:rgba(74,222,128,.5); background:rgba(74,222,128,.1); }
+  .status.ok{ color:#1d6b3c; border-color:rgba(74,222,128,.5); background:rgba(74,222,128,.1); }
   .btn{ border:1px solid var(--line); background:var(--surface2); color:var(--text); font:600 .85rem/1 Inter, sans-serif; padding:.6em 1em; border-radius:999px; cursor:pointer; margin-top:10px; }
   .btn:hover{ border-color:var(--amber); }
 
   .subpix{ display:flex; gap:18px; align-items:center; flex-wrap:wrap; }
   .grid{ display:grid; grid-template-columns:repeat(6, 14px); gap:3px; padding:8px; background:#000; border-radius:8px; }
   .grid i{ height:34px; border-radius:2px; }
-  .grid i.r{ background:#ff3b30; box-shadow:0 0 8px #ff3b30; } .grid i.g{ background:#34c759; box-shadow:0 0 8px #34c759; } .grid i.b{ background:#0a1530; }
+  .grid i.r{ background:#ff3b30; box-shadow:0 0 8px #ff3b30; } .grid i.g{ background:#34c759; box-shadow:0 0 8px #34c759; } .grid i.b{ background:#1b2a44; }
 
   svg.recipe{ width:100%; height:auto; display:block; }
-  .summary{ font:600 1.15rem/1.5 'Space Grotesk', sans-serif; border-left:3px solid var(--amber); padding:10px 18px; background:rgba(251,191,36,.08); border-radius:0 12px 12px 0; }
+  .summary{ font:600 1.15rem/1.5 var(--font-sans); border-left:3px solid var(--amber); padding:10px 18px; background:rgba(251,191,36,.08); border-radius:0 12px 12px 0; }
   .refs li{ font-size:.95rem; }
   .refs span{ color:var(--mute); }
   .credits{ color:var(--mute); font-size:.85rem; }
@@ -100,14 +97,18 @@
     .trio{ gap:6px; } .trio div{ font-size:.75rem; }
   }
 </style>
+<link rel="stylesheet" href="site/site.css">
+<script src="site/course.js" defer></script>
+<script src="site/components.js" defer></script>
 </head>
 <body>
-<div class="spine" aria-hidden="true"><span><b>Computer Vision</b> &nbsp;/&nbsp; Metamers</span></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<div data-render="nav" data-active="schedule" data-base=""></div>
 <div class="page">
 
 <header class="hero">
   <div class="hero-in">
-    <p class="back"><a href="index.html">← Home</a><a href="readings.html">Readings</a></p>
+    <p class="back"><a href="readings.html">Readings</a></p>
     <p class="kicker">Day 2 homework · Reading</p>
     <h1>Metamers</h1>
     <p class="lead">Two things that are physically different but look exactly the same to you. They show precisely what your visual system throws away.</p>
@@ -115,7 +116,7 @@
   </div>
 </header>
 
-<main>
+<main id="main">
 
   <section id="what">
     <h2>What a metamer is</h2>
@@ -151,7 +152,7 @@
     <figure>
       <div class="subpix">
         <div class="grid" aria-hidden="true"><i class="r"></i><i class="g"></i><i class="b"></i><i class="r"></i><i class="g"></i><i class="b"></i><i class="r"></i><i class="g"></i><i class="b"></i><i class="r"></i><i class="g"></i><i class="b"></i></div>
-        <div style="flex:1; min-width:200px; color:#d3d9e6">Up close: red and green subpixels lit, blue off.<br>From a normal distance: yellow.</div>
+        <div style="flex:1; min-width:200px; color:var(--ink-2)">Up close: red and green subpixels lit, blue off.<br>From a normal distance: yellow.</div>
       </div>
       <figcaption><b>A sketch of screen subpixels</b> showing yellow. Real layouts vary between screens.</figcaption>
     </figure>
@@ -322,5 +323,6 @@
   update();
 })();
 </script>
+<script>document.addEventListener('DOMContentLoaded', () => Site.render());</script>
 </body>
 </html>

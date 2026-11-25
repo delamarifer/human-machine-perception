@@ -3,54 +3,57 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="light">
 <title>Notes · Final presentations and write-ups</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;family=Inter:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <style>
-  :root{ --bg:#0a0d16; --line:#25304a; --text:#e9edf6; --mute:#9aa5bd; --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa; }
-  *{ box-sizing:border-box; } html{ scroll-behavior:smooth; }
+    *{ box-sizing:border-box; } html{ scroll-behavior:smooth; }
   body{ margin:0; background:var(--bg); color:var(--text); font:16.5px/1.65 Inter, system-ui, sans-serif; }
   a{ color:var(--cyan); }
   .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line); display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
-  .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap; font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
+  .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap; font:500 .85rem/1 var(--font-sans); letter-spacing:.08em; color:var(--mute); }
   .spine b{ color:var(--text); font-weight:500; }
   .page{ margin-left:44px; }
   .hero{ border-bottom:1px solid var(--line); background:radial-gradient(120% 90% at 78% 40%, #121a33 0%, var(--bg) 60%); }
   .hero-in{ max-width:46rem; margin:0 auto; padding:8vh 24px 4vh; }
   .back{ margin:0 0 2.2em; display:flex; align-items:center; gap:1.2em; flex-wrap:wrap; font-size:.95rem; }
   .back a{ color:var(--mute); text-decoration:none; } .back a:hover{ color:var(--text); }
-  .back button{ margin-left:auto; font:600 .85rem/1 'Space Grotesk', sans-serif; color:var(--bg); background:var(--cyan); border:0; border-radius:999px; padding:.45em .9em; cursor:pointer; }
+  .back button{ margin-left:auto; font:600 .85rem/1 var(--font-sans); color:var(--bg); background:var(--cyan); border:0; border-radius:999px; padding:.45em .9em; cursor:pointer; }
   .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--pink); }
-  h1{ margin:0 0 .35em; font:700 clamp(2.1rem, 6vw, 3.4rem)/.95 'Space Grotesk', sans-serif; text-transform:uppercase; background:linear-gradient(90deg,#fff,#c7fff4 55%,#e4d8ff); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  .lead{ max-width:42rem; color:#d3d9e6; margin:0 0 1.2em; }
+  h1{ margin:0 0 .35em; font:700 clamp(2.1rem, 6vw, 3.4rem)/.95 var(--font-sans); text-transform:uppercase; background:linear-gradient(90deg,#fff,#c7fff4 55%,#e4d8ff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .lead{ max-width:42rem; color:var(--ink-2); margin:0 0 1.2em; }
   .toc{ display:flex; flex-wrap:wrap; gap:8px; margin:0; padding:0; list-style:none; }
-  .toc a{ color:var(--mute); text-decoration:none; font:500 .88rem/1 'Space Grotesk', sans-serif; border:1px solid var(--line); border-radius:999px; padding:.35em .75em; }
-  main{ max-width:46rem; margin:28px auto 72px; padding:36px 40px 56px; background:#fff; color:#1c1917; border-radius:18px; box-shadow:0 18px 50px rgba(0,0,0,.35); }
-  main a{ color:#0f766e; } main h2, main h3, main strong{ color:#1c1917; }
+  .toc a{ color:var(--mute); text-decoration:none; font:500 .88rem/1 var(--font-sans); border:1px solid var(--line); border-radius:999px; padding:.35em .75em; }
+  main{ max-width:46rem; margin:28px auto 72px; padding:36px 40px 56px; background:#fff; color:var(--ink); border-radius:18px; box-shadow:0 18px 50px rgba(0,0,0,.35); }
+  main a{ color:var(--link); } main h2, main h3, main strong{ color:var(--ink); }
   section{ padding-top:2.2em; scroll-margin-top:1.25rem; }
   table.recap{ width:100%; border-collapse:collapse; font-size:.92rem; margin:1em 0; }
-  table.recap th, table.recap td{ text-align:left; padding:.5em .6em; border-top:1px solid #e7e5e4; vertical-align:top; }
-  table.recap th{ background:#1c1917; color:#fafaf9; border-top:none; }
+  table.recap th, table.recap td{ text-align:left; padding:.5em .6em; border-top:1px solid var(--line); vertical-align:top; }
+  table.recap th{ background:var(--ink); color:#fafaf9; border-top:none; }
   table.recap td:first-child{ font-weight:700; }
   table.recap td.w{ white-space:nowrap; font-weight:700; text-align:right; }
-  h2{ margin:0 0 .7em; font:700 1.4rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
+  h2{ margin:0 0 .7em; font:700 1.4rem/1.2 var(--font-sans); display:flex; align-items:center; gap:.55em; }
   h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
-  h3{ margin:1.2em 0 .3em; font:700 1.05rem/1.3 'Space Grotesk', sans-serif; }
+  h3{ margin:1.2em 0 .3em; font:700 1.05rem/1.3 var(--font-sans); }
   p{ margin:0 0 .75em; } ul,ol{ margin:0 0 .9em; padding-left:1.2em; } li{ margin:.25em 0; }
-  .callout{ margin:1em 0; padding:14px 16px; border-radius:14px; border-left:4px solid var(--c,var(--cyan)); background:#f5f5f4; }
+  .callout{ margin:1em 0; padding:14px 16px; border-radius:14px; border-left:4px solid var(--c,var(--cyan)); background:var(--surface-sunk); }
   .callout p{ margin:0; }
   @media (max-width:700px){ .spine{ display:none; } .page{ margin-left:0; } main{ margin:16px; padding:24px 18px; } .back button{ margin-left:0; } }
   @media print{ body,.page,.hero,main{ background:#fff; color:#111; box-shadow:none; } .spine,.back{ display:none; } .page,main{ margin:0; } h1{ color:#111; background:none; -webkit-text-fill-color:#111; } a{ color:#111; } }
   #when{ --c:var(--pink); } #handin{ --c:var(--cyan); } #talk{ --c:var(--violet); } #writeup{ --c:var(--amber); } #examples{ --c:var(--sky); } #before{ --c:var(--pink); }
 </style>
+<link rel="stylesheet" href="../site/site.css">
+<script src="../site/course.js" defer></script>
+<script src="../site/components.js" defer></script>
 </head>
-<body>
-<div class="spine" aria-hidden="true"><span><b>Computer Vision</b> &nbsp;/&nbsp; Presentations</span></div>
+<body class="notes">
+<a class="skip-link" href="#main">Skip to content</a>
+<div data-render="nav" data-active="assignments" data-base="../"></div>
 <div class="page">
 <header class="hero"><div class="hero-in">
-  <div class="back"><a href="../index.html">← Home</a><a href="deck.html">Slides</a><a href="../templates.html">Templates</a>
+  <div class="back"><a href="deck.html">Slides</a><a href="../templates.html">Templates</a>
     <button type="button" onclick="window.print()">Download PDF</button></div>
   <p class="kicker">Final project</p>
   <h1>Presentations and write-ups</h1>
@@ -59,7 +62,7 @@
     <a href="#when">When</a><a href="#handin">What you hand in</a><a href="#talk">The talk</a><a href="#writeup">The write-up</a><a href="#examples">Examples</a><a href="#before">Before you present</a>
   </nav>
 </div></header>
-<main>
+<main id="main">
 
   <section id="when">
     <h2>When do you present?</h2>
@@ -78,7 +81,7 @@
       <tr><th>Piece</th><th>When</th><th>Weight</th><th>What it is</th></tr>
       <tr><td>Presentation</td><td>Last day</td><td class="w">15%</td><td>The ideas below, in this order. As many slides as you need.</td></tr>
       <tr><td>Write-up</td><td>Last day</td><td class="w">20%</td><td>A paper, an interactive article, or a blog post, with a link to your code or demo.</td></tr>
-      <tr><td>Assignment 2</td><td>After the talks</td><td class="w">—</td><td>Write about two projects by other teams.</td></tr>
+      <tr><td>Assignment 2</td><td>After the talks</td><td class="w">15%</td><td>Five questions on each of two other projects, then one about both. <a href="../assignment2.html">The questions</a>.</td></tr>
     </table>
   </section>
 
@@ -154,7 +157,7 @@
       <li>Sign up for one slot in the sign-up document.</li>
       <li>If you are showing a demo, record it.</li>
       <li>Rehearse once with a timer.</li>
-      <li>Listen closely to the other talks. Assignment 2 is about two of them.</li>
+      <li>Listen closely to the other talks. <a href="../assignment2.html">Assignment 2</a> is five questions on two of them.</li>
       <li>Put your slides, write-up, and code in your project folder on Google Drive. What is there on the last day is what we grade.</li>
       <li>Then tick the <a href="https://forms.gle/cNFBCB6xVkyc3eRG8">hand-in form</a>: your project number and one checkbox.</li>
     </ul>
@@ -163,5 +166,6 @@
 </main>
 </div>
 </div>
+<script>document.addEventListener('DOMContentLoaded', () => Site.render());</script>
 </body>
 </html>

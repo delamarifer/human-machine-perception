@@ -2,512 +2,77 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Computer Vision, with an Eye Toward Human Perception</title>
+<title>Visual Perception</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="light">
+<meta name="description" content="Visual Perception, a course at AIMS by Fernanda de la Torre and Shreya Pandit: how machines and people see.">
+<script>
+  /* The old home page held every day and every submission. Those now live on
+     their own pages; keep old links such as index.html#day-5 working. */
+  (function () {
+    var h = location.hash, m = h.match(/^#day-\d+$/);
+    var to = m ? 'schedule.html' + h : ({ '#days': 'schedule.html', '#homework': 'assignments.html', '#submissions': 'assignments.html',
+      '#project': 'assignments.html#projects' })[h];
+    if (to) location.replace(to);
+  })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-<style>
-  /* Same look as syllabus.html and templates.html. */
-  :root{
-    --bg:#0a0d16; --surface:#121827; --surface2:#171f33; --line:#25304a;
-    --text:#e9edf6; --mute:#9aa5bd;
-    --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa;
-  }
-  *{ box-sizing:border-box; }
-  body{ margin:0; background:var(--bg); color:var(--text);
-    font:16.5px/1.6 Inter, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif; }
-  a{ color:var(--cyan); }
-
-  .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line);
-    display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
-  .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;
-    font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
-  .spine b{ color:var(--text); font-weight:500; }
-  .page{ margin-left:44px; }
-
-  .hero{ position:relative; overflow:hidden; border-bottom:1px solid var(--line);
-    background:radial-gradient(120% 90% at 70% 50%, #121a33 0%, var(--bg) 60%); }
-  .hero-in{ position:relative; max-width:64rem; margin:0 auto; padding:12vh 24px 8vh; min-height:400px; }
-  .iris{ position:absolute; right:-30px; top:50%; width:480px; height:480px; transform:translateY(-50%);
-    border-radius:50%; pointer-events:none;
-    background:
-      radial-gradient(circle, #05060b 0 17%, transparent 17.5%),
-      radial-gradient(circle, transparent 0 16%, rgba(255,255,255,.18) 16.5%, transparent 19%),
-      repeating-conic-gradient(from 0deg, rgba(94,234,212,.55) 0deg 2deg, rgba(167,139,250,.35) 2deg 5deg, rgba(251,191,36,.45) 5deg 7deg),
-      radial-gradient(circle, #f59e0b 0 22%, #14b8a6 40%, #6d28d9 62%, transparent 70%);
-    -webkit-mask:radial-gradient(circle, #000 0 52%, rgba(0,0,0,.5) 62%, transparent 70%);
-            mask:radial-gradient(circle, #000 0 52%, rgba(0,0,0,.5) 62%, transparent 70%);
-    filter:saturate(1.2) drop-shadow(0 0 40px rgba(94,234,212,.35));
-    animation:breathe 9s ease-in-out infinite; }
-  .iris::after{ content:''; position:absolute; left:37%; top:37%; width:7%; height:7%; border-radius:50%;
-    background:rgba(255,255,255,.75); filter:blur(2px); }
-  @keyframes breathe{ 50%{ transform:translateY(-50%) scale(1.04); } }
-  @media (prefers-reduced-motion:reduce){ .iris{ animation:none; } }
-  h1{ position:relative; margin:0 0 .3em; font:700 clamp(2.8rem, 9vw, 5.6rem)/.95 'Space Grotesk', sans-serif;
-    text-transform:uppercase; letter-spacing:-.01em;
-    background:linear-gradient(90deg, #fff 0%, #c7fff4 45%, #e4d8ff 100%); -webkit-background-clip:text; background-clip:text; color:transparent;
-    text-shadow:0 0 40px rgba(94,234,212,.25); }
-  .tagline{ position:relative; margin:-.1em 0 .9em; font:500 clamp(1.15rem, 3vw, 1.6rem)/1.3 'Space Grotesk', sans-serif; font-style:italic;
-    background:linear-gradient(90deg, var(--amber), var(--pink) 55%, var(--violet)); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  .who{ position:relative; margin:0; color:var(--mute); font-size:1.1rem; }
-  .discord{ position:relative; display:inline-block; margin:.9em 0 .2em; padding:.55em 1.1em; border:1px solid var(--sky); border-radius:999px;
-    font:600 .95rem/1 'Space Grotesk', sans-serif; color:var(--text); text-decoration:none;
-    background:color-mix(in srgb, var(--sky) 14%, transparent); transition:all .2s; }
-  .discord:hover{ background:color-mix(in srgb, var(--sky) 28%, transparent); box-shadow:0 0 20px color-mix(in srgb, var(--sky) 40%, transparent); }
-  .oh{ position:relative; display:flex; flex-direction:column; gap:.15em; width:fit-content; max-width:34rem; margin:.9em 0 0; padding:.7em 1em;
-    border:1px solid var(--line); border-left:3px solid var(--cyan); border-radius:12px;
-    background:color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
-    color:var(--text); font-size:.98rem; line-height:1.45; }
-  .oh-fernanda{ border-left-color:var(--violet); margin-top:.6em; }
-  .oh a.oh-mail{ margin-left:.3em; color:var(--mute); font:500 .92rem/1 Inter, sans-serif; text-decoration:none; }
-  .oh a.oh-mail:hover{ color:var(--text); text-decoration:underline; }
-  .oh b{ font:600 1.02rem/1.4 'Space Grotesk', sans-serif; }
-  .oh a{ color:var(--cyan); font-weight:600; text-underline-offset:3px; }
-
-  .with-nav{ display:grid; grid-template-columns:13rem minmax(0, 1fr); gap:8px 28px;
-    max-width:72rem; margin:0 auto; padding:0 24px 12vh; align-items:start; }
-  .sidenav{ position:sticky; top:0; max-height:100vh; overflow:auto; display:flex; flex-direction:column;
-    gap:4px; padding:3em 4px 2rem 0; scrollbar-width:thin; }
-  .sidenav-label{ margin:.85em 0 .2em; padding-left:.7em; font:600 .68rem/1 Inter, sans-serif;
-    letter-spacing:.16em; text-transform:uppercase; color:var(--mute); }
-  .sidenav a{ display:flex; align-items:center; gap:.55em; padding:.32em .65em; border-radius:999px;
-    color:var(--mute); text-decoration:none; font:500 .92rem/1.25 'Space Grotesk', sans-serif;
-    border:1px solid transparent; }
-  .sidenav a::before{ content:''; width:8px; height:8px; border-radius:50%; background:var(--k);
-    box-shadow:0 0 8px var(--k); flex:none; }
-  .sidenav a:hover{ color:var(--text); border-color:var(--line); }
-  .sidenav a[aria-current="true"]{ color:var(--text); border-color:var(--k);
-    background:color-mix(in srgb, var(--k) 14%, transparent); }
-  .sidenav a.sub{ margin-left:.9em; font-size:.84rem; padding:.22em .55em; }
-  .sidenav a.sub::before{ width:6px; height:6px; }
-  main{ margin:0; padding:0; min-width:0; }
-  section{ padding-top:3em; scroll-margin-top:1.25rem; }
-  .day{ padding-top:1.5em; scroll-margin-top:1.25rem; }
-  .day h3{ margin:0 0 .75em; font:700 1.15rem/1.2 'Space Grotesk', sans-serif; }
-  h2{ margin:0 0 .9em; font:700 1.4rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
-  h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
-  .cards{ display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px; }
-  a.card{ position:relative; display:block; padding:20px 20px 18px; border:1px solid var(--line); border-radius:18px; overflow:hidden;
-    background:linear-gradient(180deg, var(--surface2), var(--surface)); color:var(--text); text-decoration:none; transition:all .2s; }
-  a.card::before{ content:''; position:absolute; inset:0 0 auto 0; height:3px; background:var(--k); box-shadow:0 0 18px 2px var(--k); }
-  a.card:hover{ border-color:var(--k); box-shadow:0 0 26px color-mix(in srgb, var(--k) 30%, transparent); transform:translateY(-2px); }
-  a.card small{ display:block; font-size:.72rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--k); margin-bottom:.4em; }
-  a.card b{ display:block; font:700 1.2rem/1.3 'Space Grotesk', sans-serif; margin-bottom:.3em; }
-  a.card span{ color:var(--mute); font-size:.95rem; }
-  a.card .badge{ display:block; margin-top:12px; height:20px; }
-  .card.lecture{ position:relative; display:block; padding:20px 20px 18px; border:1px solid var(--line); border-radius:18px; overflow:hidden;
-    background:linear-gradient(180deg, var(--surface2), var(--surface)); color:var(--text); }
-  .card.lecture::before{ content:''; position:absolute; inset:0 0 auto 0; height:3px; background:var(--k); box-shadow:0 0 18px 2px var(--k); }
-  .card.lecture > small{ display:block; font-size:.72rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--k); margin-bottom:.4em; }
-  .card.lecture > b{ display:block; font:700 1.2rem/1.3 'Space Grotesk', sans-serif; margin-bottom:.3em; }
-  .card.lecture > b + b{ margin-top:.85em; }
-  .card.lecture > span{ display:block; color:var(--mute); font-size:.95rem; }
-  .lecture-links{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 0; }
-  .lecture-links a{ color:var(--k); text-decoration:none; font:600 .92rem/1 'Space Grotesk', sans-serif;
-    border:1px solid color-mix(in srgb, var(--k) 50%, var(--line)); border-radius:999px; padding:.32em .75em; }
-  .lecture-links a:hover{ background:color-mix(in srgb, var(--k) 16%, transparent); }
-  .card.past{ opacity:.68; border-style:dashed; }
-  .card.past::before{ filter:grayscale(.7); }
-  .card.past small{ color:var(--mute); }
-  .passed-label{ grid-column:1 / -1; margin:.6em 0 0; font:600 .72rem/1 Inter, sans-serif;
-    letter-spacing:.16em; text-transform:uppercase; color:var(--mute); }
-
-  .card.lab2{ position:relative; display:block; padding:20px 20px 18px; border:1px solid var(--line); border-radius:18px; overflow:hidden;
-    background:linear-gradient(180deg, var(--surface2), var(--surface)); color:var(--text); }
-  .card.lab2::before{ content:''; position:absolute; inset:0 0 auto 0; height:3px; background:var(--k); box-shadow:0 0 18px 2px var(--k); }
-  .card.lab2 > small{ display:block; font-size:.72rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--k); margin-bottom:.4em; }
-  .lab2-part{ display:block; color:var(--text); text-decoration:none; padding:10px 12px; margin:0 -12px; border-radius:12px; transition:background .2s; }
-  a.lab2-part:hover{ background:color-mix(in srgb, var(--k) 12%, transparent); }
-  .lab2-part + .lab2-part{ border-top:1px solid var(--line); border-radius:0 0 12px 12px; }
-  .lab2-part em{ display:block; font-style:normal; font-size:.72rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); margin-bottom:.2em; }
-  .lab2-part b{ display:block; font:700 1.2rem/1.3 'Space Grotesk', sans-serif; margin-bottom:.3em; }
-  .lab2-part span{ color:var(--mute); font-size:.95rem; }
-  .lab2-part .badge{ display:block; margin-top:12px; height:20px; }
-  .lab2-soon b{ font-weight:500; font-size:1.05rem; color:var(--mute); }
-  /* Day 5 homework card: a reading with extra links, and an optional reading that folds open. */
-  .hw5-read b a{ color:var(--text); text-decoration:none; }
-  .hw5-read b a:hover, .hw5-links a:hover{ text-decoration:underline; }
-  .lab2-part .hw5-links{ display:block; margin-top:.3em; font-size:.9rem; }
-  .hw5-links a{ color:var(--k); text-decoration:none; }
-  details.hw5-opt{ margin:6px -12px 0; padding:10px 12px 4px; border-top:1px solid var(--line); }
-  details.hw5-opt summary{ cursor:pointer; color:var(--mute); font-size:.95rem; }
-  details.hw5-opt summary:hover{ color:var(--text); }
-  details.hw5-opt[open] summary{ margin-bottom:.2em; }
-  details.hw5-opt .lab2-part{ margin:0; padding:6px 0; }
-
-  .card.empty{ position:relative; display:block; padding:20px 20px 18px; border:1px dashed var(--line); border-radius:18px; background:rgba(18,24,39,.5); }
-  .card.empty small{ display:block; font-size:.72rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--k); margin-bottom:.4em; }
-  .card.empty b{ display:block; font:500 1.05rem/1.3 'Space Grotesk', sans-serif; color:var(--mute); }
-  @media (max-width:640px){
-    .spine{ display:none; } .page{ margin-left:0; }
-    .hero-in{ padding:8vh 16px 6vh; min-height:0; }
-    .iris{ width:260px; height:260px; right:-90px; top:70%; opacity:.55; }
-  }
-  @media (max-width:900px){
-    .with-nav{ grid-template-columns:1fr; gap:0; padding:0 16px 10vh; }
-    .sidenav{ position:sticky; top:0; z-index:3; flex-direction:row; align-items:center; max-height:none;
-      overflow-x:auto; gap:8px; padding:.7rem 0; background:rgba(10,13,22,.92);
-      border-bottom:1px solid var(--line); backdrop-filter:blur(10px); }
-    .sidenav-label{ margin:0 .15em 0 .35em; padding:0; }
-    .sidenav a{ white-space:nowrap; }
-    .sidenav a.sub{ margin-left:0; }
-    section, .day{ scroll-margin-top:4.25rem; }
-  }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;family=Inter:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site/site.css">
+<script src="site/course.js" defer></script>
+<script src="site/components.js" defer></script>
 </head>
 <body>
-<div class="spine" aria-hidden="true"><span><b>Computer Vision</b> &nbsp;/&nbsp; Home</span></div>
-<div class="page">
+<a class="skip-link" href="#main">Skip to content</a>
+<div data-render="nav" data-active="home"></div>
 
-<header class="hero">
-  <div class="iris" aria-hidden="true"></div>
-  <div class="hero-in">
-    <h1>Computer<br>Vision</h1>
-    <p class="tagline">with an eye toward human perception</p>
-    <p class="who">Fernanda de la Torre · Shreya Pandit</p>
-    <a class="discord" href="https://discord.gg/2kN726ZZ6" target="_blank" rel="noopener">Join the class Discord</a>
-    <div class="oh"><b>Shreya: <a class="oh-mail" href="mailto:shreyalpandit@gmail.com">shreyalpandit@gmail.com</a></b>
-      <span>Schedule time to chat <a href="https://calendly.com/shreyalpandit/30min" target="_blank" rel="noopener">here</a>.</span>
-      <span>Office hours from 4-5pm M-F in lecture room.</span>
-      <span>Email or talk to me if you need time outside of that!</span></div>
-    <div class="oh oh-fernanda"><b>Fernanda: <a class="oh-mail" href="mailto:dlatorre@mit.edu">dlatorre@mit.edu</a></b>
-      <span>After the course ends, if I take too long to reply, please email me asking for my WhatsApp until I do :)</span></div>
+<!-- 1. Course introduction -->
+<header class="hero hub-hero">
+  <div class="wrap">
+    <div class="iris" aria-hidden="true"></div>
+    <div class="hub-intro">
+      <h1>Visual Perception</h1>
+      <p class="lead">Computer vision has long taken its questions from human vision, and this course teaches the two together: from filters and receptive fields to CNNs, Vision Transformers, self-supervised learning and generative models, with models tested against perceptual phenomena such as metamers and the Thatcher illusion. It ends with an original project: a working demo, or an experiment on the limits of today's vision systems.</p>
+      <div class="people" data-render="instructors"></div>
+      <p class="hub-cta">
+        <a class="rlink btn-primary" href="https://discord.gg/2kN726ZZ6" target="_blank" rel="noopener">Join the class Discord<span class="ext" aria-hidden="true">↗</span></a>
+        <a class="rlink" href="https://forms.gle/Js3vcF7hgkhXQELt5">How was class? Anonymous feedback<span class="ext" aria-hidden="true">↗</span></a>
+      </p>
+    </div>
   </div>
 </header>
 
-<div class="with-nav">
-<nav class="sidenav" aria-label="On this page"></nav>
-<main>
+<main id="main" class="wrap">
 
-  <!-- Tabs are Course, Announcements, Days, Homework submission, Project. Add the next day as another .day inside #days.
-       Add each announcement as a card at the start of #announcements, newest first. -->
-  <section id="course" style="--c:var(--violet)">
-    <h2>Course</h2>
-    <div class="cards">
-      <a class="card" href="syllabus.html" style="--k:var(--violet)"><small>Syllabus</small><b>Syllabus</b>
-        <span>Three weeks. Lectures, labs, homework, and a final project.</span></a>
-      <a class="card" href="readings.html" style="--k:var(--cyan)"><small>Readings</small><b>Readings</b>
-        <span>Readings as we assign them, things to explore, and a place to suggest your own.</span></a>
-      <a class="card" href="https://forms.gle/Js3vcF7hgkhXQELt5" style="--k:var(--pink)"><small>Feedback</small><b>How was class?</b>
-        <span>We welcome anonymous feedback to help improve the course!</span></a>
+  <!-- 3. Current learning -->
+  <section class="section" id="now" aria-labelledby="now-h">
+    <h2 id="now-h" class="sr-only">Now</h2>
+    <div class="hub-now">
+      <div class="now" data-render="now"></div>
+      <div class="latest" data-render="latestDay"></div>
     </div>
   </section>
 
-  <section id="announcements" style="--c:var(--sky)">
-    <h2>Announcements</h2>
-    <div class="cards">
-      <a class="card" href="https://docs.google.com/forms/d/e/1FAIpQLSdxf8CBPdRtlhMLtgEj30jcM8wq0rj4I6iI-Tb5_eRZkK_LZg/viewform" style="--k:var(--violet)"><small>Nov 19 · Assignment 2</small><b>Peer review: two final projects by other teams</b>
-        <span>Listen closely to the talks. Pick two projects by other teams from the final presentations. For each one: the main problem, their solution, where it could go next, something new you learned, and a question for the team.</span></a>
-      <div class="card lecture" style="--k:var(--pink)"><small>Nov 17 · Final project</small><b>Presentations and write-ups</b>
-        <span>When you present, the ideas to cover, how the talk is graded, the write-up, and one example of a paper, an interactive article, and a blog post.</span>
-        <p class="lecture-links"><a href="presentations/deck.html">Slides</a><a href="presentations/notes.html">Notes</a></p></div>
-      <a class="card" href="https://docs.google.com/document/d/1uivAlhELC4kQgEJz5DlX36Vvx4gCwKj4pAYVWrP9Of4/edit" style="--k:var(--pink)"><small>Nov 16 · Final project</small><b>Sign up for a presentation slot</b>
-        <span>Presentations are Thursday and Friday, 2 to 4 pm, in 20-minute slots. Each team takes one free slot: write your project title and names in an empty row.</span></a>
-      <a class="card" href="assignment1.html#colab-help" style="--k:var(--sky)"><small>Nov 8 · Assignment 1</small><b>If Colab has been crashing</b>
-        <span>We fixed the starter notebook. It now saves every answer to your Google Drive as it goes, so after a crash you rerun the cells and it continues where it stopped. Already working in your own copy? Keep it, and follow the steps on the assignment page. If it keeps crashing, or you run out of free GPU time, use Qwen/Qwen3-VL-2B-Instruct and say so in your write-up.</span></a>
-    </div>
+  <section class="section" id="announcements" aria-labelledby="ann-h">
+    <div class="section-head"><h2 id="ann-h">Announcements</h2><button class="tool sort" type="button" data-sort="#ann-list" data-labels="Newest first|Oldest first"></button></div>
+    <ul class="announcements" id="ann-list" data-render="announcements"></ul>
   </section>
 
-  <section id="days" style="--c:var(--cyan)">
-    <h2>Days</h2>
-    <section class="day" id="day-1" style="--c:var(--cyan)">
-      <h3>Day 1</h3>
-      <div class="cards">
-        <div class="card lecture" style="--k:var(--cyan)"><small>Lecture</small><b>Introduction to Visual Systems</b>
-          <span>What does it mean to see?</span>
-          <p class="lecture-links"><a href="deck.html">Slides</a><a href="lecture-notes.html">Notes</a></p></div>
-        <a class="card" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-practice-numpy-images.ipynb" style="--k:var(--amber)"><small>In-class lab (continued at home)</small><b>Images as arrays</b>
-          <span>Checker-shadow image. NumPy slices and arithmetic.</span>
-          <img class="badge" src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"></a>
-        <a class="card" href="homework.html" style="--k:var(--sky)"><small>Homework / Readings</small><b>Homework</b>
-          <span>Day 1 survey, one reading, and finish Images as arrays. Pritchard and Chapter 2 are optional.</span></a>
-      </div>
-    </section>
-    <section class="day" id="day-2" style="--c:var(--violet)">
-      <h3>Day 2</h3>
-      <div class="cards">
-        <div class="card lecture" style="--k:var(--violet)"><small>Lecture</small><b>Computer Vision: Promise, Pitfalls, and Your Place in It</b>
-          <span>What computer vision can do, where it still fails, and your project.</span>
-          <p class="lecture-links"><a href="day02/deck.html">Slides</a><a href="day02/lecture-notes.html">Notes</a></p></div>
-        <a class="card" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day01-lab-simple-vision-system.ipynb" style="--k:var(--amber)"><small>In-class lab (continued at home)</small><b>A simple vision system</b>
-          <span>Recover 3D from one image of a blocks world.</span>
-          <img class="badge" src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"></a>
-        <a class="card" href="metamers.html" style="--k:var(--sky)"><small>Homework / Readings</small><b>Metamers primer</b>
-          <span>Read the primer; you write a short response on it by hand at the start of next class. Also: finish the simple vision system lab, and send your project idea by Saturday night.</span></a>
-      </div>
-    </section>
-    <section class="day" id="day-3" style="--c:var(--pink)">
-      <h3>Day 3</h3>
-      <div class="cards">
-        <div class="card lecture" style="--k:var(--pink)"><small>Lecture</small><b>Both lectures, in one slide deck</b>
-          <span>Part 1, metamers, then Part 2, image filters. The Slides link plays them in that order.</span>
-          <p class="lecture-links"><a href="day03/deck.html">Slides</a><a href="day03/lecture-1-notes.html">Lecture 1 notes</a><a href="day03/lecture-2-notes.html">Lecture 2 notes</a></p></div>
-        <div class="card lab2" style="--k:var(--amber)"><small>In-class lab</small>
-          <a class="lab2-part" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day03-lab-metamers.ipynb"><em>Part 1</em><b>Metamers as windows into representations</b>
-            <span>Make your own metamers with plenoptic, for models of seeing and hearing, and test whether a classmate can tell them apart.</span>
-            <img class="badge" src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"></a>
-          <a class="lab2-part" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day03-lab2-image-filtering.ipynb"><em>Part 2</em><b>Image filtering</b>
-            <span>Filter a photograph and turn it into a printable trifold name tag.</span>
-            <img class="badge" src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"></a>
-        </div>
-        <a class="card" href="readings.html#assigned" style="--k:var(--violet)"><small>Homework</small><b>Finish both labs</b>
-          <span>No reading this time. Finish Part 1, metamers, and Part 2, image filtering.</span></a>
-      </div>
-    </section>
-    <section class="day" id="day-4" style="--c:var(--sky)">
-      <h3>Day 4</h3>
-      <div class="cards">
-        <div class="card lecture" style="--k:var(--sky)"><small>Lecture</small><b>CNNs and Visual Recognition</b>
-          <span>From neurons to convolutional networks, then classification, detection and segmentation with pretrained models.</span>
-          <p class="lecture-links"><a href="day04/deck.html">Slides</a><a href="day04/lecture-notes.html">Notes</a><a href="day04-part2/deck.html">Lecture 2 slides</a><a href="day04-part2/lecture-notes.html">Lecture 2 notes</a></p></div>
-        <a class="card" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day04-lab-cnn-mnist.ipynb" style="--k:var(--amber)"><small>In-class lab</small><b>Handwritten digits: a fully connected network, then a CNN</b>
-          <span>Train both on MNIST, look inside the CNN, and shuffle the pixels. Adapted from MIT 6.S191.</span>
-          <img class="badge" src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"></a>
-        <a class="card" href="https://konklab.fas.harvard.edu/Papers/Konkle_2022_NatComm.pdf" style="--k:var(--violet)"><small>Homework / Readings</small><b>Self-supervised learning and the ventral stream</b>
-          <span>Read Konkle &amp; Alvarez (Nature Communications, 2022); you write a short response on it by hand at the start of next class.</span></a>
-      </div>
-    </section>
-    <section class="day" id="day-5" style="--c:var(--cyan)">
-      <h3>Day 5</h3>
-      <div class="cards">
-        <div class="card lecture" style="--k:var(--cyan)"><small>Lecture</small>
-          <b>Hour 1 · Transformers and Visual Representations</b>
-          <span>The Vision Transformer step by step: patches, embeddings, position, query, key and value, attention, and how it compares with CNNs.</span>
-          <b>Hour 2 · Learning without labels</b>
-          <span>Embeddings, contrastive learning and CLIP, then the Konkle &amp; Alvarez reading and RSA.</span>
-          <p class="lecture-links"><a href="day05-planb/deck.html">Hour 1 slides</a><a href="day05-planb/lecture-notes.html">Hour 1 notes</a><a href="day05-hour2/deck.html">Hour 2 slides</a><a href="day05-hour2/lecture-notes.html">Hour 2 notes</a></p>
-        </div>
-        <div class="card lab2" style="--k:var(--amber)"><small>In-class labs</small>
-          <a class="lab2-part" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day05-lab-transformer-exercises.ipynb"><em>Hour 1</em><b>Transformer exercises</b>
-            <span>Short exercises on tokens, attention and multi-head attention.</span>
-            <img class="badge" src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"></a>
-          <a class="lab2-part" href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/notebooks/day05-lab-part2-views-rsa.ipynb"><em>Hour 2 · Part 2</em><b>Views and representations</b>
-            <span>After the reading: test Konkle &amp; Alvarez's idea on CLIP, then compare representations with RSA.</span>
-            <img class="badge" src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"></a>
-        </div>
-        <div class="card lab2" style="--k:var(--violet)"><small>Homework / Readings</small>
-          <div class="lab2-part hw5-read"><em>Read</em><b><a href="https://arxiv.org/abs/2207.09238">Formal Algorithms for Transformers</a></b>
-            <span>Phuong &amp; Hutter (2022).</span>
-            <span class="hw5-links"><a href="https://arxiv.org/abs/2207.09238">arXiv</a> · <a href="https://arxiv.org/pdf/2207.09238">PDF</a> · <a href="http://www.hutter1.net/publ/transalg.pdf">latest version, on Hutter's site</a></span></div>
-          <details class="hw5-opt"><summary>Optional reading</summary>
-            <div class="lab2-part hw5-read"><b><a href="https://arxiv.org/abs/2108.08810">Do Vision Transformers See Like Convolutional Neural Networks?</a></b>
-              <span>Raghu et al. (NeurIPS 2021).</span>
-              <span class="hw5-links"><a href="https://arxiv.org/abs/2108.08810">arXiv</a> · <a href="https://papers.neurips.cc/paper_files/paper/2021/file/652cf38361a209088302ba2b8b7f51e0-Paper.pdf">NeurIPS PDF</a></span></div>
-          </details>
-        </div>
-      </div>
-    </section>
-    <section class="day" id="day-6" style="--c:var(--violet)">
-      <h3>Day 6</h3>
-      <div class="cards">
-        <div class="card lecture" style="--k:var(--violet)"><small>Lecture</small>
-          <b>Data, Generalization and Evaluation</b>
-          <span>Why models fail in the real world, how to get and check data, and how to evaluate models.</span>
-          <p class="lecture-links"><a href="day06-reduced/deck.html">Slides</a><a href="day06-reduced/lecture-notes.html">Notes</a></p>
-        </div>
-        <div class="card lab2" style="--k:var(--violet)"><small>Homework / Readings</small>
-          <div class="lab2-part hw5-read"><em>Read</em><b><a href="https://arxiv.org/abs/1811.12808">Model Evaluation, Model Selection, and Algorithm Selection in Machine Learning</a></b>
-            <span>Raschka (arXiv, 2018).</span>
-            <span class="hw5-links"><a href="https://arxiv.org/abs/1811.12808">arXiv</a> · <a href="https://arxiv.org/pdf/1811.12808">PDF</a></span></div>
-          <div class="lab2-part hw5-read"><em>Fill in</em><b><a href="https://docs.google.com/document/d/1xjpczaeKj8Uit8yj66oVpVdMn0LQgGtcZpbdf9-vEtY/copy">Dataset Worksheet</a></b>
-            <span>Find a dataset and check whether you can trust it, or investigate a simulator.</span>
-            <span class="hw5-links"><a href="https://docs.google.com/document/d/1xjpczaeKj8Uit8yj66oVpVdMn0LQgGtcZpbdf9-vEtY/copy">Make your copy</a> · <a href="https://docs.google.com/document/d/1xjpczaeKj8Uit8yj66oVpVdMn0LQgGtcZpbdf9-vEtY/preview">View</a> · <a href="https://docs.google.com/forms/d/e/1FAIpQLSfgjJJzLQf1eEjQe6r2k5P2TNp-1dWN1zzCzBLme3vfOme5eg/viewform">Submit</a></span></div>
-        </div>
-      </div>
-    </section>
-    <section class="day" id="day-7" style="--c:var(--sky)">
-      <h3>Day 7</h3>
-      <div class="cards">
-        <div class="card lecture" style="--k:var(--sky)"><small>Lecture</small>
-          <b>Adaptation and Agents</b>
-          <span>Adapting trained models: fine-tuning, knowledge distillation and continual learning, then agents and how they remember.</span>
-          <p class="lecture-links"><a href="day07/deck.html">Slides</a><a href="day07/lecture-notes.html">Notes</a><a href="day07-part2/deck.html">Part 2 slides</a></p>
-        </div>
-        <a class="card" href="https://docs.google.com/document/d/12sPqbfitV3cYsndd5KX4C2FHXcTZOh4MR-vegbdWSEQ/edit?usp=sharing" style="--k:var(--sky)"><small>Project</small><b>Proposal template</b>
-          <span>Make your own copy and fill it in. Due Wednesday 11 November, end of day.</span></a>
-        <a class="card" href="https://docs.google.com/document/d/1snJ5o0smRKS6KVBizKk2YTd0CbG-Fv97Zivw6_bE2ss/edit?usp=sharing" style="--k:var(--sky)"><small>Project</small><b>Proposal grading rubric</b>
-          <span>How we grade your detailed proposal.</span></a>
-      </div>
-    </section>
-    <section class="day" id="day-8" style="--c:var(--pink)">
-      <h3>Day 8</h3>
-      <div class="cards">
-        <div class="card lecture" style="--k:var(--pink)"><small>Lecture</small>
-          <b>Generative Modeling</b>
-          <span>How machines generate images: autoencoders, variational autoencoders, GANs and autoregressive models.</span>
-          <p class="lecture-links"><a href="day08/deck.html">Slides</a><a href="day08/lecture-notes.html">Notes</a><a href="day08-part2/deck.html">Part B slides</a></p>
-        </div>
-      </div>
-    </section>
-    <section class="day" id="day-10" style="--c:var(--cyan)">
-      <h3>Day 10</h3>
-      <div class="cards">
-        <a class="card" href="https://forms.gle/EP9wFUVDqFJkkbdx8" style="--k:var(--pink)"><small>Opening question</small><b>Day 10 Reflection</b>
-          <span>Answer at the start of class. You get the point for answering, not for a right answer, and it counts toward your daily response grade.</span></a>
-      </div>
-    </section>
-    <section class="day" id="day-11" style="--c:var(--amber)">
-      <h3>Day 11</h3>
-      <div class="cards">
-        <div class="card lecture" style="--k:var(--cyan)"><small>Lecture</small>
-          <b>Generative art</b>
-          <span>What if a machine could dream? Generative art, Refik Anadol's AI artworks, and how a generative system goes from archive to artwork.</span>
-          <p class="lecture-links"><a href="day11/deck.html">Slides</a><a href="day11/lecture-notes.html">Notes</a></p>
-        </div>
-        <div class="card lecture" style="--k:var(--pink)"><small>Lecture</small>
-          <b>Part 2 &middot; Embodied AI</b>
-          <span>Navigation, locomotion and the one we still cannot do. Where robot data comes from and why every source falls short, the three levels from goals to forces, and why metamerism is the reason a crude simulator works at all. Adapted from a talk by Jitendra Malik.</span>
-          <p class="lecture-links"><a href="day11-part2/deck.html">Part 2 slides</a></p>
-        </div>
-        <div class="card lecture" style="--k:var(--amber)"><small>In-class lab</small><b>Generative System Lab</b>
-          <span>Build a small generative art pipeline on Fashion-MNIST: curate, represent, generate, render and evaluate, using the models from our labs. Runs on a CPU. When you finish, submit your Colab link.</span>
-          <p class="lecture-links"><a href="https://colab.research.google.com/github/delamarifer/human-machine-perception/blob/main/day11/workbook/generative-system-lab.ipynb">Open in Colab</a><a href="https://forms.gle/RksDxmwqRrxhoKpf9">Submit</a></p>
-        </div>
-      </div>
-    </section>
-  </section>
 
-  <section id="homework" style="--c:var(--amber)">
-    <h2>Homework submission</h2>
-    <div class="cards" id="submissions">
-      <a class="card" href="https://docs.google.com/forms/d/e/1FAIpQLSdxf8CBPdRtlhMLtgEj30jcM8wq0rj4I6iI-Tb5_eRZkK_LZg/viewform" style="--k:var(--violet)"><small>Submit</small><b>Assignment 2: Peer review of two final projects</b>
-        <span>Pick two projects by other teams from the final presentations. For each one: the main problem, their solution, where it could go next, something new you learned, and a question for the team.</span></a>
-      <a class="card" href="https://forms.gle/RksDxmwqRrxhoKpf9" style="--k:var(--amber)"><small>Submit</small><b>Day 11 lab: Generative System Lab</b>
-        <span>Submit your Colab link for the generative art lab</span></a>
-      <a class="card" data-due="2026-11-04T14:00:00+02:00" href="https://forms.gle/hLbcz7Yy3YNtnBws6" style="--k:var(--amber)"><small>Due</small><b>Day 2 homework</b>
-        <span>A simple vision system · Due Wed, Nov 4, 2pm</span></a>
-      <a class="card" data-due="2026-11-05T14:00:00+02:00" href="https://forms.gle/urPSQVh27DA7rAC37" style="--k:var(--sky)"><small>Due</small><b>Day 3 homework</b>
-        <span>Both Day 3 labs: metamers and image filtering · Due Thu, Nov 5, 2pm</span></a>
-      <div class="card lecture" data-due="2026-11-13T14:00:00+02:00" style="--k:var(--violet)"><small>Due</small><b>Assignment 1</b>
-        <span>Are vision models still blind? Test newer models on BlindTest. Submit your Colab link and one-page PDF · Due Fri, Nov 13, 2pm</span>
-        <p class="lecture-links"><a href="assignment1.html">Instructions</a><a href="https://forms.gle/F3TMeyRNz44h1rDA8">Submit</a></p></div>
-      <a class="card" data-due="2026-11-06T14:00:00+02:00" href="https://forms.gle/aKgRbKQpWfukdbG78" style="--k:var(--sky)"><small>Due</small><b>Day 4 lab</b>
-        <span>Submit your Colab link for the handwritten digits lab · Due Fri, Nov 6, 2pm</span></a>
-      <a class="card" data-due="2026-11-10T14:00:00+02:00" href="https://docs.google.com/forms/d/e/1FAIpQLSfgjJJzLQf1eEjQe6r2k5P2TNp-1dWN1zzCzBLme3vfOme5eg/viewform" style="--k:var(--violet)"><small>Due</small><b>Day 6 homework</b>
-        <span>Dataset Worksheet: submit the link to your copy · Due Tue, Nov 10, 2pm</span></a>
-    </div>
-  </section>
-
-  <section id="project" style="--c:var(--pink)">
-    <h2>Project</h2>
-    <div class="cards">
-      <div class="card lecture" style="--k:var(--cyan)"><small>Final project</small><b>Presentations and write-ups</b>
-        <span>Thursday and Friday, 2 to 4 pm. The ideas to cover, the write-up, and an example of each format.</span>
-        <p class="lecture-links"><a href="presentations/deck.html">Slides</a><a href="presentations/notes.html">Notes</a></p></div>
-      <a class="card" href="https://docs.google.com/forms/d/e/1FAIpQLSdmsW9G8xVku244fgk12IUlv_Q41IL8bkywNaW5uPtE29PXaA/viewform" style="--k:var(--pink)"><small>Submit</small><b>Final project submission</b>
-        <span>Submit your final project through this form.</span></a>
-      <a class="card" href="https://docs.google.com/document/d/1uivAlhELC4kQgEJz5DlX36Vvx4gCwKj4pAYVWrP9Of4/edit" style="--k:var(--pink)"><small>Sign up</small><b>Presentation slots</b>
-        <span>Thursday and Friday, 2 to 4 pm, 20-minute slots. One slot per team.</span></a>
-      <a class="card" href="https://docs.google.com/forms/d/e/1FAIpQLSeKfRjfohCkwKyCzKejCxdWIn8ltVMpynYcA9qozk48matJrA/viewform" style="--k:var(--pink)"><small>Due</small><b>Detailed project proposal</b>
-        <span>Due Friday 13 November, end of day. Put the doc in your feedback folder, then submit its link, one per group.</span></a>
-      <a class="card" href="templates.html" style="--k:var(--violet)"><small>Final project</small><b>Project templates</b>
-        <span>Idea, proposal, presentation and write-up, for a built demo or an experiment.</span></a>
-    </div>
+  <!-- 5. Schedule preview -->
+  <section class="section" id="days" aria-labelledby="sched-h">
+    <div class="section-head"><h2 id="sched-h">Course Sequence</h2><a class="more" href="schedule.html">Full schedule with all materials →</a></div>
+    <ol class="preview" data-render="preview"></ol>
   </section>
 
 </main>
-</div>
-</div>
-<script>
-  const nav = document.querySelector('.sidenav');
-  const links = [];
-  const tabs = [['course', 'Course'], ['announcements', 'Announcements'], ['days', 'Days'], ['homework', 'Homework submission'], ['project', 'Project']];
 
-  function addLink(section, label, sub) {
-    const link = document.createElement('a');
-    link.href = '#' + section.id;
-    link.textContent = label;
-    if (sub) link.className = 'sub';
-    link.style.setProperty('--k', section.style.getPropertyValue('--c') || 'var(--cyan)');
-    nav.appendChild(link);
-    links.push([section, link]);
-  }
-
-  tabs.forEach(([id, label]) => {
-    const section = document.getElementById(id);
-    addLink(section, label, false);
-    if (id !== 'days') return;
-    section.querySelectorAll(':scope > .day').forEach(day => {
-      addLink(day, day.querySelector('h3').textContent.trim(), true);
-    });
-  });
-
-  function reveal(link) {
-    if (link.offsetTop < nav.scrollTop) nav.scrollTop = link.offsetTop;
-    else if (link.offsetTop + link.offsetHeight > nav.scrollTop + nav.clientHeight)
-      nav.scrollTop = link.offsetTop + link.offsetHeight - nav.clientHeight;
-    if (link.offsetLeft < nav.scrollLeft) nav.scrollLeft = link.offsetLeft;
-    else if (link.offsetLeft + link.offsetWidth > nav.scrollLeft + nav.clientWidth)
-      nav.scrollLeft = link.offsetLeft + link.offsetWidth - nav.clientWidth;
-  }
-
-  function mark(current) {
-    links.forEach(([section, link]) => {
-      const on = section === current;
-      if (on) link.setAttribute('aria-current', 'true');
-      else link.removeAttribute('aria-current');
-      if (on) reveal(link);
-    });
-  }
-
-  function currentFromScroll() {
-    const line = Math.min(160, window.innerHeight * 0.3);
-    let current = links[0][0];
-    for (const [section] of links) {
-      if (section.getBoundingClientRect().top - 8 <= line) current = section;
-    }
-    return current;
-  }
-
-  let ticking = false;
-  document.addEventListener('scroll', () => {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => {
-      ticking = false;
-      mark(currentFromScroll());
-    });
-  }, { passive: true });
-
-  window.addEventListener('hashchange', () => {
-    const found = links.find(([section]) => section.id === location.hash.slice(1));
-    if (found) mark(found[0]);
-  });
-
-  const fromHash = links.find(([section]) => section.id === location.hash.slice(1));
-  mark(fromHash ? fromHash[0] : currentFromScroll());
-
-  function orderSubmissions(now) {
-    const board = document.getElementById('submissions');
-    if (!board) return;
-    const cards = [...board.querySelectorAll('.card[data-due]')];
-    const stamp = now.getTime();
-    cards.forEach(card => {
-      const past = new Date(card.dataset.due).getTime() < stamp;
-      card.classList.toggle('past', past);
-      const label = card.querySelector('small');
-      if (label) label.textContent = past ? 'Passed' : 'Due';
-    });
-    const byDue = (a, b) => new Date(a.dataset.due) - new Date(b.dataset.due);
-    const pending = cards.filter(card => !card.classList.contains('past')).sort(byDue);
-    const passed = cards.filter(card => card.classList.contains('past')).sort(byDue);
-    pending.forEach(card => board.appendChild(card));
-    let marker = board.querySelector('.passed-label');
-    if (!passed.length) {
-      if (marker) marker.remove();
-      return;
-    }
-    if (!marker) {
-      marker = document.createElement('p');
-      marker.className = 'passed-label';
-      marker.textContent = 'Passed';
-    }
-    board.appendChild(marker);
-    passed.forEach(card => board.appendChild(card));
-  }
-  orderSubmissions(new Date());
-</script>
+<footer class="site-foot"><div class="wrap">
+  <p>Visual Perception · Fernanda de la Torre · Shreya Pandit</p>
+  <p><a href="https://discord.gg/2kN726ZZ6">Class Discord</a> · <a href="https://forms.gle/Js3vcF7hgkhXQELt5">Anonymous feedback</a></p>
+</div></footer>
+<noscript><p class="wrap">This page needs JavaScript to list the course materials. The <a href="syllabus.html">syllabus</a> and <a href="readings.html">readings</a> work without it.</p></noscript>
+<script>document.addEventListener('DOMContentLoaded', () => Site.render());</script>
 </body>
 </html>

@@ -2,20 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Day 1 Homework · Computer Vision</title>
+<title>Day 1 Homework · Visual Perception</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="light">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;family=Inter:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <style>
   /* Same look as syllabus.html and readings.html. */
-  :root{
-    --bg:#0a0d16; --surface:#121827; --surface2:#171f33; --line:#25304a;
-    --text:#e9edf6; --mute:#9aa5bd;
-    --cyan:#5eead4; --violet:#a78bfa; --amber:#fbbf24; --pink:#f472b6; --sky:#60a5fa;
-  }
-  *{ box-sizing:border-box; }
+    *{ box-sizing:border-box; }
   body{ margin:0; background:var(--bg); color:var(--text);
     font:16.5px/1.6 Inter, system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif; }
   a{ color:var(--cyan); }
@@ -23,7 +18,7 @@
   .spine{ position:fixed; left:0; top:0; bottom:0; width:44px; border-right:1px solid var(--line);
     display:flex; align-items:center; justify-content:center; z-index:2; background:var(--bg); }
   .spine span{ writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;
-    font:500 .85rem/1 'Space Grotesk', sans-serif; letter-spacing:.08em; color:var(--mute); }
+    font:500 .85rem/1 var(--font-sans); letter-spacing:.08em; color:var(--mute); }
   .spine b{ color:var(--text); font-weight:500; }
   .page{ margin-left:44px; }
 
@@ -34,13 +29,13 @@
   .back a{ color:var(--mute); text-decoration:none; margin-right:1.2em; }
   .back a:hover{ color:var(--text); }
   .kicker{ margin:0 0 .4em; font:600 .8rem/1 Inter, sans-serif; letter-spacing:.2em; text-transform:uppercase; color:var(--sky); }
-  h1{ margin:0 0 .35em; font:700 clamp(2.4rem, 7vw, 4.4rem)/.95 'Space Grotesk', sans-serif; text-transform:uppercase;
+  h1{ margin:0 0 .35em; font:700 clamp(2.4rem, 7vw, 4.4rem)/.95 var(--font-sans); text-transform:uppercase;
     background:linear-gradient(90deg, #fff 0%, #bfdbfe 50%, #c7fff4 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  .lead{ max-width:44rem; color:#d3d9e6; font-size:1.05rem; margin:0 0 .7em; }
+  .lead{ max-width:44rem; color:var(--ink-2); font-size:1.05rem; margin:0 0 .7em; }
 
   main{ max-width:64rem; margin:0 auto; padding:0 24px 12vh; }
   section{ padding-top:3em; }
-  h2{ margin:0 0 .8em; font:700 1.5rem/1.2 'Space Grotesk', sans-serif; display:flex; align-items:center; gap:.55em; }
+  h2{ margin:0 0 .8em; font:700 1.5rem/1.2 var(--font-sans); display:flex; align-items:center; gap:.55em; }
   h2::before{ content:''; width:10px; height:10px; border-radius:50%; background:var(--c); box-shadow:0 0 12px 2px var(--c); flex:none; }
   p{ margin:0 0 .6em; }
 
@@ -50,7 +45,7 @@
   a.card::before{ content:''; position:absolute; inset:0 0 auto 0; height:3px; background:var(--k); box-shadow:0 0 18px 2px var(--k); }
   a.card:hover{ border-color:var(--k); box-shadow:0 0 26px color-mix(in srgb, var(--k) 30%, transparent); transform:translateY(-2px); }
   a.card small{ display:block; font-size:.72rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--k); margin-bottom:.4em; }
-  a.card b{ display:block; font:700 1.2rem/1.3 'Space Grotesk', sans-serif; margin-bottom:.3em; }
+  a.card b{ display:block; font:700 1.2rem/1.3 var(--font-sans); margin-bottom:.3em; }
   a.card span{ color:var(--mute); font-size:.95rem; }
   a.card .badge{ display:block; margin-top:12px; height:20px; }
 
@@ -69,21 +64,25 @@
     main{ padding:0 16px 10vh; }
   }
 </style>
+<link rel="stylesheet" href="site/site.css">
+<script src="site/course.js" defer></script>
+<script src="site/components.js" defer></script>
 </head>
 <body>
-<div class="spine" aria-hidden="true"><span><b>Computer Vision</b> &nbsp;/&nbsp; Day 1 homework</span></div>
+<a class="skip-link" href="#main">Skip to content</a>
+<div data-render="nav" data-active="schedule" data-base=""></div>
 <div class="page">
 
 <header class="hero">
   <div class="hero-in">
-    <p class="back"><a href="index.html">← Home</a><a href="readings.html">Readings</a></p>
+    <p class="back"><a href="readings.html">Readings</a></p>
     <p class="kicker">Day 1</p>
     <h1>Homework</h1>
     <p class="lead">This is the work that goes with the opening of the course.</p>
   </div>
 </header>
 
-<main>
+<main id="main">
 
   <section style="--c:var(--pink)">
     <h2>Survey</h2>
@@ -119,5 +118,6 @@
 
 </main>
 </div>
+<script>document.addEventListener('DOMContentLoaded', () => Site.render());</script>
 </body>
 </html>
